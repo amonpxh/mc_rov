@@ -1,5 +1,9 @@
 def migrate(cr, version):
-    """Renombra columnas de stock_lot agregando prefijo mc_ para evitar colisiones en upgrades."""
+    """Copia datos desde columnas antiguas hacia las mc_* ya creadas por el ORM, luego elimina las antiguas.
+
+    El ORM crea las columnas mc_* vacías antes de ejecutar este script, por lo que no se puede
+    usar RENAME (la columna destino ya existe). En cambio se copian los datos y se elimina la vieja.
+    """
     renames = [
         ('estado_comercial', 'mc_estado_comercial'),
         ('estado_operativo', 'mc_estado_operativo'),
@@ -56,4 +60,5 @@ def migrate(cr, version):
             WHERE table_name = 'stock_lot' AND column_name = %s
         """, (old,))
         if cr.fetchone():
-            cr.execute(f'ALTER TABLE stock_lot RENAME COLUMN "{old}" TO "{new}"')
+            cr.execute(f'UPDATE stock_lot SET "{new}" = "{old}"')
+            cr.execute(f'ALTER TABLE stock_lot DROP COLUMN "{old}"')
