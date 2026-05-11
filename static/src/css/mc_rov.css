@@ -1,5 +1,5 @@
 /* Campos editables más visibles en formularios Odoo */
-.o_form_view .o_field_widget input:not([type="checkbox"]),
+.o_form_view .o_field_widget input:not([type="checkbox"]):not([type="radio"]),
 .o_form_view .o_field_widget textarea,
 .o_form_view .o_field_widget select {
     border: 1px solid #c0c0c0 !important;
