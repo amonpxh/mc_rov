@@ -82,6 +82,46 @@ mc_rov/
 - [ ] **Grupos de seguridad**: Los accesos actuales son sin restricción de grupo (público) — definir grupos propios si se necesita control de acceso por rol
 - [ ] **Menú principal propio**: El módulo usa el menú de Reparaciones como padre; podría necesitar un menú de aplicación propio si Marine Connection quiere separarlo
 
+## Instrucciones permanentes para Claude
+
+Estas reglas aplican en **todas las sesiones** de trabajo en este proyecto:
+
+### 1. Actualizar estado al final de cada sesión
+Antes de terminar una sesión, actualizar la sección `## Estado actual` de este archivo:
+- Mover a "Completado" todo lo que se haya implementado
+- Agregar nuevos pendientes si surgieron durante la sesión
+- Mantener los pendientes ordenados por prioridad
+
+### 2. Comentarios en el código
+Todo el código debe incluir comentarios que expliquen el **por qué**, no el qué:
+- Cada modelo: docstring de clase con su propósito
+- Campos no obvios: comentario inline
+- Métodos compute y onchange: comentario explicando la lógica
+- Herencias: comentario indicando qué se está extendiendo y por qué
+
+### 3. Commits descriptivos (Conventional Commits)
+Usar siempre el formato: `tipo: descripción en español`
+
+| Tipo | Cuándo usarlo |
+|------|--------------|
+| `feat:` | Nueva funcionalidad |
+| `fix:` | Corrección de bug |
+| `docs:` | Cambios solo en documentación |
+| `refactor:` | Reestructuración sin cambio de comportamiento |
+| `style:` | Cambios de formato/CSS |
+| `data:` | Cambios en datos maestros (XML) |
+| `chore:` | Tareas de mantenimiento (dependencias, config) |
+
+Ejemplos correctos:
+```
+feat: agrega campo fecha_completada a repair.order
+fix: ultima_mantencion usa schedule_date en vez de create_date
+docs: actualiza estado actual en CLAUDE.md
+refactor: extrae lógica de compute a método privado
+```
+
+---
+
 ## Flujo de trabajo con git
 
 Estrategia: **GitHub Flow simplificado** (desarrollador único, despliegue directo a producción).
