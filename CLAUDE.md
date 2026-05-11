@@ -170,6 +170,8 @@ git branch -d feature/mi-funcion
 - El dominio `[('componente_id', '=', componente_id)]` en `subtipo_id` dentro del one2many editable funciona correctamente desde Odoo 17+.
 - Los campos de ficha técnica en `stock.lot` reemplazaron los `x_studio_*` de Studio. Los campos Studio siguen en la BD como columnas huérfanas — se pueden eliminar desde Studio o vía SQL cuando se confirme que no hacen falta.
 - Ruta del módulo en producción: `/opt/odoo/custom-addons/mc_rov`
+- Log de Odoo en producción: `/var/log/odoo/odoo-server.log`
+- Configuración de Odoo: `/etc/odoo/odoo.conf`
 - Para actualizar el módulo en producción:
   ```bash
   cd /opt/odoo/custom-addons/mc_rov && git pull origin main
