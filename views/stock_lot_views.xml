@@ -6,23 +6,201 @@
         <field name="inherit_id" ref="stock.view_production_lot_form"/>
         <field name="arch" type="xml">
 
-            <!-- Botón inteligente de reparaciones -->
-            <div name="button_box" position="inside">
-                <button name="action_ver_reparaciones"
-                        type="object"
-                        class="oe_stat_button"
-                        icon="fa-wrench">
-                    <field name="repair_count" widget="statinfo" string="Reparaciones"/>
-                </button>
-            </div>
-
-            <!-- Marca si el lote corresponde a un equipo ROV -->
+            <!-- Campos de identificación y estado ROV -->
             <field name="ref" position="after">
                 <field name="es_un_rov"/>
-                <field name="ultima_mantencion"
-                       readonly="1"
-                       invisible="not es_un_rov"/>
+                <field name="ultima_mantencion" readonly="1" invisible="not es_un_rov"/>
+                <field name="estado_comercial"
+                       invisible="not es_un_rov"
+                       help="Indica en qué estado se encuentra el equipo (ej. el equipo está siendo arrendado)."/>
+                <field name="estado_operativo"
+                       invisible="not es_un_rov"
+                       help="Indica si el equipo está siendo reparado, en mantención o está operativo."/>
             </field>
+
+            <!-- Pestañas de ficha técnica ROV (ocultas si no es ROV) -->
+            <xpath expr="//group[@name='main_group']" position="after">
+                <notebook name="notebook_ficha_rov">
+
+                    <page string="Especificaciones" name="page_especificaciones" invisible="not es_un_rov">
+                        <group name="group_especificaciones">
+                            <group name="group_especificaciones_left">
+                                <field name="chasis" widget="radio" options="{&quot;horizontal&quot;:true}"/>
+                                <field name="modelo_motores" widget="selection" placeholder="Seleccione modelo de motor"/>
+                                <field name="n_motores"/>
+                                <field name="posicion_motores" widget="radio" options="{&quot;horizontal&quot;:true}"/>
+                                <label for="peso_consola" string="Peso Consola"/>
+                                <div class="o_row">
+                                    <field name="peso_consola" nolabel="1" class="o_field_number" style="max-width: 80px;"/>
+                                    <span>kg</span>
+                                </div>
+                                <label for="peso_rov" string="Peso ROV"/>
+                                <div class="o_row">
+                                    <field name="peso_rov" nolabel="1" class="o_field_number" style="max-width: 80px;"/>
+                                    <span>kg</span>
+                                </div>
+                                <field name="sensor_presion" widget="radio" options="{&quot;horizontal&quot;:true}"/>
+                            </group>
+                            <group name="group_especificaciones_right">
+                                <field name="tarjeta_comunicacion_rov" widget="radio" options="{&quot;horizontal&quot;:true}"/>
+                                <field name="tarjeta_comunicacion_consola" widget="radio" options="{&quot;size&quot;:&quot;md&quot;,&quot;horizontal&quot;:true}"/>
+                                <field name="version_qground" placeholder="0.0.0"/>
+                                <field name="controlador_vuelo" widget="radio" options="{&quot;horizontal&quot;:true}"/>
+                                <field name="version_px4" placeholder="0.0.0"/>
+                                <field name="version_navigator" placeholder="0.0.0"/>
+                                <field name="version_ardusub" placeholder="0.0.0"/>
+                            </group>
+                        </group>
+                    </page>
+
+                    <page string="Periféricos" name="page_perifericos" invisible="not es_un_rov">
+                        <group name="group_perifericos">
+                            <group name="group_perifericos_left">
+                                <field name="salida_brazo"/>
+                                <field name="brazo"/>
+                            </group>
+                            <group name="group_perifericos_right">
+                                <field name="cantidad_luces"/>
+                                <field name="dispositivos_extra"/>
+                            </group>
+                        </group>
+                    </page>
+
+                    <page string="Umbilical" name="page_umbilical" invisible="not es_un_rov">
+                        <separator string="Especificaciones Umbilical"/>
+                        <group name="group_umbilical">
+                            <group name="group_umbilical_left">
+                                <field name="n_serie_umbilical"/>
+                                <label for="longitud" string="Longitud"/>
+                                <div class="o_row">
+                                    <field name="longitud" nolabel="1" class="o_field_number" style="max-width: 80px;"/>
+                                    <span>m</span>
+                                </div>
+                            </group>
+                            <group name="group_umbilical_right">
+                                <label for="diametro" string="Diámetro"/>
+                                <div class="o_row">
+                                    <field name="diametro" nolabel="1" class="o_field_number" style="max-width: 80px;"/>
+                                    <span>mm</span>
+                                </div>
+                                <label for="peso_umbilical" string="Peso Umbilical"/>
+                                <div class="o_row">
+                                    <field name="peso_umbilical" nolabel="1" class="o_field_number" style="max-width: 80px;"/>
+                                    <span>kg</span>
+                                </div>
+                            </group>
+                        </group>
+                        <separator string="PRUEBA DE RENDIMIENTO"/>
+                        <group name="group_rendimiento">
+                            <group name="group_rendimiento_left">
+                                <field name="modelo_fuente"/>
+                                <field name="fuente_energia" widget="radio" options="{&quot;horizontal&quot;:true}"/>
+                                <label for="tension_salida" string="Tensión de salida"/>
+                                <div class="o_row">
+                                    <field name="tension_salida" nolabel="1" class="o_field_number" style="max-width: 80px;"/>
+                                    <span>V</span>
+                                </div>
+                            </group>
+                            <group name="group_rendimiento_right">
+                                <field name="consumo_corriente" readonly="1" force_save="1"/>
+                                <label for="en_reposo" string="En reposo"/>
+                                <div class="o_row">
+                                    <field name="en_reposo" nolabel="1" class="o_field_number" style="max-width: 80px;"/>
+                                    <span>kWh</span>
+                                </div>
+                                <label for="esfuerzo" string="Esfuerzo"/>
+                                <div class="o_row">
+                                    <field name="esfuerzo" nolabel="1" class="o_field_number" style="max-width: 80px;"/>
+                                    <span>kWh</span>
+                                </div>
+                            </group>
+                        </group>
+                        <separator string="PARÁMETROS DE TRABAJO"/>
+                        <group name="group_parametros">
+                            <group name="group_parametros_left">
+                                <label for="limitacion_pilot_gain" string="Limitación pilot gain"/>
+                                <div class="o_row">
+                                    <field name="limitacion_pilot_gain" nolabel="1" class="o_field_number" style="max-width: 80px;"/>
+                                    <span>%</span>
+                                </div>
+                                <label for="ganancia_luz" string="Ganancia Luz"/>
+                                <div class="o_row">
+                                    <field name="ganancia_luz" nolabel="1" class="o_field_number" style="max-width: 80px;"/>
+                                    <span>%</span>
+                                </div>
+                                <label for="tiempo_prueba_lab" string="Tiempo de Prueba"/>
+                                <div class="o_row">
+                                    <field name="tiempo_prueba_lab" nolabel="1" class="o_field_number" style="max-width: 80px;"/>
+                                    <span>h</span>
+                                </div>
+                                <field name="prueba_leak"/>
+                            </group>
+                            <group name="group_parametros_right">
+                                <field name="ancho_banda" readonly="1" force_save="1"/>
+                                <label for="subida" string="Subida"/>
+                                <div class="o_row">
+                                    <field name="subida" nolabel="1" class="o_field_number" style="max-width: 80px;"/>
+                                    <span>Mbps</span>
+                                </div>
+                                <label for="bajada" string="Bajada"/>
+                                <div class="o_row">
+                                    <field name="bajada" nolabel="1" class="o_field_number" style="max-width: 80px;"/>
+                                    <span>Mbps</span>
+                                </div>
+                                <label for="temperatura_interior_lab" string="Temperatura interior"/>
+                                <div class="o_row">
+                                    <field name="temperatura_interior_lab" nolabel="1" class="o_field_number" style="max-width: 80px;"/>
+                                    <span>°C</span>
+                                </div>
+                                <label for="temperatura_exterior_lab" string="Temperatura exterior"/>
+                                <div class="o_row">
+                                    <field name="temperatura_exterior_lab" nolabel="1" class="o_field_number" style="max-width: 80px;"/>
+                                    <span>°C</span>
+                                </div>
+                            </group>
+                        </group>
+                    </page>
+
+                    <page string="Prueba en Terreno" name="page_prueba_terreno" invisible="not es_un_rov">
+                        <group name="group_terreno">
+                            <group name="group_terreno_left">
+                                <field name="fecha_prueba"/>
+                                <field name="lugar"/>
+                                <label for="profundidad" string="Profundidad"/>
+                                <div class="o_row">
+                                    <field name="profundidad" nolabel="1" class="o_field_number" style="max-width: 80px;"/>
+                                    <span>m</span>
+                                </div>
+                                <label for="velocidad_corriente" string="Velocidad de la corriente"/>
+                                <div class="o_row">
+                                    <field name="velocidad_corriente" nolabel="1" class="o_field_number" style="max-width: 80px;"/>
+                                    <span>Knots</span>
+                                </div>
+                                <field name="alimentacion" widget="radio" options="{&quot;horizontal&quot;:true}"/>
+                            </group>
+                            <group name="group_terreno_right">
+                                <label for="tiempo_prueba_terreno" string="Tiempo de prueba"/>
+                                <div class="o_row">
+                                    <field name="tiempo_prueba_terreno" nolabel="1" class="o_field_number" style="max-width: 80px;"/>
+                                    <span>h</span>
+                                </div>
+                                <label for="temperatura_interior_terreno" string="Temperatura interior (Prueba)"/>
+                                <div class="o_row">
+                                    <field name="temperatura_interior_terreno" nolabel="1" class="o_field_number" style="max-width: 80px;"/>
+                                    <span>°C</span>
+                                </div>
+                                <label for="temperatura_exterior_terreno" string="Temperatura exterior (Prueba)"/>
+                                <div class="o_row">
+                                    <field name="temperatura_exterior_terreno" nolabel="1" class="o_field_number" style="max-width: 80px;"/>
+                                    <span>°C</span>
+                                </div>
+                                <field name="observacion"/>
+                            </group>
+                        </group>
+                    </page>
+
+                </notebook>
+            </xpath>
 
         </field>
     </record>
