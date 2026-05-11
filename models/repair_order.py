@@ -1,9 +1,17 @@
 from odoo import models, fields
 
+
 class RepairOrder(models.Model):
+    """Extensión de repair.order para gestión de ROVs.
+
+    Agrega campos específicos del flujo de reparación de Marine Connection:
+    tipo de intervención, ítems adicionales del sistema, registro de la falla
+    reportada por el cliente, detalle de trabajos realizados y resultado final.
+    """
+
     _inherit = 'repair.order'
 
-    # Tipo de intervención
+    # Clasifica la intervención para efectos de reportes y estadísticas
     tipo_intervencion = fields.Selection([
         ('diagnostico', 'Diagnóstico'),
         ('reparacion_correctiva', 'Reparación correctiva'),
@@ -11,19 +19,19 @@ class RepairOrder(models.Model):
         ('conversion', 'Conversión / Upgrade'),
     ], string='Tipo de intervención')
 
-    # Ítems del sistema
+    # Ítems adicionales del sistema ROV asociados a la orden (además del número de serie)
     item_2 = fields.Char(string='Ítem 2')
     item_3 = fields.Char(string='Ítem 3')
     item_4 = fields.Char(string='Ítem 4')
     item_5 = fields.Char(string='Ítem 5')
 
-    # Diagnóstico
+    # Descripción literal de la falla según el cliente, sin interpretación técnica
     falla_reportada = fields.Text(string='Falla reportada por cliente')
 
-    # Líneas de falla
+    # Detalle técnico de los trabajos ejecutados (ver mc.rov.linea.falla)
     linea_falla_ids = fields.One2many('mc.rov.linea.falla', 'repair_id', string='Trabajos realizados')
 
-    # Resultado
+    # Resultado de la intervención
     estado_final = fields.Selection([
         ('reparado', 'Reparado'),
         ('no_reparado', 'No reparado'),
@@ -41,6 +49,7 @@ class RepairOrder(models.Model):
     ], string='Causa raíz')
 
     garantia_reparacion = fields.Boolean(string='Garantía de reparación')
+    # Solo visible cuando garantia_reparacion está activo (controlado en la vista)
     fecha_garantia = fields.Date(string='Vencimiento garantía')
     fecha_entrega_real = fields.Date(string='Fecha de entrega real')
     observaciones_salida = fields.Text(string='Observaciones de salida')
