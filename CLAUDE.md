@@ -156,11 +156,11 @@ git branch -d feature/mi-funcion
 - [x] Botón duplicado de reparaciones eliminado (el módulo `repair` ya provee el suyo)
 - [x] Prefijo `mc_` en los 48 campos de ficha técnica y `mc_repair_count` en `stock.lot`; migración `19.0.1.2.0` aplicada y verificada en producción (48 columnas `mc_*` confirmadas en BD) — versión `19.0.1.2.0`
 - [x] Flujo de ramas GitHub Flow estrenado: primer `feature/` branch mergeado a `main` con PR flow completo
+- [x] Vista lista de `repair.order` con columnas `tipo_intervencion` y `estado_final` (antes de la columna estado)
 
 ### Pendiente
 - [ ] **XPaths frágiles en `stock_lot_views.xml`**: `//group[@name='main_group']` y `//field[@name='ref']` pueden romperse si Odoo cambia la estructura base del formulario en una versión futura.
 - [ ] **`ultima_mantencion`**: actualmente usa `create_date` de la orden; debería usar una fecha real de cierre (`schedule_date` u otro campo dedicado)
-- [ ] **Vista lista de `repair.order`**: heredar para añadir columnas `tipo_intervencion` y `estado_final`
 - [ ] **Grupos de seguridad**: los accesos actuales son sin grupo — definir roles si se requiere control por perfil
 - [ ] **Tests**: solo existen para `stock.lot` — faltan tests para `repair.order` y `mc.rov.componente`
 
@@ -171,6 +171,7 @@ git branch -d feature/mi-funcion
 - Los campos de ficha técnica en `stock.lot` reemplazaron los `x_studio_*` de Studio. Los campos Studio siguen en la BD como columnas huérfanas — se pueden eliminar desde Studio o vía SQL cuando se confirme que no hacen falta.
 - **Patrón de migración**: el ORM de Odoo crea las columnas nuevas **antes** de ejecutar el script `post-migrate.py`. Por eso las migraciones de renombrado deben usar `UPDATE SET nuevo = viejo` + `DROP COLUMN viejo`, no `RENAME COLUMN` (que falla porque la columna destino ya existe).
 - Ruta del módulo en producción: `/opt/odoo/custom-addons/mc_rov`
+- Base de datos de producción: `odoo_prod`
 - Log de Odoo en producción: `/var/log/odoo/odoo-server.log`
 - Configuración de Odoo: `/etc/odoo/odoo.conf`
 - Para actualizar el módulo en producción:
@@ -179,4 +180,7 @@ git branch -d feature/mi-funcion
   sudo -u odoo odoo -u mc_rov --stop-after-init --no-http --config /etc/odoo/odoo.conf
   sudo systemctl restart odoo
   ```
+- Para verificar que la actualización quedó OK:
+  1. `tail -20 /var/log/odoo/odoo-server.log` — sin líneas `ERROR`, registry cargado
+  2. En Odoo: navegar a la sección afectada y confirmar visualmente que funciona
 - Versión del módulo: `19.0.1.2.0`
