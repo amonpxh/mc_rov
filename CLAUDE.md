@@ -88,6 +88,19 @@ fix/Y                └──●──●─────────┘
 | Corrección | `fix/<nombre>` | `fix/ultima-mantencion-fecha-real` |
 | Refactor | `refactor/<nombre>` | `refactor/grupos-seguridad` |
 
+### Versionado del módulo
+
+El número de versión en `__manifest__.py` sigue el formato `19.0.X.Y.Z`:
+
+| Segmento | Cuándo subirlo |
+|----------|---------------|
+| `19.0` | Nunca — fijo a la versión de Odoo |
+| `X` | Cambio que rompe datos existentes (migración necesaria) |
+| `Y` | Nueva funcionalidad compatible hacia atrás |
+| `Z` | Bug fix o cambio menor |
+
+Ejemplo: `19.0.1.1.0` → se agregó una funcionalidad nueva sin romper nada.
+
 ### Formato de commits (Conventional Commits)
 
 `tipo: descripción corta en español`
@@ -131,6 +144,10 @@ git branch -d feature/mi-funcion
 - [x] Datos maestros: 8 componentes y ~40 subtipos predefinidos
 - [x] CSS personalizado para mejorar visibilidad de campos editables
 - [x] Flujo de trabajo con ramas (GitHub Flow) documentado y rama `develop` creada
+- [x] `.gitignore` completo (Python, Odoo, editores, sistema)
+- [x] `pre-commit` con `pylint-odoo` configurado (`.pre-commit-config.yaml`)
+- [x] GitHub Actions CI: lint automático en push a `main`/`develop` (`.github/workflows/lint.yml`)
+- [x] Convención de versionado semántico del módulo documentada
 
 ### Pendiente
 - [ ] **`x_studio_es_un_rov`**: `stock_lot_views.xml` usa este campo de Studio para ocultar `ultima_mantencion`. Puede fallar si no existe en la instancia — evaluar si definirlo en el módulo o eliminar la condición
