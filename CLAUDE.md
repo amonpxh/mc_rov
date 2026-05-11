@@ -169,5 +169,11 @@ git branch -d feature/mi-funcion
 - `ultima_mantencion` en `stock.lot` usa `create_date` de la última orden `done`. Cuando exista un campo de fecha real de cierre en `repair.order`, actualizar aquí.
 - El dominio `[('componente_id', '=', componente_id)]` en `subtipo_id` dentro del one2many editable funciona correctamente desde Odoo 17+.
 - Los campos de ficha técnica en `stock.lot` reemplazaron los `x_studio_*` de Studio. Los campos Studio siguen en la BD como columnas huérfanas — se pueden eliminar desde Studio o vía SQL cuando se confirme que no hacen falta.
-- Para actualizar el módulo en producción: `sudo -u odoo odoo -u mc_rov --stop-after-init --no-http --config /etc/odoo/odoo.conf`
+- Ruta del módulo en producción: `/opt/odoo/custom-addons/mc_rov`
+- Para actualizar el módulo en producción:
+  ```bash
+  cd /opt/odoo/custom-addons/mc_rov && git pull origin main
+  sudo -u odoo odoo -u mc_rov --stop-after-init --no-http --config /etc/odoo/odoo.conf
+  sudo systemctl restart odoo
+  ```
 - Versión del módulo: `19.0.1.2.0`
