@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem
+        id="menu_mc_rov_componentes"
+        name="Componentes ROV"
+        parent="repair.repair_menu_config"
+        action="action_mc_rov_componente"
+        sequence="20"/>
+</odoo>

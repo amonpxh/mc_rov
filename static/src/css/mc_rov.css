@@ -1,0 +1,19 @@
+/* Campos editables más visibles en formularios Odoo */
+.o_form_view .o_field_widget input,
+.o_form_view .o_field_widget textarea,
+.o_form_view .o_field_widget select {
+    border: 1px solid #c0c0c0 !important;
+    border-radius: 4px !important;
+    background-color: #fafafa !important;
+}
+
+.o_form_view .o_field_many2one .o_input,
+.o_form_view .o_field_many2many .o_input {
+    border: 1px solid #c0c0c0 !important;
+    border-radius: 4px !important;
+}
+
+.o_form_view .o_field_selection select {
+    border: 1px solid #c0c0c0 !important;
+    border-radius: 4px !important;
+}

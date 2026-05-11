@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Vista lista componentes -->
+    <record id="view_mc_rov_componente_list" model="ir.ui.view">
+        <field name="name">mc.rov.componente.list</field>
+        <field name="model">mc.rov.componente</field>
+        <field name="arch" type="xml">
+            <list string="Componentes ROV">
+                <field name="name"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Vista formulario componentes -->
+    <record id="view_mc_rov_componente_form" model="ir.ui.view">
+        <field name="name">mc.rov.componente.form</field>
+        <field name="model">mc.rov.componente</field>
+        <field name="arch" type="xml">
+            <form string="Componente ROV">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="active"/>
+                    </group>
+                    <notebook>
+                        <page string="Subtipos">
+                            <field name="subtipo_ids">
+                                <list editable="bottom">
+                                    <field name="name"/>
+                                    <field name="active"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Acción componentes -->
+    <record id="action_mc_rov_componente" model="ir.actions.act_window">
+        <field name="name">Componentes ROV</field>
+        <field name="res_model">mc.rov.componente</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

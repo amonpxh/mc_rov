@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Componentes -->
+    <record id="comp_motor" model="mc.rov.componente">
+        <field name="name">Motor</field>
+    </record>
+    <record id="comp_umbilical" model="mc.rov.componente">
+        <field name="name">Umbilical</field>
+    </record>
+    <record id="comp_electronica" model="mc.rov.componente">
+        <field name="name">Electrónica / Software</field>
+    </record>
+    <record id="comp_estructura" model="mc.rov.componente">
+        <field name="name">Estructura / Chasis</field>
+    </record>
+    <record id="comp_consola" model="mc.rov.componente">
+        <field name="name">Consola</field>
+    </record>
+    <record id="comp_camara" model="mc.rov.componente">
+        <field name="name">Cámara</field>
+    </record>
+    <record id="comp_sensor" model="mc.rov.componente">
+        <field name="name">Sensor</field>
+    </record>
+    <record id="comp_otro" model="mc.rov.componente">
+        <field name="name">Otro</field>
+    </record>
+
+    <!-- Subtipos Motor -->
+    <record id="sub_motor_rotor" model="mc.rov.subtipo">
+        <field name="name">Rotor</field>
+        <field name="componente_id" ref="comp_motor"/>
+    </record>
+    <record id="sub_motor_bobina" model="mc.rov.subtipo">
+        <field name="name">Bobina / Núcleo</field>
+        <field name="componente_id" ref="comp_motor"/>
+    </record>
+    <record id="sub_motor_helice" model="mc.rov.subtipo">
+        <field name="name">Hélice</field>
+        <field name="componente_id" ref="comp_motor"/>
+    </record>
+    <record id="sub_motor_tobera" model="mc.rov.subtipo">
+        <field name="name">Tobera</field>
+        <field name="componente_id" ref="comp_motor"/>
+    </record>
+    <record id="sub_motor_buje" model="mc.rov.subtipo">
+        <field name="name">Buje</field>
+        <field name="componente_id" ref="comp_motor"/>
+    </record>
+    <record id="sub_motor_esc" model="mc.rov.subtipo">
+        <field name="name">ESC</field>
+        <field name="componente_id" ref="comp_motor"/>
+    </record>
+    <record id="sub_motor_cable" model="mc.rov.subtipo">
+        <field name="name">Cable de motor</field>
+        <field name="componente_id" ref="comp_motor"/>
+    </record>
+    <record id="sub_motor_completo" model="mc.rov.subtipo">
+        <field name="name">Motor completo</field>
+        <field name="componente_id" ref="comp_motor"/>
+    </record>
+
+    <!-- Subtipos Umbilical -->
+    <record id="sub_umb_conector_sub" model="mc.rov.subtipo">
+        <field name="name">Conector submarino</field>
+        <field name="componente_id" ref="comp_umbilical"/>
+    </record>
+    <record id="sub_umb_conector_vol" model="mc.rov.subtipo">
+        <field name="name">Conector volante</field>
+        <field name="componente_id" ref="comp_umbilical"/>
+    </record>
+    <record id="sub_umb_mufa" model="mc.rov.subtipo">
+        <field name="name">Mufa</field>
+        <field name="componente_id" ref="comp_umbilical"/>
+    </record>
+    <record id="sub_umb_cable" model="mc.rov.subtipo">
+        <field name="name">Cable (corte/piquete)</field>
+        <field name="componente_id" ref="comp_umbilical"/>
+    </record>
+    <record id="sub_umb_aislacion" model="mc.rov.subtipo">
+        <field name="name">Aislación</field>
+        <field name="componente_id" ref="comp_umbilical"/>
+    </record>
+    <record id="sub_umb_neutrik" model="mc.rov.subtipo">
+        <field name="name">Neutrik</field>
+        <field name="componente_id" ref="comp_umbilical"/>
+    </record>
+
+    <!-- Subtipos Electrónica -->
+    <record id="sub_elec_microsd" model="mc.rov.subtipo">
+        <field name="name">Micro SD</field>
+        <field name="componente_id" ref="comp_electronica"/>
+    </record>
+    <record id="sub_elec_fuente" model="mc.rov.subtipo">
+        <field name="name">Fuente de poder</field>
+        <field name="componente_id" ref="comp_electronica"/>
+    </record>
+    <record id="sub_elec_esc" model="mc.rov.subtipo">
+        <field name="name">ESC electrónico</field>
+        <field name="componente_id" ref="comp_electronica"/>
+    </record>
+    <record id="sub_elec_tarjeta" model="mc.rov.subtipo">
+        <field name="name">Tarjeta de comunicación</field>
+        <field name="componente_id" ref="comp_electronica"/>
+    </record>
+    <record id="sub_elec_raspberry" model="mc.rov.subtipo">
+        <field name="name">Raspberry / NUC</field>
+        <field name="componente_id" ref="comp_electronica"/>
+    </record>
+    <record id="sub_elec_navigator" model="mc.rov.subtipo">
+        <field name="name">Navigator</field>
+        <field name="componente_id" ref="comp_electronica"/>
+    </record>
+    <record id="sub_elec_parametros" model="mc.rov.subtipo">
+        <field name="name">Parámetros / Configuración</field>
+        <field name="componente_id" ref="comp_electronica"/>
+    </record>
+    <record id="sub_elec_pcb" model="mc.rov.subtipo">
+        <field name="name">PCB / Placa</field>
+        <field name="componente_id" ref="comp_electronica"/>
+    </record>
+
+    <!-- Subtipos Estructura -->
+    <record id="sub_est_domo" model="mc.rov.subtipo">
+        <field name="name">Domo</field>
+        <field name="componente_id" ref="comp_estructura"/>
+    </record>
+    <record id="sub_est_chasis" model="mc.rov.subtipo">
+        <field name="name">Chasis</field>
+        <field name="componente_id" ref="comp_estructura"/>
+    </record>
+    <record id="sub_est_soldadura" model="mc.rov.subtipo">
+        <field name="name">Soldadura / Abrazadera</field>
+        <field name="componente_id" ref="comp_estructura"/>
+    </record>
+    <record id="sub_est_mangueras" model="mc.rov.subtipo">
+        <field name="name">Mangueras</field>
+        <field name="componente_id" ref="comp_estructura"/>
+    </record>
+    <record id="sub_est_penetrador" model="mc.rov.subtipo">
+        <field name="name">Penetrador</field>
+        <field name="componente_id" ref="comp_estructura"/>
+    </record>
+    <record id="sub_est_oring" model="mc.rov.subtipo">
+        <field name="name">O-ring / Sello</field>
+        <field name="componente_id" ref="comp_estructura"/>
+    </record>
+    <record id="sub_est_brazo" model="mc.rov.subtipo">
+        <field name="name">Brazo / Pinza</field>
+        <field name="componente_id" ref="comp_estructura"/>
+    </record>
+    <record id="sub_est_flotabilidad" model="mc.rov.subtipo">
+        <field name="name">Flotabilidad</field>
+        <field name="componente_id" ref="comp_estructura"/>
+    </record>
+
+    <!-- Subtipos Consola -->
+    <record id="sub_con_monitor" model="mc.rov.subtipo">
+        <field name="name">Monitor</field>
+        <field name="componente_id" ref="comp_consola"/>
+    </record>
+    <record id="sub_con_conector" model="mc.rov.subtipo">
+        <field name="name">Conector</field>
+        <field name="componente_id" ref="comp_consola"/>
+    </record>
+    <record id="sub_con_nuc" model="mc.rov.subtipo">
+        <field name="name">NUC / PC</field>
+        <field name="componente_id" ref="comp_consola"/>
+    </record>
+    <record id="sub_con_joystick" model="mc.rov.subtipo">
+        <field name="name">Joystick</field>
+        <field name="componente_id" ref="comp_consola"/>
+    </record>
+    <record id="sub_con_teclado" model="mc.rov.subtipo">
+        <field name="name">Teclado</field>
+        <field name="componente_id" ref="comp_consola"/>
+    </record>
+    <record id="sub_con_ventilador" model="mc.rov.subtipo">
+        <field name="name">Ventilador</field>
+        <field name="componente_id" ref="comp_consola"/>
+    </record>
+    <record id="sub_con_hdmi" model="mc.rov.subtipo">
+        <field name="name">Cable HDMI / Splitter</field>
+        <field name="componente_id" ref="comp_consola"/>
+    </record>
+
+    <!-- Subtipos Cámara -->
+    <record id="sub_cam_base" model="mc.rov.subtipo">
+        <field name="name">Base / Máscara</field>
+        <field name="componente_id" ref="comp_camara"/>
+    </record>
+    <record id="sub_cam_modulo" model="mc.rov.subtipo">
+        <field name="name">Módulo cámara</field>
+        <field name="componente_id" ref="comp_camara"/>
+    </record>
+    <record id="sub_cam_tilt" model="mc.rov.subtipo">
+        <field name="name">Tilt</field>
+        <field name="componente_id" ref="comp_camara"/>
+    </record>
+    <record id="sub_cam_domo" model="mc.rov.subtipo">
+        <field name="name">Domo / Lente</field>
+        <field name="componente_id" ref="comp_camara"/>
+    </record>
+    <record id="sub_cam_cable" model="mc.rov.subtipo">
+        <field name="name">Cable interno</field>
+        <field name="componente_id" ref="comp_camara"/>
+    </record>
+
+    <!-- Subtipos Sensor -->
+    <record id="sub_sen_presion" model="mc.rov.subtipo">
+        <field name="name">Sensor de presión</field>
+        <field name="componente_id" ref="comp_sensor"/>
+    </record>
+    <record id="sub_sen_compas" model="mc.rov.subtipo">
+        <field name="name">Compás / IMU</field>
+        <field name="componente_id" ref="comp_sensor"/>
+    </record>
+    <record id="sub_sen_temperatura" model="mc.rov.subtipo">
+        <field name="name">Sensor de temperatura</field>
+        <field name="componente_id" ref="comp_sensor"/>
+    </record>
+    <record id="sub_sen_leak" model="mc.rov.subtipo">
+        <field name="name">Sensor de leak</field>
+        <field name="componente_id" ref="comp_sensor"/>
+    </record>
+    <record id="sub_sen_usbl" model="mc.rov.subtipo">
+        <field name="name">USBL / Beacon</field>
+        <field name="componente_id" ref="comp_sensor"/>
+    </record>
+</odoo>

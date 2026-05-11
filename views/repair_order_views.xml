@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_repair_order_form_mc_rov" model="ir.ui.view">
+        <field name="name">repair.order.form.mc.rov</field>
+        <field name="model">repair.order</field>
+        <field name="inherit_id" ref="repair.view_repair_order_form"/>
+        <field name="arch" type="xml">
+
+            <!-- Tipo de intervención después de "Bajo garantía" -->
+            <field name="under_warranty" position="after">
+                <field name="tipo_intervencion"/>
+            </field>
+
+            <!-- Ítems adicionales después del número de serie -->
+            <field name="lot_id" position="after">
+                <field name="item_2"/>
+                <field name="item_3"/>
+                <field name="item_4"/>
+                <field name="item_5"/>
+            </field>
+
+            <!-- Falla reportada después de fecha programada -->
+            <field name="schedule_date" position="after">
+                <field name="falla_reportada"/>
+            </field>
+
+            <!-- Pestaña nueva de trabajos realizados -->
+            <notebook position="inside">
+                <page string="Trabajos realizados" name="trabajos_realizados">
+                    <field name="linea_falla_ids">
+                        <list editable="bottom">
+                            <field name="sequence" widget="handle"/>
+                            <field name="componente_id"/>
+                            <field name="subtipo_id" domain="[('componente_id', '=', componente_id)]"/>
+                            <field name="accion"/>
+                            <field name="detalle"/>
+                        </list>
+                    </field>
+                </page>
+                <page string="Resultado" name="resultado">
+                    <group>
+                        <group>
+                            <field name="estado_final"/>
+                            <field name="causa_raiz"/>
+                            <field name="fecha_entrega_real"/>
+                        </group>
+                        <group>
+                            <field name="garantia_reparacion"/>
+                            <field name="fecha_garantia" invisible="not garantia_reparacion"/>
+                        </group>
+                    </group>
+                    <field name="observaciones_salida"/>
+                </page>
+            </notebook>
+
+        </field>
+    </record>
+</odoo>
