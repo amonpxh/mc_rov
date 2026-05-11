@@ -154,7 +154,7 @@ git branch -d feature/mi-funcion
 - [x] Ficha técnica ROV migrada de Studio al módulo: 48 campos propios en `stock.lot` (especificaciones, periféricos, umbilical, prueba en terreno), con script de migración de datos (`migrations/19.0.1.1.0/post-migrate.py`) — versión `19.0.1.1.0`
 - [x] Vista de Studio eliminada de la BD; toda la lógica de visibilidad controlada por `es_un_rov` en el módulo
 - [x] Botón duplicado de reparaciones eliminado (el módulo `repair` ya provee el suyo)
-- [x] Prefijo `mc_` en los 48 campos de ficha técnica y `mc_repair_count` en `stock.lot`; migración idempotente `19.0.1.2.0` que renombra columnas en BD — versión `19.0.1.2.0`
+- [x] Prefijo `mc_` en los 48 campos de ficha técnica y `mc_repair_count` en `stock.lot`; migración `19.0.1.2.0` aplicada y verificada en producción (48 columnas `mc_*` confirmadas en BD) — versión `19.0.1.2.0`
 - [x] Flujo de ramas GitHub Flow estrenado: primer `feature/` branch mergeado a `main` con PR flow completo
 
 ### Pendiente
@@ -169,6 +169,7 @@ git branch -d feature/mi-funcion
 - `ultima_mantencion` en `stock.lot` usa `create_date` de la última orden `done`. Cuando exista un campo de fecha real de cierre en `repair.order`, actualizar aquí.
 - El dominio `[('componente_id', '=', componente_id)]` en `subtipo_id` dentro del one2many editable funciona correctamente desde Odoo 17+.
 - Los campos de ficha técnica en `stock.lot` reemplazaron los `x_studio_*` de Studio. Los campos Studio siguen en la BD como columnas huérfanas — se pueden eliminar desde Studio o vía SQL cuando se confirme que no hacen falta.
+- **Patrón de migración**: el ORM de Odoo crea las columnas nuevas **antes** de ejecutar el script `post-migrate.py`. Por eso las migraciones de renombrado deben usar `UPDATE SET nuevo = viejo` + `DROP COLUMN viejo`, no `RENAME COLUMN` (que falla porque la columna destino ya existe).
 - Ruta del módulo en producción: `/opt/odoo/custom-addons/mc_rov`
 - Log de Odoo en producción: `/var/log/odoo/odoo-server.log`
 - Configuración de Odoo: `/etc/odoo/odoo.conf`
