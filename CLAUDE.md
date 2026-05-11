@@ -82,6 +82,43 @@ mc_rov/
 - [ ] **Grupos de seguridad**: Los accesos actuales son sin restricción de grupo (público) — definir grupos propios si se necesita control de acceso por rol
 - [ ] **Menú principal propio**: El módulo usa el menú de Reparaciones como padre; podría necesitar un menú de aplicación propio si Marine Connection quiere separarlo
 
+## Flujo de trabajo con git
+
+Estrategia: **GitHub Flow simplificado** (desarrollador único, despliegue directo a producción).
+
+```
+main      ──●──────────────────────●──→  producción (Odoo server)
+             │                     ↑
+feature/X    └──●──●──●────────────┘
+fix/Y              └──●──●─────────┘
+```
+
+### Reglas
+- `main` = siempre estable y desplegable. No commitear directamente salvo hotfixes triviales.
+- `develop` = rama de integración opcional para agrupar features antes de subir a main.
+- Toda funcionalidad nueva → rama desde `main` (o `develop`), merge al terminar.
+- Después de merge a `main`: `git push origin main` y actualizar el módulo en el servidor Odoo.
+
+### Nomenclatura de ramas
+| Tipo | Formato | Ejemplo |
+|------|---------|---------|
+| Nueva función | `feature/<nombre>` | `feature/reporte-pdf-reparacion` |
+| Corrección | `fix/<nombre>` | `fix/ultima-mantencion-fecha-real` |
+| Refactor | `refactor/<nombre>` | `refactor/grupos-seguridad` |
+
+### Ciclo de vida de una tarea
+```bash
+git checkout main && git pull          # partir desde main actualizado
+git checkout -b feature/mi-funcion     # crear rama
+# ... desarrollar y commitear ...
+git checkout main
+git merge feature/mi-funcion
+git push origin main                   # → actualizar módulo en servidor Odoo
+git branch -d feature/mi-funcion       # limpiar rama local
+```
+
+---
+
 ## Notas técnicas
 
 - `ultima_mantencion` en `stock.lot` usa `create_date` de la última orden en estado `done`. Si la orden tiene una fecha de cierre real, conviene crear un campo `date_done` en `repair.order` y usarlo aquí.
