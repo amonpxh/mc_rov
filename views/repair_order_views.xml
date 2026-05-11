@@ -55,4 +55,17 @@
 
         </field>
     </record>
+
+    <record id="view_repair_order_list_mc_rov" model="ir.ui.view">
+        <field name="name">repair.order.list.mc.rov</field>
+        <field name="model">repair.order</field>
+        <field name="inherit_id" ref="repair.view_repair_order_tree"/>
+        <field name="arch" type="xml">
+            <field name="state" position="before">
+                <field name="tipo_intervencion"/>
+                <field name="estado_final"/>
+            </field>
+        </field>
+    </record>
+
 </odoo>
