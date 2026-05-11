@@ -43,7 +43,7 @@ mc_rov/
 | Modelo base | Campos añadidos |
 |------------|----------------|
 | `repair.order` | `tipo_intervencion`, `item_2..5`, `falla_reportada`, `linea_falla_ids`, `estado_final`, `causa_raiz`, `garantia_reparacion`, `fecha_garantia`, `fecha_entrega_real`, `observaciones_salida` |
-| `stock.lot` | `es_un_rov`, `estado_comercial`, `estado_operativo`, `repair_count` (computed), `ultima_mantencion` (computed), `action_ver_reparaciones`, + 40 campos de ficha técnica ROV (especificaciones, periféricos, umbilical, prueba en terreno) |
+| `stock.lot` | `es_un_rov`, `mc_estado_comercial`, `mc_estado_operativo`, `mc_repair_count` (computed), `ultima_mantencion` (computed), `action_ver_reparaciones`, + 48 campos de ficha técnica ROV con prefijo `mc_` (especificaciones, periféricos, umbilical, prueba en terreno) |
 
 ## Datos maestros incluidos
 
@@ -150,14 +150,14 @@ git branch -d feature/mi-funcion
 - [x] Convención de versionado semántico del módulo documentada
 - [x] Docstrings y comentarios inline en los tres modelos
 - [x] Campo `es_un_rov` definido en el módulo (reemplaza `x_studio_es_un_rov` de Studio; dato migrado en producción, campo Studio eliminado)
-- [x] Tests de `stock.lot`: 8 tests cubriendo `es_un_rov`, `repair_count` y `ultima_mantencion` (todos pasando en `odoo_test`)
-- [x] Ficha técnica ROV migrada de Studio al módulo: 44 campos propios en `stock.lot` (especificaciones, periféricos, umbilical, prueba en terreno), con script de migración de datos (`migrations/19.0.1.1.0/post-migrate.py`) — versión `19.0.1.1.0`
+- [x] Tests de `stock.lot`: 8 tests cubriendo `es_un_rov`, `mc_repair_count` y `ultima_mantencion` (todos pasando en `odoo_test`)
+- [x] Ficha técnica ROV migrada de Studio al módulo: 48 campos propios en `stock.lot` (especificaciones, periféricos, umbilical, prueba en terreno), con script de migración de datos (`migrations/19.0.1.1.0/post-migrate.py`) — versión `19.0.1.1.0`
 - [x] Vista de Studio eliminada de la BD; toda la lógica de visibilidad controlada por `es_un_rov` en el módulo
 - [x] Botón duplicado de reparaciones eliminado (el módulo `repair` ya provee el suyo)
+- [x] Prefijo `mc_` en los 48 campos de ficha técnica y `mc_repair_count` en `stock.lot`; migración idempotente `19.0.1.2.0` que renombra columnas en BD — versión `19.0.1.2.0`
+- [x] Flujo de ramas GitHub Flow estrenado: primer `feature/` branch mergeado a `main` con PR flow completo
 
 ### Pendiente
-- [ ] **Prefijo `mc_` en campos de `stock.lot`** _(prioridad alta — riesgo de upgrade)_: los 44 campos de ficha técnica tienen nombres genéricos (`longitud`, `lugar`, `brazo`, etc.) sin prefijo de módulo. Si Odoo agrega campos con el mismo nombre en una versión futura, el módulo no cargará. Renombrar a `mc_longitud`, `mc_lugar`, etc. y crear migración de datos `19.0.1.2.0`. También aplica a `repair_count` (podría colisionar con el módulo `repair`).
-- [ ] **Campos Selection con `widget="radio"`**: una vez seleccionada una opción no se puede desmarcar. Quitar `widget="radio"` para usar el dropdown estándar que permite limpiar la selección.
 - [ ] **XPaths frágiles en `stock_lot_views.xml`**: `//group[@name='main_group']` y `//field[@name='ref']` pueden romperse si Odoo cambia la estructura base del formulario en una versión futura.
 - [ ] **`ultima_mantencion`**: actualmente usa `create_date` de la orden; debería usar una fecha real de cierre (`schedule_date` u otro campo dedicado)
 - [ ] **Vista lista de `repair.order`**: heredar para añadir columnas `tipo_intervencion` y `estado_final`
@@ -170,4 +170,4 @@ git branch -d feature/mi-funcion
 - El dominio `[('componente_id', '=', componente_id)]` en `subtipo_id` dentro del one2many editable funciona correctamente desde Odoo 17+.
 - Los campos de ficha técnica en `stock.lot` reemplazaron los `x_studio_*` de Studio. Los campos Studio siguen en la BD como columnas huérfanas — se pueden eliminar desde Studio o vía SQL cuando se confirme que no hacen falta.
 - Para actualizar el módulo en producción: `sudo -u odoo odoo -u mc_rov --stop-after-init --no-http --config /etc/odoo/odoo.conf`
-- Versión del módulo: `19.0.1.1.0`
+- Versión del módulo: `19.0.1.2.0`
