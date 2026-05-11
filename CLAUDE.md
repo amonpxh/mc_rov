@@ -156,7 +156,9 @@ git branch -d feature/mi-funcion
 - [x] Botón duplicado de reparaciones eliminado (el módulo `repair` ya provee el suyo)
 
 ### Pendiente
-- [ ] **Campos Selection con `widget="radio"`**: una vez seleccionada una opción no se puede desmarcar. Quitar `widget="radio"` para usar el dropdown estándar que permite limpiar la selección
+- [ ] **Prefijo `mc_` en campos de `stock.lot`** _(prioridad alta — riesgo de upgrade)_: los 44 campos de ficha técnica tienen nombres genéricos (`longitud`, `lugar`, `brazo`, etc.) sin prefijo de módulo. Si Odoo agrega campos con el mismo nombre en una versión futura, el módulo no cargará. Renombrar a `mc_longitud`, `mc_lugar`, etc. y crear migración de datos `19.0.1.2.0`. También aplica a `repair_count` (podría colisionar con el módulo `repair`).
+- [ ] **Campos Selection con `widget="radio"`**: una vez seleccionada una opción no se puede desmarcar. Quitar `widget="radio"` para usar el dropdown estándar que permite limpiar la selección.
+- [ ] **XPaths frágiles en `stock_lot_views.xml`**: `//group[@name='main_group']` y `//field[@name='ref']` pueden romperse si Odoo cambia la estructura base del formulario en una versión futura.
 - [ ] **`ultima_mantencion`**: actualmente usa `create_date` de la orden; debería usar una fecha real de cierre (`schedule_date` u otro campo dedicado)
 - [ ] **Vista lista de `repair.order`**: heredar para añadir columnas `tipo_intervencion` y `estado_final`
 - [ ] **Grupos de seguridad**: los accesos actuales son sin grupo — definir roles si se requiere control por perfil
