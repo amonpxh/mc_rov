@@ -4,7 +4,7 @@ from odoo.tests import tagged
 
 @tagged('post_install', '-at_install')
 class TestStockLotRov(TransactionCase):
-    """Tests para los campos es_un_rov, repair_count y ultima_mantencion en stock.lot."""
+    """Tests para los campos es_un_rov, mc_repair_count y ultima_mantencion en stock.lot."""
 
     @classmethod
     def setUpClass(cls):
@@ -29,10 +29,10 @@ class TestStockLotRov(TransactionCase):
         """Un lote recién creado no es ROV hasta que se marque explícitamente."""
         self.assertFalse(self.lot.es_un_rov)
 
-    # --- repair_count ---
+    # --- mc_repair_count ---
 
     def test_repair_count_sin_reparaciones_es_cero(self):
-        self.assertEqual(self.lot.repair_count, 0)
+        self.assertEqual(self.lot.mc_repair_count, 0)
 
     def test_repair_count_no_cuenta_ordenes_en_borrador(self):
         """Solo las órdenes 'done' cuentan — una en draft no debe sumar."""
@@ -40,7 +40,7 @@ class TestStockLotRov(TransactionCase):
             'product_id': self.product.id,
             'lot_id': self.lot.id,
         })
-        self.assertEqual(self.lot.repair_count, 0)
+        self.assertEqual(self.lot.mc_repair_count, 0)
 
     def test_repair_count_cuenta_ordenes_done(self):
         self.env['repair.order'].create({
@@ -48,7 +48,7 @@ class TestStockLotRov(TransactionCase):
             'lot_id': self.lot.id,
             'state': 'done',
         })
-        self.assertEqual(self.lot.repair_count, 1)
+        self.assertEqual(self.lot.mc_repair_count, 1)
 
     def test_repair_count_acumula_multiples_done(self):
         for i in range(3):
@@ -57,7 +57,7 @@ class TestStockLotRov(TransactionCase):
                 'lot_id': self.lot.id,
                 'state': 'done',
             })
-        self.assertEqual(self.lot.repair_count, 3)
+        self.assertEqual(self.lot.mc_repair_count, 3)
 
     # --- ultima_mantencion ---
 

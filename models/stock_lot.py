@@ -17,7 +17,7 @@ class StockLot(models.Model):
 
     # --- Estado ---
 
-    estado_comercial = fields.Selection([
+    mc_estado_comercial = fields.Selection([
         ('Disponible', 'Disponible'),
         ('En arriendo', 'En arriendo'),
         ('Vendido', 'Vendido'),
@@ -25,7 +25,7 @@ class StockLot(models.Model):
     ], string='Estado Comercial',
         help='Indica en qué estado se encuentra el equipo (ej. el equipo está siendo arrendado).')
 
-    estado_operativo = fields.Selection([
+    mc_estado_operativo = fields.Selection([
         ('Operativo', 'Operativo'),
         ('En mantención', 'En mantención'),
         ('En reparación', 'En reparación'),
@@ -34,12 +34,12 @@ class StockLot(models.Model):
 
     # --- Especificaciones ---
 
-    chasis = fields.Selection([
+    mc_chasis = fields.Selection([
         ('Plástico', 'Plástico'),
         ('Inox', 'Inox'),
     ], string='Chasis')
 
-    modelo_motores = fields.Selection([
+    mc_modelo_motores = fields.Selection([
         ('T200', 'T200'),
         ('T200 & T500', 'T200 y T500'),
         ('T500', 'T500'),
@@ -47,102 +47,102 @@ class StockLot(models.Model):
         ('DWT8537', 'DWT8537'),
     ], string='Modelo motores')
 
-    n_motores = fields.Integer(string='N° motores')
+    mc_n_motores = fields.Integer(string='N° motores')
 
-    posicion_motores = fields.Selection([
+    mc_posicion_motores = fields.Selection([
         ('Recto', 'Recto'),
         ('Vectorial', 'Vectorial'),
     ], string='Posición motores')
 
-    peso_consola = fields.Float(string='Peso Consola')
-    peso_rov = fields.Float(string='Peso ROV')
+    mc_peso_consola = fields.Float(string='Peso Consola')
+    mc_peso_rov = fields.Float(string='Peso ROV')
 
-    sensor_presion = fields.Selection([
+    mc_sensor_presion = fields.Selection([
         ('30 bar', '30 bar (300 m)'),
         ('100 bar (1000m)', '100 bar (1000m)'),
     ], string='Sensor de presión')
 
-    tarjeta_comunicacion_rov = fields.Selection([
+    mc_tarjeta_comunicacion_rov = fields.Selection([
         ('V50', 'V50'),
         ('V30', 'V30'),
     ], string='Tarjeta de comunicación ROV')
 
-    tarjeta_comunicacion_consola = fields.Selection([
+    mc_tarjeta_comunicacion_consola = fields.Selection([
         ('V50', 'V50'),
         ('V30', 'V30'),
     ], string='Tarjeta de comunicación Consola')
 
-    version_qground = fields.Char(string='Versión QGround')
+    mc_version_qground = fields.Char(string='Versión QGround')
 
-    controlador_vuelo = fields.Selection([
+    mc_controlador_vuelo = fields.Selection([
         ('Navigator', 'Navigator'),
         ('Pixhawk', 'Pixhawk'),
     ], string='Controlador de Vuelo')
 
-    version_px4 = fields.Char(string='Versión PX4')
-    version_navigator = fields.Char(string='Versión Navigator')
-    version_ardusub = fields.Char(string='Versión Ardusub')
+    mc_version_px4 = fields.Char(string='Versión PX4')
+    mc_version_navigator = fields.Char(string='Versión Navigator')
+    mc_version_ardusub = fields.Char(string='Versión Ardusub')
 
     # --- Periféricos ---
 
-    salida_brazo = fields.Boolean(string='Salida de brazo')
-    brazo = fields.Char(string='Brazo')
-    cantidad_luces = fields.Integer(string='Cantidad de luces')
-    dispositivos_extra = fields.Char(string='Dispositivos extra')
+    mc_salida_brazo = fields.Boolean(string='Salida de brazo')
+    mc_brazo = fields.Char(string='Brazo')
+    mc_cantidad_luces = fields.Integer(string='Cantidad de luces')
+    mc_dispositivos_extra = fields.Char(string='Dispositivos extra')
 
     # --- Umbilical ---
 
-    n_serie_umbilical = fields.Char(string='N° serie de Umbilical')
-    longitud = fields.Float(string='Longitud')
-    diametro = fields.Float(string='Diámetro')
-    peso_umbilical = fields.Float(string='Peso Umbilical')
-    modelo_fuente = fields.Char(string='Modelo de fuente')
+    mc_n_serie_umbilical = fields.Char(string='N° serie de Umbilical')
+    mc_longitud = fields.Float(string='Longitud')
+    mc_diametro = fields.Float(string='Diámetro')
+    mc_peso_umbilical = fields.Float(string='Peso Umbilical')
+    mc_modelo_fuente = fields.Char(string='Modelo de fuente')
 
-    fuente_energia = fields.Selection([
+    mc_fuente_energia = fields.Selection([
         ('UPS', 'UPS'),
         ('Generador', 'Generador'),
         ('Transformador', 'Transformador'),
     ], string='Fuente de energía')
 
-    tension_salida = fields.Integer(string='Tensión de salida')
-    consumo_corriente = fields.Char(string='Consumo corriente')
-    en_reposo = fields.Integer(string='En reposo')
-    esfuerzo = fields.Integer(string='Esfuerzo')
-    limitacion_pilot_gain = fields.Integer(string='Limitación pilot gain')
-    ganancia_luz = fields.Integer(string='Ganancia Luz')
-    tiempo_prueba_lab = fields.Float(string='Tiempo de Prueba')
-    prueba_leak = fields.Boolean(string='Prueba de leak')
+    mc_tension_salida = fields.Integer(string='Tensión de salida')
+    mc_consumo_corriente = fields.Char(string='Consumo corriente')
+    mc_en_reposo = fields.Integer(string='En reposo')
+    mc_esfuerzo = fields.Integer(string='Esfuerzo')
+    mc_limitacion_pilot_gain = fields.Integer(string='Limitación pilot gain')
+    mc_ganancia_luz = fields.Integer(string='Ganancia Luz')
+    mc_tiempo_prueba_lab = fields.Float(string='Tiempo de Prueba')
+    mc_prueba_leak = fields.Boolean(string='Prueba de leak')
     # Valor calculado externamente (ej. medición de red); se edita solo desde herramientas técnicas
-    ancho_banda = fields.Char(string='Ancho de banda (puede variar ±5%)')
-    subida = fields.Float(string='Subida')
-    bajada = fields.Float(string='Bajada')
-    temperatura_interior_lab = fields.Float(string='Temperatura interior')
-    temperatura_exterior_lab = fields.Float(string='Temperatura exterior')
+    mc_ancho_banda = fields.Char(string='Ancho de banda (puede variar ±5%)')
+    mc_subida = fields.Float(string='Subida')
+    mc_bajada = fields.Float(string='Bajada')
+    mc_temperatura_interior_lab = fields.Float(string='Temperatura interior')
+    mc_temperatura_exterior_lab = fields.Float(string='Temperatura exterior')
 
     # --- Prueba en Terreno ---
 
-    fecha_prueba = fields.Date(string='Fecha')
-    lugar = fields.Char(string='Lugar')
-    profundidad = fields.Integer(string='Profundidad')
-    velocidad_corriente = fields.Float(string='Velocidad de la corriente')
+    mc_fecha_prueba = fields.Date(string='Fecha')
+    mc_lugar = fields.Char(string='Lugar')
+    mc_profundidad = fields.Integer(string='Profundidad')
+    mc_velocidad_corriente = fields.Float(string='Velocidad de la corriente')
 
-    alimentacion = fields.Selection([
+    mc_alimentacion = fields.Selection([
         ('Transformador', 'Transformador'),
         ('Generador', 'Generador'),
         ('UPS', 'UPS'),
     ], string='Alimentación')
 
-    tiempo_prueba_terreno = fields.Float(string='Tiempo de prueba')
-    temperatura_interior_terreno = fields.Float(string='Temperatura interior (Prueba)')
-    temperatura_exterior_terreno = fields.Float(string='Temperatura exterior (Prueba)')
-    observacion = fields.Text(string='Observación')
+    mc_tiempo_prueba_terreno = fields.Float(string='Tiempo de prueba')
+    mc_temperatura_interior_terreno = fields.Float(string='Temperatura interior (Prueba)')
+    mc_temperatura_exterior_terreno = fields.Float(string='Temperatura exterior (Prueba)')
+    mc_observacion = fields.Text(string='Observación')
 
     # --- Reparaciones ---
 
     # Cantidad de órdenes de reparación completadas para este número de serie
-    repair_count = fields.Integer(
+    mc_repair_count = fields.Integer(
         string='Reparaciones',
-        compute='_compute_repair_count',
+        compute='_compute_mc_repair_count',
     )
 
     # Fecha de la última orden completada — usa create_date como aproximación hasta
@@ -154,9 +154,9 @@ class StockLot(models.Model):
     )
 
     @api.depends()
-    def _compute_repair_count(self):
+    def _compute_mc_repair_count(self):
         for lot in self:
-            lot.repair_count = self.env['repair.order'].search_count([
+            lot.mc_repair_count = self.env['repair.order'].search_count([
                 ('lot_id', '=', lot.id),
                 ('state', '=', 'done'),
             ])
