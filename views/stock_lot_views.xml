@@ -16,11 +16,12 @@
                 </button>
             </div>
 
-            <!-- Última mantención -->
+            <!-- Marca si el lote corresponde a un equipo ROV -->
             <field name="ref" position="after">
-                <field name="ultima_mantencion" 
+                <field name="es_un_rov"/>
+                <field name="ultima_mantencion"
                        readonly="1"
-                       invisible="not x_studio_es_un_rov"/>
+                       invisible="not es_un_rov"/>
             </field>
 
         </field>

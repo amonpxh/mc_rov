@@ -149,14 +149,11 @@ git branch -d feature/mi-funcion
 - [x] GitHub Actions CI: lint automático en push a `main`/`develop`
 - [x] Convención de versionado semántico del módulo documentada
 - [x] Docstrings y comentarios inline en los tres modelos
+- [x] Campo `es_un_rov` definido en el módulo (reemplaza dependencia de Studio `x_studio_es_un_rov`)
 
 ### Pendiente
-- [ ] **`x_studio_es_un_rov`**: `stock_lot_views.xml` usa este campo de Studio para ocultar `ultima_mantencion`. Puede fallar si no existe en la instancia — evaluar si definirlo en el módulo o eliminar la condición
 - [ ] **`ultima_mantencion`**: actualmente usa `create_date` de la orden; debería usar una fecha real de cierre (`schedule_date` u otro campo dedicado)
 - [ ] **Vista lista de `repair.order`**: heredar para añadir columnas `tipo_intervencion` y `estado_final`
-- [ ] **Reporte PDF**: informe de orden de reparación con trabajos realizados, resultado y garantía
-- [ ] **Vista kanban**: seguimiento visual del estado de reparaciones en curso
-- [ ] **Dashboard**: análisis por componente, causa raíz y tipo de intervención
 - [ ] **Grupos de seguridad**: los accesos actuales son sin grupo — definir roles si se requiere control por perfil
 - [ ] **Tests**: no existen pruebas unitarias ni de integración
 

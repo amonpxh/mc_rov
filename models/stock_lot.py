@@ -11,6 +11,11 @@ class StockLot(models.Model):
 
     _inherit = 'stock.lot'
 
+    es_un_rov = fields.Boolean(
+        string='Es un ROV',
+        help='Marca este número de serie como equipo ROV para mostrar historial de mantenciones.',
+    )
+
     # Cantidad de órdenes de reparación completadas para este número de serie
     repair_count = fields.Integer(
         string='Reparaciones',
