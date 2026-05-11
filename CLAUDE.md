@@ -43,7 +43,7 @@ mc_rov/
 | Modelo base | Campos añadidos |
 |------------|----------------|
 | `repair.order` | `tipo_intervencion`, `item_2..5`, `falla_reportada`, `linea_falla_ids`, `estado_final`, `causa_raiz`, `garantia_reparacion`, `fecha_garantia`, `fecha_entrega_real`, `observaciones_salida` |
-| `stock.lot` | `repair_count` (computed), `ultima_mantencion` (computed), botón inteligente, `action_ver_reparaciones` |
+| `stock.lot` | `es_un_rov`, `estado_comercial`, `estado_operativo`, `repair_count` (computed), `ultima_mantencion` (computed), `action_ver_reparaciones`, + 40 campos de ficha técnica ROV (especificaciones, periféricos, umbilical, prueba en terreno) |
 
 ## Datos maestros incluidos
 
@@ -142,7 +142,7 @@ git branch -d feature/mi-funcion
 - [x] Menú "Componentes ROV" bajo Reparaciones > Configuración
 - [x] Reglas de acceso para los 3 modelos propios (CRUD sin restricción de grupo)
 - [x] Datos maestros: 8 componentes y ~40 subtipos predefinidos
-- [x] CSS personalizado para mejorar visibilidad de campos editables
+- [x] CSS personalizado para mejorar visibilidad de campos editables (excluye checkbox y radio)
 - [x] Flujo de trabajo con ramas (GitHub Flow) documentado y rama `develop` creada
 - [x] `.gitignore` completo (Python, Odoo, editores, sistema)
 - [x] `pre-commit` con `pylint-odoo` configurado (`.pre-commit-config.yaml`)
@@ -151,8 +151,12 @@ git branch -d feature/mi-funcion
 - [x] Docstrings y comentarios inline en los tres modelos
 - [x] Campo `es_un_rov` definido en el módulo (reemplaza `x_studio_es_un_rov` de Studio; dato migrado en producción, campo Studio eliminado)
 - [x] Tests de `stock.lot`: 8 tests cubriendo `es_un_rov`, `repair_count` y `ultima_mantencion` (todos pasando en `odoo_test`)
+- [x] Ficha técnica ROV migrada de Studio al módulo: 44 campos propios en `stock.lot` (especificaciones, periféricos, umbilical, prueba en terreno), con script de migración de datos (`migrations/19.0.1.1.0/post-migrate.py`) — versión `19.0.1.1.0`
+- [x] Vista de Studio eliminada de la BD; toda la lógica de visibilidad controlada por `es_un_rov` en el módulo
+- [x] Botón duplicado de reparaciones eliminado (el módulo `repair` ya provee el suyo)
 
 ### Pendiente
+- [ ] **Campos Selection con `widget="radio"`**: una vez seleccionada una opción no se puede desmarcar. Quitar `widget="radio"` para usar el dropdown estándar que permite limpiar la selección
 - [ ] **`ultima_mantencion`**: actualmente usa `create_date` de la orden; debería usar una fecha real de cierre (`schedule_date` u otro campo dedicado)
 - [ ] **Vista lista de `repair.order`**: heredar para añadir columnas `tipo_intervencion` y `estado_final`
 - [ ] **Grupos de seguridad**: los accesos actuales son sin grupo — definir roles si se requiere control por perfil
@@ -162,4 +166,6 @@ git branch -d feature/mi-funcion
 
 - `ultima_mantencion` en `stock.lot` usa `create_date` de la última orden `done`. Cuando exista un campo de fecha real de cierre en `repair.order`, actualizar aquí.
 - El dominio `[('componente_id', '=', componente_id)]` en `subtipo_id` dentro del one2many editable funciona correctamente desde Odoo 17+.
-- Versión del módulo: `19.0.1.0.0`
+- Los campos de ficha técnica en `stock.lot` reemplazaron los `x_studio_*` de Studio. Los campos Studio siguen en la BD como columnas huérfanas — se pueden eliminar desde Studio o vía SQL cuando se confirme que no hacen falta.
+- Para actualizar el módulo en producción: `sudo -u odoo odoo -u mc_rov --stop-after-init --no-http --config /etc/odoo/odoo.conf`
+- Versión del módulo: `19.0.1.1.0`
