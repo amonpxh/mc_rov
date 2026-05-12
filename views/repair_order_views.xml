@@ -34,7 +34,7 @@
                             <field name="subtipo_id" domain="[('componente_id', '=', componente_id)]"/>
                             <field name="accion_id"/>
                             <field name="fecha"/>
-                            <field name="horas"/>
+                            <field name="horas" class="text-start"/>
                             <field name="detalle"/>
                         </list>
                     </field>
