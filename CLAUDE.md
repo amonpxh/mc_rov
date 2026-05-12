@@ -167,6 +167,7 @@ git branch -d feature/mi-funcion
 - [x] Tests de `mc.rov.componente`: 16 tests cubriendo `mc.rov.componente`, `mc.rov.subtipo`, `mc.rov.accion` y `mc.rov.linea.falla` (todos pasando en `odoo_test`)
 - [x] XPaths frágiles en `stock_lot_views.xml` corregidos: `//field[@name='ref']` → `//field[@name='product_id']`; `//group[@name='main_group']` → `//sheet` (ambos son anclajes estables independientes de la estructura interna de Odoo)
 - [x] Campos `fecha` y `horas` agregados a `mc.rov.linea.falla`; vista "Trabajos realizados" muestra columnas Componente, Subtipo, Acción, Fecha, HH., Detalle — versión `19.0.1.3.0`, verificado en producción, 43 tests pasando
+- [x] Columna HH. alineada a la izquierda (valor y encabezado) en la lista de trabajos realizados
 
 ### Pendiente
 - [ ] **Grupos de seguridad**: los accesos actuales son sin grupo. Implementar cuando haya múltiples usuarios. Diseño acordado:
