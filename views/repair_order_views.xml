@@ -38,6 +38,12 @@
                             <field name="detalle"/>
                         </list>
                     </field>
+                    <group>
+                        <group/>
+                        <group>
+                            <field name="mc_total_horas" readonly="True"/>
+                        </group>
+                    </group>
                 </page>
                 <page string="Resultado" name="resultado">
                     <group>

@@ -168,9 +168,9 @@ git branch -d feature/mi-funcion
 - [x] XPaths frágiles en `stock_lot_views.xml` corregidos: `//field[@name='ref']` → `//field[@name='product_id']`; `//group[@name='main_group']` → `//sheet` (ambos son anclajes estables independientes de la estructura interna de Odoo)
 - [x] Campos `fecha` y `horas` agregados a `mc.rov.linea.falla`; vista "Trabajos realizados" muestra columnas Componente, Subtipo, Acción, Fecha, HH., Detalle — versión `19.0.1.3.0`, verificado en producción, 43 tests pasando
 - [x] Columna HH. alineada a la izquierda (valor y encabezado) en la lista de trabajos realizados
+- [x] Campo `mc_total_horas` computed en `repair.order` (suma de `horas` de `linea_falla_ids`), visible al pie de la pestaña "Trabajos realizados" — versión `19.0.1.4.0`
 
 ### Pendiente
-- [ ] **Total de horas en repair.order**: campo `mc_total_horas` computed (suma de `horas` de todas las `linea_falla_ids`), mostrar en la pestaña "Trabajos realizados" o en "Resultado".
 - [ ] **Eliminar columnas Studio huérfanas**: las columnas `x_studio_*` en `stock_lot` quedaron en la BD tras migrar la ficha técnica al módulo. Eliminarlas vía SQL o desde Studio cuando se confirme que no hacen falta. Verificar primero con `SELECT column_name FROM information_schema.columns WHERE table_name = 'stock_lot' AND column_name LIKE 'x_studio_%'`.
 - [ ] **Grupos de seguridad**: los accesos actuales son sin grupo. Implementar cuando haya múltiples usuarios. Diseño acordado:
 
@@ -216,4 +216,4 @@ git branch -d feature/mi-funcion
   sudo -u odoo odoo -d odoo_test -u mc_rov --test-tags /mc_rov:TestMcRovComponente --stop-after-init --no-http --config /etc/odoo/odoo.conf
   ```
   Siempre incluir `-u mc_rov` o los tests no se descubren.
-- Versión del módulo: `19.0.1.3.0`
+- Versión del módulo: `19.0.1.4.0`

@@ -1,4 +1,4 @@
-from odoo import models, fields
+from odoo import api, models, fields
 
 
 class RepairOrder(models.Model):
@@ -30,6 +30,16 @@ class RepairOrder(models.Model):
 
     # Detalle técnico de los trabajos ejecutados (ver mc.rov.linea.falla)
     linea_falla_ids = fields.One2many('mc.rov.linea.falla', 'repair_id', string='Trabajos realizados')
+    mc_total_horas = fields.Float(
+        string='Total HH.',
+        compute='_compute_mc_total_horas',
+        digits=(5, 1),
+    )
+
+    @api.depends('linea_falla_ids.horas')
+    def _compute_mc_total_horas(self):
+        for order in self:
+            order.mc_total_horas = sum(order.linea_falla_ids.mapped('horas'))
 
     # Resultado de la intervención
     estado_final = fields.Selection([
