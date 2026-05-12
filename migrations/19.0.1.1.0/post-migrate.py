@@ -8,6 +8,13 @@ def migrate(cr, version):
         return  # instalación nueva sin datos de Studio, nada que migrar
 
     cr.execute("""
+        SELECT column_name FROM information_schema.columns
+        WHERE table_name = 'stock_lot' AND column_name = 'estado_comercial'
+    """)
+    if not cr.fetchone():
+        return  # columnas intermedias (sin mc_) no existen: el ORM ya usa mc_* directamente
+
+    cr.execute("""
         UPDATE stock_lot SET
             estado_comercial          = x_studio_estado_comercial,
             estado_operativo          = x_studio_estado_operativo,
