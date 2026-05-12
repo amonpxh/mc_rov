@@ -157,16 +157,16 @@ git branch -d feature/mi-funcion
 - [x] Prefijo `mc_` en los 48 campos de ficha técnica y `mc_repair_count` en `stock.lot`; migración `19.0.1.2.0` aplicada y verificada en producción (48 columnas `mc_*` confirmadas en BD) — versión `19.0.1.2.0`
 - [x] Flujo de ramas GitHub Flow estrenado: primer `feature/` branch mergeado a `main` con PR flow completo
 - [x] Vista lista de `repair.order` con columnas `tipo_intervencion` y `estado_final` (antes de la columna estado)
+- [x] `ultima_mantencion` corregida: ahora usa `fecha_entrega_real` (campo propio del módulo) en vez de `create_date`
 
 ### Pendiente
 - [ ] **XPaths frágiles en `stock_lot_views.xml`**: `//group[@name='main_group']` y `//field[@name='ref']` pueden romperse si Odoo cambia la estructura base del formulario en una versión futura.
-- [ ] **`ultima_mantencion`**: actualmente usa `create_date` de la orden; debería usar una fecha real de cierre (`schedule_date` u otro campo dedicado)
 - [ ] **Grupos de seguridad**: los accesos actuales son sin grupo — definir roles si se requiere control por perfil
 - [ ] **Tests**: solo existen para `stock.lot` — faltan tests para `repair.order` y `mc.rov.componente`
 
 ## Notas técnicas
 
-- `ultima_mantencion` en `stock.lot` usa `create_date` de la última orden `done`. Cuando exista un campo de fecha real de cierre en `repair.order`, actualizar aquí.
+- `ultima_mantencion` en `stock.lot` usa `fecha_entrega_real` de la última orden `done`, ingresada por el técnico al cerrar la orden.
 - El dominio `[('componente_id', '=', componente_id)]` en `subtipo_id` dentro del one2many editable funciona correctamente desde Odoo 17+.
 - Los campos de ficha técnica en `stock.lot` reemplazaron los `x_studio_*` de Studio. Los campos Studio siguen en la BD como columnas huérfanas — se pueden eliminar desde Studio o vía SQL cuando se confirme que no hacen falta.
 - **Patrón de migración**: el ORM de Odoo crea las columnas nuevas **antes** de ejecutar el script `post-migrate.py`. Por eso las migraciones de renombrado deben usar `UPDATE SET nuevo = viejo` + `DROP COLUMN viejo`, no `RENAME COLUMN` (que falla porque la columna destino ya existe).

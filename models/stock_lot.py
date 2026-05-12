@@ -145,8 +145,7 @@ class StockLot(models.Model):
         compute='_compute_mc_repair_count',
     )
 
-    # Fecha de la última orden completada — usa create_date como aproximación hasta
-    # que repair.order tenga un campo de fecha real de cierre (pendiente)
+    # Fecha de entrega real de la última orden completada, ingresada por el técnico al cerrar
     ultima_mantencion = fields.Date(
         string='Última mantención',
         compute='_compute_ultima_mantencion',
@@ -168,7 +167,7 @@ class StockLot(models.Model):
                 ('lot_id', '=', lot.id),
                 ('state', '=', 'done'),
             ], order='id desc', limit=1)
-            lot.ultima_mantencion = ultima.create_date.date() if ultima else False
+            lot.ultima_mantencion = ultima.fecha_entrega_real if ultima else False
 
     def action_ver_reparaciones(self):
         """Abre la lista de órdenes de reparación filtradas por este número de serie."""
