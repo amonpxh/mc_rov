@@ -170,6 +170,8 @@ git branch -d feature/mi-funcion
 - [x] Columna HH. alineada a la izquierda (valor y encabezado) en la lista de trabajos realizados
 
 ### Pendiente
+- [ ] **Total de horas en repair.order**: campo `mc_total_horas` computed (suma de `horas` de todas las `linea_falla_ids`), mostrar en la pestaña "Trabajos realizados" o en "Resultado".
+- [ ] **Eliminar columnas Studio huérfanas**: las columnas `x_studio_*` en `stock_lot` quedaron en la BD tras migrar la ficha técnica al módulo. Eliminarlas vía SQL o desde Studio cuando se confirme que no hacen falta. Verificar primero con `SELECT column_name FROM information_schema.columns WHERE table_name = 'stock_lot' AND column_name LIKE 'x_studio_%'`.
 - [ ] **Grupos de seguridad**: los accesos actuales son sin grupo. Implementar cuando haya múltiples usuarios. Diseño acordado:
 
   **Dos grupos jerárquicos** (`Coordinador ROV` hereda `Técnico ROV` vía `implied_ids`):
