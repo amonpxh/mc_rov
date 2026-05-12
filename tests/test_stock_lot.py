@@ -1,3 +1,4 @@
+from odoo import fields
 from odoo.tests.common import TransactionCase
 from odoo.tests import tagged
 
@@ -64,13 +65,24 @@ class TestStockLotRov(TransactionCase):
     def test_ultima_mantencion_sin_reparaciones_es_false(self):
         self.assertFalse(self.lot.ultima_mantencion)
 
-    def test_ultima_mantencion_retorna_fecha_de_ultima_orden_done(self):
-        repair = self.env['repair.order'].create({
+    def test_ultima_mantencion_retorna_fecha_entrega_real(self):
+        hoy = fields.Date.today()
+        self.env['repair.order'].create({
+            'product_id': self.product.id,
+            'lot_id': self.lot.id,
+            'state': 'done',
+            'fecha_entrega_real': hoy,
+        })
+        self.assertEqual(self.lot.ultima_mantencion, hoy)
+
+    def test_ultima_mantencion_es_false_si_orden_done_sin_fecha_entrega(self):
+        """Una orden done sin fecha_entrega_real no debe mostrar fecha."""
+        self.env['repair.order'].create({
             'product_id': self.product.id,
             'lot_id': self.lot.id,
             'state': 'done',
         })
-        self.assertEqual(self.lot.ultima_mantencion, repair.create_date.date())
+        self.assertFalse(self.lot.ultima_mantencion)
 
     def test_ultima_mantencion_ignora_ordenes_en_borrador(self):
         """Si solo hay órdenes en draft, ultima_mantencion debe quedar vacía."""
