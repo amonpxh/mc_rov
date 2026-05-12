@@ -19,6 +19,6 @@
 }
 
 /* Encabezado columna HH. alineado a la izquierda igual que los valores */
-.o_list_view thead th[data-name="horas"] {
+th[data-name="horas"] .o_list_number_th {
     text-align: left !important;
 }
