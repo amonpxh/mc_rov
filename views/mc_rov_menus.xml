@@ -6,4 +6,10 @@
         parent="repair.repair_menu_config"
         action="action_mc_rov_componente"
         sequence="20"/>
+    <menuitem
+        id="menu_mc_rov_acciones"
+        name="Acciones ROV"
+        parent="repair.repair_menu_config"
+        action="action_mc_rov_accion"
+        sequence="21"/>
 </odoo>

@@ -43,4 +43,39 @@
         <field name="res_model">mc.rov.componente</field>
         <field name="view_mode">list,form</field>
     </record>
+
+    <!-- Vista lista acciones -->
+    <record id="view_mc_rov_accion_list" model="ir.ui.view">
+        <field name="name">mc.rov.accion.list</field>
+        <field name="model">mc.rov.accion</field>
+        <field name="arch" type="xml">
+            <list string="Acciones ROV">
+                <field name="name"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Vista formulario acciones -->
+    <record id="view_mc_rov_accion_form" model="ir.ui.view">
+        <field name="name">mc.rov.accion.form</field>
+        <field name="model">mc.rov.accion</field>
+        <field name="arch" type="xml">
+            <form string="Acción ROV">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="active"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Acción acciones -->
+    <record id="action_mc_rov_accion" model="ir.actions.act_window">
+        <field name="name">Acciones ROV</field>
+        <field name="res_model">mc.rov.accion</field>
+        <field name="view_mode">list,form</field>
+    </record>
 </odoo>

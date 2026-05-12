@@ -1,5 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!-- Acciones -->
+    <record id="accion_cambio_completo" model="mc.rov.accion">
+        <field name="name">Cambio completo</field>
+    </record>
+    <record id="accion_cambio_componente" model="mc.rov.accion">
+        <field name="name">Cambio de componente</field>
+    </record>
+    <record id="accion_reparacion" model="mc.rov.accion">
+        <field name="name">Reparación</field>
+    </record>
+    <record id="accion_mantencion_preventiva" model="mc.rov.accion">
+        <field name="name">Mantención preventiva</field>
+    </record>
+    <record id="accion_limpieza" model="mc.rov.accion">
+        <field name="name">Limpieza</field>
+    </record>
+    <record id="accion_calibracion" model="mc.rov.accion">
+        <field name="name">Calibración</field>
+    </record>
+    <record id="accion_configuracion" model="mc.rov.accion">
+        <field name="name">Configuración / Software</field>
+    </record>
+    <record id="accion_soldadura" model="mc.rov.accion">
+        <field name="name">Soldadura</field>
+    </record>
+    <record id="accion_sin_solucion" model="mc.rov.accion">
+        <field name="name">Sin solución</field>
+    </record>
+    <record id="accion_derivado" model="mc.rov.accion">
+        <field name="name">Derivado a fabricante</field>
+    </record>
+
     <!-- Componentes -->
     <record id="comp_motor" model="mc.rov.componente">
         <field name="name">Motor</field>

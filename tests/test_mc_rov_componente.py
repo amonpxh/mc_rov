@@ -4,7 +4,7 @@ from odoo.tests import tagged
 
 @tagged('post_install', '-at_install')
 class TestMcRovComponente(TransactionCase):
-    """Tests para mc.rov.componente, mc.rov.subtipo y mc.rov.linea.falla."""
+    """Tests para mc.rov.componente, mc.rov.subtipo, mc.rov.accion y mc.rov.linea.falla."""
 
     @classmethod
     def setUpClass(cls):
@@ -14,6 +14,7 @@ class TestMcRovComponente(TransactionCase):
             'tracking': 'serial',
         })
         cls.componente = cls.env['mc.rov.componente'].create({'name': 'Motor Test'})
+        cls.accion = cls.env['mc.rov.accion'].create({'name': 'Reparación Test'})
 
     def setUp(self):
         super().setUp()
@@ -82,13 +83,28 @@ class TestMcRovComponente(TransactionCase):
         comp.unlink()
         self.assertFalse(self.env['mc.rov.subtipo'].browse(subtipo_id).exists())
 
+    # --- mc.rov.accion ---
+
+    def test_accion_se_crea_con_nombre(self):
+        accion = self.env['mc.rov.accion'].create({'name': 'Limpieza'})
+        self.assertEqual(accion.name, 'Limpieza')
+
+    def test_accion_active_por_defecto_es_true(self):
+        accion = self.env['mc.rov.accion'].create({'name': 'Soldadura'})
+        self.assertTrue(accion.active)
+
+    def test_accion_se_puede_archivar(self):
+        accion = self.env['mc.rov.accion'].create({'name': 'Calibración'})
+        accion.active = False
+        self.assertFalse(accion.active)
+
     # --- mc.rov.linea.falla ---
 
     def test_linea_falla_sequence_por_defecto_es_10(self):
         linea = self.env['mc.rov.linea.falla'].create({
             'repair_id': self.order.id,
             'componente_id': self.componente.id,
-            'accion': 'reparacion',
+            'accion_id': self.accion.id,
         })
         self.assertEqual(linea.sequence, 10)
 
@@ -96,7 +112,7 @@ class TestMcRovComponente(TransactionCase):
         linea = self.env['mc.rov.linea.falla'].create({
             'repair_id': self.order.id,
             'componente_id': self.componente.id,
-            'accion': 'limpieza',
+            'accion_id': self.accion.id,
         })
         self.assertFalse(linea.detalle)
 
@@ -104,20 +120,38 @@ class TestMcRovComponente(TransactionCase):
         linea = self.env['mc.rov.linea.falla'].create({
             'repair_id': self.order.id,
             'componente_id': self.componente.id,
-            'accion': 'calibracion',
+            'accion_id': self.accion.id,
         })
         self.assertFalse(linea.subtipo_id)
 
-    def test_linea_falla_acepta_todas_las_acciones(self):
-        acciones = [
-            'cambio_completo', 'cambio_componente', 'reparacion',
-            'mantencion_preventiva', 'limpieza', 'calibracion',
-            'configuracion', 'soldadura', 'sin_solucion', 'derivado',
-        ]
-        for accion in acciones:
-            linea = self.env['mc.rov.linea.falla'].create({
-                'repair_id': self.order.id,
-                'componente_id': self.componente.id,
-                'accion': accion,
-            })
-            self.assertEqual(linea.accion, accion)
+    def test_linea_falla_fecha_es_opcional(self):
+        linea = self.env['mc.rov.linea.falla'].create({
+            'repair_id': self.order.id,
+            'componente_id': self.componente.id,
+            'accion_id': self.accion.id,
+        })
+        self.assertFalse(linea.fecha)
+
+    def test_linea_falla_horas_por_defecto_es_cero(self):
+        linea = self.env['mc.rov.linea.falla'].create({
+            'repair_id': self.order.id,
+            'componente_id': self.componente.id,
+            'accion_id': self.accion.id,
+        })
+        self.assertEqual(linea.horas, 0.0)
+
+    def test_linea_falla_acepta_distintas_acciones(self):
+        """accion_id es un Many2one: distintos registros mc.rov.accion deben funcionar."""
+        accion2 = self.env['mc.rov.accion'].create({'name': 'Cambio completo Test'})
+        linea1 = self.env['mc.rov.linea.falla'].create({
+            'repair_id': self.order.id,
+            'componente_id': self.componente.id,
+            'accion_id': self.accion.id,
+        })
+        linea2 = self.env['mc.rov.linea.falla'].create({
+            'repair_id': self.order.id,
+            'componente_id': self.componente.id,
+            'accion_id': accion2.id,
+        })
+        self.assertEqual(linea1.accion_id, self.accion)
+        self.assertEqual(linea2.accion_id, accion2)

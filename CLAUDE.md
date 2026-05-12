@@ -11,18 +11,18 @@ Módulo Odoo 19 que extiende `repair` para gestionar reparaciones y mantenciones
 ```
 mc_rov/
 ├── models/
-│   ├── mc_rov_componente.py        # Modelos propios: componente, subtipo, línea de falla
+│   ├── mc_rov_componente.py        # Modelos propios: componente, subtipo, acción, línea de falla
 │   ├── repair_order.py             # Herencia de repair.order
 │   └── stock_lot.py                # Herencia de stock.lot
 ├── views/
-│   ├── mc_rov_componente_views.xml # Lista + formulario de componentes
+│   ├── mc_rov_componente_views.xml # Lista + formulario de componentes y acciones
 │   ├── repair_order_views.xml      # Herencia formulario repair.order
 │   ├── stock_lot_views.xml         # Herencia formulario stock.lot
 │   └── mc_rov_menus.xml            # Menú en configuración de reparaciones
 ├── data/
-│   └── mc_rov_data.xml             # Datos maestros: 8 componentes + ~40 subtipos
+│   └── mc_rov_data.xml             # Datos maestros: 10 acciones + 8 componentes + ~40 subtipos
 ├── security/
-│   └── ir.model.access.csv         # Accesos a los 3 modelos propios
+│   └── ir.model.access.csv         # Accesos a los 4 modelos propios
 ├── static/src/css/
 │   └── mc_rov.css                  # Mejora visual de campos editables
 ├── .github/workflows/lint.yml      # CI: lint automático en push
@@ -37,6 +37,7 @@ mc_rov/
 |--------|-------------|
 | `mc.rov.componente` | Catálogo de componentes ROV (Motor, Umbilical, Electrónica, etc.) |
 | `mc.rov.subtipo` | Subtipos por componente (Rotor, Hélice, ESC, etc.) |
+| `mc.rov.accion` | Catálogo de acciones en intervenciones (Reparación, Limpieza, Soldadura, etc.) |
 | `mc.rov.linea.falla` | Líneas de trabajo registradas en una orden de reparación |
 
 ### Heredados
@@ -46,6 +47,8 @@ mc_rov/
 | `stock.lot` | `es_un_rov`, `mc_estado_comercial`, `mc_estado_operativo`, `mc_repair_count` (computed), `ultima_mantencion` (computed), `action_ver_reparaciones`, + 48 campos de ficha técnica ROV con prefijo `mc_` (especificaciones, periféricos, umbilical, prueba en terreno) |
 
 ## Datos maestros incluidos
+
+**Acciones (10):** Cambio completo, Cambio de componente, Reparación, Mantención preventiva, Limpieza, Calibración, Configuración / Software, Soldadura, Sin solución, Derivado a fabricante
 
 **Componentes (8):** Motor, Umbilical, Electrónica / Software, Estructura / Chasis, Consola, Cámara, Sensor, Otro
 
@@ -135,6 +138,7 @@ git branch -d feature/mi-funcion
 - [x] Estructura base del módulo: manifest, `__init__.py`, dependencias
 - [x] Modelo `mc.rov.componente` con subtipos anidados y campo `active`
 - [x] Modelo `mc.rov.linea.falla`: secuencia, componente, subtipo filtrado, acción y detalle
+- [x] Modelo `mc.rov.accion`: catálogo configurable de acciones (Reparación, Limpieza, etc.) con menú en Reparaciones > Configuración; reemplaza el campo Selection anterior
 - [x] Herencia `repair.order`: tipo de intervención, ítems del sistema, falla reportada, pestañas "Trabajos realizados" y "Resultado"
 - [x] Herencia `stock.lot`: botón inteligente de reparaciones, `ultima_mantencion`, acción de historial
 - [x] Vistas de componentes (lista y formulario con subtipos inline)
@@ -160,8 +164,9 @@ git branch -d feature/mi-funcion
 - [x] `ultima_mantencion` corregida: ahora usa `fecha_entrega_real` (campo propio del módulo) en vez de `create_date`
 - [x] Tests de `repair.order`: 10 tests cubriendo defaults, selecciones, `fecha_entrega_real` y `linea_falla_ids` (todos pasando en `odoo_test`)
 - [x] Migración `19.0.1.1.0` corregida: segundo guard evita fallo en `odoo_test` y reinstalaciones donde las columnas intermedias sin prefijo `mc_` no existen
-- [x] Tests de `mc.rov.componente`: 13 tests cubriendo `mc.rov.componente`, `mc.rov.subtipo` y `mc.rov.linea.falla` (todos pasando en `odoo_test`)
+- [x] Tests de `mc.rov.componente`: 16 tests cubriendo `mc.rov.componente`, `mc.rov.subtipo`, `mc.rov.accion` y `mc.rov.linea.falla` (pendiente correr en `odoo_test` tras migración 19.0.1.3.0)
 - [x] XPaths frágiles en `stock_lot_views.xml` corregidos: `//field[@name='ref']` → `//field[@name='product_id']`; `//group[@name='main_group']` → `//sheet` (ambos son anclajes estables independientes de la estructura interna de Odoo)
+- [x] Campos `fecha` y `horas` agregados a `mc.rov.linea.falla`; vista "Trabajos realizados" muestra columnas Componente, Subtipo, Acción, Fecha, HH., Detalle — versión `19.0.1.3.0`
 
 ### Pendiente
 - [ ] **Grupos de seguridad**: los accesos actuales son sin grupo. Implementar cuando haya múltiples usuarios. Diseño acordado:
@@ -170,8 +175,8 @@ git branch -d feature/mi-funcion
 
   | Grupo | `implied_ids` (grupos Odoo arrastrados) | Acceso mc_rov |
   |-------|----------------------------------------|---------------|
-  | `Técnico ROV` | `repair.group_repair_user`, `stock.group_stock_user` | CRUD en `linea.falla`; lectura en `componente`/`subtipo`; edición de ficha técnica y campos mc_rov en `repair.order` y `stock.lot` |
-  | `Coordinador ROV` | `repair.group_repair_manager`, `stock.group_stock_manager`, `purchase.group_purchase_user`, `sale.group_sale_user`, `account.group_account_invoice` | Todo lo anterior + CRUD en `componente`/`subtipo` |
+  | `Técnico ROV` | `repair.group_repair_user`, `stock.group_stock_user` | CRUD en `linea.falla`; lectura en `componente`/`subtipo`/`accion`; edición de ficha técnica y campos mc_rov en `repair.order` y `stock.lot` |
+  | `Coordinador ROV` | `repair.group_repair_manager`, `stock.group_stock_manager`, `purchase.group_purchase_user`, `sale.group_sale_user`, `account.group_account_invoice` | Todo lo anterior + CRUD en `componente`/`subtipo`/`accion` |
 
   **Implementación involucra:**
   1. `security/mc_rov_groups.xml` — definir los dos grupos con `implied_ids`
@@ -208,4 +213,4 @@ git branch -d feature/mi-funcion
   sudo -u odoo odoo -d odoo_test -u mc_rov --test-tags /mc_rov:TestMcRovComponente --stop-after-init --no-http --config /etc/odoo/odoo.conf
   ```
   Siempre incluir `-u mc_rov` o los tests no se descubren.
-- Versión del módulo: `19.0.1.2.0`
+- Versión del módulo: `19.0.1.3.0`

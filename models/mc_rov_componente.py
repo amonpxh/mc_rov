@@ -43,12 +43,28 @@ class McRovSubtipo(models.Model):
     active = fields.Boolean(default=True)
 
 
+class McRovAccion(models.Model):
+    """Catálogo de acciones realizadas en intervenciones ROV.
+
+    Lista configurable de acciones estándar que el técnico puede seleccionar
+    al registrar cada línea de trabajo (reparación, limpieza, calibración, etc.).
+    Se gestiona desde Reparaciones > Configuración, igual que los componentes.
+    """
+
+    _name = 'mc.rov.accion'
+    _description = 'Acción en intervención ROV'
+    _order = 'name'
+
+    name = fields.Char(string='Acción', required=True)
+    active = fields.Boolean(default=True)
+
+
 class McRovLineaFalla(models.Model):
     """Línea de trabajo registrada en una orden de reparación.
 
     Cada línea describe una intervención específica: qué componente se trató,
-    qué subtipo exacto, qué acción se tomó y un detalle libre. Una orden puede
-    tener múltiples líneas si se intervinieron varios componentes.
+    qué subtipo exacto, qué acción se tomó, la fecha, las horas invertidas y
+    un detalle libre. Una orden puede tener múltiples líneas.
     """
 
     _name = 'mc.rov.linea.falla'
@@ -69,16 +85,12 @@ class McRovLineaFalla(models.Model):
         string='Subtipo',
         domain="[('componente_id', '=', componente_id)]",
     )
-    accion = fields.Selection([
-        ('cambio_completo', 'Cambio completo'),
-        ('cambio_componente', 'Cambio de componente'),
-        ('reparacion', 'Reparación'),
-        ('mantencion_preventiva', 'Mantención preventiva'),
-        ('limpieza', 'Limpieza'),
-        ('calibracion', 'Calibración'),
-        ('configuracion', 'Configuración / Software'),
-        ('soldadura', 'Soldadura'),
-        ('sin_solucion', 'Sin solución'),
-        ('derivado', 'Derivado a fabricante'),
-    ], string='Acción', required=True)
+    accion_id = fields.Many2one(
+        'mc.rov.accion',
+        string='Acción',
+        required=True,
+        ondelete='restrict',
+    )
+    fecha = fields.Date(string='Fecha')
+    horas = fields.Float(string='HH.', digits=(5, 1))
     detalle = fields.Text(string='Detalle')

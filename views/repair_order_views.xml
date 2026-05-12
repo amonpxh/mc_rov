@@ -32,7 +32,9 @@
                             <field name="sequence" widget="handle"/>
                             <field name="componente_id"/>
                             <field name="subtipo_id" domain="[('componente_id', '=', componente_id)]"/>
-                            <field name="accion"/>
+                            <field name="accion_id"/>
+                            <field name="fecha"/>
+                            <field name="horas"/>
                             <field name="detalle"/>
                         </list>
                     </field>
