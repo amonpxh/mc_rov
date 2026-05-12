@@ -16,6 +16,7 @@ class TestRepairOrder(TransactionCase):
             'tracking': 'serial',
         })
         cls.componente = cls.env['mc.rov.componente'].create({'name': 'Motor Test'})
+        cls.accion = cls.env['mc.rov.accion'].create({'name': 'Reparación Test'})
 
     def setUp(self):
         super().setUp()
@@ -63,7 +64,7 @@ class TestRepairOrder(TransactionCase):
         self.env['mc.rov.linea.falla'].create({
             'repair_id': self.order.id,
             'componente_id': self.componente.id,
-            'accion': 'reparacion',
+            'accion_id': self.accion.id,
         })
         self.assertEqual(len(self.order.linea_falla_ids), 1)
 
@@ -72,6 +73,6 @@ class TestRepairOrder(TransactionCase):
             self.env['mc.rov.linea.falla'].create({
                 'repair_id': self.order.id,
                 'componente_id': self.componente.id,
-                'accion': 'limpieza',
+                'accion_id': self.accion.id,
             })
         self.assertEqual(len(self.order.linea_falla_ids), 3)
