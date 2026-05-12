@@ -158,11 +158,13 @@ git branch -d feature/mi-funcion
 - [x] Flujo de ramas GitHub Flow estrenado: primer `feature/` branch mergeado a `main` con PR flow completo
 - [x] Vista lista de `repair.order` con columnas `tipo_intervencion` y `estado_final` (antes de la columna estado)
 - [x] `ultima_mantencion` corregida: ahora usa `fecha_entrega_real` (campo propio del módulo) en vez de `create_date`
+- [x] Tests de `repair.order`: 10 tests cubriendo defaults, selecciones, `fecha_entrega_real` y `linea_falla_ids` (todos pasando en `odoo_test`)
+- [x] Migración `19.0.1.1.0` corregida: segundo guard evita fallo en `odoo_test` y reinstalaciones donde las columnas intermedias sin prefijo `mc_` no existen
 
 ### Pendiente
 - [ ] **XPaths frágiles en `stock_lot_views.xml`**: `//group[@name='main_group']` y `//field[@name='ref']` pueden romperse si Odoo cambia la estructura base del formulario en una versión futura.
 - [ ] **Grupos de seguridad**: los accesos actuales son sin grupo — definir roles si se requiere control por perfil
-- [ ] **Tests**: solo existen para `stock.lot` — faltan tests para `repair.order` y `mc.rov.componente`
+- [ ] **Tests**: faltan tests para `mc.rov.componente`
 
 ## Notas técnicas
 
