@@ -164,9 +164,9 @@ git branch -d feature/mi-funcion
 - [x] `ultima_mantencion` corregida: ahora usa `fecha_entrega_real` (campo propio del módulo) en vez de `create_date`
 - [x] Tests de `repair.order`: 10 tests cubriendo defaults, selecciones, `fecha_entrega_real` y `linea_falla_ids` (todos pasando en `odoo_test`)
 - [x] Migración `19.0.1.1.0` corregida: segundo guard evita fallo en `odoo_test` y reinstalaciones donde las columnas intermedias sin prefijo `mc_` no existen
-- [x] Tests de `mc.rov.componente`: 16 tests cubriendo `mc.rov.componente`, `mc.rov.subtipo`, `mc.rov.accion` y `mc.rov.linea.falla` (pendiente correr en `odoo_test` tras migración 19.0.1.3.0)
+- [x] Tests de `mc.rov.componente`: 16 tests cubriendo `mc.rov.componente`, `mc.rov.subtipo`, `mc.rov.accion` y `mc.rov.linea.falla` (todos pasando en `odoo_test`)
 - [x] XPaths frágiles en `stock_lot_views.xml` corregidos: `//field[@name='ref']` → `//field[@name='product_id']`; `//group[@name='main_group']` → `//sheet` (ambos son anclajes estables independientes de la estructura interna de Odoo)
-- [x] Campos `fecha` y `horas` agregados a `mc.rov.linea.falla`; vista "Trabajos realizados" muestra columnas Componente, Subtipo, Acción, Fecha, HH., Detalle — versión `19.0.1.3.0`
+- [x] Campos `fecha` y `horas` agregados a `mc.rov.linea.falla`; vista "Trabajos realizados" muestra columnas Componente, Subtipo, Acción, Fecha, HH., Detalle — versión `19.0.1.3.0`, verificado en producción, 43 tests pasando
 
 ### Pendiente
 - [ ] **Grupos de seguridad**: los accesos actuales son sin grupo. Implementar cuando haya múltiples usuarios. Diseño acordado:
