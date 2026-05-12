@@ -169,9 +169,9 @@ git branch -d feature/mi-funcion
 - [x] Campos `fecha` y `horas` agregados a `mc.rov.linea.falla`; vista "Trabajos realizados" muestra columnas Componente, Subtipo, Acción, Fecha, HH., Detalle — versión `19.0.1.3.0`, verificado en producción, 43 tests pasando
 - [x] Columna HH. alineada a la izquierda (valor y encabezado) en la lista de trabajos realizados
 - [x] Campo `mc_total_horas` computed en `repair.order` (suma de `horas` de `linea_falla_ids`), visible al pie de la pestaña "Trabajos realizados" — versión `19.0.1.4.0`
+- [x] Columnas `x_studio_*` huérfanas eliminadas de `stock_lot` vía SQL (90 columnas); WARNING de label duplicado resuelto
 
 ### Pendiente
-- [ ] **Eliminar columnas Studio huérfanas**: las columnas `x_studio_*` en `stock_lot` quedaron en la BD tras migrar la ficha técnica al módulo. Eliminarlas vía SQL o desde Studio cuando se confirme que no hacen falta. Verificar primero con `SELECT column_name FROM information_schema.columns WHERE table_name = 'stock_lot' AND column_name LIKE 'x_studio_%'`.
 - [ ] **Grupos de seguridad**: los accesos actuales son sin grupo. Implementar cuando haya múltiples usuarios. Diseño acordado:
 
   **Dos grupos jerárquicos** (`Coordinador ROV` hereda `Técnico ROV` vía `implied_ids`):
