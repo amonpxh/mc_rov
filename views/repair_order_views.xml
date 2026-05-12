@@ -39,23 +39,19 @@
                         </list>
                     </field>
                     <group>
-                        <group/>
                         <group>
                             <field name="mc_total_horas" readonly="True"/>
                         </group>
+                        <group/>
                     </group>
                 </page>
                 <page string="Resultado" name="resultado">
                     <group>
                         <group>
-                            <field name="estado_final"/>
                             <field name="causa_raiz"/>
                             <field name="fecha_entrega_real"/>
                         </group>
-                        <group>
-                            <field name="garantia_reparacion"/>
-                            <field name="fecha_garantia" invisible="not garantia_reparacion"/>
-                        </group>
+                        <group/>
                     </group>
                     <field name="observaciones_salida"/>
                 </page>
@@ -71,7 +67,7 @@
         <field name="arch" type="xml">
             <field name="state" position="before">
                 <field name="tipo_intervencion"/>
-                <field name="estado_final"/>
+                <field name="mc_total_horas"/>
             </field>
         </field>
     </record>

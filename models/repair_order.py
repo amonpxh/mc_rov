@@ -41,14 +41,6 @@ class RepairOrder(models.Model):
         for order in self:
             order.mc_total_horas = sum(order.linea_falla_ids.mapped('horas'))
 
-    # Resultado de la intervención
-    estado_final = fields.Selection([
-        ('reparado', 'Reparado'),
-        ('no_reparado', 'No reparado'),
-        ('derivado', 'Derivado a fabricante'),
-        ('pendiente_repuesto', 'Pendiente repuesto'),
-    ], string='Estado final')
-
     causa_raiz = fields.Selection([
         ('mal_uso', 'Mal uso'),
         ('desgaste', 'Desgaste normal'),
@@ -58,8 +50,5 @@ class RepairOrder(models.Model):
         ('desconocida', 'Desconocida'),
     ], string='Causa raíz')
 
-    garantia_reparacion = fields.Boolean(string='Garantía de reparación')
-    # Solo visible cuando garantia_reparacion está activo (controlado en la vista)
-    fecha_garantia = fields.Date(string='Vencimiento garantía')
     fecha_entrega_real = fields.Date(string='Fecha de entrega real')
     observaciones_salida = fields.Text(string='Observaciones de salida')
