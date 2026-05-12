@@ -161,9 +161,9 @@ git branch -d feature/mi-funcion
 - [x] Tests de `repair.order`: 10 tests cubriendo defaults, selecciones, `fecha_entrega_real` y `linea_falla_ids` (todos pasando en `odoo_test`)
 - [x] Migración `19.0.1.1.0` corregida: segundo guard evita fallo en `odoo_test` y reinstalaciones donde las columnas intermedias sin prefijo `mc_` no existen
 - [x] Tests de `mc.rov.componente`: 13 tests cubriendo `mc.rov.componente`, `mc.rov.subtipo` y `mc.rov.linea.falla` (todos pasando en `odoo_test`)
+- [x] XPaths frágiles en `stock_lot_views.xml` corregidos: `//field[@name='ref']` → `//field[@name='product_id']`; `//group[@name='main_group']` → `//sheet` (ambos son anclajes estables independientes de la estructura interna de Odoo)
 
 ### Pendiente
-- [ ] **XPaths frágiles en `stock_lot_views.xml`**: `//group[@name='main_group']` y `//field[@name='ref']` pueden romperse si Odoo cambia la estructura base del formulario en una versión futura.
 - [ ] **Grupos de seguridad**: los accesos actuales son sin grupo — definir roles si se requiere control por perfil
 
 ## Notas técnicas

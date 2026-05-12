@@ -7,7 +7,8 @@
         <field name="arch" type="xml">
 
             <!-- Campos de identificación y estado ROV -->
-            <field name="ref" position="after">
+            <!-- Anclado a product_id (campo requerido en stock.lot, más estable que ref) -->
+            <xpath expr="//field[@name='product_id']" position="after">
                 <field name="es_un_rov"/>
                 <field name="ultima_mantencion" readonly="1" invisible="not es_un_rov"/>
                 <field name="mc_estado_comercial"
@@ -16,10 +17,11 @@
                 <field name="mc_estado_operativo"
                        invisible="not es_un_rov"
                        help="Indica si el equipo está siendo reparado, en mantención o está operativo."/>
-            </field>
+            </xpath>
 
             <!-- Pestañas de ficha técnica ROV (ocultas si no es ROV) -->
-            <xpath expr="//group[@name='main_group']" position="after">
+            <!-- Anclado a //sheet para no depender de nombres internos de grupos de Odoo -->
+            <xpath expr="//sheet" position="inside">
                 <notebook name="notebook_ficha_rov">
 
                     <page string="Especificaciones" name="page_especificaciones" invisible="not es_un_rov">
