@@ -17,3 +17,8 @@
     border: 1px solid #c0c0c0 !important;
     border-radius: 4px !important;
 }
+
+/* Encabezado columna HH. alineado a la izquierda igual que los valores */
+.o_list_view thead th[data-name="horas"] {
+    text-align: left !important;
+}
