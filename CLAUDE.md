@@ -160,11 +160,11 @@ git branch -d feature/mi-funcion
 - [x] `ultima_mantencion` corregida: ahora usa `fecha_entrega_real` (campo propio del módulo) en vez de `create_date`
 - [x] Tests de `repair.order`: 10 tests cubriendo defaults, selecciones, `fecha_entrega_real` y `linea_falla_ids` (todos pasando en `odoo_test`)
 - [x] Migración `19.0.1.1.0` corregida: segundo guard evita fallo en `odoo_test` y reinstalaciones donde las columnas intermedias sin prefijo `mc_` no existen
+- [x] Tests de `mc.rov.componente`: 13 tests cubriendo `mc.rov.componente`, `mc.rov.subtipo` y `mc.rov.linea.falla` (todos pasando en `odoo_test`)
 
 ### Pendiente
 - [ ] **XPaths frágiles en `stock_lot_views.xml`**: `//group[@name='main_group']` y `//field[@name='ref']` pueden romperse si Odoo cambia la estructura base del formulario en una versión futura.
 - [ ] **Grupos de seguridad**: los accesos actuales son sin grupo — definir roles si se requiere control por perfil
-- [ ] **Tests**: faltan tests para `mc.rov.componente`
 
 ## Notas técnicas
 
@@ -185,4 +185,12 @@ git branch -d feature/mi-funcion
 - Para verificar que la actualización quedó OK:
   1. `tail -20 /var/log/odoo/odoo-server.log` — sin líneas `ERROR`, registry cargado
   2. En Odoo: navegar a la sección afectada y confirmar visualmente que funciona
+- **Formato de `--test-tags` en Odoo 17+**: la sintaxis correcta es `/modulo:Clase` (no `modulo.Clase`). Ejemplos:
+  ```bash
+  # Todos los tests del módulo
+  sudo -u odoo odoo -d odoo_test -u mc_rov --test-tags /mc_rov --stop-after-init --no-http --config /etc/odoo/odoo.conf
+  # Una clase específica
+  sudo -u odoo odoo -d odoo_test -u mc_rov --test-tags /mc_rov:TestMcRovComponente --stop-after-init --no-http --config /etc/odoo/odoo.conf
+  ```
+  Siempre incluir `-u mc_rov` o los tests no se descubren.
 - Versión del módulo: `19.0.1.2.0`
