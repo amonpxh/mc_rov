@@ -164,7 +164,22 @@ git branch -d feature/mi-funcion
 - [x] XPaths frágiles en `stock_lot_views.xml` corregidos: `//field[@name='ref']` → `//field[@name='product_id']`; `//group[@name='main_group']` → `//sheet` (ambos son anclajes estables independientes de la estructura interna de Odoo)
 
 ### Pendiente
-- [ ] **Grupos de seguridad**: los accesos actuales son sin grupo — definir roles si se requiere control por perfil
+- [ ] **Grupos de seguridad**: los accesos actuales son sin grupo. Implementar cuando haya múltiples usuarios. Diseño acordado:
+
+  **Dos grupos jerárquicos** (`Coordinador ROV` hereda `Técnico ROV` vía `implied_ids`):
+
+  | Grupo | `implied_ids` (grupos Odoo arrastrados) | Acceso mc_rov |
+  |-------|----------------------------------------|---------------|
+  | `Técnico ROV` | `repair.group_repair_user`, `stock.group_stock_user` | CRUD en `linea.falla`; lectura en `componente`/`subtipo`; edición de ficha técnica y campos mc_rov en `repair.order` y `stock.lot` |
+  | `Coordinador ROV` | `repair.group_repair_manager`, `stock.group_stock_manager`, `purchase.group_purchase_user`, `sale.group_sale_user`, `account.group_account_invoice` | Todo lo anterior + CRUD en `componente`/`subtipo` |
+
+  **Implementación involucra:**
+  1. `security/mc_rov_groups.xml` — definir los dos grupos con `implied_ids`
+  2. `ir.model.access.csv` — reemplazar líneas sin grupo por reglas por grupo
+  3. `views/` — agregar `groups=` en campos que solo el Coordinador debe editar (ej. `mc_estado_comercial`)
+  4. Registrar `mc_rov_groups.xml` en `__manifest__.py` bajo `data`
+
+  **Para asignar grupos a usuarios:** `Ajustes → Usuarios → [usuario]` (sin tocar código). Cambiar qué puede hacer un grupo requiere modificar el módulo.
 
 ## Notas técnicas
 
