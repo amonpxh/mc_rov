@@ -1,0 +1,13 @@
+{
+  "recommendations": [
+    "ms-python.python",
+    "ms-python.vscode-pylance",
+    "redhat.vscode-yaml",
+    "redhat.vscode-xml",
+    "trinhanhngoc.vscode-odoo",
+    "esbenp.prettier-vscode",
+    "eamodio.gitlens",
+    "github.vscode-github-actions",
+    "ms-azuretools.vscode-docker"
+  ]
+}
