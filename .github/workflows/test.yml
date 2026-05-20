@@ -1,59 +1,38 @@
 # Test workflow for mc_rov
 #
-# Runs the 34 Odoo unit tests against a clean Odoo 19 + PostgreSQL 15 environment
-# on every PR and push to main/develop.
-#
-# Uses the official `odoo:19` Docker image. The module source is mounted into the
-# image's standard custom-addons path.
-#
-# Local equivalent (in production env): see docs/runbooks/testing.md
+# Runs the 37 Odoo unit tests on the production VPS via a self-hosted runner.
+# The runner must be installed on the VPS as the odoo user.
+# See docs/runbooks/testing.md for the manual equivalent.
 
 name: Tests
 
-# Disabled: odoo:19 public Docker image not yet available.
-# Tests run manually on the production server via docs/runbooks/testing.md
-# Re-enable once a valid base image is confirmed.
 on:
-  workflow_dispatch:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
 
 jobs:
   odoo-tests:
-    name: Odoo module tests (34 tests)
-    runs-on: ubuntu-latest
-
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_USER: odoo
-          POSTGRES_PASSWORD: odoo
-          POSTGRES_DB: postgres
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+    name: Odoo module tests (37 tests)
+    runs-on: self-hosted
 
     steps:
-      - uses: actions/checkout@v4
-        with:
-          path: mc_rov
-
-      - name: Run mc_rov tests inside odoo:19 image
+      - name: Checkout into module path
         run: |
-          docker run --rm \
-            --network=host \
-            -v ${{ github.workspace }}/mc_rov:/mnt/extra-addons/mc_rov \
-            odoo:19 \
-            -d test_mc_rov \
-            -i mc_rov \
-            --test-enable \
+          git -C /opt/odoo/custom-addons/mc_rov fetch origin
+          git -C /opt/odoo/custom-addons/mc_rov checkout ${{ github.sha }}
+
+      - name: Run mc_rov tests
+        run: |
+          odoo \
+            -d odoo_test \
+            -u mc_rov \
             --test-tags /mc_rov \
             --stop-after-init \
             --no-http \
-            --db_host=localhost \
-            --db_user=odoo \
-            --db_password=odoo \
-            --without-demo=all
+            --config /etc/odoo/odoo.conf
+
+      - name: Restore main
+        if: always()
+        run: git -C /opt/odoo/custom-addons/mc_rov checkout main
