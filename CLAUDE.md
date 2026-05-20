@@ -170,6 +170,7 @@ git branch -d feature/mi-funcion
 - [x] Columna HH. alineada a la izquierda (valor y encabezado) en la lista de trabajos realizados
 - [x] Campo `mc_total_horas` computed en `repair.order` (suma de `horas` de `linea_falla_ids`), visible al pie de la pestaña "Trabajos realizados" — versión `19.0.1.4.0`
 - [x] Columnas `x_studio_*` huérfanas eliminadas de `stock_lot` vía SQL (90 columnas); WARNING de label duplicado resuelto
+- [x] Versión `19.0.1.5.0` lanzada: limpieza de columnas Studio huérfanas + resolución del WARNING de label duplicado en producción
 
 ### Pendiente
 - [ ] **Grupos de seguridad**: los accesos actuales son sin grupo. Implementar cuando haya múltiples usuarios. Diseño acordado:
@@ -189,31 +190,19 @@ git branch -d feature/mi-funcion
 
   **Para asignar grupos a usuarios:** `Ajustes → Usuarios → [usuario]` (sin tocar código). Cambiar qué puede hacer un grupo requiere modificar el módulo.
 
+- [ ] **Pipeline integration touchpoints**: el ROV Operations Data Pipeline (repo separado `marine-connection/mc-rov-pipeline`) va a consumir datos de este módulo. En Phase 1 del pipeline se agregan:
+  - `controllers/api.py` — REST endpoints para el pipeline
+  - Usuario Odoo `pipeline@marine-connection` con API key
+  - Grupo `Pipeline API (Read-Only)` con acceso de solo lectura
+
+  Ver [`docs/integrations/pipeline.md`](docs/integrations/pipeline.md) para el detalle del contrato.
+
 ## Notas técnicas
 
 - `ultima_mantencion` en `stock.lot` usa `fecha_entrega_real` de la última orden `done`, ingresada por el técnico al cerrar la orden.
 - El dominio `[('componente_id', '=', componente_id)]` en `subtipo_id` dentro del one2many editable funciona correctamente desde Odoo 17+.
 - Los campos de ficha técnica en `stock.lot` reemplazaron los `x_studio_*` de Studio. Los campos Studio siguen en la BD como columnas huérfanas — se pueden eliminar desde Studio o vía SQL cuando se confirme que no hacen falta.
 - **Patrón de migración**: el ORM de Odoo crea las columnas nuevas **antes** de ejecutar el script `post-migrate.py`. Por eso las migraciones de renombrado deben usar `UPDATE SET nuevo = viejo` + `DROP COLUMN viejo`, no `RENAME COLUMN` (que falla porque la columna destino ya existe).
-- Ruta del módulo en producción: `/opt/odoo/custom-addons/mc_rov`
-- Base de datos de producción: `odoo_prod`
-- Log de Odoo en producción: `/var/log/odoo/odoo-server.log`
-- Configuración de Odoo: `/etc/odoo/odoo.conf`
-- Para actualizar el módulo en producción:
-  ```bash
-  cd /opt/odoo/custom-addons/mc_rov && git pull origin main
-  sudo -u odoo odoo -u mc_rov --stop-after-init --no-http --config /etc/odoo/odoo.conf
-  sudo systemctl restart odoo
-  ```
-- Para verificar que la actualización quedó OK:
-  1. `tail -20 /var/log/odoo/odoo-server.log` — sin líneas `ERROR`, registry cargado
-  2. En Odoo: navegar a la sección afectada y confirmar visualmente que funciona
-- **Formato de `--test-tags` en Odoo 17+**: la sintaxis correcta es `/modulo:Clase` (no `modulo.Clase`). Ejemplos:
-  ```bash
-  # Todos los tests del módulo
-  sudo -u odoo odoo -d odoo_test -u mc_rov --test-tags /mc_rov --stop-after-init --no-http --config /etc/odoo/odoo.conf
-  # Una clase específica
-  sudo -u odoo odoo -d odoo_test -u mc_rov --test-tags /mc_rov:TestMcRovComponente --stop-after-init --no-http --config /etc/odoo/odoo.conf
-  ```
-  Siempre incluir `-u mc_rov` o los tests no se descubren.
-- Versión del módulo: `19.0.1.4.0`
+- **Operación en producción:** ver [`docs/runbooks/deploy.md`](docs/runbooks/deploy.md) — incluye comandos de deploy, verificación, y rollback.
+- **Correr tests:** ver [`docs/runbooks/testing.md`](docs/runbooks/testing.md) — incluye sintaxis `--test-tags` y gotchas de Odoo 17+.
+- Versión del módulo: `19.0.1.5.0`

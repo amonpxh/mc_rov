@@ -1,0 +1,19 @@
+# Code ownership for mc_rov
+#
+# Format: <path-pattern> <owner1> <owner2> ...
+# Owners listed here are automatically requested for PR review when matching paths change.
+# At least one owner approval is required (enforced by branch protection on `main`).
+#
+# Reference: https://docs.github.com/en/repositories/managing-your-repositories-settings-and-features/customizing-your-repository/about-code-owners
+
+# Global owners — every PR requires review from at least one
+*       @paulohaller @TBD-colleague
+
+# Module security (extra scrutiny)
+/security/      @paulohaller @TBD-colleague
+
+# Migration scripts (high-risk changes)
+/migrations/    @paulohaller @TBD-colleague
+
+# Pipeline integration touchpoints (when they exist)
+# /controllers/   @paulohaller @TBD-pipeline-maintainer

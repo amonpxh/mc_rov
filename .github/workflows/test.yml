@@ -1,0 +1,59 @@
+# Test workflow for mc_rov
+#
+# Runs the 34 Odoo unit tests against a clean Odoo 19 + PostgreSQL 15 environment
+# on every PR and push to main/develop.
+#
+# Uses the official `odoo:19` Docker image. The module source is mounted into the
+# image's standard custom-addons path.
+#
+# Local equivalent (in production env): see docs/runbooks/testing.md
+
+name: Tests
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main, develop]
+
+jobs:
+  odoo-tests:
+    name: Odoo module tests (34 tests)
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: odoo
+          POSTGRES_PASSWORD: odoo
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: mc_rov
+
+      - name: Run mc_rov tests inside odoo:19 image
+        run: |
+          docker run --rm \
+            --network=host \
+            -v ${{ github.workspace }}/mc_rov:/mnt/extra-addons/mc_rov \
+            odoo:19 \
+            -d test_mc_rov \
+            -i mc_rov \
+            --test-enable \
+            --test-tags /mc_rov \
+            --stop-after-init \
+            --no-http \
+            --db_host=localhost \
+            --db_user=odoo \
+            --db_password=odoo \
+            --without-demo=all

@@ -1,0 +1,41 @@
+# pre-commit configuration for mc_rov
+#
+# One-time setup per clone:
+#   pip install pre-commit
+#   pre-commit install
+#
+# After that, hooks run automatically on every `git commit`.
+# To run all hooks against the whole repo manually:
+#   pre-commit run --all-files
+
+repos:
+  # Generic file hygiene
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-xml
+      - id: check-added-large-files
+      - id: check-merge-conflict
+      - id: check-case-conflict
+
+  # Odoo-specific linting via OCA's pylint-odoo
+  - repo: https://github.com/OCA/pylint-odoo
+    rev: v9.0.5
+    hooks:
+      - id: pylint_odoo
+        # If you want to tighten or relax the default ruleset, point to a config:
+        # args: ['--rcfile=.pylintrc']
+        # Common addon-path arg if running locally (CI doesn't need it):
+        # args: ['--addons-path=.']
+
+  # Python formatting (optional but recommended for new code)
+  - repo: https://github.com/psf/black
+    rev: 24.10.0
+    hooks:
+      - id: black
+        language_version: python3
+        # Odoo style prefers 99-char lines historically; tune if your team disagrees
+        args: ['--line-length=99']

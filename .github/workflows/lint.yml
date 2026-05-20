@@ -1,0 +1,26 @@
+# Lint workflow for mc_rov
+#
+# Runs on every PR and push to main/develop.
+# Uses the pre-commit configuration in .pre-commit-config.yaml.
+# Reference: https://github.com/pre-commit/action
+
+name: Lint
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main, develop]
+
+jobs:
+  pre-commit:
+    name: pre-commit (hygiene, pylint-odoo, black)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - uses: pre-commit/action@v3.0.1
