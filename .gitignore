@@ -1,4 +1,21 @@
+# Python
 *.pyc
-__pycache__/
 *.pyo
+__pycache__/
+
+# Odoo
+*.pot
+migrations/
+
+# Editores
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Sistema
 .DS_Store
+Thumbs.db
+
+# Pre-commit
+.pre-commit-cache/
