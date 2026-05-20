@@ -10,11 +10,11 @@
 
 name: Tests
 
+# Disabled: odoo:19 public Docker image not yet available.
+# Tests run manually on the production server via docs/runbooks/testing.md
+# Re-enable once a valid base image is confirmed.
 on:
-  pull_request:
-    branches: [main, develop]
-  push:
-    branches: [main, develop]
+  workflow_dispatch:
 
 jobs:
   odoo-tests:
