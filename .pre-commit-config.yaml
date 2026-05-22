@@ -26,10 +26,7 @@ repos:
     rev: v9.0.5
     hooks:
       - id: pylint_odoo
-        # If you want to tighten or relax the default ruleset, point to a config:
-        # args: ['--rcfile=.pylintrc']
-        # Common addon-path arg if running locally (CI doesn't need it):
-        # args: ['--addons-path=.']
+        args: ["--rcfile=.pylintrc"]
 
   # Python formatting (optional but recommended for new code)
   - repo: https://github.com/psf/black

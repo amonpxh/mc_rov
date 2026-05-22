@@ -1,0 +1,25 @@
+[FORMAT]
+# Black controla el código a 99 chars. Subimos el límite de pylint a 120
+# para tolerar docstrings y strings literales que black no puede partir.
+max-line-length=120
+
+[MESSAGES CONTROL]
+disable=
+    # Odoo no está instalado fuera del runtime — los imports son válidos en producción
+    E0401,
+    # Los modelos Odoo suelen ser solo declaración de campos, sin métodos públicos
+    R0903,
+    # __init__.py y __manifest__.py no requieren docstring de módulo en Odoo
+    C0114,
+    # __manifest__.py es un dict literal válido en Odoo, no un "pointless statement"
+    W0104,
+    # post-migrate usa guiones (convención Odoo), unittest usa camelCase (setUpClass/setUp)
+    C0103,
+    # Los métodos de test no requieren docstring — el nombre ya describe el caso
+    C0116,
+    # El setup de tests comparte código por diseño (TransactionCase)
+    R0801,
+    # migrate(cr, version): version es API obligatoria de Odoo aunque no se use
+    W0613,
+    # Los saltos de línea son responsabilidad del editor / git — no del linter
+    C0327,
