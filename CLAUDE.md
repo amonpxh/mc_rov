@@ -71,7 +71,7 @@ Los comentarios deben explicar el **por qué**, no repetir lo que el código ya 
 
 ## Flujo de trabajo con git
 
-Estrategia: **GitHub Flow simplificado** (desarrollador único, despliegue directo a producción).
+Estrategia: **GitHub Flow simplificado**. Estado actual: desarrollador único con despliegue directo a producción — bus factor 1, que **Phase -1 del pipeline roadmap está diseñada para resolver** (ver sección Pendiente). Mantener disciplina de PR desde ya para que el flujo esté en su lugar cuando se sume un colega.
 
 ```
 main         ──●──────────────────────●──→  producción (Odoo server)
@@ -173,6 +173,9 @@ git branch -d feature/mi-funcion
 - [x] Versión `19.0.1.5.0` lanzada: limpieza de columnas Studio huérfanas + resolución del WARNING de label duplicado en producción
 
 ### Pendiente
+
+- [ ] **Phase -1 del pipeline roadmap — Foundation handoff** — prerequisito bloqueante para iniciar el pipeline. Checklist completo en `rov-pipeline-roadmap.md` Phase -1. Duración estimada: 1 semana.
+
 - [ ] **Grupos de seguridad**: los accesos actuales son sin grupo. Implementar cuando haya múltiples usuarios. Diseño acordado:
 
   **Dos grupos jerárquicos** (`Coordinador ROV` hereda `Técnico ROV` vía `implied_ids`):
@@ -190,12 +193,7 @@ git branch -d feature/mi-funcion
 
   **Para asignar grupos a usuarios:** `Ajustes → Usuarios → [usuario]` (sin tocar código). Cambiar qué puede hacer un grupo requiere modificar el módulo.
 
-- [ ] **Pipeline integration touchpoints**: el ROV Operations Data Pipeline (repo separado `marine-connection/mc-rov-pipeline`) va a consumir datos de este módulo. En Phase 1 del pipeline se agregan:
-  - `controllers/api.py` — REST endpoints para el pipeline
-  - Usuario Odoo `pipeline@marine-connection` con API key
-  - Grupo `Pipeline API (Read-Only)` con acceso de solo lectura
-
-  Ver [`docs/integrations/pipeline.md`](docs/integrations/pipeline.md) para el detalle del contrato.
+- [ ] **Pipeline integration touchpoints** (Phase 1 del pipeline — requiere Phase -1 completada primero): agregar `controllers/api.py`, usuario `pipeline@marine-connection` con API key, y grupo `Pipeline API (Read-Only)`. Checklist en `rov-pipeline-roadmap.md` Phase 1 "Odoo access layer". Contrato en [`docs/integrations/pipeline.md`](docs/integrations/pipeline.md).
 
 ## Notas técnicas
 
