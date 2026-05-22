@@ -171,6 +171,8 @@ git branch -d feature/mi-funcion
 - [x] Campo `mc_total_horas` computed en `repair.order` (suma de `horas` de `linea_falla_ids`), visible al pie de la pestaña "Trabajos realizados" — versión `19.0.1.4.0`
 - [x] Columnas `x_studio_*` huérfanas eliminadas de `stock_lot` vía SQL (90 columnas); WARNING de label duplicado resuelto
 - [x] Versión `19.0.1.5.0` lanzada: limpieza de columnas Studio huérfanas + resolución del WARNING de label duplicado en producción
+- [x] Sección "Pendiente" de `CLAUDE.md` colapsada: Phase -1 y pipeline integration touchpoints referencian `rov-pipeline-roadmap.md` como fuente de verdad — elimina duplicación entre ambos archivos
+- [x] `.pylintrc` creado con checks de Odoo deshabilitados (falsos positivos); `.pre-commit-config.yaml` actualizado para usarlo; `pre-commit` instalado localmente; CI Lint verde
 
 ### Pendiente
 
