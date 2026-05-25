@@ -16,6 +16,7 @@ jobs:
   odoo-tests:
     name: Odoo module tests (37 tests)
     runs-on: self-hosted
+    timeout-minutes: 30
 
     steps:
       - name: Checkout into module path
@@ -31,6 +32,7 @@ jobs:
             --test-tags /mc_rov \
             --stop-after-init \
             --no-http \
+            --workers 0 \
             --config /etc/odoo/odoo.conf
 
       - name: Restore main
