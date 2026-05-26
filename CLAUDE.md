@@ -43,7 +43,7 @@ mc_rov/
 ### Heredados
 | Modelo base | Campos añadidos |
 |------------|----------------|
-| `repair.order` | `tipo_intervencion`, `item_2..5`, `falla_reportada`, `linea_falla_ids`, `estado_final`, `causa_raiz`, `garantia_reparacion`, `fecha_garantia`, `fecha_entrega_real`, `observaciones_salida` |
+| `repair.order` | `tipo_intervencion`, `item_2..5`, `falla_reportada`, `linea_falla_ids`, `mc_total_horas`, `causa_raiz`, `fecha_entrega_real`, `observaciones_salida` |
 | `stock.lot` | `es_un_rov`, `mc_estado_comercial`, `mc_estado_operativo`, `mc_repair_count` (computed), `ultima_mantencion` (computed), `action_ver_reparaciones`, + 48 campos de ficha técnica ROV con prefijo `mc_` (especificaciones, periféricos, umbilical, prueba en terreno) |
 
 ## Datos maestros incluidos

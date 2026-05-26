@@ -33,12 +33,6 @@ class TestRepairOrder(TransactionCase):
     def test_tipo_intervencion_por_defecto_es_false(self):
         self.assertFalse(self.order.tipo_intervencion)
 
-    def test_estado_final_por_defecto_es_false(self):
-        self.assertFalse(self.order.estado_final)
-
-    def test_garantia_reparacion_por_defecto_es_false(self):
-        self.assertFalse(self.order.garantia_reparacion)
-
     def test_fecha_entrega_real_por_defecto_es_false(self):
         self.assertFalse(self.order.fecha_entrega_real)
 
@@ -53,11 +47,6 @@ class TestRepairOrder(TransactionCase):
         ):
             self.order.tipo_intervencion = valor
             self.assertEqual(self.order.tipo_intervencion, valor)
-
-    def test_estado_final_acepta_valores_validos(self):
-        for valor in ("reparado", "no_reparado", "derivado", "pendiente_repuesto"):
-            self.order.estado_final = valor
-            self.assertEqual(self.order.estado_final, valor)
 
     def test_fecha_entrega_real_se_guarda(self):
         hoy = date.today()
