@@ -14,7 +14,7 @@ on:
 
 jobs:
   odoo-tests:
-    name: Odoo module tests (37 tests)
+    name: Odoo module tests (34 tests)
     runs-on: self-hosted
     timeout-minutes: 30
 
