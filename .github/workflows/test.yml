@@ -32,6 +32,7 @@ jobs:
             --test-tags /mc_rov \
             --stop-after-init \
             --no-http \
+            --http-port 8199 \
             --workers 0 \
             --config /etc/odoo/odoo.conf
 
