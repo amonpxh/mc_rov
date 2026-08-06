@@ -4,63 +4,6 @@
 
 Módulo Odoo 19 que extiende `repair` para gestionar reparaciones y mantenciones de equipos ROV (Remotely Operated Vehicles). Desarrollado para Marine Connection.
 
-**Dependencias:** `stock`, `repair`, `sale`, `sale_renting`
-
-## Estructura del módulo
-
-```
-mc_rov/
-├── models/
-│   ├── mc_rov_componente.py        # Modelos propios: componente, subtipo, acción, línea de falla
-│   ├── repair_order.py             # Herencia de repair.order
-│   └── stock_lot.py                # Herencia de stock.lot
-├── views/
-│   ├── mc_rov_componente_views.xml # Lista + formulario de componentes y acciones
-│   ├── repair_order_views.xml      # Herencia formulario repair.order
-│   ├── stock_lot_views.xml         # Herencia formulario stock.lot
-│   └── mc_rov_menus.xml            # Menú en configuración de reparaciones
-├── data/
-│   └── mc_rov_data.xml             # Datos maestros: 10 acciones + 8 componentes + ~40 subtipos
-├── security/
-│   └── ir.model.access.csv         # Accesos a los 4 modelos propios
-├── static/src/css/
-│   └── mc_rov.css                  # Mejora visual de campos editables
-├── .github/workflows/lint.yml      # CI: lint automático en push
-├── .pre-commit-config.yaml         # Hooks de pre-commit (pylint-odoo)
-└── __manifest__.py
-```
-
-## Modelos implementados
-
-### Propios
-| Modelo | Descripción |
-|--------|-------------|
-| `mc.rov.componente` | Catálogo de componentes ROV (Motor, Umbilical, Electrónica, etc.) |
-| `mc.rov.subtipo` | Subtipos por componente (Rotor, Hélice, ESC, etc.) |
-| `mc.rov.accion` | Catálogo de acciones en intervenciones (Reparación, Limpieza, Soldadura, etc.) |
-| `mc.rov.linea.falla` | Líneas de trabajo registradas en una orden de reparación |
-
-### Heredados
-| Modelo base | Campos añadidos |
-|------------|----------------|
-| `repair.order` | `tipo_intervencion`, `item_2..5`, `falla_reportada`, `linea_falla_ids`, `mc_total_horas`, `causa_raiz`, `fecha_entrega_real`, `observaciones_salida` |
-| `stock.lot` | `es_un_rov`, `mc_estado_comercial`, `mc_estado_operativo`, `mc_repair_count` (computed), `ultima_mantencion` (computed), `action_ver_reparaciones`, + 48 campos de ficha técnica ROV con prefijo `mc_` (especificaciones, periféricos, umbilical, prueba en terreno) |
-
-## Datos maestros incluidos
-
-**Acciones (10):** Cambio completo, Cambio de componente, Reparación, Mantención preventiva, Limpieza, Calibración, Configuración / Software, Soldadura, Sin solución, Derivado a fabricante
-
-**Componentes (8):** Motor, Umbilical, Electrónica / Software, Estructura / Chasis, Consola, Cámara, Sensor, Otro
-
-**Subtipos por componente:**
-- Motor: Rotor, Bobina/Núcleo, Hélice, Tobera, Buje, ESC, Cable de motor, Motor completo
-- Umbilical: Conector submarino, Conector volante, Mufa, Cable, Aislación, Neutrik
-- Electrónica: Micro SD, Fuente de poder, ESC electrónico, Tarjeta de comunicación, Raspberry/NUC, Navigator, Parámetros/Configuración, PCB/Placa
-- Estructura: Domo, Chasis, Soldadura/Abrazadera, Mangueras, Penetrador, O-ring/Sello, Brazo/Pinza, Flotabilidad
-- Consola: Monitor, Conector, NUC/PC, Joystick, Teclado, Ventilador, Cable HDMI/Splitter
-- Cámara: Base/Máscara, Módulo cámara, Tilt, Domo/Lente, Cable interno
-- Sensor: Sensor de presión, Compás/IMU, Sensor de temperatura, Sensor de leak, USBL/Beacon
-
 ## Convenciones de código
 
 Los comentarios deben explicar el **por qué**, no repetir lo que el código ya dice. Se espera:
@@ -133,46 +76,6 @@ git branch -d feature/mi-funcion
 ## Estado actual
 
 > Actualizar esta sección al cerrar cada sesión de trabajo.
-
-### Completado
-- [x] Estructura base del módulo: manifest, `__init__.py`, dependencias
-- [x] Modelo `mc.rov.componente` con subtipos anidados y campo `active`
-- [x] Modelo `mc.rov.linea.falla`: secuencia, componente, subtipo filtrado, acción y detalle
-- [x] Modelo `mc.rov.accion`: catálogo configurable de acciones (Reparación, Limpieza, etc.) con menú en Reparaciones > Configuración; reemplaza el campo Selection anterior
-- [x] Herencia `repair.order`: tipo de intervención, ítems del sistema, falla reportada, pestañas "Trabajos realizados" y "Resultado"
-- [x] Herencia `stock.lot`: botón inteligente de reparaciones, `ultima_mantencion`, acción de historial
-- [x] Vistas de componentes (lista y formulario con subtipos inline)
-- [x] Herencia de vistas: formularios de `repair.order` y `stock.lot`
-- [x] Menú "Componentes ROV" bajo Reparaciones > Configuración
-- [x] Reglas de acceso para los 3 modelos propios (CRUD sin restricción de grupo)
-- [x] Datos maestros: 8 componentes y ~40 subtipos predefinidos
-- [x] CSS personalizado para mejorar visibilidad de campos editables (excluye checkbox y radio)
-- [x] Flujo de trabajo con ramas (GitHub Flow) documentado y rama `develop` creada
-- [x] `.gitignore` completo (Python, Odoo, editores, sistema)
-- [x] `pre-commit` con `pylint-odoo` configurado (`.pre-commit-config.yaml`)
-- [x] GitHub Actions CI: lint automático en push a `main`/`develop`
-- [x] Convención de versionado semántico del módulo documentada
-- [x] Docstrings y comentarios inline en los tres modelos
-- [x] Campo `es_un_rov` definido en el módulo (reemplaza `x_studio_es_un_rov` de Studio; dato migrado en producción, campo Studio eliminado)
-- [x] Tests de `stock.lot`: 8 tests cubriendo `es_un_rov`, `mc_repair_count` y `ultima_mantencion` (todos pasando en `odoo_test`)
-- [x] Ficha técnica ROV migrada de Studio al módulo: 48 campos propios en `stock.lot` (especificaciones, periféricos, umbilical, prueba en terreno), con script de migración de datos (`migrations/19.0.1.1.0/post-migrate.py`) — versión `19.0.1.1.0`
-- [x] Vista de Studio eliminada de la BD; toda la lógica de visibilidad controlada por `es_un_rov` en el módulo
-- [x] Botón duplicado de reparaciones eliminado (el módulo `repair` ya provee el suyo)
-- [x] Prefijo `mc_` en los 48 campos de ficha técnica y `mc_repair_count` en `stock.lot`; migración `19.0.1.2.0` aplicada y verificada en producción (48 columnas `mc_*` confirmadas en BD) — versión `19.0.1.2.0`
-- [x] Flujo de ramas GitHub Flow estrenado: primer `feature/` branch mergeado a `main` con PR flow completo
-- [x] Vista lista de `repair.order` con columnas `tipo_intervencion` y `estado_final` (antes de la columna estado)
-- [x] `ultima_mantencion` corregida: ahora usa `fecha_entrega_real` (campo propio del módulo) en vez de `create_date`
-- [x] Tests de `repair.order`: 10 tests cubriendo defaults, selecciones, `fecha_entrega_real` y `linea_falla_ids` (todos pasando en `odoo_test`)
-- [x] Migración `19.0.1.1.0` corregida: segundo guard evita fallo en `odoo_test` y reinstalaciones donde las columnas intermedias sin prefijo `mc_` no existen
-- [x] Tests de `mc.rov.componente`: 16 tests cubriendo `mc.rov.componente`, `mc.rov.subtipo`, `mc.rov.accion` y `mc.rov.linea.falla` (todos pasando en `odoo_test`)
-- [x] XPaths frágiles en `stock_lot_views.xml` corregidos: `//field[@name='ref']` → `//field[@name='product_id']`; `//group[@name='main_group']` → `//sheet` (ambos son anclajes estables independientes de la estructura interna de Odoo)
-- [x] Campos `fecha` y `horas` agregados a `mc.rov.linea.falla`; vista "Trabajos realizados" muestra columnas Componente, Subtipo, Acción, Fecha, HH., Detalle — versión `19.0.1.3.0`, verificado en producción, 34 tests pasando
-- [x] Columna HH. alineada a la izquierda (valor y encabezado) en la lista de trabajos realizados
-- [x] Campo `mc_total_horas` computed en `repair.order` (suma de `horas` de `linea_falla_ids`), visible al pie de la pestaña "Trabajos realizados" — versión `19.0.1.4.0`
-- [x] Columnas `x_studio_*` huérfanas eliminadas de `stock_lot` vía SQL (90 columnas); WARNING de label duplicado resuelto
-- [x] Versión `19.0.1.5.0` lanzada: limpieza de columnas Studio huérfanas + resolución del WARNING de label duplicado en producción
-- [x] Sección "Pendiente" de `CLAUDE.md` colapsada: Phase -1 y pipeline integration touchpoints referencian `rov-pipeline-roadmap.md` como fuente de verdad — elimina duplicación entre ambos archivos
-- [x] `.pylintrc` creado con checks de Odoo deshabilitados (falsos positivos); `.pre-commit-config.yaml` actualizado para usarlo; `pre-commit` instalado localmente; CI Lint verde
 
 ### Pendiente
 
