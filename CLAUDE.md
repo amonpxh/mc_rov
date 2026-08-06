@@ -195,6 +195,14 @@ git branch -d feature/mi-funcion
 
   **Para asignar grupos a usuarios:** `Ajustes → Usuarios → [usuario]` (sin tocar código). Cambiar qué puede hacer un grupo requiere modificar el módulo.
 
+- [ ] **Validación de línea de producto en cierre de orden**: hoy una orden se puede cerrar con líneas de falla de tipo "cambio" sin haber registrado el repuesto como línea de producto. Cuando eso pasa se pierde el vínculo con el lote y se corta el análisis de fallas (ver [`docs/inventario.md`](docs/inventario.md) § "El puente es la orden de reparación"). Diseño acordado:
+
+  1. `mc.rov.accion` — agregar booleano `consume_repuesto`. Marcarlo en "Cambio completo" y "Cambio de componente"; el resto de las acciones (limpieza, calibración, configuración, soldadura) queda en `False`.
+  2. `repair.order` — constraint o `write` override: si alguna línea de `linea_falla_ids` tiene `accion_id.consume_repuesto = True`, la orden no puede pasar a `done` sin al menos una línea de producto.
+  3. `data/mc_rov_data.xml` — setear el booleano en las 10 acciones existentes.
+
+  **No hardcodear a los dos nombres de acción.** El catálogo es configurable desde el menú: si mañana agregan "Reemplazo de sello", tienen que poder marcar la casilla sin tocar código.
+
 - [ ] **Pipeline integration touchpoints** (Phase 1 del pipeline — requiere Phase -1 completada primero): agregar `controllers/api.py`, usuario `pipeline@marine-connection` con API key, y grupo `Pipeline API (Read-Only)`. Checklist en `rov-pipeline-roadmap.md` Phase 1 "Odoo access layer". Contrato en [`docs/integrations/pipeline.md`](docs/integrations/pipeline.md).
 
 ## Notas técnicas
@@ -205,4 +213,5 @@ git branch -d feature/mi-funcion
 - **Patrón de migración**: el ORM de Odoo crea las columnas nuevas **antes** de ejecutar el script `post-migrate.py`. Por eso las migraciones de renombrado deben usar `UPDATE SET nuevo = viejo` + `DROP COLUMN viejo`, no `RENAME COLUMN` (que falla porque la columna destino ya existe).
 - **Operación en producción:** ver [`docs/runbooks/deploy.md`](docs/runbooks/deploy.md) — incluye comandos de deploy, verificación, y rollback.
 - **Correr tests:** ver [`docs/runbooks/testing.md`](docs/runbooks/testing.md) — incluye sintaxis `--test-tags` y gotchas de Odoo 17+.
+- **Contexto de inventario:** el diseño de categorías, la cadena de trazabilidad y por qué las dos taxonomías (`product.category` vs `mc.rov.subtipo`) se mantienen separadas están en [`docs/inventario.md`](docs/inventario.md). Relevante antes de tocar `linea_falla_ids` o de proponer unificar catálogos.
 - Versión del módulo: `19.0.1.5.0`

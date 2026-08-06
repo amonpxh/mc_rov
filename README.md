@@ -13,6 +13,7 @@ Odoo 19 module for ROV (Remotely Operated Vehicle) inventory and repair tracking
 ## Quick links
 
 - **Module encyclopedia** (models, fields, conventions, gotchas) → [`CLAUDE.md`](CLAUDE.md)
+- **Inventory design context** (category tree, traceability chain, taxonomy boundaries) → [`docs/inventario.md`](docs/inventario.md)
 - **Deploy procedure** → [`docs/runbooks/deploy.md`](docs/runbooks/deploy.md)
 - **Running tests** → [`docs/runbooks/testing.md`](docs/runbooks/testing.md)
 - **Pipeline integration** (how this module exposes data to the analytics pipeline) → [`docs/integrations/pipeline.md`](docs/integrations/pipeline.md)
