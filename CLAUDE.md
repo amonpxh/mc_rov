@@ -14,7 +14,7 @@ Los comentarios deben explicar el **por qué**, no repetir lo que el código ya 
 
 ## Flujo de trabajo con git
 
-Estrategia: **GitHub Flow simplificado**. Estado actual: desarrollador único con despliegue directo a producción — bus factor 1, que **Phase -1 del pipeline roadmap está diseñada para resolver** (ver sección Pendiente). Mantener disciplina de PR desde ya para que el flujo esté en su lugar cuando se sume un colega.
+Estrategia: **GitHub Flow simplificado**. Estado actual: desarrollador único con despliegue directo a producción — bus factor 1, que **Phase -1 del pipeline roadmap está diseñada para resolver** (ver [`docs/pendientes.md`](docs/pendientes.md)). Mantener disciplina de PR desde ya para que el flujo esté en su lugar cuando se sume un colega.
 
 ```
 main         ──●──────────────────────●──→  producción (Odoo server)

@@ -2,7 +2,7 @@
 
 Este documento describe el diseño de inventario de Marine Connection en Odoo y las
 restricciones que el módulo `mc_rov` debe respetar. No documenta el módulo — para eso
-está [`CLAUDE.md`](../CLAUDE.md).
+está [`CLAUDE.md`](CLAUDE.md).
 
 **Fuente de verdad del árbol:** `Arbol_Categorias_ROV_Odoo_FINAL.xlsx` (fuera del repo).
 **Estado:** 164 categorías cargadas en producción vía importación.
@@ -69,7 +69,7 @@ hay mapeo que mantener.
 
 **Donde se rompe:** si el técnico llena "Trabajos realizados" pero no agrega el repuesto
 como línea de producto, el vínculo con el lote se pierde y el análisis de fallas se corta.
-Ver la entrada correspondiente en `CLAUDE.md` § Pendiente.
+Ver la entrada correspondiente en [`docs/pendientes.md`](docs/pendientes.md).
 
 ---
 
