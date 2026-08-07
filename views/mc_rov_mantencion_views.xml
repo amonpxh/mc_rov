@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Columnas del ciclo de mantención en la lista de números de serie.
+         No se crea un menú aparte: comercial ya entra por Inventario > Números de
+         serie, y la lista de a quién llamar es esa misma filtrada. -->
+    <record id="view_stock_lot_list_mc_rov" model="ir.ui.view">
+        <field name="name">stock.lot.list.mc.rov</field>
+        <field name="model">stock.lot</field>
+        <field name="inherit_id" ref="stock.view_production_lot_tree"/>
+        <field name="arch" type="xml">
+            <field name="product_id" position="after">
+                <field name="mc_estado_operativo" optional="show"/>
+                <field name="ultima_mantencion" optional="hide"/>
+                <field name="proxima_mantencion" optional="show" widget="remaining_days"/>
+            </field>
+        </field>
+    </record>
+
+    <!-- Filtros de mantención -->
+    <record id="view_stock_lot_search_mc_rov" model="ir.ui.view">
+        <field name="name">stock.lot.search.mc.rov</field>
+        <field name="model">stock.lot</field>
+        <field name="inherit_id" ref="stock.search_product_lot_filter"/>
+        <field name="arch" type="xml">
+            <filter name="group_by_product" position="before">
+                <separator/>
+                <filter
+                    name="filtro_mantencion_vencida"
+                    string="Mantención vencida"
+                    domain="[('proxima_mantencion', '&lt;=', context_today().strftime('%Y-%m-%d'))]"
+                    help="Equipos que pasaron su ciclo de mantención. Esta es la lista de a quién llamar."/>
+                <filter
+                    name="filtro_mantencion_proxima"
+                    string="Mantención en 60 días"
+                    domain="[('proxima_mantencion', '&lt;=', (context_today() + datetime.timedelta(days=60)).strftime('%Y-%m-%d'))]"/>
+                <separator/>
+                <filter
+                    name="filtro_es_rov"
+                    string="Es un ROV"
+                    domain="[('es_un_rov', '=', True)]"/>
+            </filter>
+        </field>
+    </record>
+</odoo>

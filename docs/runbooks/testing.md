@@ -44,7 +44,7 @@ sudo -u odoo odoo \
   --config /etc/odoo/odoo.conf
 ```
 
-Available test classes (as of v19.0.4.1.0):
+Available test classes (as of v19.0.4.2.0):
 
 | Class | Tests | Coverage |
 |---|---|---|
@@ -52,6 +52,7 @@ Available test classes (as of v19.0.4.1.0):
 | `TestStockLotContadores` | 7 | `mc_repair_count`, `mc_mantencion_count` |
 | `TestStockLotFechas` | 13 | `ultima_mantencion`, `ultima_reparacion`, sealing of `fecha_entrega_real` |
 | `TestStockLotEstadoOperativo` | 6 | `mc_estado_operativo`, derived from open orders |
+| `TestStockLotCicloMantencion` | 7 | `proxima_mantencion` and the configurable cycle length |
 | `TestRepairOrder` | 9 | defaults, `tipo_intervencion_ids`, `fecha_entrega_real`, `linea_falla_ids` |
 | `TestMcRovComponente` | 18 | all four custom models (`componente`, `subtipo`, `accion`, `linea.falla`) |
 
@@ -63,7 +64,7 @@ above that need repair orders. It declares no tests — do not target it with `-
 
 ## Expected output
 
-All 59 tests should pass. Look for `0 failed, 0 error(s) of 59 tests` in the output (exact format depends on Odoo verbosity).
+All 66 tests should pass. Look for `0 failed, 0 error(s) of 66 tests` in the output (exact format depends on Odoo verbosity).
 
 ## When tests fail
 

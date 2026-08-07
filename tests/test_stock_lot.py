@@ -1,8 +1,13 @@
+from dateutil.relativedelta import relativedelta
+
 from odoo import fields
 from odoo.tests.common import TransactionCase
 from odoo.tests import tagged
 
-from odoo.addons.mc_rov.models.stock_lot import ROV_CATEG_PARAM
+from odoo.addons.mc_rov.models.stock_lot import (
+    CICLO_MANTENCION_PARAM,
+    ROV_CATEG_PARAM,
+)
 
 
 @tagged("post_install", "-at_install")
@@ -371,3 +376,78 @@ class TestStockLotEstadoOperativo(StockLotOrdenesCommon):
         orden.state = "done"
 
         self.assertEqual(self.lot.mc_estado_operativo, "Operativo")
+
+
+@tagged("post_install", "-at_install")
+class TestStockLotCicloMantencion(StockLotOrdenesCommon):
+    """Tests de proxima_mantencion y del ciclo configurable."""
+
+    def test_sin_puesta_en_servicio_no_hay_reloj(self):
+        """Un equipo en bodega no debe ensuciar la lista de vencidos."""
+        self.assertFalse(self.lot.proxima_mantencion)
+
+    def test_cuenta_doce_meses_desde_la_puesta_en_servicio(self):
+        entrega = fields.Date.to_date("2026-03-15")
+        self.lot.mc_fecha_puesta_servicio = entrega
+
+        self.assertEqual(self.lot.proxima_mantencion, entrega + relativedelta(months=12))
+
+    def test_la_mantencion_hecha_manda_sobre_la_puesta_en_servicio(self):
+        self.lot.mc_fecha_puesta_servicio = fields.Date.to_date("2026-01-01")
+        mantencion = fields.Date.to_date("2026-04-01")
+
+        self._orden(
+            tipos=self.tipo_mantencion,
+            state="done",
+            fecha_entrega_real=mantencion,
+        )
+
+        self.assertEqual(self.lot.proxima_mantencion, mantencion + relativedelta(months=12))
+
+    def test_el_contador_parte_cuando_se_hizo_la_mantencion_no_en_el_aniversario(self):
+        """Si la mantención se hizo a los 18 meses, el ciclo parte ahí.
+
+        Lo que importa es cuándo se intervino de verdad, no el aniversario teórico de
+        la entrega.
+        """
+        entrega = fields.Date.to_date("2025-01-01")
+        self.lot.mc_fecha_puesta_servicio = entrega
+        tardia = entrega + relativedelta(months=18)
+
+        self._orden(
+            tipos=self.tipo_mantencion,
+            state="done",
+            fecha_entrega_real=tardia,
+        )
+
+        self.assertEqual(self.lot.proxima_mantencion, tardia + relativedelta(months=12))
+
+    def test_una_reparacion_no_reinicia_el_ciclo(self):
+        entrega = fields.Date.to_date("2026-01-01")
+        self.lot.mc_fecha_puesta_servicio = entrega
+
+        self._orden(
+            tipos=self.tipo_correctiva,
+            state="done",
+            fecha_entrega_real=fields.Date.to_date("2026-06-01"),
+        )
+
+        self.assertEqual(self.lot.proxima_mantencion, entrega + relativedelta(months=12))
+
+    def test_el_ciclo_se_puede_cambiar_sin_tocar_codigo(self):
+        """El largo del ciclo vive en un parámetro de sistema, no en el módulo."""
+        self.env["ir.config_parameter"].sudo().set_param(CICLO_MANTENCION_PARAM, "6")
+        entrega = fields.Date.to_date("2026-03-15")
+
+        self.lot.mc_fecha_puesta_servicio = entrega
+
+        self.assertEqual(self.lot.proxima_mantencion, entrega + relativedelta(months=6))
+
+    def test_un_ciclo_corrupto_cae_al_valor_por_defecto(self):
+        """Un parámetro mal escrito no debe romper la ficha de todos los equipos."""
+        self.env["ir.config_parameter"].sudo().set_param(CICLO_MANTENCION_PARAM, "doce")
+        entrega = fields.Date.to_date("2026-03-15")
+
+        self.lot.mc_fecha_puesta_servicio = entrega
+
+        self.assertEqual(self.lot.proxima_mantencion, entrega + relativedelta(months=12))

@@ -1,8 +1,15 @@
 import logging
 
+from dateutil.relativedelta import relativedelta
+
 from odoo import models, fields, api
 
 _logger = logging.getLogger(__name__)
+
+# Largo del ciclo de mantención. Vive en un parámetro de sistema para que se pueda
+# ajustar sin desplegar; la constante es solo el valor por defecto.
+CICLO_MANTENCION_PARAM = "mc_rov.meses_ciclo_mantencion"
+CICLO_MANTENCION_MESES = 12
 
 # Raíz del árbol de categorías que define qué producto es un vehículo ROV.
 # El parámetro de sistema manda: permite reorganizar el árbol sin desplegar código.
@@ -298,10 +305,12 @@ class StockLot(models.Model):
         compute="_compute_mc_contadores",
     )
 
+    # Almacenados para que proxima_mantencion pueda serlo y la vista de vencidos filtre
+    # por ella. La relación repair_ids es lo que permite al ORM saber cuándo recalcular.
     ultima_mantencion = fields.Date(
         string="Última mantención",
         compute="_compute_ultimas_fechas",
-        store=False,
+        store=True,
         help="Última mantención cerrada. Las reparaciones correctivas no cuentan: un "
         "equipo reparado en marzo sigue debiendo su mantención anual.",
     )
@@ -309,9 +318,27 @@ class StockLot(models.Model):
     ultima_reparacion = fields.Date(
         string="Última reparación",
         compute="_compute_ultimas_fechas",
-        store=False,
+        store=True,
         help="Última reparación cerrada, según los tipos marcados como reparación en el "
         "catálogo de tipos de intervención.",
+    )
+
+    # --- Ciclo de mantención ---
+
+    mc_fecha_puesta_servicio = fields.Date(
+        string="Puesta en servicio",
+        help="Entrega al cliente si el equipo se vendió, o primera disponibilidad de "
+        "arriendo si es de flota. Arranca el ciclo de mantención. Se carga a mano: los "
+        "equipos entregados antes de que existiera Odoo no tienen movimiento de stock "
+        "del que derivarla.",
+    )
+
+    proxima_mantencion = fields.Date(
+        string="Próxima mantención",
+        compute="_compute_proxima_mantencion",
+        store=True,
+        help="Se calcula sumando el ciclo configurado a la última mantención, o a la "
+        "puesta en servicio si el equipo nunca ha tenido una.",
     )
 
     def _ultima_fecha_entrega(self, lot, marca):
@@ -349,11 +376,53 @@ class StockLot(models.Model):
                 base + [("tipo_intervencion_ids.es_mantencion", "=", True)]
             )
 
-    @api.depends()
+    @api.depends(
+        "repair_ids.state",
+        "repair_ids.fecha_entrega_real",
+        "repair_ids.tipo_intervencion_ids.es_mantencion",
+        "repair_ids.tipo_intervencion_ids.es_reparacion",
+    )
     def _compute_ultimas_fechas(self):
         for lot in self:
             lot.ultima_mantencion = self._ultima_fecha_entrega(lot, "es_mantencion")
             lot.ultima_reparacion = self._ultima_fecha_entrega(lot, "es_reparacion")
+
+    @api.depends("ultima_mantencion", "mc_fecha_puesta_servicio")
+    def _compute_proxima_mantencion(self):
+        """Cuenta el ciclo desde la última mantención, o desde la puesta en servicio.
+
+        Un equipo al que se le hizo mantención a los 18 meses reinicia el contador ahí,
+        no en el aniversario teórico: lo que importa es cuándo se intervino de verdad.
+
+        Sin puesta en servicio no hay reloj. Es deliberado: mientras el equipo no salga
+        a terreno no tiene sentido reclamarle mantención, y así los que están en bodega
+        no ensucian la lista de vencidos.
+        """
+        meses = self._meses_ciclo_mantencion()
+        for lot in self:
+            partida = lot.ultima_mantencion or lot.mc_fecha_puesta_servicio
+            lot.proxima_mantencion = partida + relativedelta(months=meses) if partida else False
+
+    def _meses_ciclo_mantencion(self):
+        """Largo del ciclo en meses, configurable sin desplegar.
+
+        Vive en un parámetro de sistema por si algún día distinguen equipos de uso
+        intensivo. Un valor corrupto no debe romper la ficha de todos los equipos, así
+        que cae al default avisando en el log.
+        """
+        raw = self.env["ir.config_parameter"].sudo().get_param(CICLO_MANTENCION_PARAM)
+        if not raw:
+            return CICLO_MANTENCION_MESES
+        try:
+            return int(raw)
+        except (TypeError, ValueError):
+            _logger.warning(
+                "%s tiene un valor no numérico (%r); se usan %s meses.",
+                CICLO_MANTENCION_PARAM,
+                raw,
+                CICLO_MANTENCION_MESES,
+            )
+            return CICLO_MANTENCION_MESES
 
     def action_ver_reparaciones(self):
         """Abre la lista de órdenes de reparación filtradas por este número de serie."""
