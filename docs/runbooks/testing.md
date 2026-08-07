@@ -2,7 +2,7 @@
 
 **Audience:** anyone validating changes before merging or deploying.
 
-**Time:** ~1-2 minutes for the full test suite (34 tests).
+**Time:** ~1-2 minutes for the full test suite (83 tests).
 
 ---
 
@@ -13,7 +13,7 @@
 | Test database | `odoo_test` |
 | Config | `/etc/odoo/odoo.conf` |
 | Test runner | Odoo's native test framework |
-| Total tests | 34 (8 `stock.lot` + 10 `repair.order` + 16 `mc.rov.componente`) |
+| Total tests | 83 (56 `stock.lot` + 9 `repair.order` + 18 `mc.rov.componente`) |
 
 ## Running all tests
 
@@ -44,7 +44,7 @@ sudo -u odoo odoo \
   --config /etc/odoo/odoo.conf
 ```
 
-Available test classes (as of v19.0.4.2.0):
+Available test classes (as of v19.0.5.0.0):
 
 | Class | Tests | Coverage |
 |---|---|---|
@@ -53,18 +53,23 @@ Available test classes (as of v19.0.4.2.0):
 | `TestStockLotFechas` | 13 | `ultima_mantencion`, `ultima_reparacion`, sealing of `fecha_entrega_real` |
 | `TestStockLotEstadoOperativo` | 6 | `mc_estado_operativo`, derived from open orders |
 | `TestStockLotCicloMantencion` | 7 | `proxima_mantencion` and the configurable cycle length |
+| `TestStockLotPropiedad` | 6 | `mc_propietario_id` and the ownership history written by `write` |
+| `TestStockLotEstadoComercial` | 7 | `mc_estado_comercial`, rentals, decommissioning |
+| `TestStockLotTraspasoDesdeOrden` | 4 | resale detected at intake, transfer from the repair order |
 | `TestRepairOrder` | 9 | defaults, `tipo_intervencion_ids`, `fecha_entrega_real`, `linea_falla_ids` |
 | `TestMcRovComponente` | 18 | all four custom models (`componente`, `subtipo`, `accion`, `linea.falla`) |
 
-`StockLotOrdenesCommon` is the shared fixture base for the three `TestStockLot*` classes
-above that need repair orders. It declares no tests — do not target it with `--test-tags`.
+Two shared fixture bases declare no tests — do not target them with `--test-tags`:
+`StockLotOrdenesCommon` (classes that need repair orders) and `StockLotPropiedadCommon`
+(classes that need a real ROV, i.e. the category tree, because ownership history is only
+written for units with `es_un_rov` on).
 
 > Copy the class names from this table, not from memory. `--test-tags` silently matches
 > nothing and exits green when the class name is wrong.
 
 ## Expected output
 
-All 66 tests should pass. Look for `0 failed, 0 error(s) of 66 tests` in the output (exact format depends on Odoo verbosity).
+All 83 tests should pass. Look for `0 failed, 0 error(s) of 83 tests` in the output (exact format depends on Odoo verbosity).
 
 ## When tests fail
 

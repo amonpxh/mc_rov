@@ -10,16 +10,34 @@
             <!-- Anclado a product_id (campo requerido en stock.lot, más estable que ref) -->
             <xpath expr="//field[@name='product_id']" position="after">
                 <field name="es_un_rov"/>
+                <field name="mc_propietario_id" invisible="not es_un_rov"/>
                 <field name="mc_fecha_puesta_servicio" invisible="not es_un_rov"/>
                 <field name="ultima_mantencion" readonly="1" invisible="not es_un_rov"/>
                 <field name="proxima_mantencion" readonly="1" invisible="not es_un_rov"/>
                 <field name="ultima_reparacion" readonly="1" invisible="not es_un_rov"/>
                 <field name="mc_estado_comercial"
+                       readonly="1"
                        invisible="not es_un_rov"
-                       help="Indica en qué estado se encuentra el equipo (ej. el equipo está siendo arrendado)."/>
+                       help="Se deriva del propietario, de los arriendos vigentes y de la fecha de baja."/>
                 <field name="mc_estado_operativo"
                        invisible="not es_un_rov"
                        help="Indica si el equipo está siendo reparado, en mantención o está operativo."/>
+
+                <!-- La baja solo se muestra cuando existe: un equipo vigente no tiene por
+                     qué mostrar campos vacíos de un evento que no ocurrió. -->
+                <field name="mc_fecha_baja" invisible="not mc_fecha_baja"/>
+                <field name="mc_motivo_baja" invisible="not mc_fecha_baja"/>
+                <button name="action_dar_de_baja"
+                        type="object"
+                        string="Dar de baja"
+                        class="btn-secondary"
+                        invisible="not es_un_rov or mc_fecha_baja"
+                        confirm="El equipo quedará marcado como fuera de servicio con la fecha de hoy. Podrá corregir la fecha y revertir la baja después. ¿Continuar?"/>
+                <button name="action_reactivar"
+                        type="object"
+                        string="Reactivar equipo"
+                        class="btn-secondary"
+                        invisible="not mc_fecha_baja"/>
             </xpath>
 
             <!-- Pestañas de ficha técnica ROV (ocultas si no es ROV) -->
@@ -202,6 +220,19 @@
                                 <field name="mc_observacion"/>
                             </group>
                         </group>
+                    </page>
+
+                    <!-- Historial de propiedad. Solo lectura: lo escribe el override de
+                         write de stock.lot al cambiar el propietario, no una persona. -->
+                    <page string="Propietarios" name="page_propietarios" invisible="not es_un_rov">
+                        <field name="mc_propietario_historial_ids" readonly="1">
+                            <list>
+                                <field name="fecha_desde"/>
+                                <field name="fecha_hasta"/>
+                                <field name="partner_id"/>
+                                <field name="repair_id"/>
+                            </list>
+                        </field>
                     </page>
 
                 </notebook>

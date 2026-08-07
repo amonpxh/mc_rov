@@ -104,6 +104,46 @@ class StockLot(models.Model):
         for lot in self:
             lot.es_un_rov = lot.product_id.categ_id in rov_categs
 
+    # --- Propiedad ---
+
+    # Odoo 19 no tiene ningún concepto de propiedad en stock.lot: solo delivery_ids, que
+    # no está almacenado y que además se pisa solo, porque devolver un ROV reparado
+    # también genera un despacho. Por eso el propietario se lleva a mano, con la misma
+    # justificación que mc_fecha_puesta_servicio: los equipos vendidos antes de que
+    # existiera Odoo no tienen movimiento del cual derivarlo.
+    mc_propietario_id = fields.Many2one(
+        "res.partner",
+        string="Propietario",
+        default=lambda self: self.env.company.partner_id,
+        help="De quién es el equipo hoy. Los de flota propia quedan a nombre de la "
+        "empresa. Si vuelve al taller a nombre de otro contacto, actualícelo desde la "
+        "orden de reparación: el cambio queda registrado en el historial.",
+    )
+
+    mc_propietario_historial_ids = fields.One2many(
+        "mc.rov.propietario.historial",
+        "lot_id",
+        string="Historial de propietarios",
+        readonly=True,
+    )
+
+    # --- Baja ---
+
+    # Fecha y no booleano: cuándo se dio de baja un equipo es dato de análisis y un sí/no
+    # lo pierde. Deliberadamente no se usa el archivado de Odoo, que esconde el número de
+    # serie de todas partes y corta la trazabilidad de las reparaciones que ya tuvo.
+    mc_fecha_baja = fields.Date(
+        string="Fecha de baja",
+        copy=False,
+        help="Fecha en que el equipo salió de servicio definitivamente. Corríjala si la "
+        "baja ocurrió otro día.",
+    )
+
+    mc_motivo_baja = fields.Text(
+        string="Motivo de baja",
+        copy=False,
+    )
+
     # --- Estado ---
 
     mc_estado_comercial = fields.Selection(
@@ -114,7 +154,11 @@ class StockLot(models.Model):
             ("Baja", "Baja"),
         ],
         string="Estado Comercial",
-        help="Indica en qué estado se encuentra el equipo (ej. el equipo está siendo arrendado).",
+        compute="_compute_mc_estado_comercial",
+        store=True,
+        help="Se deriva del propietario, de los arriendos vigentes y de la fecha de "
+        "baja. No es editable: para cambiarlo, cambie el propietario, devuelva el "
+        "arriendo o dé de baja el equipo.",
     )
 
     # Inversa de repair.order.lot_id. Existe para que mc_estado_operativo pueda ser un
@@ -137,6 +181,58 @@ class StockLot(models.Model):
         help="Se deriva de las órdenes de reparación abiertas del equipo. No es editable: "
         "para cambiarlo, abra o cierre la orden correspondiente.",
     )
+
+    def _lotes_en_arriendo(self):
+        """ids de los lotes de `self` que salieron en un arriendo y no han vuelto.
+
+        Se resuelve buscando en sale.order.line en vez de declarar acá la relación
+        inversa de pickedup_lot_ids. El nombre de la tabla intermedia es interno de
+        sale_stock_renting: si se declarara mal, Odoo crearía una tabla nueva y el campo
+        quedaría siempre vacío sin avisar. Buscar por nombre de campo no depende de eso.
+
+        Una sola búsqueda para todo el recordset, no una por lote: el ORM llama a los
+        computes en lotes durante importaciones y recálculos masivos.
+        """
+        ids_persistidos = [lot_id for lot_id in self.ids if isinstance(lot_id, int)]
+        if not ids_persistidos:
+            return set()
+
+        lineas = self.env["sale.order.line"].search(
+            [
+                ("is_rental", "=", True),
+                ("state", "!=", "cancel"),
+                ("pickedup_lot_ids", "in", ids_persistidos),
+            ]
+        )
+
+        afuera = set()
+        for linea in lineas:
+            afuera.update((linea.pickedup_lot_ids - linea.returned_lot_ids).ids)
+        return afuera.intersection(ids_persistidos)
+
+    @api.depends("mc_propietario_id", "mc_fecha_baja")
+    def _compute_mc_estado_comercial(self):
+        """Deriva el estado comercial del propietario, los arriendos y la baja.
+
+        El orden de las condiciones es la regla de negocio: un equipo dado de baja lo
+        está aunque siga a nombre de un cliente, y uno vendido no vuelve a decir
+        "Disponible" porque no tenga arriendo vigente.
+
+        Los arriendos no aparecen en el depends porque desde stock.lot no hay relación
+        que traversar hasta sale.order.line. El recálculo lo dispara el override de
+        write de ese modelo, igual que product.category dispara el de es_un_rov.
+        """
+        en_arriendo = self._lotes_en_arriendo()
+        for lot in self:
+            propio = (lot.company_id or self.env.company).partner_id
+            if lot.mc_fecha_baja:
+                lot.mc_estado_comercial = "Baja"
+            elif lot.mc_propietario_id and lot.mc_propietario_id != propio:
+                lot.mc_estado_comercial = "Vendido"
+            elif lot.id in en_arriendo:
+                lot.mc_estado_comercial = "En arriendo"
+            else:
+                lot.mc_estado_comercial = "Disponible"
 
     @api.depends("repair_ids.state", "repair_ids.tipo_intervencion_ids.es_mantencion")
     def _compute_mc_estado_operativo(self):
@@ -435,3 +531,89 @@ class StockLot(models.Model):
             "domain": [("lot_id", "=", self.id)],
             "context": {"default_lot_id": self.id},
         }
+
+    # --- Baja ---
+
+    def action_dar_de_baja(self):
+        """Saca el equipo de servicio con fecha de hoy.
+
+        La fecha queda editable después: lo normal es que la baja se registre en Odoo
+        días después de que ocurrió de verdad.
+        """
+        self.ensure_one()
+        self.mc_fecha_baja = fields.Date.context_today(self)
+        self.message_post(body="Equipo dado de baja.")
+
+    def action_reactivar(self):
+        """Revierte la baja. Existe porque las bajas se equivocan."""
+        self.ensure_one()
+        self.write({"mc_fecha_baja": False, "mc_motivo_baja": False})
+        self.message_post(body="Se revirtió la baja del equipo.")
+
+    # --- Historial de propiedad ---
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        """Abre el primer período de propiedad de cada ROV nuevo.
+
+        Solo para ROVs: los lotes de componentes también reciben propietario por el
+        valor por defecto, pero abrirles historial llenaría la tabla de miles de filas
+        que nadie va a consultar.
+        """
+        lots = super().create(vals_list)
+        self._abrir_periodo_propiedad(lots.filtered("es_un_rov"), fields.Date.context_today(self))
+        return lots
+
+    def write(self, vals):
+        """Cierra el período de propiedad vigente y abre uno nuevo al cambiar de dueño.
+
+        La comparación va antes del super() porque después ya no se sabe quién era el
+        dueño anterior. Solo cuentan los lotes en que el valor efectivamente cambió:
+        reescribir el mismo propietario no es un traspaso y no debe ensuciar el
+        historial.
+        """
+        if "mc_propietario_id" not in vals:
+            return super().write(vals)
+
+        nuevo_id = vals["mc_propietario_id"]
+        cambiaron = self.filtered(
+            lambda lot: lot.es_un_rov and lot.mc_propietario_id.id != nuevo_id
+        )
+
+        res = super().write(vals)
+
+        self._abrir_periodo_propiedad(cambiaron, fields.Date.context_today(self))
+        return res
+
+    def _abrir_periodo_propiedad(self, lots, fecha):
+        """Cierra el período abierto de cada lote y abre el del propietario actual.
+
+        Recibe los lotes como argumento en vez de operar sobre self porque lo llaman
+        create y write sobre un subconjunto, y llamar métodos protegidos de otro
+        recordset es lo que pylint marca como protected-access.
+
+        El origen viaja por contexto: cuando el cambio se hace desde una orden de
+        reparación queda registrado con qué orden se detectó la reventa.
+        """
+        historial = self.env["mc.rov.propietario.historial"]
+        repair_id = self.env.context.get("mc_rov_repair_origen")
+
+        for lot in lots:
+            abiertos = lot.mc_propietario_historial_ids.filtered(
+                lambda periodo: not periodo.fecha_hasta
+            )
+            abiertos.write({"fecha_hasta": fecha})
+
+            # Quedarse sin propietario cierra el período pero no abre otro: no hay a
+            # nombre de quién abrirlo.
+            if not lot.mc_propietario_id:
+                continue
+
+            historial.create(
+                {
+                    "lot_id": lot.id,
+                    "partner_id": lot.mc_propietario_id.id,
+                    "fecha_desde": fecha,
+                    "repair_id": repair_id,
+                }
+            )
