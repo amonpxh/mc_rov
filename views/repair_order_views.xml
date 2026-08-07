@@ -13,11 +13,28 @@
 
             <!-- Ítems adicionales después del número de serie -->
             <field name="lot_id" position="after">
+                <field name="mc_propietario_lot_id" readonly="1" invisible="not lot_id"/>
+                <field name="mc_propietario_difiere" invisible="1"/>
                 <field name="item_2"/>
                 <field name="item_3"/>
                 <field name="item_4"/>
                 <field name="item_5"/>
             </field>
+
+            <!-- Aviso de reventa. Nadie nos avisa cuando un cliente revende su ROV; el
+                 síntoma es que el equipo vuelve al taller a nombre de otro contacto. -->
+            <notebook position="before">
+                <div class="alert alert-warning" role="alert" invisible="not mc_propietario_difiere">
+                    <strong>El equipo está registrado a nombre de otro contacto.</strong>
+                    Si el ROV cambió de dueño, traspáselo. Si es un tercero quien paga esta
+                    reparación —un seguro, un distribuidor— deje el propietario como está.
+                    <button name="action_actualizar_propietario_lote"
+                            type="object"
+                            string="Traspasar al cliente de la orden"
+                            class="btn-link"
+                            confirm="El equipo quedará a nombre del cliente de esta orden y se cerrará el período del propietario anterior en el historial. ¿Continuar?"/>
+                </div>
+            </notebook>
 
             <!-- Falla reportada después de fecha programada -->
             <field name="schedule_date" position="after">

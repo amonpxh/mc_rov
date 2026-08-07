@@ -451,3 +451,215 @@ class TestStockLotCicloMantencion(StockLotOrdenesCommon):
         self.lot.mc_fecha_puesta_servicio = entrega
 
         self.assertEqual(self.lot.proxima_mantencion, entrega + relativedelta(months=12))
+
+
+@tagged("post_install", "-at_install")
+class StockLotPropiedadCommon(TransactionCase):
+    """Fixtures de los tests de propiedad. No declara tests.
+
+    A diferencia de StockLotOrdenesCommon, aquí sí hace falta el árbol de categorías:
+    el historial de propiedad solo se abre para equipos con es_un_rov encendido, y sin
+    categoría ROV los lotes de prueba no lo estarían.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+        categoria = cls.env["product.category"].create({"name": "ROV Test - Vehiculos"})
+        cls.env["ir.config_parameter"].sudo().set_param(ROV_CATEG_PARAM, str(categoria.id))
+
+        cls.product = cls.env["product.product"].create(
+            {
+                "name": "ROV Test Propiedad",
+                "tracking": "serial",
+                "categ_id": categoria.id,
+                "rent_ok": True,
+            }
+        )
+        # Fuera de la rama ROV: sirve para comprobar que a los componentes no se les
+        # abre historial.
+        cls.product_ajeno = cls.env["product.product"].create(
+            {
+                "name": "Componente Test",
+                "tracking": "serial",
+            }
+        )
+
+        cls.empresa = cls.env.company.partner_id
+        cls.cliente = cls.env["res.partner"].create({"name": "Salmones Test SpA"})
+        cls.otro_cliente = cls.env["res.partner"].create({"name": "Pesquera Test Ltda"})
+
+    def setUp(self):
+        super().setUp()
+        # Lote nuevo por cada test para garantizar aislamiento
+        self.lot = self.env["stock.lot"].create(
+            {
+                "name": "ROV-PROP-001",
+                "product_id": self.product.id,
+            }
+        )
+
+    def _periodos(self):
+        """Períodos de propiedad del equipo, del más nuevo al más antiguo."""
+        return self.lot.mc_propietario_historial_ids
+
+
+@tagged("post_install", "-at_install")
+class TestStockLotPropiedad(StockLotPropiedadCommon):
+    """Tests de mc_propietario_id y del historial que se escribe solo."""
+
+    def test_un_rov_nuevo_queda_a_nombre_de_la_empresa(self):
+        """Vacío no puede significar "es nuestro": se confundiría con no llenado."""
+        self.assertEqual(self.lot.mc_propietario_id, self.empresa)
+
+    def test_un_rov_nuevo_abre_su_primer_periodo(self):
+        periodos = self._periodos()
+        self.assertEqual(len(periodos), 1)
+        self.assertEqual(periodos.partner_id, self.empresa)
+        self.assertFalse(periodos.fecha_hasta)
+
+    def test_traspasar_cierra_el_periodo_anterior_y_abre_uno_nuevo(self):
+        self.lot.mc_propietario_id = self.cliente
+
+        periodos = self._periodos()
+        self.assertEqual(len(periodos), 2)
+        self.assertEqual(periodos[0].partner_id, self.cliente)
+        self.assertFalse(periodos[0].fecha_hasta)
+        self.assertEqual(periodos[1].partner_id, self.empresa)
+        self.assertEqual(periodos[1].fecha_hasta, fields.Date.today())
+
+    def test_reescribir_el_mismo_propietario_no_ensucia_el_historial(self):
+        """Guardar el formulario sin cambiar de dueño no es un traspaso."""
+        self.lot.mc_propietario_id = self.empresa
+
+        self.assertEqual(len(self._periodos()), 1)
+
+    def test_solo_queda_un_periodo_abierto_tras_varios_traspasos(self):
+        self.lot.mc_propietario_id = self.cliente
+        self.lot.mc_propietario_id = self.otro_cliente
+
+        abiertos = self._periodos().filtered(lambda periodo: not periodo.fecha_hasta)
+        self.assertEqual(len(abiertos), 1)
+        self.assertEqual(abiertos.partner_id, self.otro_cliente)
+
+    def test_un_lote_que_no_es_rov_no_abre_historial(self):
+        """Los lotes de componentes llenarían la tabla de filas que nadie consulta."""
+        componente = self.env["stock.lot"].create(
+            {
+                "name": "CMP-TEST-001",
+                "product_id": self.product_ajeno.id,
+            }
+        )
+
+        self.assertFalse(componente.mc_propietario_historial_ids)
+
+
+@tagged("post_install", "-at_install")
+class TestStockLotEstadoComercial(StockLotPropiedadCommon):
+    """Tests de mc_estado_comercial, que se deriva de propiedad, arriendos y baja."""
+
+    def _linea_arriendo(self, retirados=None, devueltos=None):
+        """Crea una línea de arriendo con los equipos retirados y devueltos dados."""
+        vacio = self.env["stock.lot"]
+        orden = self.env["sale.order"].create({"partner_id": self.cliente.id})
+        return self.env["sale.order.line"].create(
+            {
+                "order_id": orden.id,
+                "product_id": self.product.id,
+                "is_rental": True,
+                "pickedup_lot_ids": [(6, 0, (retirados or vacio).ids)],
+                "returned_lot_ids": [(6, 0, (devueltos or vacio).ids)],
+            }
+        )
+
+    def test_un_rov_de_la_empresa_esta_disponible(self):
+        self.assertEqual(self.lot.mc_estado_comercial, "Disponible")
+
+    def test_un_rov_a_nombre_de_un_cliente_esta_vendido(self):
+        self.lot.mc_propietario_id = self.cliente
+
+        self.assertEqual(self.lot.mc_estado_comercial, "Vendido")
+
+    def test_un_equipo_retirado_en_arriendo_dice_en_arriendo(self):
+        self._linea_arriendo(retirados=self.lot)
+
+        self.assertEqual(self.lot.mc_estado_comercial, "En arriendo")
+
+    def test_un_equipo_devuelto_vuelve_a_disponible(self):
+        """Cubre el override de sale.order.line: sin él el equipo seguiría arrendado."""
+        linea = self._linea_arriendo(retirados=self.lot)
+
+        linea.returned_lot_ids = [(6, 0, self.lot.ids)]
+
+        self.assertEqual(self.lot.mc_estado_comercial, "Disponible")
+
+    def test_la_baja_gana_sobre_vendido(self):
+        """Un equipo dado de baja lo está aunque siga a nombre de un cliente."""
+        self.lot.mc_propietario_id = self.cliente
+
+        self.lot.action_dar_de_baja()
+
+        self.assertEqual(self.lot.mc_estado_comercial, "Baja")
+
+    def test_dar_de_baja_registra_la_fecha_de_hoy(self):
+        self.lot.action_dar_de_baja()
+
+        self.assertEqual(self.lot.mc_fecha_baja, fields.Date.today())
+
+    def test_reactivar_devuelve_el_equipo_a_su_estado_anterior(self):
+        """Las bajas se equivocan, y revertirlas no debe perder el estado real."""
+        self.lot.mc_propietario_id = self.cliente
+        self.lot.action_dar_de_baja()
+
+        self.lot.action_reactivar()
+
+        self.assertFalse(self.lot.mc_fecha_baja)
+        self.assertEqual(self.lot.mc_estado_comercial, "Vendido")
+
+
+@tagged("post_install", "-at_install")
+class TestStockLotTraspasoDesdeOrden(StockLotPropiedadCommon):
+    """Tests del traspaso que se detecta cuando el equipo llega al taller.
+
+    Nadie avisa cuando un cliente revende su ROV: el síntoma es que el equipo vuelve a
+    nombre de otro contacto, y de ahí sale el traspaso.
+    """
+
+    def _orden(self, **vals):
+        return self.env["repair.order"].create(
+            {
+                "product_id": self.product.id,
+                "lot_id": self.lot.id,
+                **vals,
+            }
+        )
+
+    def test_el_aviso_se_enciende_cuando_el_cliente_no_es_el_propietario(self):
+        orden = self._orden(partner_id=self.cliente.id)
+
+        self.assertTrue(orden.mc_propietario_difiere)
+
+    def test_el_aviso_se_apaga_cuando_coinciden(self):
+        orden = self._orden(partner_id=self.empresa.id)
+
+        self.assertFalse(orden.mc_propietario_difiere)
+
+    def test_traspasar_desde_la_orden_deja_el_equipo_a_nombre_del_cliente(self):
+        orden = self._orden(partner_id=self.cliente.id)
+
+        orden.action_actualizar_propietario_lote()
+
+        self.assertEqual(self.lot.mc_propietario_id, self.cliente)
+        self.assertFalse(orden.mc_propietario_difiere)
+
+    def test_el_traspaso_queda_anotado_con_la_orden_que_lo_detecto(self):
+        """El origen distingue una reventa detectada de una corrección a mano."""
+        orden = self._orden(partner_id=self.cliente.id)
+
+        orden.action_actualizar_propietario_lote()
+
+        vigente = self.lot.mc_propietario_historial_ids.filtered(
+            lambda periodo: not periodo.fecha_hasta
+        )
+        self.assertEqual(vigente.repair_id, orden)

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Columnas de propiedad en la lista de números de serie. Van ocultas por defecto:
+         la lista ya trae bastantes, y quien busca por propietario lo hace agrupando. -->
+    <record id="view_stock_lot_list_mc_rov_propietario" model="ir.ui.view">
+        <field name="name">stock.lot.list.mc.rov.propietario</field>
+        <field name="model">stock.lot</field>
+        <field name="inherit_id" ref="stock.view_production_lot_tree"/>
+        <field name="arch" type="xml">
+            <field name="product_id" position="after">
+                <field name="mc_propietario_id" optional="hide"/>
+                <field name="mc_estado_comercial" optional="hide"/>
+            </field>
+        </field>
+    </record>
+
+    <!-- Agrupación y filtros de propiedad -->
+    <record id="view_stock_lot_search_mc_rov_propietario" model="ir.ui.view">
+        <field name="name">stock.lot.search.mc.rov.propietario</field>
+        <field name="model">stock.lot</field>
+        <field name="inherit_id" ref="stock.search_product_lot_filter"/>
+        <field name="arch" type="xml">
+            <filter name="group_by_product" position="after">
+                <filter
+                    name="group_by_propietario"
+                    string="Propietario"
+                    context="{'group_by': 'mc_propietario_id'}"/>
+                <filter
+                    name="group_by_estado_comercial"
+                    string="Estado comercial"
+                    context="{'group_by': 'mc_estado_comercial'}"/>
+            </filter>
+            <filter name="group_by_product" position="before">
+                <separator/>
+                <filter
+                    name="filtro_de_baja"
+                    string="Dados de baja"
+                    domain="[('mc_fecha_baja', '!=', False)]"
+                    help="Equipos fuera de servicio. Siguen consultables a propósito: su historial de reparaciones no se archiva."/>
+            </filter>
+        </field>
+    </record>
+</odoo>

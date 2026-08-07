@@ -4,6 +4,47 @@ All notable changes to the `mc_rov` Odoo module are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this module adheres to [semantic versioning](https://semver.org/) within the constraints of Odoo's version scheme: `19.0.X.Y.Z` where `19.0` is the Odoo major, `X` is breaking-change/migration, `Y` is feature, `Z` is bugfix.
 
+## [19.0.5.0.0] — 2026-08-07
+
+### Added
+- **Ownership of the unit.** `mc_propietario_id` on `stock.lot` — who owns the ROV today. Until now the customer only existed on the repair order, tied to that one job, so "whose serial is this?" and "show me every unit belonging to this client" had no answer at all.
+
+  Fleet units sit under the company's own partner rather than being left empty: empty is indistinguishable from "nobody filled it in".
+
+  Hand-maintained, and Odoo leaves no choice — `stock.lot` in 19 has no ownership concept whatsoever. `last_delivery_partner_id` is gone, and `delivery_ids` is neither stored nor usable for this: returning a repaired ROV also produces a delivery, so it overwrites itself.
+
+- **Ownership history.** New model `mc.rov.propietario.historial`, one row per *period* (`fecha_desde` / `fecha_hasta`), written by `stock.lot.write` and never by hand. Only ROV serials get rows.
+
+  It exists for analysis: how long each unit spent with each client, how many hands it passed through, whether resold units come back to the workshop more often.
+
+- **Resale detection at intake.** Nobody tells us when a customer resells their ROV; the symptom is the unit coming back billed to someone else. The repair order now shows the registered owner, warns when it differs from the order's customer, and offers a transfer button that records which order revealed the change (`repair_id` on the history row).
+
+- **Decommissioning.** "Dar de baja" / "Reactivar" buttons, backed by `mc_fecha_baja` and `mc_motivo_baja`. A date rather than a boolean, because *when* a unit left service is analysis-relevant.
+
+  Odoo's archiving is deliberately not used: it hides the serial everywhere and cuts the traceability of the repairs the unit already had. A decommissioned ROV has to stay consultable.
+
+- Group-by owner and by commercial status on the serial number list, a "Dados de baja" filter, and both fields as optional columns.
+- 17 tests.
+
+### Changed
+- **`mc_estado_comercial` is now derived** from the owner, from open rentals and from the decommissioning date, in that order of precedence: decommissioned beats sold, and a sold unit does not go back to saying "Disponible" just because no rental is active. Same field, same four values, same place in the form — it simply can no longer lie. It was the last hand-maintained field of its family.
+
+  "En arriendo" comes from `sale.order.line.pickedup_lot_ids` minus `returned_lot_ids`. There is no relation to traverse from `stock.lot` to `sale.order.line`, so `@api.depends` cannot see it; a `write` override on `sale.order.line` triggers the recompute, the same role `product.category` plays for `es_un_rov`. The intermediate table names are never hardcoded — the compute searches by field name, and the migration reads them from `ir_model_fields`.
+
+  **Note for the pipeline:** the field keeps its name and type but changes meaning. Do not read a change in it as a human decision. See `docs/integrations/pipeline.md`.
+
+### Migration
+- `migrations/19.0.5.0.0/post-migrate.py`. The step order is the fragile part and is not interchangeable:
+
+  1. **Rescue the existing `"Baja"` values into `mc_fecha_baja` first.** The recompute derives the status *from* that date, so running it first would turn every decommissioned unit back into "Disponible" with nothing left to reconstruct it from.
+  2. Seed owners, so step 4 can tell "Vendido" from fleet.
+  3. Open the first ownership period of every existing ROV.
+  4. Recompute `mc_estado_comercial` — the ORM does not recompute a field that becomes computed+stored when the column already existed with data.
+
+  Step 1 invents a date (the record's `write_date`), which this module otherwise refuses to do. It is the lesser evil here: *that* a unit is decommissioned matters more than the exact day, and losing it would be irreversible. `mc_motivo_baja` says the date is approximate so nobody reads it as recorded fact.
+
+  No abort gate as in 19.0.2.0.0 — nothing unreconstructable is at stake once the date is saved.
+
 ## [19.0.4.2.0] — 2026-08-07
 
 ### Added

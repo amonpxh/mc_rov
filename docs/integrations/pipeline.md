@@ -48,7 +48,34 @@ Custom mc_rov fields used:
   boolean: true when the product's category sits under the ROV vehicle branch. Same name,
   same type, different meaning — do not read it as an operator's judgement call. It flips
   on its own when a product is recategorised.
-- `mc_estado_comercial` — still hand-maintained
+- `mc_estado_comercial` — **derived since 19.0.5.0.0.** Same name, same four values,
+  different meaning: it is computed from `mc_propietario_id`, from open rentals
+  (`sale.order.line.pickedup_lot_ids` minus `returned_lot_ids`) and from `mc_fecha_baja`,
+  in that order of precedence. It is no longer an operator's assertion and cannot diverge
+  from those three. Do not treat a change in it as a human decision.
+- `mc_propietario_id` — **new in 19.0.5.0.0.** Current owner of the unit. Fleet units are
+  held under the company's own partner, never null: an empty value would be
+  indistinguishable from "nobody filled it in". Hand-maintained, for the same reason as
+  `mc_fecha_puesta_servicio` — Odoo 19 has no ownership concept on `stock.lot` to derive
+  it from, and units sold before Odoo existed have no stock move either.
+- `mc_fecha_baja`, `mc_motivo_baja` — **new in 19.0.5.0.0.** Decommissioning. A date and
+  not a boolean, because *when* a unit left service is analysis-relevant. Odoo's archiving
+  is deliberately not used: it would hide the serial everywhere and cut the traceability of
+  the repairs it already had. Rows migrated from the old `"Baja"` value carry an
+  **approximate** date (the record's `write_date`) and say so in `mc_motivo_baja`.
+
+### `mc.rov.propietario.historial` (new in 19.0.5.0.0)
+
+One row per **ownership period**, not per change: `lot_id`, `partner_id`, `fecha_desde`,
+`fecha_hasta` (null on the current period), `repair_id`.
+
+Written entirely by `stock.lot.write` — never by hand. Only ROV serials get rows; component
+lots are excluded on purpose. `repair_id` records the repair order that revealed the change,
+which distinguishes a resale detected at intake from a manual correction.
+
+This is the intended source for ownership analysis. Do **not** reconstruct ownership from
+`repair.order.partner_id`: that field is who pays a given job, which is sometimes an insurer
+or a distributor, and the original sale never produces a repair order at all.
 - `mc_estado_operativo` — **derived since 19.0.3.0.0**, computed from the unit's open repair
   orders. Same name and type, different meaning: it is no longer an operator's assertion
   and cannot diverge from the orders. Do not treat a change in it as a human decision.

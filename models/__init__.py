@@ -1,5 +1,7 @@
 from . import mc_rov_componente
+from . import mc_rov_propietario_historial
 from . import mc_rov_tipo_intervencion
 from . import product_category
 from . import repair_order
+from . import sale_order_line
 from . import stock_lot

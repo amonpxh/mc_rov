@@ -66,6 +66,67 @@ class RepairOrder(models.Model):
     )
     observaciones_salida = fields.Text(string="Observaciones de salida")
 
+    # --- Propiedad del equipo ---
+
+    mc_propietario_lot_id = fields.Many2one(
+        "res.partner",
+        string="Propietario registrado",
+        related="lot_id.mc_propietario_id",
+        readonly=True,
+    )
+
+    mc_propietario_difiere = fields.Boolean(
+        string="El propietario no coincide",
+        compute="_compute_mc_propietario_difiere",
+        help="Se enciende cuando el cliente de la orden no es el propietario que tiene "
+        "registrado el equipo. Casi siempre significa que el ROV se revendió.",
+    )
+
+    @api.depends("lot_id", "partner_id", "mc_propietario_lot_id")
+    def _compute_mc_propietario_difiere(self):
+        """Solo compara cuando hay las dos puntas y el equipo es un ROV.
+
+        En los lotes de componentes el propietario es siempre la empresa y la
+        comparación daría alerta en todas las órdenes.
+        """
+        for order in self:
+            order.mc_propietario_difiere = bool(
+                order.lot_id.es_un_rov
+                and order.partner_id
+                and order.mc_propietario_lot_id
+                and order.partner_id != order.mc_propietario_lot_id
+            )
+
+    @api.onchange("lot_id")
+    def _onchange_lot_id_propone_propietario(self):
+        """Propone como cliente al propietario registrado del equipo.
+
+        Propuesta y no imposición: quien paga la orden no siempre es el dueño. Puede ser
+        un seguro, un distribuidor que trae el equipo de un tercero, o el comprador de un
+        ROV de segunda mano. Por eso solo rellena el campo vacío y nunca pisa lo que el
+        técnico ya eligió.
+        """
+        for order in self:
+            propietario = order.lot_id.mc_propietario_id
+            if propietario and order.lot_id.es_un_rov and not order.partner_id:
+                order.partner_id = propietario
+
+    def action_actualizar_propietario_lote(self):
+        """Traspasa el equipo al cliente de esta orden.
+
+        Es la vía por la que el sistema se entera de que un ROV se revendió: nadie nos
+        avisa de la venta entre terceros, pero el equipo vuelve al taller a nombre de
+        otro. El contexto deja esta orden anotada en el historial como el origen del
+        traspaso.
+
+        No devuelve acción a propósito: al recargarse el formulario desaparece el aviso,
+        que es la confirmación de que el cambio quedó hecho.
+        """
+        self.ensure_one()
+        self.lot_id.with_context(mc_rov_repair_origen=self.id).write(
+            {"mc_propietario_id": self.partner_id.id}
+        )
+
     def write(self, vals):
         """Sella la fecha de entrega al cerrar la orden si nadie la escribió.
 
