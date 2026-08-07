@@ -16,7 +16,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - 5 tests on `es_un_rov` (both ROV branches, nested subcategory, unrelated category, re-parenting).
 
 ### Migration
-- `migrations/19.0.2.0.0/post-migrate.py` seeds the system parameter and recomputes `es_un_rov` for every existing serial. **Serials flagged by hand whose product is outside the ROV branch lose the flag**, which hides their four ficha-técnica tabs until the product is recategorised. The script logs how many were affected and aborts without touching data if the root category cannot be resolved.
+- `migrations/19.0.2.0.0/post-migrate.py` seeds the system parameter and recomputes `es_un_rov` for every existing serial. **Serials flagged by hand whose product is outside the ROV branch lose the flag**, which hides their four ficha-técnica tabs until the product is recategorised. The script logs how many were affected. If the root category cannot be resolved it aborts without touching data — but only when serials are currently flagged, since on a database with no flagged ROVs there is nothing to lose.
 
 ## [19.0.1.5.0] — 2026-05-12
 

@@ -1,6 +1,6 @@
 # Test workflow for mc_rov
 #
-# Runs the 37 Odoo unit tests on the production VPS via a self-hosted runner.
+# Runs the Odoo unit tests on the production VPS via a self-hosted runner.
 # The runner must be installed on the VPS as the odoo user.
 # See docs/runbooks/testing.md for the manual equivalent.
 
@@ -14,7 +14,7 @@ on:
 
 jobs:
   odoo-tests:
-    name: Odoo module tests (34 tests)
+    name: Odoo module tests
     runs-on: self-hosted
     timeout-minutes: 30
 

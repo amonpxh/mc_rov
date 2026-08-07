@@ -44,6 +44,31 @@ def _resolve_root_category(cr):
     return row[0] if row else None
 
 
+def _abortar_si_hay_datos_en_riesgo(cr, motivo):
+    """Corta el upgrade solo si hay series marcadas que perderían la marca.
+
+    Sin raíz resoluble el compute apagaría es_un_rov en todo el sistema. Eso importa
+    cuando alguien ya cargó fichas técnicas; en una base sin ROVs marcados no hay nada
+    que proteger y hacer fallar el upgrade sería ruido.
+    """
+    cr.execute("SELECT COUNT(*) FROM stock_lot WHERE es_un_rov IS TRUE")
+    marcadas = cr.fetchone()[0]
+
+    if marcadas:
+        raise UserError(
+            f"mc_rov 19.0.2.0.0: {motivo}\n\n"
+            f"Hay {marcadas} número(s) de serie marcados como ROV que perderían la marca "
+            "y ocultarían su ficha técnica.\n\n"
+            "La migración se abortó sin modificar datos."
+        )
+
+    _logger.warning(
+        "mc_rov 19.0.2.0.0: %s No hay series marcadas como ROV, así que no se aborta: "
+        "no hay datos que perder.",
+        motivo.replace("\n", " "),
+    )
+
+
 def migrate(cr, version):
     """Convierte es_un_rov de booleano manual a derivado de la categoría del producto.
 
@@ -51,30 +76,33 @@ def migrate(cr, version):
     con datos: solo rellena columnas nuevas. Sin este UPDATE el cambio aplicaría a los
     números de serie nuevos y los viejos conservarían su valor manual para siempre.
 
-    Aborta si no puede resolver la raíz: dejarlo pasar apagaría es_un_rov en todos los
-    equipos, ocultando sus cuatro pestañas de ficha técnica de golpe.
+    Si no puede resolver la raíz, aborta solo cuando hay series marcadas que perderían
+    la marca. En una base sin árbol de categorías y sin ROVs marcados —una BD de tests,
+    por ejemplo— no hay nada que perder y la migración termina sin hacer nada.
     """
     root_id = _resolve_root_category(cr)
     if root_id is None:
-        raise UserError(
-            "mc_rov 19.0.2.0.0: no se pudo resolver la categoría raíz de vehículos ROV.\n\n"
+        _abortar_si_hay_datos_en_riesgo(
+            cr,
+            "no se pudo resolver la categoría raíz de vehículos ROV.\n\n"
             f"Se buscó el parámetro de sistema '{ROV_CATEG_PARAM}' y el ID externo "
             f"'{ROV_CATEG_XMLID_MODULE}.{ROV_CATEG_XMLID_NAME}', sin éxito.\n"
             "Defina el parámetro con el ID de la categoría raíz (Ajustes → Técnico → "
-            "Parámetros del sistema) y reintente el upgrade.\n\n"
-            "La migración se abortó sin modificar datos."
+            "Parámetros del sistema) y reintente el upgrade.",
         )
+        return
 
     # parent_path es lo que hace funcionar child_of. Si viniera NULL, el LIKE de abajo
     # daría NULL para todas las filas y apagaría el módulo entero en silencio.
     cr.execute("SELECT parent_path FROM product_category WHERE id = %s", (root_id,))
     row = cr.fetchone()
     if not row or not row[0]:
-        raise UserError(
-            f"mc_rov 19.0.2.0.0: la categoría raíz {root_id} no tiene parent_path calculado.\n"
-            "Ejecute una reconstrucción del árbol de categorías antes de reintentar.\n\n"
-            "La migración se abortó sin modificar datos."
+        _abortar_si_hay_datos_en_riesgo(
+            cr,
+            f"la categoría raíz {root_id} no tiene parent_path calculado.\n"
+            "Ejecute una reconstrucción del árbol de categorías antes de reintentar.",
         )
+        return
 
     # Se siembra el parámetro para que el runtime tenga una sola fuente y el XML ID
     # de la importación quede solo como respaldo.
