@@ -520,14 +520,23 @@ class TestStockLotPropiedad(StockLotPropiedadCommon):
         self.assertFalse(periodos.fecha_hasta)
 
     def test_traspasar_cierra_el_periodo_anterior_y_abre_uno_nuevo(self):
+        """Se comprueba cuál período quedó abierto, no en qué posición vino.
+
+        Dentro de la misma transacción el one2many llega en el orden en que se fue
+        llenando la caché, no en el _order del modelo, así que apoyarse en el índice
+        probaría un detalle de la caché en vez de la regla de negocio.
+        """
         self.lot.mc_propietario_id = self.cliente
 
         periodos = self._periodos()
         self.assertEqual(len(periodos), 2)
-        self.assertEqual(periodos[0].partner_id, self.cliente)
-        self.assertFalse(periodos[0].fecha_hasta)
-        self.assertEqual(periodos[1].partner_id, self.empresa)
-        self.assertEqual(periodos[1].fecha_hasta, fields.Date.today())
+
+        vigente = periodos.filtered(lambda periodo: not periodo.fecha_hasta)
+        cerrado = periodos - vigente
+
+        self.assertEqual(vigente.partner_id, self.cliente)
+        self.assertEqual(cerrado.partner_id, self.empresa)
+        self.assertEqual(cerrado.fecha_hasta, fields.Date.today())
 
     def test_reescribir_el_mismo_propietario_no_ensucia_el_historial(self):
         """Guardar el formulario sin cambiar de dueño no es un traspaso."""
