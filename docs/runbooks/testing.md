@@ -44,13 +44,13 @@ sudo -u odoo odoo \
   --config /etc/odoo/odoo.conf
 ```
 
-Available test classes (as of v19.0.3.0.0):
+Available test classes (as of v19.0.4.0.0):
 
 | Class | Tests | Coverage |
 |---|---|---|
 | `TestStockLotRov` | 6 | `es_un_rov`, derived from the product category |
-| `TestStockLotEstado` | 15 | `mc_estado_operativo` (derived), `mc_repair_count`, `ultima_mantencion` |
-| `TestRepairOrder` | 7 | defaults, selections, `fecha_entrega_real`, `linea_falla_ids` |
+| `TestStockLotEstado` | 17 | `mc_estado_operativo` (derived), `mc_repair_count`, `ultima_mantencion` |
+| `TestRepairOrder` | 9 | defaults, `tipo_intervencion_ids`, `fecha_entrega_real`, `linea_falla_ids` |
 | `TestMcRovComponente` | 18 | all four custom models (`componente`, `subtipo`, `accion`, `linea.falla`) |
 
 > Copy the class names from this table, not from memory. `--test-tags` silently matches
@@ -58,7 +58,7 @@ Available test classes (as of v19.0.3.0.0):
 
 ## Expected output
 
-All 46 tests should pass. Look for `0 failed, 0 error(s) of 46 tests` in the output (exact format depends on Odoo verbosity).
+All 50 tests should pass. Look for `0 failed, 0 error(s) of 50 tests` in the output (exact format depends on Odoo verbosity).
 
 ## When tests fail
 

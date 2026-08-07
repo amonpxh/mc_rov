@@ -64,7 +64,12 @@ Standard fields:
 - `id`, `name`, `product_id`, `lot_id`, `state`, `create_date`, `schedule_date`
 
 Custom mc_rov fields:
-- `tipo_intervencion`, `item_2..5`
+- `tipo_intervencion_ids` — **breaking change in 19.0.4.0.0.** Was `tipo_intervencion`, a
+  Selection holding one of four string keys. It is now a Many2many to
+  `mc.rov.tipo.intervencion`, because one workshop visit can be several things at once.
+  Pipeline queries reading the old name will return nothing. Read `name` for the label, or
+  `es_mantencion` to identify maintenance visits — do not match on the label text.
+- `item_2..5`
 - `falla_reportada`
 - `linea_falla_ids` (one2many)
 - `estado_final`, `causa_raiz`

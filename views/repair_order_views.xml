@@ -8,7 +8,7 @@
 
             <!-- Tipo de intervención después de "Bajo garantía" -->
             <field name="under_warranty" position="after">
-                <field name="tipo_intervencion"/>
+                <field name="tipo_intervencion_ids" widget="many2many_tags"/>
             </field>
 
             <!-- Ítems adicionales después del número de serie -->
@@ -66,7 +66,7 @@
         <field name="inherit_id" ref="repair.view_repair_order_tree"/>
         <field name="arch" type="xml">
             <field name="state" position="before">
-                <field name="tipo_intervencion"/>
+                <field name="tipo_intervencion_ids" widget="many2many_tags"/>
                 <field name="mc_total_horas"/>
             </field>
         </field>

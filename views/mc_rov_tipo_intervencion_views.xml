@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Vista lista tipos de intervención -->
+    <record id="view_mc_rov_tipo_intervencion_list" model="ir.ui.view">
+        <field name="name">mc.rov.tipo.intervencion.list</field>
+        <field name="model">mc.rov.tipo.intervencion</field>
+        <field name="arch" type="xml">
+            <list string="Tipos de intervención ROV">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="es_mantencion"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Vista formulario tipos de intervención -->
+    <record id="view_mc_rov_tipo_intervencion_form" model="ir.ui.view">
+        <field name="name">mc.rov.tipo.intervencion.form</field>
+        <field name="model">mc.rov.tipo.intervencion</field>
+        <field name="arch" type="xml">
+            <form string="Tipo de intervención ROV">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="es_mantencion"/>
+                        <field name="sequence"/>
+                        <field name="active"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Acción tipos de intervención -->
+    <record id="action_mc_rov_tipo_intervencion" model="ir.actions.act_window">
+        <field name="name">Tipos de intervención ROV</field>
+        <field name="res_model">mc.rov.tipo.intervencion</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>
