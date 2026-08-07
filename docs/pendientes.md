@@ -4,6 +4,14 @@
 
 - [ ] **Phase -1 del pipeline roadmap — Foundation handoff** — prerequisito bloqueante para iniciar el pipeline. Checklist completo en `rov-pipeline-roadmap.md` Phase -1. Duración estimada: 1 semana.
 
+- [ ] **Separar el workspace del runner de CI del addons de producción.** Hoy son el mismo directorio: `/opt/odoo/custom-addons/mc_rov`. Descubierto el 2026-08-07 al desplegar `19.0.5.0.0`.
+
+  1. **`git pull` como root no funciona y nunca funcionó** — el remoto es SSH y root no tiene deploy key. El runbook documentaba ese comando; ya está corregido en [`runbooks/deploy.md`](runbooks/deploy.md) con el workaround real (`merge --ff-only origin/main`, que es local porque el runner ya dejó los refs actualizados).
+  2. **El código llega a producción por efecto secundario de CI**, no por una acción deliberada de desplegar. Un job de CI puede cambiar lo que Odoo está sirviendo.
+  3. Arreglo: mover el workspace del runner fuera del addons path, y darle al deploy una credencial propia de solo lectura. Recién ahí el runbook puede volver a decir `git pull`.
+
+  **Mientras tanto**, verificar siempre `git log --oneline -1` y la versión del manifiesto antes de correr el `-u mc_rov`. Desplegar la migración equivocada sobre `odoo_prod` no se deshace con un `git checkout`.
+
 - [ ] **Carga de productos ROV** — el árbol de categorías ya está en producción (164 categorías), pero todavía no hay productos ROV cargados. Al cargarlos:
 
   1. **La categoría dejó de ser un dato descriptivo y pasó a ser funcional.** Desde `19.0.2.0.0` el campo `es_un_rov` se deriva de ella: un vehículo cargado fuera de la rama `ROV - Vehiculos` (id `968` en `odoo_prod`) no tendrá ficha técnica ni pestañas de mantención, y nadie podrá encenderlas a mano.
