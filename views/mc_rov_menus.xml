@@ -12,4 +12,10 @@
         parent="repair.repair_menu_config"
         action="action_mc_rov_accion"
         sequence="21"/>
+    <menuitem
+        id="menu_mc_rov_tipos_intervencion"
+        name="Tipos de intervención ROV"
+        parent="repair.repair_menu_config"
+        action="action_mc_rov_tipo_intervencion"
+        sequence="22"/>
 </odoo>

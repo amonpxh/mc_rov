@@ -4,6 +4,23 @@ All notable changes to the `mc_rov` Odoo module are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this module adheres to [semantic versioning](https://semver.org/) within the constraints of Odoo's version scheme: `19.0.X.Y.Z` where `19.0` is the Odoo major, `X` is breaking-change/migration, `Y` is feature, `Z` is bugfix.
 
+## [19.0.4.0.0] — 2026-08-07
+
+### Changed
+- **`repair.order.tipo_intervencion` (Selection) → `tipo_intervencion_ids` (Many2many).** A single visit to the workshop can be more than one thing: a ROV comes in for scheduled maintenance and turns out to need a repair too. The Selection forced a choice, and picking "repair" silently discarded the maintenance that was actually performed — along with the reset of the unit's maintenance clock.
+
+  **Breaking for the pipeline:** the field is renamed and its type changed. See `docs/integrations/pipeline.md`.
+
+- `ultima_mantencion` and `mc_estado_operativo` no longer compare against the literal `"mantencion_preventiva"`. They read the `es_mantencion` flag on the intervention type, so adding a type like "Mantención mayor" is a checkbox in the UI, not a code change. Same principle already recorded for `mc.rov.accion` in `docs/pendientes.md`.
+
+### Added
+- Model `mc.rov.tipo.intervencion` — configurable catalogue under *Reparaciones → Configuración*, alongside components and actions. Fields: `name`, `sequence`, `es_mantencion`, `active`.
+- Four seeded types: Diagnóstico, Reparación correctiva, Mantención preventiva (`es_mantencion`), Conversión / Upgrade.
+- 4 tests, including the mixed visit (maintenance + repair in one order) for both `ultima_mantencion` and `mc_estado_operativo`.
+
+### Migration
+- `migrations/19.0.4.0.0/post-migrate.py` maps each old Selection value to its catalogue record and drops the old column, following the pattern of `19.0.1.3.0` (which did the same for `linea_falla.accion`). No-op on fresh installs.
+
 ## [19.0.3.0.0] — 2026-08-07
 
 ### Fixed

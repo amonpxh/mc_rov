@@ -1,5 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!-- Tipos de intervención.
+         es_mantencion marca los que reinician el ciclo de mantención del equipo:
+         el cálculo lee esta casilla en vez de comparar nombres, para que agregar un
+         tipo nuevo no exija tocar código. -->
+    <record id="tipo_diagnostico" model="mc.rov.tipo.intervencion">
+        <field name="name">Diagnóstico</field>
+        <field name="sequence">10</field>
+    </record>
+    <record id="tipo_reparacion_correctiva" model="mc.rov.tipo.intervencion">
+        <field name="name">Reparación correctiva</field>
+        <field name="sequence">20</field>
+    </record>
+    <record id="tipo_mantencion_preventiva" model="mc.rov.tipo.intervencion">
+        <field name="name">Mantención preventiva</field>
+        <field name="sequence">30</field>
+        <field name="es_mantencion" eval="True"/>
+    </record>
+    <record id="tipo_conversion" model="mc.rov.tipo.intervencion">
+        <field name="name">Conversión / Upgrade</field>
+        <field name="sequence">40</field>
+    </record>
+
     <!-- Acciones -->
     <record id="accion_cambio_completo" model="mc.rov.accion">
         <field name="name">Cambio completo</field>

@@ -131,7 +131,7 @@ class StockLot(models.Model):
         "para cambiarlo, abra o cierre la orden correspondiente.",
     )
 
-    @api.depends("repair_ids.state", "repair_ids.tipo_intervencion")
+    @api.depends("repair_ids.state", "repair_ids.tipo_intervencion_ids.es_mantencion")
     def _compute_mc_estado_operativo(self):
         """El estado del equipo es el de sus órdenes abiertas, no un dato aparte.
 
@@ -147,7 +147,7 @@ class StockLot(models.Model):
             )
             if not abiertas:
                 lot.mc_estado_operativo = "Operativo"
-            elif "mantencion_preventiva" in abiertas.mapped("tipo_intervencion"):
+            elif any(abiertas.mapped("tipo_intervencion_ids.es_mantencion")):
                 lot.mc_estado_operativo = "En mantención"
             else:
                 lot.mc_estado_operativo = "En reparación"
@@ -329,7 +329,7 @@ class StockLot(models.Model):
                 [
                     ("lot_id", "=", lot.id),
                     ("state", "=", "done"),
-                    ("tipo_intervencion", "=", "mantencion_preventiva"),
+                    ("tipo_intervencion_ids.es_mantencion", "=", True),
                     ("fecha_entrega_real", "!=", False),
                 ],
                 order="fecha_entrega_real desc, id desc",

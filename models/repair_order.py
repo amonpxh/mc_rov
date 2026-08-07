@@ -11,14 +11,15 @@ class RepairOrder(models.Model):
 
     _inherit = "repair.order"
 
-    # Clasifica la intervención para efectos de reportes y estadísticas
-    tipo_intervencion = fields.Selection(
-        [
-            ("diagnostico", "Diagnóstico"),
-            ("reparacion_correctiva", "Reparación correctiva"),
-            ("mantencion_preventiva", "Mantención preventiva"),
-            ("conversion", "Conversión / Upgrade"),
-        ],
+    # Clasifica la intervención para efectos de reportes y estadísticas.
+    # Es Many2many y no Selection porque una misma visita al taller puede ser varias
+    # cosas: el equipo entra a mantención y de paso se le repara algo. La relación se
+    # nombra explícitamente para que la migración 19.0.4.0.0 pueda escribir en ella.
+    tipo_intervencion_ids = fields.Many2many(
+        "mc.rov.tipo.intervencion",
+        relation="mc_rov_repair_order_tipo_rel",
+        column1="repair_order_id",
+        column2="tipo_id",
         string="Tipo de intervención",
     )
 

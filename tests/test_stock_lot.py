@@ -123,6 +123,8 @@ class TestStockLotEstado(TransactionCase):
                 "tracking": "serial",
             }
         )
+        cls.tipo_mantencion = cls.env.ref("mc_rov.tipo_mantencion_preventiva")
+        cls.tipo_correctiva = cls.env.ref("mc_rov.tipo_reparacion_correctiva")
 
     def setUp(self):
         super().setUp()
@@ -134,8 +136,10 @@ class TestStockLotEstado(TransactionCase):
             }
         )
 
-    def _orden(self, **vals):
-        """Crea una orden de reparación para self.lot con los valores dados."""
+    def _orden(self, tipos=None, **vals):
+        """Crea una orden de reparación para self.lot con los tipos y valores dados."""
+        if tipos is not None:
+            vals["tipo_intervencion_ids"] = [(6, 0, tipos.ids)]
         return self.env["repair.order"].create(
             {
                 "product_id": self.product.id,
@@ -188,8 +192,8 @@ class TestStockLotEstado(TransactionCase):
     def test_ultima_mantencion_retorna_fecha_entrega_real(self):
         hoy = fields.Date.today()
         self._orden(
+            tipos=self.tipo_mantencion,
             state="done",
-            tipo_intervencion="mantencion_preventiva",
             fecha_entrega_real=hoy,
         )
         self.assertEqual(self.lot.ultima_mantencion, hoy)
@@ -201,11 +205,25 @@ class TestStockLotEstado(TransactionCase):
         actualizara este campo, el vencimiento quedaría oculto.
         """
         self._orden(
+            tipos=self.tipo_correctiva,
             state="done",
-            tipo_intervencion="reparacion_correctiva",
             fecha_entrega_real=fields.Date.today(),
         )
         self.assertFalse(self.lot.ultima_mantencion)
+
+    def test_ultima_mantencion_cuenta_la_visita_mixta(self):
+        """Si el equipo entró a mantención y de paso se reparó, la mantención cuenta.
+
+        Es el caso que motivó pasar tipo_intervencion a múltiple: antes había que elegir
+        uno de los dos y, si se elegía la reparación, el ciclo no se reiniciaba.
+        """
+        hoy = fields.Date.today()
+        self._orden(
+            tipos=self.tipo_mantencion | self.tipo_correctiva,
+            state="done",
+            fecha_entrega_real=hoy,
+        )
+        self.assertEqual(self.lot.ultima_mantencion, hoy)
 
     def test_ultima_mantencion_toma_la_fecha_mas_reciente_no_el_ultimo_id(self):
         """Las órdenes no se cierran en el orden en que se crean."""
@@ -213,14 +231,14 @@ class TestStockLotEstado(TransactionCase):
         antigua = fields.Date.to_date("2025-06-01")
 
         self._orden(
+            tipos=self.tipo_mantencion,
             state="done",
-            tipo_intervencion="mantencion_preventiva",
             fecha_entrega_real=reciente,
         )
         # Se crea después, así que tiene id mayor pese a ser la más antigua
         self._orden(
+            tipos=self.tipo_mantencion,
             state="done",
-            tipo_intervencion="mantencion_preventiva",
             fecha_entrega_real=antigua,
         )
 
@@ -228,13 +246,13 @@ class TestStockLotEstado(TransactionCase):
 
     def test_ultima_mantencion_es_false_si_orden_done_sin_fecha_entrega(self):
         """Una orden done sin fecha_entrega_real no debe mostrar fecha."""
-        self._orden(state="done", tipo_intervencion="mantencion_preventiva")
+        self._orden(tipos=self.tipo_mantencion, state="done")
         self.assertFalse(self.lot.ultima_mantencion)
 
     def test_ultima_mantencion_ignora_ordenes_en_borrador(self):
         """Si solo hay órdenes en draft, ultima_mantencion debe quedar vacía."""
         self._orden(
-            tipo_intervencion="mantencion_preventiva",
+            tipos=self.tipo_mantencion,
             fecha_entrega_real=fields.Date.today(),
         )
         self.assertFalse(self.lot.ultima_mantencion)
@@ -245,21 +263,26 @@ class TestStockLotEstado(TransactionCase):
         self.assertEqual(self.lot.mc_estado_operativo, "Operativo")
 
     def test_estado_operativo_con_orden_abierta_es_en_reparacion(self):
-        self._orden(state="confirmed", tipo_intervencion="reparacion_correctiva")
+        self._orden(tipos=self.tipo_correctiva, state="confirmed")
         self.assertEqual(self.lot.mc_estado_operativo, "En reparación")
 
     def test_estado_operativo_con_mantencion_abierta_es_en_mantencion(self):
-        self._orden(state="confirmed", tipo_intervencion="mantencion_preventiva")
+        self._orden(tipos=self.tipo_mantencion, state="confirmed")
+        self.assertEqual(self.lot.mc_estado_operativo, "En mantención")
+
+    def test_estado_operativo_en_visita_mixta_es_en_mantencion(self):
+        """Si la visita incluye mantención, esa manda sobre la reparación."""
+        self._orden(tipos=self.tipo_mantencion | self.tipo_correctiva, state="confirmed")
         self.assertEqual(self.lot.mc_estado_operativo, "En mantención")
 
     def test_estado_operativo_ignora_ordenes_en_borrador(self):
         """Un borrador es una cotización: el equipo todavía no entró al taller."""
-        self._orden(tipo_intervencion="reparacion_correctiva")
+        self._orden(tipos=self.tipo_correctiva)
         self.assertEqual(self.lot.mc_estado_operativo, "Operativo")
 
     def test_estado_operativo_vuelve_a_operativo_al_cerrar_la_orden(self):
         """Cerrar la orden devuelve el equipo a operativo sin intervención manual."""
-        orden = self._orden(state="confirmed", tipo_intervencion="reparacion_correctiva")
+        orden = self._orden(tipos=self.tipo_correctiva, state="confirmed")
         self.assertEqual(self.lot.mc_estado_operativo, "En reparación")
 
         orden.state = "done"

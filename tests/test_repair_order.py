@@ -30,23 +30,43 @@ class TestRepairOrder(TransactionCase):
 
     # --- Valores por defecto ---
 
-    def test_tipo_intervencion_por_defecto_es_false(self):
-        self.assertFalse(self.order.tipo_intervencion)
+    def test_tipo_intervencion_por_defecto_esta_vacio(self):
+        self.assertFalse(self.order.tipo_intervencion_ids)
 
     def test_fecha_entrega_real_por_defecto_es_false(self):
         self.assertFalse(self.order.fecha_entrega_real)
 
     # --- Asignación de campos ---
 
-    def test_tipo_intervencion_acepta_valores_validos(self):
-        for valor in (
-            "diagnostico",
-            "reparacion_correctiva",
-            "mantencion_preventiva",
-            "conversion",
+    def test_tipo_intervencion_acepta_los_tipos_del_catalogo(self):
+        for xml_id in (
+            "mc_rov.tipo_diagnostico",
+            "mc_rov.tipo_reparacion_correctiva",
+            "mc_rov.tipo_mantencion_preventiva",
+            "mc_rov.tipo_conversion",
         ):
-            self.order.tipo_intervencion = valor
-            self.assertEqual(self.order.tipo_intervencion, valor)
+            tipo = self.env.ref(xml_id)
+            self.order.tipo_intervencion_ids = [(6, 0, tipo.ids)]
+            self.assertEqual(self.order.tipo_intervencion_ids, tipo)
+
+    def test_tipo_intervencion_admite_varios_a_la_vez(self):
+        """Una visita puede ser mantención y reparación: ese es el punto del cambio."""
+        mantencion = self.env.ref("mc_rov.tipo_mantencion_preventiva")
+        correctiva = self.env.ref("mc_rov.tipo_reparacion_correctiva")
+
+        self.order.tipo_intervencion_ids = [(6, 0, (mantencion | correctiva).ids)]
+
+        self.assertEqual(len(self.order.tipo_intervencion_ids), 2)
+
+    def test_solo_mantencion_preventiva_cuenta_como_mantencion(self):
+        """El ciclo se calcula leyendo es_mantencion, no comparando nombres."""
+        self.assertTrue(self.env.ref("mc_rov.tipo_mantencion_preventiva").es_mantencion)
+        for xml_id in (
+            "mc_rov.tipo_diagnostico",
+            "mc_rov.tipo_reparacion_correctiva",
+            "mc_rov.tipo_conversion",
+        ):
+            self.assertFalse(self.env.ref(xml_id).es_mantencion)
 
     def test_fecha_entrega_real_se_guarda(self):
         hoy = date.today()
