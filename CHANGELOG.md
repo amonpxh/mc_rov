@@ -4,6 +4,24 @@ All notable changes to the `mc_rov` Odoo module are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this module adheres to [semantic versioning](https://semver.org/) within the constraints of Odoo's version scheme: `19.0.X.Y.Z` where `19.0` is the Odoo major, `X` is breaking-change/migration, `Y` is feature, `Z` is bugfix.
 
+## [19.0.4.2.0] — 2026-08-07
+
+### Added
+- **Maintenance clock.** `proxima_mantencion` on `stock.lot`, computed as the cycle length added to `ultima_mantencion`, or to `mc_fecha_puesta_servicio` when the unit has never been serviced. A unit serviced at 18 months restarts its cycle there, not on the theoretical anniversary — what counts is when it was actually worked on.
+- `mc_fecha_puesta_servicio` — delivery to the customer if the unit was sold, or first availability for rental if it belongs to the fleet. Manual on purpose: units delivered before Odoo existed have no stock move to derive it from, and rentals go in and out repeatedly.
+
+  **No service date means no clock.** Units sitting in the warehouse stay out of the overdue list.
+
+- "Mantención vencida" and "Mantención en 60 días" filters on the serial number list, plus `proxima_mantencion` as a column. No new menu: sales already reaches equipment through *Inventario → Números de serie*, and the call list is that same list filtered.
+- Cycle length is read from the `mc_rov.meses_ciclo_mantencion` system parameter, defaulting to 12. A non-numeric value falls back to the default with a log warning rather than breaking every unit's form.
+- 7 tests.
+
+### Changed
+- `ultima_mantencion` and `ultima_reparacion` are now stored. A stored field cannot depend on a non-stored one, and `proxima_mantencion` has to be stored for the overdue filter to work. The `repair_ids` relation added in 19.0.3.0.0 is what lets the ORM know when to recompute them. New columns, so Odoo fills them on upgrade — no migration script.
+
+### Deliberately not built
+No stored "overdue" boolean. A unit falls overdue through the passage of time, not because someone edits it, so a stored flag would go stale in silence. The filter compares `proxima_mantencion` against today's date, which is always current.
+
 ## [19.0.4.1.0] — 2026-08-07
 
 ### Fixed

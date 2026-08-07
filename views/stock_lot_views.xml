@@ -10,7 +10,9 @@
             <!-- Anclado a product_id (campo requerido en stock.lot, más estable que ref) -->
             <xpath expr="//field[@name='product_id']" position="after">
                 <field name="es_un_rov"/>
+                <field name="mc_fecha_puesta_servicio" invisible="not es_un_rov"/>
                 <field name="ultima_mantencion" readonly="1" invisible="not es_un_rov"/>
+                <field name="proxima_mantencion" readonly="1" invisible="not es_un_rov"/>
                 <field name="ultima_reparacion" readonly="1" invisible="not es_un_rov"/>
                 <field name="mc_estado_comercial"
                        invisible="not es_un_rov"
