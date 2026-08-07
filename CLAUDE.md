@@ -67,7 +67,9 @@ Trabajo pendiente y diseños ya acordados: ver [`docs/pendientes.md`](docs/pendi
 
 ## Notas técnicas
 
-- `ultima_mantencion` en `stock.lot` usa `fecha_entrega_real` de la última orden `done`, ingresada por el técnico al cerrar la orden.
+- `ultima_mantencion` en `stock.lot` usa `fecha_entrega_real` de la última orden `done` **de tipo `mantencion_preventiva`**, ingresada por el técnico al cerrar la orden. Las correctivas no cuentan: un equipo reparado sigue debiendo su mantención anual.
+- `mc_estado_operativo` se deriva de las órdenes abiertas del equipo (`repair_ids`), no se escribe a mano. Los borradores no cuentan — una orden en draft es una cotización y el equipo todavía no entró al taller. Misma convención que `mc_repair_count`.
+- **Patrón recurrente en este módulo:** varios campos de `stock.lot` eran copias manuales de información que ya vivía en otro registro (`es_un_rov` ↔ categoría del producto, `mc_estado_operativo` ↔ órdenes de reparación). El síntoma es siempre el mismo: el dato se desincroniza y nada lo detecta. Antes de agregar un campo manual a `stock.lot`, verificar si la respuesta ya está en otro modelo.
 - El dominio `[('componente_id', '=', componente_id)]` en `subtipo_id` dentro del one2many editable funciona correctamente desde Odoo 17+.
 - Los campos de ficha técnica en `stock.lot` reemplazaron los `x_studio_*` de Studio. Los campos Studio siguen en la BD como columnas huérfanas — se pueden eliminar desde Studio o vía SQL cuando se confirme que no hacen falta.
 - **Patrón de migración**: el ORM de Odoo crea las columnas nuevas **antes** de ejecutar el script `post-migrate.py`. Por eso las migraciones de renombrado deben usar `UPDATE SET nuevo = viejo` + `DROP COLUMN viejo`, no `RENAME COLUMN` (que falla porque la columna destino ya existe).

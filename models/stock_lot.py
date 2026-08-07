@@ -110,6 +110,14 @@ class StockLot(models.Model):
         help="Indica en qué estado se encuentra el equipo (ej. el equipo está siendo arrendado).",
     )
 
+    # Inversa de repair.order.lot_id. Existe para que mc_estado_operativo pueda ser un
+    # computed almacenado: sin la relación, el ORM no sabe cuándo recalcularlo.
+    repair_ids = fields.One2many(
+        "repair.order",
+        "lot_id",
+        string="Órdenes de reparación",
+    )
+
     mc_estado_operativo = fields.Selection(
         [
             ("Operativo", "Operativo"),
@@ -117,8 +125,32 @@ class StockLot(models.Model):
             ("En reparación", "En reparación"),
         ],
         string="Estado Operativo",
-        help="Indica si el equipo está siendo reparado, en mantención o está operativo.",
+        compute="_compute_mc_estado_operativo",
+        store=True,
+        help="Se deriva de las órdenes de reparación abiertas del equipo. No es editable: "
+        "para cambiarlo, abra o cierre la orden correspondiente.",
     )
+
+    @api.depends("repair_ids.state", "repair_ids.tipo_intervencion")
+    def _compute_mc_estado_operativo(self):
+        """El estado del equipo es el de sus órdenes abiertas, no un dato aparte.
+
+        Mantenerlo a mano creaba dos fuentes de verdad: el técnico abría la orden y el
+        número de serie seguía diciendo "Operativo" con el equipo desarmado en el banco.
+
+        Los borradores no cuentan, igual que en mc_repair_count y ultima_mantencion: una
+        orden en draft es una cotización, el equipo todavía no entró al taller.
+        """
+        for lot in self:
+            abiertas = lot.repair_ids.filtered(
+                lambda order: order.state not in ("draft", "done", "cancel")
+            )
+            if not abiertas:
+                lot.mc_estado_operativo = "Operativo"
+            elif "mantencion_preventiva" in abiertas.mapped("tipo_intervencion"):
+                lot.mc_estado_operativo = "En mantención"
+            else:
+                lot.mc_estado_operativo = "En reparación"
 
     # --- Especificaciones ---
 
@@ -260,11 +292,13 @@ class StockLot(models.Model):
         compute="_compute_mc_repair_count",
     )
 
-    # Fecha de entrega real de la última orden completada, ingresada por el técnico al cerrar
+    # Fecha de entrega de la última mantención preventiva, ingresada por el técnico al cerrar
     ultima_mantencion = fields.Date(
         string="Última mantención",
         compute="_compute_ultima_mantencion",
         store=False,
+        help="Última mantención preventiva cerrada. Las reparaciones correctivas no "
+        "cuentan: un equipo reparado en marzo sigue debiendo su mantención anual.",
     )
 
     @api.depends()
@@ -279,13 +313,26 @@ class StockLot(models.Model):
 
     @api.depends()
     def _compute_ultima_mantencion(self):
+        """Fecha de la última mantención preventiva cerrada.
+
+        Filtra por tipo_intervencion a propósito: antes tomaba la última orden de
+        cualquier tipo, así que una reparación correctiva actualizaba "Última mantención"
+        y el equipo parecía mantenido sin estarlo. Para clientes con mantención anual
+        contratada eso ocultaba el vencimiento.
+
+        Ordena por fecha y no por id porque las órdenes no se cierran en el orden en que
+        se crean. Se excluyen las que no tienen fecha: en PostgreSQL un DESC pone los
+        NULL primero y habrían ganado el limit=1.
+        """
         for lot in self:
             ultima = self.env["repair.order"].search(
                 [
                     ("lot_id", "=", lot.id),
                     ("state", "=", "done"),
+                    ("tipo_intervencion", "=", "mantencion_preventiva"),
+                    ("fecha_entrega_real", "!=", False),
                 ],
-                order="id desc",
+                order="fecha_entrega_real desc, id desc",
                 limit=1,
             )
             lot.ultima_mantencion = ultima.fecha_entrega_real if ultima else False
