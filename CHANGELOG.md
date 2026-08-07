@@ -4,6 +4,20 @@ All notable changes to the `mc_rov` Odoo module are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this module adheres to [semantic versioning](https://semver.org/) within the constraints of Odoo's version scheme: `19.0.X.Y.Z` where `19.0` is the Odoo major, `X` is breaking-change/migration, `Y` is feature, `Z` is bugfix.
 
+## [19.0.2.0.0] — 2026-08-07
+
+### Changed
+- **`es_un_rov` is now derived from the product category, not set by hand.** A serial number is flagged as ROV when its product's category sits anywhere under the ROV vehicle branch (`child_of`), covering both `ROV-MC` and `ROV-XX`. The field is stored, computed and read-only.
+- The root category is resolved from the `mc_rov.rov_category_id` system parameter, falling back to the `__import__.cat_ROV` external ID left by the category tree import. The parameter lets the tree be reorganised without a deploy.
+- `es_un_rov` is part of the pipeline contract (see `docs/integrations/pipeline.md`). Its name and type are unchanged; its semantics are not.
+
+### Added
+- `product.category.write` override that recomputes affected serials when a category is re-parented — `@api.depends("product_id.categ_id")` does not cover that case.
+- 5 tests on `es_un_rov` (both ROV branches, nested subcategory, unrelated category, re-parenting).
+
+### Migration
+- `migrations/19.0.2.0.0/post-migrate.py` seeds the system parameter and recomputes `es_un_rov` for every existing serial. **Serials flagged by hand whose product is outside the ROV branch lose the flag**, which hides their four ficha-técnica tabs until the product is recategorised. The script logs how many were affected and aborts without touching data if the root category cannot be resolved.
+
 ## [19.0.1.5.0] — 2026-05-12
 
 ### Removed

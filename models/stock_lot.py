@@ -1,4 +1,16 @@
+import logging
+
 from odoo import models, fields, api
+
+_logger = logging.getLogger(__name__)
+
+# Raíz del árbol de categorías que define qué producto es un vehículo ROV.
+# El parámetro de sistema manda: permite reorganizar el árbol sin desplegar código.
+# El XML ID es el que dejó la importación original del árbol y solo actúa como respaldo
+# si el parámetro nunca se sembró (ver migrations/19.0.2.0.0/post-migrate.py).
+ROV_CATEG_PARAM = "mc_rov.rov_category_id"
+ROV_CATEG_XMLID_MODULE = "__import__"
+ROV_CATEG_XMLID_NAME = "cat_ROV"
 
 
 class StockLot(models.Model):
@@ -12,8 +24,78 @@ class StockLot(models.Model):
 
     es_un_rov = fields.Boolean(
         string="Es un ROV",
-        help="Marca este número de serie como equipo ROV para mostrar historial de mantenciones.",
+        compute="_compute_es_un_rov",
+        store=True,
+        help="Se deriva de la categoría del producto: se enciende cuando pertenece a la "
+        "rama de vehículos ROV. No es editable — para cambiarlo, recategorice el producto.",
     )
+
+    def _get_rov_root_category(self):
+        """Resuelve la categoría raíz de vehículos ROV.
+
+        Devuelve un recordset vacío si no resuelve, en vez de lanzar excepción: este
+        método corre en cada creación de número de serie (incluidas las de órdenes de
+        fabricación) y hacerlo fallar dejaría inaccesible toda la vista de lotes.
+        """
+        categories = self.env["product.category"]
+
+        raw = self.env["ir.config_parameter"].sudo().get_param(ROV_CATEG_PARAM)
+        if raw:
+            try:
+                categ = categories.browse(int(raw)).exists()
+            except (TypeError, ValueError):
+                # Parámetro con basura: se avisa y se cae al respaldo, no se propaga
+                _logger.warning(
+                    "%s tiene un valor no numérico (%r); se ignora.", ROV_CATEG_PARAM, raw
+                )
+            else:
+                if categ:
+                    return categ
+
+        # El XML ID lo generó una importación, no este módulo. Se busca filtrando por
+        # modelo en vez de usar env.ref: si ese ID externo apuntara a otro modelo, el
+        # child_of operaría en silencio sobre la categoría equivocada.
+        imd = (
+            self.env["ir.model.data"]
+            .sudo()
+            .search(
+                [
+                    ("module", "=", ROV_CATEG_XMLID_MODULE),
+                    ("name", "=", ROV_CATEG_XMLID_NAME),
+                    ("model", "=", "product.category"),
+                ],
+                limit=1,
+            )
+        )
+        if imd:
+            return categories.browse(imd.res_id).exists()
+
+        return categories
+
+    @api.depends("product_id.categ_id")
+    def _compute_es_un_rov(self):
+        """Un lote es ROV si la categoría de su producto cuelga de la raíz de vehículos.
+
+        La búsqueda de categorías se hace una vez por recordset, no por lote, porque el
+        ORM llama a este compute en lotes durante importaciones y recálculos masivos.
+        """
+        root = self._get_rov_root_category()
+        if root:
+            rov_categs = self.env["product.category"].search([("id", "child_of", root.id)])
+        else:
+            # Sin raíz no hay forma de decidir. Se apaga todo, que es destructivo:
+            # se registra como error para que quede en el log del servidor.
+            _logger.error(
+                "No se pudo resolver la categoría raíz de ROV (parámetro %s ni XML ID %s.%s). "
+                "Todos los números de serie quedarán marcados como no-ROV.",
+                ROV_CATEG_PARAM,
+                ROV_CATEG_XMLID_MODULE,
+                ROV_CATEG_XMLID_NAME,
+            )
+            rov_categs = self.env["product.category"]
+
+        for lot in self:
+            lot.es_un_rov = lot.product_id.categ_id in rov_categs
 
     # --- Estado ---
 

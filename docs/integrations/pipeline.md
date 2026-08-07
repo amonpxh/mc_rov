@@ -44,7 +44,10 @@ Standard Odoo fields used by pipeline:
 - `id`, `name`, `ref`, `product_id`, `create_date`, `write_date`
 
 Custom mc_rov fields used:
-- `es_un_rov`
+- `es_un_rov` — **derived, not curated.** Since 19.0.2.0.0 this is a stored computed
+  boolean: true when the product's category sits under the ROV vehicle branch. Same name,
+  same type, different meaning — do not read it as an operator's judgement call. It flips
+  on its own when a product is recategorised.
 - `mc_estado_comercial`, `mc_estado_operativo`
 - `mc_repair_count` (computed)
 - `ultima_mantencion` (computed)
