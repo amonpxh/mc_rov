@@ -48,9 +48,14 @@ Custom mc_rov fields used:
   boolean: true when the product's category sits under the ROV vehicle branch. Same name,
   same type, different meaning — do not read it as an operator's judgement call. It flips
   on its own when a product is recategorised.
-- `mc_estado_comercial`, `mc_estado_operativo`
+- `mc_estado_comercial` — still hand-maintained
+- `mc_estado_operativo` — **derived since 19.0.3.0.0**, computed from the unit's open repair
+  orders. Same name and type, different meaning: it is no longer an operator's assertion
+  and cannot diverge from the orders. Do not treat a change in it as a human decision.
 - `mc_repair_count` (computed)
-- `ultima_mantencion` (computed)
+- `ultima_mantencion` (computed) — **narrowed in 19.0.3.0.0** to preventive maintenance only
+  (`tipo_intervencion = mantencion_preventiva`). It previously returned the date of any
+  closed order, so pipeline history built before that version overstates maintenance.
 - *(48 ficha técnica `mc_*` fields — pipeline consumes a subset; TBD list in Phase 1)*
 
 ### `repair.order`

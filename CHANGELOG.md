@@ -4,6 +4,24 @@ All notable changes to the `mc_rov` Odoo module are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this module adheres to [semantic versioning](https://semver.org/) within the constraints of Odoo's version scheme: `19.0.X.Y.Z` where `19.0` is the Odoo major, `X` is breaking-change/migration, `Y` is feature, `Z` is bugfix.
 
+## [19.0.3.0.0] — 2026-08-07
+
+### Fixed
+- **`ultima_mantencion` counted any repair as a maintenance.** It returned the delivery date of the latest `done` order regardless of `tipo_intervencion`, so a corrective repair updated the "last maintenance" date and made an overdue unit look serviced. It now filters on `mantencion_preventiva`. This matters for customers on an annual maintenance contract.
+- `ultima_mantencion` ordered by `id desc` rather than by date, so an old order closed late returned the wrong date. Orders with no delivery date are now excluded — in PostgreSQL a `DESC` sort puts NULLs first and they were winning the `limit=1`.
+
+### Changed
+- **`mc_estado_operativo` is now derived from the unit's open repair orders**, not typed in by hand. Open non-draft order → *En reparación*; open order of type `mantencion_preventiva` → *En mantención*; otherwise *Operativo*. The field is stored, computed and read-only.
+
+  It was a plain manual Selection that nothing read and that recorded no history: a technician could open a repair order and the serial would keep saying *Operativo* with the unit dismantled on the bench. The state already lived in `repair.order`; keeping a second copy by hand only allowed the two to disagree.
+
+### Added
+- `repair_ids` One2many on `stock.lot` (inverse of `repair.order.lot_id`), so the ORM knows when to recompute `mc_estado_operativo`.
+- 7 tests: 2 on the `ultima_mantencion` fix, 5 on `mc_estado_operativo`.
+
+### Migration
+- `migrations/19.0.3.0.0/post-migrate.py` recomputes `mc_estado_operativo` for every existing serial, overwriting hand-entered values. No gate is needed here: unlike `es_un_rov`, nothing is lost that cannot be rebuilt — the repair orders are the source.
+
 ## [19.0.2.0.0] — 2026-08-07
 
 ### Changed
