@@ -11,6 +11,7 @@
     <record id="tipo_reparacion_correctiva" model="mc.rov.tipo.intervencion">
         <field name="name">Reparación correctiva</field>
         <field name="sequence">20</field>
+        <field name="es_reparacion" eval="True"/>
     </record>
     <record id="tipo_mantencion_preventiva" model="mc.rov.tipo.intervencion">
         <field name="name">Mantención preventiva</field>

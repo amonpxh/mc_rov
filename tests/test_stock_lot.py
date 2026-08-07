@@ -106,11 +106,15 @@ class TestStockLotRov(TransactionCase):
 
 
 @tagged("post_install", "-at_install")
-class TestStockLotEstado(TransactionCase):
-    """Tests de los campos de stock.lot que se derivan de las órdenes de reparación.
+class StockLotOrdenesCommon(TransactionCase):
+    """Fixtures de los tests de stock.lot que dependen de órdenes de reparación.
 
-    Van en una clase aparte de TestStockLotRov porque no necesitan el árbol de
-    categorías: lo que miran es la relación con repair.order, no con el producto.
+    No declara tests: las clases concretas heredan de ella. Están separadas porque
+    juntas superaban el límite de métodos públicos de pylint, que en este caso acertaba
+    — eran tres asuntos distintos en una sola clase.
+
+    No necesita el árbol de categorías de TestStockLotRov: lo que miran estos tests es
+    la relación con repair.order, no con el producto.
     """
 
     @classmethod
@@ -148,43 +152,50 @@ class TestStockLotEstado(TransactionCase):
             }
         )
 
-    # --- mc_repair_count ---
+
+@tagged("post_install", "-at_install")
+class TestStockLotContadores(StockLotOrdenesCommon):
+    """Tests de mc_repair_count y mc_mantencion_count."""
 
     def test_repair_count_sin_reparaciones_es_cero(self):
         self.assertEqual(self.lot.mc_repair_count, 0)
 
     def test_repair_count_no_cuenta_ordenes_en_borrador(self):
         """Solo las órdenes 'done' cuentan — una en draft no debe sumar."""
-        self.env["repair.order"].create(
-            {
-                "product_id": self.product.id,
-                "lot_id": self.lot.id,
-            }
-        )
+        self._orden(tipos=self.tipo_correctiva)
         self.assertEqual(self.lot.mc_repair_count, 0)
 
     def test_repair_count_cuenta_ordenes_done(self):
-        self.env["repair.order"].create(
-            {
-                "product_id": self.product.id,
-                "lot_id": self.lot.id,
-                "state": "done",
-            }
-        )
+        self._orden(tipos=self.tipo_correctiva, state="done")
         self.assertEqual(self.lot.mc_repair_count, 1)
 
     def test_repair_count_acumula_multiples_done(self):
         for _ in range(3):
-            self.env["repair.order"].create(
-                {
-                    "product_id": self.product.id,
-                    "lot_id": self.lot.id,
-                    "state": "done",
-                }
-            )
+            self._orden(tipos=self.tipo_correctiva, state="done")
         self.assertEqual(self.lot.mc_repair_count, 3)
 
-    # --- ultima_mantencion ---
+    def test_repair_count_no_cuenta_mantenciones(self):
+        """El botón decía 5 cuando eran 3 reparaciones y 2 mantenciones."""
+        self._orden(tipos=self.tipo_mantencion, state="done")
+        self.assertEqual(self.lot.mc_repair_count, 0)
+        self.assertEqual(self.lot.mc_mantencion_count, 1)
+
+    def test_contadores_cuentan_la_visita_mixta_en_ambos(self):
+        """Una visita que fue las dos cosas suma en los dos contadores."""
+        self._orden(tipos=self.tipo_mantencion | self.tipo_correctiva, state="done")
+        self.assertEqual(self.lot.mc_repair_count, 1)
+        self.assertEqual(self.lot.mc_mantencion_count, 1)
+
+    def test_contadores_ignoran_tipos_que_no_son_ninguna_de_las_dos(self):
+        """Un diagnóstico no es reparación ni mantención."""
+        self._orden(tipos=self.env.ref("mc_rov.tipo_diagnostico"), state="done")
+        self.assertEqual(self.lot.mc_repair_count, 0)
+        self.assertEqual(self.lot.mc_mantencion_count, 0)
+
+
+@tagged("post_install", "-at_install")
+class TestStockLotFechas(StockLotOrdenesCommon):
+    """Tests de ultima_mantencion, ultima_reparacion y el sellado de fecha_entrega_real."""
 
     def test_ultima_mantencion_sin_reparaciones_es_false(self):
         self.assertFalse(self.lot.ultima_mantencion)
@@ -245,8 +256,15 @@ class TestStockLotEstado(TransactionCase):
         self.assertEqual(self.lot.ultima_mantencion, reciente)
 
     def test_ultima_mantencion_es_false_si_orden_done_sin_fecha_entrega(self):
-        """Una orden done sin fecha_entrega_real no debe mostrar fecha."""
-        self._orden(tipos=self.tipo_mantencion, state="done")
+        """Una orden done sin fecha no debe mostrar fecha ni colarse por el orden DESC.
+
+        Desde 19.0.4.1.0 el cierre sella la fecha, así que este caso solo llega desde
+        datos anteriores a esa versión. La fecha se borra explícitamente para
+        reproducirlos.
+        """
+        orden = self._orden(tipos=self.tipo_mantencion, state="done")
+        orden.fecha_entrega_real = False
+
         self.assertFalse(self.lot.ultima_mantencion)
 
     def test_ultima_mantencion_ignora_ordenes_en_borrador(self):
@@ -257,7 +275,72 @@ class TestStockLotEstado(TransactionCase):
         )
         self.assertFalse(self.lot.ultima_mantencion)
 
-    # --- mc_estado_operativo ---
+    # --- ultima_reparacion ---
+
+    def test_ultima_reparacion_sin_ordenes_es_false(self):
+        self.assertFalse(self.lot.ultima_reparacion)
+
+    def test_ultima_reparacion_ignora_mantenciones(self):
+        """Simétrico al caso inverso: una mantención no es una reparación."""
+        self._orden(
+            tipos=self.tipo_mantencion,
+            state="done",
+            fecha_entrega_real=fields.Date.today(),
+        )
+        self.assertFalse(self.lot.ultima_reparacion)
+
+    def test_ultima_reparacion_ignora_diagnosticos(self):
+        """Un diagnóstico no repara nada: no lleva ninguna de las dos casillas."""
+        self._orden(
+            tipos=self.env.ref("mc_rov.tipo_diagnostico"),
+            state="done",
+            fecha_entrega_real=fields.Date.today(),
+        )
+        self.assertFalse(self.lot.ultima_reparacion)
+
+    def test_visita_mixta_actualiza_las_dos_fechas(self):
+        hoy = fields.Date.today()
+        self._orden(
+            tipos=self.tipo_mantencion | self.tipo_correctiva,
+            state="done",
+            fecha_entrega_real=hoy,
+        )
+        self.assertEqual(self.lot.ultima_mantencion, hoy)
+        self.assertEqual(self.lot.ultima_reparacion, hoy)
+
+    # --- Sellado automático de fecha_entrega_real ---
+
+    def test_cerrar_orden_sin_fecha_la_completa_sola(self):
+        """El técnico cerraba la orden sin fecha y la mantención no contaba.
+
+        Ese era el modo de falla: sin advertencia alguna, el equipo quedaba vencido
+        para siempre pese a habérsele hecho la mantención.
+        """
+        orden = self._orden(tipos=self.tipo_mantencion, state="confirmed")
+        self.assertFalse(orden.fecha_entrega_real)
+
+        orden.state = "done"
+
+        self.assertEqual(orden.fecha_entrega_real, fields.Date.context_today(orden))
+        self.assertEqual(self.lot.ultima_mantencion, orden.fecha_entrega_real)
+
+    def test_cerrar_orden_no_pisa_una_fecha_ya_puesta(self):
+        """Si la entrega al cliente fue otro día, manda lo que escribió el técnico."""
+        ayer = fields.Date.subtract(fields.Date.today(), days=1)
+        orden = self._orden(
+            tipos=self.tipo_mantencion,
+            state="confirmed",
+            fecha_entrega_real=ayer,
+        )
+
+        orden.state = "done"
+
+        self.assertEqual(orden.fecha_entrega_real, ayer)
+
+
+@tagged("post_install", "-at_install")
+class TestStockLotEstadoOperativo(StockLotOrdenesCommon):
+    """Tests de mc_estado_operativo, derivado de las órdenes abiertas."""
 
     def test_estado_operativo_sin_ordenes_es_operativo(self):
         self.assertEqual(self.lot.mc_estado_operativo, "Operativo")

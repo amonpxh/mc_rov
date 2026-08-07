@@ -29,4 +29,13 @@ class McRovTipoIntervencion(models.Model):
         "del número de serie.",
     )
 
+    # Las dos casillas son independientes a propósito: una visita puede ser ambas cosas,
+    # y un diagnóstico o una conversión no son ninguna de las dos.
+    es_reparacion = fields.Boolean(
+        string="Cuenta como reparación",
+        help="Marque los tipos que constituyen una reparación del equipo. "
+        "Una orden que incluya alguno de ellos actualiza la fecha de última reparación "
+        "del número de serie y suma al contador de reparaciones.",
+    )
+
     active = fields.Boolean(default=True)

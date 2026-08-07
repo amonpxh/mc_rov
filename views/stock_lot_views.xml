@@ -11,6 +11,7 @@
             <xpath expr="//field[@name='product_id']" position="after">
                 <field name="es_un_rov"/>
                 <field name="ultima_mantencion" readonly="1" invisible="not es_un_rov"/>
+                <field name="ultima_reparacion" readonly="1" invisible="not es_un_rov"/>
                 <field name="mc_estado_comercial"
                        invisible="not es_un_rov"
                        help="Indica en qué estado se encuentra el equipo (ej. el equipo está siendo arrendado)."/>

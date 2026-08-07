@@ -9,6 +9,7 @@
                 <field name="sequence" widget="handle"/>
                 <field name="name"/>
                 <field name="es_mantencion"/>
+                <field name="es_reparacion"/>
                 <field name="active"/>
             </list>
         </field>
@@ -24,6 +25,7 @@
                     <group>
                         <field name="name"/>
                         <field name="es_mantencion"/>
+                        <field name="es_reparacion"/>
                         <field name="sequence"/>
                         <field name="active"/>
                     </group>
