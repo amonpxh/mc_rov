@@ -1,6 +1,6 @@
 # Test workflow for mc_rov
 #
-# Runs the 37 Odoo unit tests on the production VPS via a self-hosted runner.
+# Runs the Odoo unit tests on the production VPS via a self-hosted runner.
 # The runner must be installed on the VPS as the odoo user.
 # See docs/runbooks/testing.md for the manual equivalent.
 
@@ -14,15 +14,20 @@ on:
 
 jobs:
   odoo-tests:
-    name: Odoo module tests (34 tests)
+    name: Odoo module tests
     runs-on: self-hosted
     timeout-minutes: 30
 
     steps:
+      # En eventos pull_request, github.sha es el commit de merge que GitHub genera en
+      # refs/pull/N/merge, una ref que `git fetch origin` no trae: el checkout fallaba
+      # con "reference is not a tree". Se usa el head del PR, que sí viene con el fetch.
       - name: Checkout into module path
+        env:
+          SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
           git -C /opt/odoo/custom-addons/mc_rov fetch origin
-          git -C /opt/odoo/custom-addons/mc_rov checkout ${{ github.sha }}
+          git -C /opt/odoo/custom-addons/mc_rov checkout "$SHA"
 
       - name: Run mc_rov tests
         run: |

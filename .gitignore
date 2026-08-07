@@ -5,7 +5,6 @@ __pycache__/
 
 # Odoo
 *.pot
-migrations/
 
 # Editores
 .vscode/
