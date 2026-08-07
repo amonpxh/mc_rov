@@ -4,6 +4,24 @@ All notable changes to the `mc_rov` Odoo module are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this module adheres to [semantic versioning](https://semver.org/) within the constraints of Odoo's version scheme: `19.0.X.Y.Z` where `19.0` is the Odoo major, `X` is breaking-change/migration, `Y` is feature, `Z` is bugfix.
 
+## [19.0.4.1.0] — 2026-08-07
+
+### Fixed
+- **Closing a repair order now seals `fecha_entrega_real` if it is empty**, using the closing date. `ultima_mantencion` depends on that field, so leaving it blank meant the maintenance did not count and the unit's clock never restarted — with no warning of any kind. The technician closed the order and the serial went on looking overdue forever. The field stays editable for when the handover happened on a different day.
+
+  Only `write` is covered, not `create`: an order born already closed comes from a historical import, and stamping today's date there would invent a worse figure than leaving it blank.
+
+- **`mc_repair_count` counted maintenances as repairs.** Three repairs and two maintenances showed as "5 Reparaciones". It now counts only types flagged as repairs.
+
+### Added
+- `es_reparacion` on `mc.rov.tipo.intervencion`, symmetric to `es_mantencion`. The two are independent on purpose: a visit can be both, and a diagnosis or an upgrade is neither. Seeded on *Reparación correctiva*.
+- `ultima_reparacion` on `stock.lot` — last closed repair, mirroring `ultima_mantencion`.
+- `mc_mantencion_count` on `stock.lot`.
+- 9 tests. `TestStockLotEstado` was split into `TestStockLotContadores`, `TestStockLotFechas` and `TestStockLotEstadoOperativo` over a shared `StockLotOrdenesCommon` base — it had grown past pylint's public-method limit, which was right: it held three separate concerns.
+
+### Note for the pipeline
+`mc_repair_count` keeps its name and type but now excludes maintenances. Counts taken before this version are not comparable with counts taken after.
+
 ## [19.0.4.0.0] — 2026-08-07
 
 ### Changed

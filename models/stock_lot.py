@@ -286,56 +286,74 @@ class StockLot(models.Model):
 
     # --- Reparaciones ---
 
-    # Cantidad de órdenes de reparación completadas para este número de serie
+    # Reparaciones y mantenciones se cuentan por separado: mezclarlas hacía que el botón
+    # "Reparaciones" dijera 5 cuando eran 3 reparaciones y 2 mantenciones.
     mc_repair_count = fields.Integer(
         string="Reparaciones",
-        compute="_compute_mc_repair_count",
+        compute="_compute_mc_contadores",
     )
 
-    # Fecha de entrega de la última mantención preventiva, ingresada por el técnico al cerrar
+    mc_mantencion_count = fields.Integer(
+        string="Mantenciones",
+        compute="_compute_mc_contadores",
+    )
+
     ultima_mantencion = fields.Date(
         string="Última mantención",
-        compute="_compute_ultima_mantencion",
+        compute="_compute_ultimas_fechas",
         store=False,
-        help="Última mantención preventiva cerrada. Las reparaciones correctivas no "
-        "cuentan: un equipo reparado en marzo sigue debiendo su mantención anual.",
+        help="Última mantención cerrada. Las reparaciones correctivas no cuentan: un "
+        "equipo reparado en marzo sigue debiendo su mantención anual.",
     )
 
-    @api.depends()
-    def _compute_mc_repair_count(self):
-        for lot in self:
-            lot.mc_repair_count = self.env["repair.order"].search_count(
-                [
-                    ("lot_id", "=", lot.id),
-                    ("state", "=", "done"),
-                ]
-            )
+    ultima_reparacion = fields.Date(
+        string="Última reparación",
+        compute="_compute_ultimas_fechas",
+        store=False,
+        help="Última reparación cerrada, según los tipos marcados como reparación en el "
+        "catálogo de tipos de intervención.",
+    )
 
-    @api.depends()
-    def _compute_ultima_mantencion(self):
-        """Fecha de la última mantención preventiva cerrada.
+    def _ultima_fecha_entrega(self, lot, marca):
+        """Fecha de entrega de la última orden cerrada de `lot` cuyo tipo lleve `marca`.
 
-        Filtra por tipo_intervencion a propósito: antes tomaba la última orden de
-        cualquier tipo, así que una reparación correctiva actualizaba "Última mantención"
-        y el equipo parecía mantenido sin estarlo. Para clientes con mantención anual
-        contratada eso ocultaba el vencimiento.
+        `marca` es el nombre del booleano del catálogo (es_mantencion o es_reparacion).
+        Se lee la marca en vez de comparar nombres de tipo para que agregar un tipo
+        nuevo sea marcar una casilla y no editar este método.
 
         Ordena por fecha y no por id porque las órdenes no se cierran en el orden en que
         se crean. Se excluyen las que no tienen fecha: en PostgreSQL un DESC pone los
         NULL primero y habrían ganado el limit=1.
         """
+        ultima = self.env["repair.order"].search(
+            [
+                ("lot_id", "=", lot.id),
+                ("state", "=", "done"),
+                (f"tipo_intervencion_ids.{marca}", "=", True),
+                ("fecha_entrega_real", "!=", False),
+            ],
+            order="fecha_entrega_real desc, id desc",
+            limit=1,
+        )
+        return ultima.fecha_entrega_real if ultima else False
+
+    @api.depends()
+    def _compute_mc_contadores(self):
+        Repair = self.env["repair.order"]
         for lot in self:
-            ultima = self.env["repair.order"].search(
-                [
-                    ("lot_id", "=", lot.id),
-                    ("state", "=", "done"),
-                    ("tipo_intervencion_ids.es_mantencion", "=", True),
-                    ("fecha_entrega_real", "!=", False),
-                ],
-                order="fecha_entrega_real desc, id desc",
-                limit=1,
+            base = [("lot_id", "=", lot.id), ("state", "=", "done")]
+            lot.mc_repair_count = Repair.search_count(
+                base + [("tipo_intervencion_ids.es_reparacion", "=", True)]
             )
-            lot.ultima_mantencion = ultima.fecha_entrega_real if ultima else False
+            lot.mc_mantencion_count = Repair.search_count(
+                base + [("tipo_intervencion_ids.es_mantencion", "=", True)]
+            )
+
+    @api.depends()
+    def _compute_ultimas_fechas(self):
+        for lot in self:
+            lot.ultima_mantencion = self._ultima_fecha_entrega(lot, "es_mantencion")
+            lot.ultima_reparacion = self._ultima_fecha_entrega(lot, "es_reparacion")
 
     def action_ver_reparaciones(self):
         """Abre la lista de órdenes de reparación filtradas por este número de serie."""

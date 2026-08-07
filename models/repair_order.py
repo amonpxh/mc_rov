@@ -59,5 +59,32 @@ class RepairOrder(models.Model):
         string="Causa raíz",
     )
 
-    fecha_entrega_real = fields.Date(string="Fecha de entrega real")
+    fecha_entrega_real = fields.Date(
+        string="Fecha de entrega real",
+        help="Se completa sola con la fecha de cierre si queda vacía. Corríjala si la "
+        "entrega al cliente ocurrió otro día.",
+    )
     observaciones_salida = fields.Text(string="Observaciones de salida")
+
+    def write(self, vals):
+        """Sella la fecha de entrega al cerrar la orden si nadie la escribió.
+
+        ultima_mantencion y ultima_reparacion en stock.lot dependen de este campo. Que
+        quedara vacío significaba que el trabajo no contaba y el ciclo del equipo no se
+        reiniciaba, sin ninguna advertencia: el técnico cerraba la orden y el número de
+        serie seguía apareciendo vencido para siempre.
+
+        Se hace después del super() para no pisar una fecha que venga en el mismo vals.
+
+        Solo cubre write y no create: una orden nacida ya cerrada viene de una
+        importación de datos históricos, y ahí estamparle la fecha de hoy inventaría un
+        dato peor que dejarlo vacío. Quien importe debe traer su propia fecha.
+        """
+        res = super().write(vals)
+
+        if vals.get("state") == "done":
+            sin_fecha = self.filtered(lambda order: not order.fecha_entrega_real)
+            if sin_fecha:
+                sin_fecha.fecha_entrega_real = fields.Date.context_today(self)
+
+        return res
