@@ -1,6 +1,7 @@
 from dateutil.relativedelta import relativedelta
 
 from odoo import fields
+from odoo.exceptions import UserError
 from odoo.tests.common import TransactionCase
 from odoo.tests import tagged
 
@@ -452,6 +453,19 @@ class TestStockLotCicloMantencion(StockLotOrdenesCommon):
 
         self.assertEqual(self.lot.proxima_mantencion, entrega + relativedelta(months=12))
 
+    def test_un_equipo_de_baja_no_tiene_reloj(self):
+        """Un equipo dado de baja seguía apareciendo en la lista de vencidos.
+
+        O sea que comercial habría llamado a un cliente a ofrecerle la mantención de un
+        equipo que ya no existe.
+        """
+        self.lot.mc_fecha_puesta_servicio = fields.Date.to_date("2026-03-15")
+        self.assertTrue(self.lot.proxima_mantencion)
+
+        self.lot.dar_de_baja(fields.Date.today(), "Chasis irrecuperable")
+
+        self.assertFalse(self.lot.proxima_mantencion)
+
 
 @tagged("post_install", "-at_install")
 class StockLotPropiedadCommon(TransactionCase):
@@ -607,21 +621,22 @@ class TestStockLotEstadoComercial(StockLotPropiedadCommon):
         """Un equipo dado de baja lo está aunque siga a nombre de un cliente."""
         self.lot.mc_propietario_id = self.cliente
 
-        self.lot.action_dar_de_baja()
+        self.lot.dar_de_baja(fields.Date.today(), "Chasis irrecuperable")
 
         self.assertEqual(self.lot.mc_estado_comercial, "Baja")
 
-    def test_dar_de_baja_registra_la_fecha_de_hoy(self):
-        self.lot.action_dar_de_baja()
+    def test_dar_de_baja_guarda_fecha_y_motivo(self):
+        self.lot.dar_de_baja(fields.Date.to_date("2026-02-10"), "Inundación del e-pod")
 
-        self.assertEqual(self.lot.mc_fecha_baja, fields.Date.today())
+        self.assertEqual(self.lot.mc_fecha_baja, fields.Date.to_date("2026-02-10"))
+        self.assertEqual(self.lot.mc_motivo_baja, "Inundación del e-pod")
 
     def test_reactivar_devuelve_el_equipo_a_su_estado_anterior(self):
         """Las bajas se equivocan, y revertirlas no debe perder el estado real."""
         self.lot.mc_propietario_id = self.cliente
-        self.lot.action_dar_de_baja()
+        self.lot.dar_de_baja(fields.Date.today(), "Se dio por perdido")
 
-        self.lot.action_reactivar()
+        self.lot.reactivar()
 
         self.assertFalse(self.lot.mc_fecha_baja)
         self.assertEqual(self.lot.mc_estado_comercial, "Vendido")
@@ -672,3 +687,52 @@ class TestStockLotTraspasoDesdeOrden(StockLotPropiedadCommon):
             lambda periodo: not periodo.fecha_hasta
         )
         self.assertEqual(vigente.repair_id, orden)
+
+
+@tagged("post_install", "-at_install")
+class TestMcRovBajaWizard(StockLotPropiedadCommon):
+    """Tests del asistente de baja, que es la única vía de entrada desde la interfaz."""
+
+    def _asistente(self):
+        return self.env["mc.rov.baja.wizard"].with_context(active_id=self.lot.id).create({})
+
+    def test_el_asistente_toma_el_equipo_del_contexto(self):
+        self.assertEqual(self._asistente().lot_id, self.lot)
+
+    def test_dar_de_baja_desde_el_asistente_guarda_fecha_y_motivo(self):
+        asistente = self._asistente()
+        asistente.write(
+            {
+                "fecha": fields.Date.to_date("2026-02-10"),
+                "motivo": "Inundación del e-pod",
+            }
+        )
+
+        asistente.action_dar_de_baja()
+
+        self.assertEqual(self.lot.mc_fecha_baja, fields.Date.to_date("2026-02-10"))
+        self.assertEqual(self.lot.mc_motivo_baja, "Inundación del e-pod")
+        self.assertEqual(self.lot.mc_estado_comercial, "Baja")
+
+    def test_sin_motivo_no_deja_dar_de_baja(self):
+        """La obligatoriedad se declara en la vista, pero eso no protege del RPC."""
+        with self.assertRaises(UserError):
+            self._asistente().action_dar_de_baja()
+
+    def test_un_motivo_de_solo_espacios_tampoco_sirve(self):
+        asistente = self._asistente()
+        asistente.motivo = "   "
+
+        with self.assertRaises(UserError):
+            asistente.action_dar_de_baja()
+
+        self.assertFalse(self.lot.mc_fecha_baja)
+
+    def test_el_asistente_reactiva_un_equipo_de_baja(self):
+        self.lot.dar_de_baja(fields.Date.today(), "Se dio por perdido")
+
+        self._asistente().action_reactivar()
+
+        self.assertFalse(self.lot.mc_fecha_baja)
+        self.assertFalse(self.lot.mc_motivo_baja)
+        self.assertEqual(self.lot.mc_estado_comercial, "Disponible")

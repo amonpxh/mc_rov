@@ -5,3 +5,4 @@ access_mc_rov_accion,mc.rov.accion,model_mc_rov_accion,,1,1,1,1
 access_mc_rov_tipo_intervencion,mc.rov.tipo.intervencion,model_mc_rov_tipo_intervencion,,1,1,1,1
 access_mc_rov_linea_falla,mc.rov.linea.falla,model_mc_rov_linea_falla,,1,1,1,1
 access_mc_rov_propietario_historial,mc.rov.propietario.historial,model_mc_rov_propietario_historial,,1,1,1,1
+access_mc_rov_baja_wizard,mc.rov.baja.wizard,model_mc_rov_baja_wizard,,1,1,1,1
