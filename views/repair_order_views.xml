@@ -74,6 +74,27 @@
                 </page>
             </notebook>
 
+            <!-- Reordenamiento al flujo real del taller: se registra lo que se hizo,
+                 después lo que se consumió, después el cierre, y las notas al final.
+
+                 El orden anterior no era una decisión: el notebook position="inside" de
+                 arriba pega al final, así que las dos páginas de Odoo quedaban delante
+                 por omisión. El efecto era que "Notas de reparación" se metía entre
+                 Trabajos realizados y Piezas, que son justamente las dos que hay que
+                 llenar de forma consistente entre sí — una línea de "cambio" exige el
+                 repuesto correspondiente.
+
+                 Cada move va en su propia operación de nivel superior. Odoo solo ejecuta
+                 position="move" cuando es hijo directo de una operación de posición;
+                 anidado más adentro lo ignora en silencio (ver PR #12). -->
+            <xpath expr="//page[@name='parts']" position="before">
+                <xpath expr="//page[@name='trabajos_realizados']" position="move"/>
+            </xpath>
+
+            <xpath expr="//page[@name='resultado']" position="after">
+                <xpath expr="//page[@name='repair_notes']" position="move"/>
+            </xpath>
+
         </field>
     </record>
 

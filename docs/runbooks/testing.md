@@ -2,7 +2,7 @@
 
 **Audience:** anyone validating changes before merging or deploying.
 
-**Time:** ~1-2 minutes for the full test suite (89 tests).
+**Time:** ~1-2 minutes for the full test suite (96 tests).
 
 ---
 
@@ -13,7 +13,7 @@
 | Test database | `odoo_test` |
 | Config | `/etc/odoo/odoo.conf` |
 | Test runner | Odoo's native test framework |
-| Total tests | 89 (62 `stock.lot` + 9 `repair.order` + 18 `mc.rov.componente`) |
+| Total tests | 96 (62 `stock.lot` + 16 `repair.order` + 18 `mc.rov.componente`) |
 
 ## Running all tests
 
@@ -44,7 +44,7 @@ sudo -u odoo odoo \
   --config /etc/odoo/odoo.conf
 ```
 
-Available test classes (as of v19.0.5.1.0):
+Available test classes (as of v19.0.5.2.0):
 
 | Class | Tests | Coverage |
 |---|---|---|
@@ -57,7 +57,7 @@ Available test classes (as of v19.0.5.1.0):
 | `TestStockLotEstadoComercial` | 7 | `mc_estado_comercial`, rentals, decommissioning |
 | `TestStockLotTraspasoDesdeOrden` | 4 | resale detected at intake, transfer from the repair order |
 | `TestMcRovBajaWizard` | 5 | the decommission dialog, including the required reason |
-| `TestRepairOrder` | 9 | defaults, `tipo_intervencion_ids`, `fecha_entrega_real`, `linea_falla_ids` |
+| `TestRepairOrder` | 16 | defaults, `tipo_intervencion_ids`, `fecha_entrega_real`, `linea_falla_ids`, `mc_total_horas`, the close-without-type block |
 | `TestMcRovComponente` | 18 | all four custom models (`componente`, `subtipo`, `accion`, `linea.falla`) |
 
 Two shared fixture bases declare no tests — do not target them with `--test-tags`:
@@ -70,7 +70,7 @@ written for units with `es_un_rov` on).
 
 ## Expected output
 
-All 89 tests should pass. Look for `0 failed, 0 error(s) of 89 tests` in the output (exact format depends on Odoo verbosity).
+All 96 tests should pass. Look for `0 failed, 0 error(s) of 96 tests` in the output (exact format depends on Odoo verbosity).
 
 ## When tests fail
 

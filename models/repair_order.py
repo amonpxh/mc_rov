@@ -1,4 +1,5 @@
 from odoo import api, models, fields
+from odoo.exceptions import UserError
 
 
 class RepairOrder(models.Model):
@@ -36,9 +37,14 @@ class RepairOrder(models.Model):
     linea_falla_ids = fields.One2many(
         "mc.rov.linea.falla", "repair_id", string="Trabajos realizados"
     )
+    # Almacenado porque es columna de la lista de órdenes: sin store la columna se ve
+    # pero no se puede ordenar, filtrar ni agrupar, que es justo lo que se le pide a un
+    # total de horas. La columna es nueva, así que el ORM la calcula sola al crearla y
+    # no hace falta migración.
     mc_total_horas = fields.Float(
         string="Total HH.",
         compute="_compute_mc_total_horas",
+        store=True,
         digits=(5, 1),
     )
 
@@ -127,20 +133,49 @@ class RepairOrder(models.Model):
             {"mc_propietario_id": self.partner_id.id}
         )
 
-    def write(self, vals):
-        """Sella la fecha de entrega al cerrar la orden si nadie la escribió.
+    def _validar_tipo_intervencion(self):
+        """Impide cerrar una orden que no dice qué tipo de trabajo fue.
 
-        ultima_mantencion y ultima_reparacion en stock.lot dependen de este campo. Que
-        quedara vacío significaba que el trabajo no contaba y el ciclo del equipo no se
+        Sin tipo, la orden es invisible para todo lo que se calcula a partir de ella: no
+        cuenta como mantención ni como reparación, no reinicia el ciclo del equipo, no
+        suma a los contadores y no aparece en ultima_mantencion ni ultima_reparacion. Y
+        nada avisa — es la misma falla silenciosa que tenía fecha_entrega_real, con el
+        mismo síntoma diferido: meses después el equipo sigue apareciendo vencido.
+        """
+        sin_tipo = self.filtered(lambda order: not order.tipo_intervencion_ids)
+        if not sin_tipo:
+            return
+
+        # display_name y no name: name puede venir vacío y romper el join.
+        nombres = ", ".join(sin_tipo.mapped("display_name"))
+        raise UserError(
+            f"Indique el tipo de intervención antes de cerrar: {nombres}.\n\n"
+            "Sin tipo, el trabajo no cuenta como mantención ni como reparación: no "
+            "reinicia el ciclo de mantención del equipo ni aparece en su historial."
+        )
+
+    def write(self, vals):
+        """Valida el cierre y sella la fecha de entrega si nadie la escribió.
+
+        La validación va **antes** del super() para que el estado no llegue a
+        escribirse. Y cubre solo la transición a done, no un @api.constrains, para no
+        bloquear la edición de órdenes anteriores a la regla.
+
+        El sellado va después, y por la razón contraria: no debe pisar una fecha que
+        venga en el mismo vals.
+
+        ultima_mantencion y ultima_reparacion en stock.lot dependen de esa fecha. Que
+        quedara vacía significaba que el trabajo no contaba y el ciclo del equipo no se
         reiniciaba, sin ninguna advertencia: el técnico cerraba la orden y el número de
         serie seguía apareciendo vencido para siempre.
-
-        Se hace después del super() para no pisar una fecha que venga en el mismo vals.
 
         Solo cubre write y no create: una orden nacida ya cerrada viene de una
         importación de datos históricos, y ahí estamparle la fecha de hoy inventaría un
         dato peor que dejarlo vacío. Quien importe debe traer su propia fecha.
         """
+        if vals.get("state") == "done":
+            self._validar_tipo_intervencion()
+
         res = super().write(vals)
 
         if vals.get("state") == "done":
