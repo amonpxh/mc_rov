@@ -24,23 +24,27 @@
 - [ ] CI is green (lint + tests passed on the merge commit)
 - [ ] You have SSH access to the production VPS via a deploy key (not personal key)
 - [ ] If the change includes a migration: the migration script is in `migrations/<version>/post-migrate.py` and has been reviewed
+- [ ] **If the change alters how a stored computed field is calculated:** the ORM does not recompute a field whose column already exists with data. Either the change only needs to apply going forward, or it needs a `post-migrate` — and by the versioning table in `CLAUDE.md`, needing one makes it an `X` bump.
 
 ## Deploy procedure
 
-> **`git pull` does not work here.** See "How the code actually arrives" below before
-> deploying for the first time. The step below is the procedure that works today, not the
-> one you would expect.
+> **Run every git command as `odoo`, never as root.** Root has no deploy key and never
+> had one; a plain `git pull` fails with `Permission denied (publickey)`. See "Why not
+> root" below.
 
 ```bash
 # 1. SSH to production VPS
 
-# 2. Fast-forward the working tree to main.
-#    Local operation, no network: origin/main is already fetched (see below).
-#    Runs as odoo so the CI runner's checkout does not end up with root-owned git objects.
+# 2. Bring the working tree to main.
+#    As odoo: it owns the repo and holds the deploy key. As root, the fetch fails, and
+#    any git command that does succeed leaves root-owned objects in .git that break the
+#    CI runner's next checkout.
 #    --ff-only refuses rather than inventing a merge if the tree has diverged.
+sudo -H -u odoo git -C /opt/odoo/custom-addons/mc_rov fetch origin
 sudo -H -u odoo git -C /opt/odoo/custom-addons/mc_rov merge --ff-only origin/main
 
-#    Confirm you are on the commit you think you are, before touching the database:
+#    Confirm you are on the commit you think you are, BEFORE touching the database.
+#    Deploying the wrong migration onto odoo_prod is not undone by a git checkout.
 git -C /opt/odoo/custom-addons/mc_rov log --oneline -1
 grep version /opt/odoo/custom-addons/mc_rov/__manifest__.py
 
@@ -51,42 +55,62 @@ sudo -u odoo odoo \
   --no-http \
   --config /etc/odoo/odoo.conf
 
-# 4. Restart the Odoo service to reload Python in long-running workers
+# 4. Restart the service. NOT OPTIONAL — see below.
 sudo systemctl restart odoo
+
+# 5. Prove the restart happened.
+systemctl status odoo --no-pager | head -4
 ```
 
-**Step 3 prints nothing to the console.** `odoo.conf` sets `logfile`, so everything —
-including migration output and any traceback — goes to `/var/log/odoo/odoo-server.log`.
-The only thing you will see on screen is a handful of docutils warnings about the README,
-which are harmless. To read what actually happened:
+### Step 3 prints nothing. That is normal.
+
+`odoo.conf` sets `logfile`, so everything — migration output and any traceback alike —
+goes to `/var/log/odoo/odoo-server.log`. All you see on screen is a few docutils warnings
+about the README, which are harmless. It looks like the command did nothing. To read what
+actually happened:
 
 ```bash
 sudo grep "mc_rov:" /var/log/odoo/odoo-server.log | tail -20
 ```
 
-## How the code actually arrives
+### Step 4 is the one people skip, and it fails in a confusing way
 
-`git pull` as `root` fails with `Permission denied (publickey)`: the remote is SSH
-(`git@github.com:amonpxh/mc_rov.git`) and root has no deploy key. It never had one — the
-first attempt, on 2026-08-07, was also the first time root had ever connected to GitHub.
+Step 3 runs a **separate** Odoo process that updates the database and exits. The live
+workers keep the Python registry they loaded at boot. Skip the restart and the database
+now holds views referring to fields the running process has never heard of. The symptom is
+an Owl error in the browser:
 
-What keeps `origin/main` current is the **CI runner**, which checks out into this very
-directory (`/opt/odoo/custom-addons/mc_rov` is both the runner workspace and the production
-addons path). Its fetches update the remote refs, which is why `merge --ff-only origin/main`
-works offline.
+```
+"stock.lot"."mc_propietario_id" field is undefined.
+```
 
-Two consequences worth understanding before you rely on this:
+which reads like a broken deploy rather than a missing restart. It happened on 2026-08-07
+and went unnoticed for four days.
 
-1. **Production only sees a commit after CI has fetched it.** If the refs are stale,
-   `merge --ff-only` will report "Already up to date" while main has moved on. Check
-   `git -C /opt/odoo/custom-addons/mc_rov status --short --branch` — it should say `behind N`
-   before you merge, and nothing after.
-2. **A CI run can change what production is serving**, because the checkout lands in the
-   live addons path. Deploying is not the only thing that moves this code.
+**In step 5, read the `Active: ... since` line.** It must show the current time. If it
+shows a time before step 3, the restart did not happen and the form is still broken.
 
-Separating the runner workspace from the production addons path, and giving the deploy its
-own working credential, is tracked in [`docs/pendientes.md`](../pendientes.md). Until that is
-done, treat the procedure above as a workaround rather than a design.
+## Why not root
+
+The remote is SSH (`git@github.com:amonpxh/mc_rov.git`). The deploy key belongs to the
+`odoo` user, which also owns `/opt/odoo/custom-addons/mc_rov`. Root has no key — the first
+attempt on 2026-08-07 was also the first time root had ever connected to GitHub, and it
+stopped to ask about the host fingerprint. `sudo -H -u odoo` is the whole fix: `-H` sets
+`HOME` so `ssh` finds the key.
+
+## Known issue: the runner shares this directory
+
+`/opt/odoo/custom-addons/mc_rov` is both the production addons path **and** the CI runner's
+workspace. The deploy above does not depend on that — it fetches on its own — but the
+sharing has its own consequence: **a CI run can change what production is serving**, since
+the checkout lands in the live addons path. Deploying is not the only thing that moves this
+code.
+
+Separating the two is tracked in [`docs/pendientes.md`](../pendientes.md).
+
+> An earlier version of this runbook claimed the deploy *depended* on CI having fetched,
+> and presented `merge --ff-only` as a workaround. That was wrong: the `odoo` user fetches
+> perfectly well on its own. Corrected 2026-08-11.
 
 ## Verification
 
