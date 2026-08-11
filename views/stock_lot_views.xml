@@ -27,17 +27,25 @@
                      qué mostrar campos vacíos de un evento que no ocurrió. -->
                 <field name="mc_fecha_baja" invisible="not mc_fecha_baja"/>
                 <field name="mc_motivo_baja" invisible="not mc_fecha_baja"/>
-                <button name="action_dar_de_baja"
-                        type="object"
-                        string="Dar de baja"
-                        class="btn-secondary"
-                        invisible="not es_un_rov or mc_fecha_baja"
-                        confirm="El equipo quedará marcado como fuera de servicio con la fecha de hoy. Podrá corregir la fecha y revertir la baja después. ¿Continuar?"/>
-                <button name="action_reactivar"
-                        type="object"
-                        string="Reactivar equipo"
-                        class="btn-secondary"
-                        invisible="not mc_fecha_baja"/>
+            </xpath>
+
+            <!-- Los botones van fuera del group. Un group es una tabla de pares
+                 etiqueta-campo: un botón dentro ocupa una celda suelta y desalinea todo
+                 lo que sigue, que fue lo que dejó a "Referencia" sin su input. -->
+            <xpath expr="//sheet" position="inside">
+                <div class="mt-3 mb-2" invisible="not es_un_rov">
+                    <button name="action_dar_de_baja"
+                            type="object"
+                            string="Dar de baja"
+                            class="btn-secondary"
+                            invisible="mc_fecha_baja"
+                            confirm="El equipo quedará marcado como fuera de servicio con la fecha de hoy. Podrá corregir la fecha y revertir la baja después. ¿Continuar?"/>
+                    <button name="action_reactivar"
+                            type="object"
+                            string="Reactivar equipo"
+                            class="btn-secondary"
+                            invisible="not mc_fecha_baja"/>
+                </div>
             </xpath>
 
             <!-- Pestañas de ficha técnica ROV (ocultas si no es ROV) -->
