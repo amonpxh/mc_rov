@@ -6,24 +6,9 @@
         <field name="inherit_id" ref="stock.view_production_lot_form"/>
         <field name="arch" type="xml">
 
-            <!-- El formulario de stock no trae header. Se agrega uno porque es donde el
-                 usuario ya sabe buscar las acciones que cambian el estado de un registro,
-                 sin que nadie se lo explique. -->
-            <xpath expr="//sheet" position="before">
-                <header>
-                    <button name="action_dar_de_baja"
-                            type="object"
-                            string="Dar de baja"
-                            class="btn-secondary"
-                            invisible="not es_un_rov or mc_fecha_baja"
-                            confirm="El equipo quedará marcado como fuera de servicio con la fecha de hoy. Podrá corregir la fecha y revertir la baja después. ¿Continuar?"/>
-                    <button name="action_reactivar"
-                            type="object"
-                            string="Reactivar equipo"
-                            class="btn-secondary"
-                            invisible="not mc_fecha_baja"/>
-                </header>
-            </xpath>
+            <!-- Sin header ni botones en el formulario: la baja vive en el menú de
+                 acciones (engranaje), junto a Duplicar y Eliminar, que es la familia a
+                 la que pertenece. Ver views/mc_rov_baja_wizard_views.xml. -->
 
             <!-- Una cinta se ve al abrir la ficha; un campo de estado hay que ir a leerlo.
                  Un equipo de baja no debería poder confundirse con uno operativo. -->
@@ -259,11 +244,17 @@
                          Esta página no se oculta para los no-ROV: es el único lugar donde
                          vive el campo, y esconderlo lo volvería inalcanzable en los lotes
                          de componentes. -->
-                    <page string="Descripción" name="page_descripcion">
-                        <xpath expr="//group[@name='description']" position="move"/>
-                    </page>
+                    <page string="Descripción" name="page_descripcion"/>
 
                 </notebook>
+            </xpath>
+
+            <!-- El move va en su propia operación y no anidado dentro de la página de
+                 arriba. Odoo solo lo ejecuta cuando es hijo directo de una operación de
+                 posición: anidado más adentro se ignora en silencio, y el resultado es
+                 una pestaña vacía con el editor de notas todavía sobre las pestañas. -->
+            <xpath expr="//page[@name='page_descripcion']" position="inside">
+                <xpath expr="//group[@name='description']" position="move"/>
             </xpath>
 
             <!-- El group movido trae su propio título "Descripción", que dentro de una

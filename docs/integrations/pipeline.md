@@ -59,10 +59,18 @@ Custom mc_rov fields used:
   `mc_fecha_puesta_servicio` — Odoo 19 has no ownership concept on `stock.lot` to derive
   it from, and units sold before Odoo existed have no stock move either.
 - `mc_fecha_baja`, `mc_motivo_baja` — **new in 19.0.5.0.0.** Decommissioning. A date and
-  not a boolean, because *when* a unit left service is analysis-relevant. Odoo's archiving
-  is deliberately not used: it would hide the serial everywhere and cut the traceability of
-  the repairs it already had. Rows migrated from the old `"Baja"` value carry an
-  **approximate** date (the record's `write_date`) and say so in `mc_motivo_baja`.
+  not a boolean, because *when* a unit left service is analysis-relevant. Rows migrated
+  from the old `"Baja"` value carry an **approximate** date (the record's `write_date`) and
+  say so in `mc_motivo_baja`.
+
+  **This is the only way a unit is taken out of service** — `stock.lot` has no `active`
+  field in Odoo 19, so serials cannot be archived and no second mechanism can disagree with
+  this one. Concretely for the pipeline: decommissioned units stay visible to ordinary ORM
+  reads. There is no `active_test` context to remember, and no silent row loss on export.
+  Filter on `mc_fecha_baja IS NOT NULL` when you want to exclude them.
+
+  Since 19.0.5.1.0, `proxima_mantencion` is null on decommissioned units, so they drop out
+  of overdue-maintenance figures on their own.
 
 ### `mc.rov.propietario.historial` (new in 19.0.5.0.0)
 

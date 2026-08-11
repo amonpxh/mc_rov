@@ -4,6 +4,28 @@ All notable changes to the `mc_rov` Odoo module are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this module adheres to [semantic versioning](https://semver.org/) within the constraints of Odoo's version scheme: `19.0.X.Y.Z` where `19.0` is the Odoo major, `X` is breaking-change/migration, `Y` is feature, `Z` is bugfix.
 
+## [19.0.5.1.0] — 2026-08-11
+
+### Fixed
+- **Decommissioned units still had a maintenance clock**, so they kept showing up under "Mantención vencida". Sales would have called a customer to offer maintenance on a unit that no longer exists. `proxima_mantencion` is now null once `mc_fecha_baja` is set — the same principle as "no service date, no clock", taken to the other end of the unit's life.
+- **The description block never actually moved into its tab.** `position="move"` only runs when it is a direct child of a position operation; nested deeper it is ignored silently, which left an empty tab with the note editor still sitting above the tabs. It is now its own operation.
+
+### Changed
+- **Decommissioning moved to a dialog reached from the ⚙ actions menu**, replacing the form button and its "are you sure?" confirmation.
+
+  **The reason is now required, and it replaces the confirmation.** A confirm dialog gets answered yes without reading; having to write *why* is what actually prevents the distracted click — you can fat-finger a button, not a sentence. And unlike a confirmation, the reason is kept and is worth something later.
+
+  One menu entry covers both directions: it offers to decommission an in-service unit, and shows since when plus a revert for one already out. The ⚙ menu is where Odoo puts Duplicate and Delete — the lifecycle family this belongs to, and it stops competing for attention with the fields people read every day.
+
+- `stock.lot.action_dar_de_baja` / `action_reactivar` renamed to `dar_de_baja(fecha, motivo)` / `reactivar()`. No view calls them any more; the wizard does.
+
+### Documentation
+- **Corrected a wrong justification recorded in 19.0.5.0.0.** `CHANGELOG`, `CLAUDE.md` and `pipeline.md` all said Odoo's archiving was "deliberately not used", as though an available option had been weighed and rejected. It was never available: `stock.lot` has no `active` field in Odoo 19, so serials cannot be archived at all.
+
+  This matters beyond pedantry. The original wording sent the next reader looking for a trade-off that does not exist, and it obscured the actually useful fact for the pipeline: since there is no archiving, decommissioned units stay visible to ordinary ORM reads and cannot silently vanish from an export.
+
+- 6 tests.
+
 ## [19.0.5.0.2] — 2026-08-11
 
 ### Changed
@@ -43,7 +65,7 @@ This shipped broken in 19.0.5.0.0 and was not caught before deploy, because the 
 
 - **Decommissioning.** "Dar de baja" / "Reactivar" buttons, backed by `mc_fecha_baja` and `mc_motivo_baja`. A date rather than a boolean, because *when* a unit left service is analysis-relevant.
 
-  Odoo's archiving is deliberately not used: it hides the serial everywhere and cuts the traceability of the repairs the unit already had. A decommissioned ROV has to stay consultable.
+  Archiving is not an alternative: `stock.lot` has no `active` field in Odoo 19, so serial numbers cannot be archived at all. *(This sentence originally claimed archiving was rejected on merit — corrected in 19.0.5.1.0.)*
 
 - Group-by owner and by commercial status on the serial number list, a "Dados de baja" filter, and both fields as optional columns.
 - 17 tests.

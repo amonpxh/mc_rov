@@ -483,7 +483,7 @@ class StockLot(models.Model):
             lot.ultima_mantencion = self._ultima_fecha_entrega(lot, "es_mantencion")
             lot.ultima_reparacion = self._ultima_fecha_entrega(lot, "es_reparacion")
 
-    @api.depends("ultima_mantencion", "mc_fecha_puesta_servicio")
+    @api.depends("ultima_mantencion", "mc_fecha_puesta_servicio", "mc_fecha_baja")
     def _compute_proxima_mantencion(self):
         """Cuenta el ciclo desde la última mantención, o desde la puesta en servicio.
 
@@ -493,11 +493,19 @@ class StockLot(models.Model):
         Sin puesta en servicio no hay reloj. Es deliberado: mientras el equipo no salga
         a terreno no tiene sentido reclamarle mantención, y así los que están en bodega
         no ensucian la lista de vencidos.
+
+        Un equipo dado de baja tampoco tiene reloj, por la misma razón llevada al otro
+        extremo: seguía calculando su próxima mantención y aparecía en la lista de
+        vencidos, o sea que comercial habría llamado a un cliente a ofrecerle la
+        mantención de un equipo que ya no existe.
         """
         meses = self._meses_ciclo_mantencion()
         for lot in self:
             partida = lot.ultima_mantencion or lot.mc_fecha_puesta_servicio
-            lot.proxima_mantencion = partida + relativedelta(months=meses) if partida else False
+            if lot.mc_fecha_baja or not partida:
+                lot.proxima_mantencion = False
+            else:
+                lot.proxima_mantencion = partida + relativedelta(months=meses)
 
     def _meses_ciclo_mantencion(self):
         """Largo del ciclo en meses, configurable sin desplegar.
@@ -534,21 +542,28 @@ class StockLot(models.Model):
 
     # --- Baja ---
 
-    def action_dar_de_baja(self):
-        """Saca el equipo de servicio con fecha de hoy.
+    def dar_de_baja(self, fecha, motivo):
+        """Saca el equipo de servicio.
 
-        La fecha queda editable después: lo normal es que la baja se registre en Odoo
-        días después de que ocurrió de verdad.
+        No lleva prefijo action_ porque no la llama un botón de vista: entra por el
+        asistente, que es quien exige el motivo. Odoo 19 no tiene campo `active` en
+        stock.lot, así que no hay archivado nativo con el que esto pueda contradecirse.
         """
         self.ensure_one()
-        self.mc_fecha_baja = fields.Date.context_today(self)
-        self.message_post(body="Equipo dado de baja.")
+        self.write({"mc_fecha_baja": fecha, "mc_motivo_baja": motivo})
+        self.message_post(body=f"Equipo dado de baja el {fecha}. Motivo: {motivo}")
 
-    def action_reactivar(self):
-        """Revierte la baja. Existe porque las bajas se equivocan."""
+    def reactivar(self):
+        """Revierte la baja. Existe porque las bajas se equivocan.
+
+        El chatter guarda las dos puntas —quién dio de baja y quién reactivó, con sus
+        fechas—, así que un equipo que vuelve a desplegarse deja rastro sin necesidad
+        de un modelo de historial aparte.
+        """
         self.ensure_one()
+        anterior = self.mc_fecha_baja
         self.write({"mc_fecha_baja": False, "mc_motivo_baja": False})
-        self.message_post(body="Se revirtió la baja del equipo.")
+        self.message_post(body=f"Se revirtió la baja del {anterior}. El equipo vuelve a servicio.")
 
     # --- Historial de propiedad ---
 

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_mc_rov_baja_wizard_form" model="ir.ui.view">
+        <field name="name">mc.rov.baja.wizard.form</field>
+        <field name="model">mc.rov.baja.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <field name="lot_id" invisible="1"/>
+                <field name="es_un_rov" invisible="1"/>
+                <field name="fecha_baja_actual" invisible="1"/>
+
+                <!-- La acción se ofrece en todos los números de serie porque el menú de
+                     acciones no se puede condicionar por registro. Se avisa acá en vez
+                     de lanzar una excepción al abrir. -->
+                <div class="alert alert-info" role="alert" invisible="es_un_rov">
+                    Este número de serie no es un ROV. La baja aplica a los equipos, no a
+                    los lotes de componentes.
+                </div>
+
+                <!-- Equipo operativo: se ofrece darlo de baja -->
+                <group invisible="fecha_baja_actual or not es_un_rov">
+                    <field name="fecha"/>
+                    <field name="motivo"
+                           required="not fecha_baja_actual"
+                           placeholder="Ej: inundación del e-pod, chasis irrecuperable tras accidente en faena."/>
+                </group>
+
+                <!-- Equipo ya de baja: se muestra desde cuándo y se ofrece revertir -->
+                <group invisible="not fecha_baja_actual">
+                    <field name="fecha_baja_actual" readonly="1"/>
+                    <field name="motivo_actual" readonly="1"/>
+                </group>
+
+                <footer>
+                    <button name="action_dar_de_baja"
+                            type="object"
+                            string="Dar de baja"
+                            class="btn-primary"
+                            invisible="fecha_baja_actual or not es_un_rov"/>
+                    <button name="action_reactivar"
+                            type="object"
+                            string="Reactivar equipo"
+                            class="btn-primary"
+                            invisible="not fecha_baja_actual"/>
+                    <button string="Cancelar" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Entrada en el menú de acciones (engranaje) del número de serie. Es la familia a
+         la que pertenece esto: acciones de ciclo de vida, poco frecuentes, que no deben
+         competir por atención con los campos de uso diario. -->
+    <record id="action_mc_rov_baja_wizard" model="ir.actions.act_window">
+        <field name="name">Dar de baja / Reactivar</field>
+        <field name="res_model">mc.rov.baja.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="binding_model_id" ref="stock.model_stock_lot"/>
+        <field name="binding_view_types">form</field>
+    </record>
+</odoo>
