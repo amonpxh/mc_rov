@@ -4,6 +4,16 @@ All notable changes to the `mc_rov` Odoo module are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this module adheres to [semantic versioning](https://semver.org/) within the constraints of Odoo's version scheme: `19.0.X.Y.Z` where `19.0` is the Odoo major, `X` is breaking-change/migration, `Y` is feature, `Z` is bugfix.
 
+## [19.0.5.0.1] — 2026-08-11
+
+### Fixed
+- **The decommissioning buttons broke the serial form's field alignment.** They were placed inside the `<group>`, and a group is a table of label/field pairs: a button takes a lone cell and desynchronises the pairing for everything after it. The visible symptom was `ref` ("Referencia") showing its label with no input, and an orphan unlabelled input box appearing at the bottom of the other column — an empty field inviting someone to type into it without knowing what it was.
+
+  The buttons now sit in their own `<div>` between the field groups and the notebook. No data or computation was affected; the fields were always correct.
+
+### Note
+This shipped broken in 19.0.5.0.0 and was not caught before deploy, because the view renders without error — Odoo has no way to know that a button in a group is not what you meant. Only opening the form shows it.
+
 ## [19.0.5.0.0] — 2026-08-07
 
 ### Added
