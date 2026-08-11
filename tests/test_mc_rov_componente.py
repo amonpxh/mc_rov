@@ -143,6 +143,13 @@ class TestMcRovComponente(TransactionCase):
         self.assertFalse(linea.subtipo_id)
 
     def test_linea_falla_fecha_es_opcional(self):
+        """Nada obliga a que la línea tenga fecha, aunque desde 19.0.5.2.0 traiga una.
+
+        El nombre de este test siempre dijo "opcional" y comprobaba otra cosa: que el
+        campo nacía vacío. Eso era un accidente de que no tuviera default, no la
+        propiedad que vale la pena proteger. Lo que sigue siendo cierto es que se puede
+        dejar en blanco.
+        """
         linea = self.env["mc.rov.linea.falla"].create(
             {
                 "repair_id": self.order.id,
@@ -150,6 +157,9 @@ class TestMcRovComponente(TransactionCase):
                 "accion_id": self.accion.id,
             }
         )
+
+        linea.fecha = False
+
         self.assertFalse(linea.fecha)
 
     def test_linea_falla_horas_por_defecto_es_cero(self):

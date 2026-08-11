@@ -4,6 +4,29 @@ All notable changes to the `mc_rov` Odoo module are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this module adheres to [semantic versioning](https://semver.org/) within the constraints of Odoo's version scheme: `19.0.X.Y.Z` where `19.0` is the Odoo major, `X` is breaking-change/migration, `Y` is feature, `Z` is bugfix.
 
+## [19.0.5.2.0] — 2026-08-11
+
+### Added
+- **An order can no longer be closed without a type of intervention.** Without one it was invisible to everything derived from it: it counted as neither maintenance nor repair, did not restart the unit's cycle, did not reach the counters, and never appeared in `ultima_mantencion` or `ultima_reparacion`. Nothing warned. It is the same silent failure `fecha_entrega_real` had, with the same delayed symptom — months later the unit still shows as overdue.
+
+  The check runs **before** `super().write()` so the state never lands, and it covers only the transition to `done` rather than being an `@api.constrains`. That way it never blocks editing an order that predates the rule — the same reasoning that keeps the delivery-date seal out of `create`.
+
+### Changed
+- **Notebook pages reordered to the workshop's actual sequence:** Trabajos realizados → Piezas → Resultado → Notas de reparación.
+
+  The previous order was not a decision. `<notebook position="inside">` appends, so Odoo's own two pages sat in front by default and *Notas de reparación* landed **between** Trabajos realizados and Piezas — the two pages that have to be filled consistently with each other, since a "cambio" line implies the corresponding part. Notes go last because `internal_notes` is a scratchpad, not a step in the process.
+
+- **`mc_total_horas` is now stored.** It is a column in the order list, and an unstored computed column can be displayed but not sorted, filtered or grouped — which is most of what one asks of an hours total. The column is new, so the ORM fills it on creation and no migration is needed.
+
+### Fixed
+- **`mc.rov.linea.falla` lines could reshuffle between reads.** `_order` was `sequence` alone and every line is created at `sequence = 10`, so the order among them was left to PostgreSQL unless someone dragged the handle. Now `sequence, id`.
+- **`fecha` on a work line now defaults to today.** With no default it was left blank almost always, and with it went the ability to place each piece of work in time.
+
+### Note
+The corresponding search view for `repair.order` — filters by intervention type, group by root cause — is deliberately **not** in this release. It needs the base search view's arch to anchor its group-by section without producing a second "Group By" heading, and guessing at an inherited view's internals is what caused the defects in 19.0.5.0.1 and 19.0.5.1.0.
+
+- 7 tests (89 → 96).
+
 ## [19.0.5.1.0] — 2026-08-11
 
 ### Fixed

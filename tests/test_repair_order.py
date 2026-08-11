@@ -1,5 +1,7 @@
 from datetime import date
 
+from odoo import fields
+from odoo.exceptions import UserError
 from odoo.tests.common import TransactionCase
 from odoo.tests import tagged
 
@@ -90,11 +92,78 @@ class TestRepairOrder(TransactionCase):
 
     def test_linea_falla_ids_acumula_multiples_lineas(self):
         for _ in range(3):
-            self.env["mc.rov.linea.falla"].create(
-                {
-                    "repair_id": self.order.id,
-                    "componente_id": self.componente.id,
-                    "accion_id": self.accion.id,
-                }
-            )
+            self._linea()
         self.assertEqual(len(self.order.linea_falla_ids), 3)
+
+    def _linea(self, **vals):
+        """Crea una línea de trabajo para self.order."""
+        return self.env["mc.rov.linea.falla"].create(
+            {
+                "repair_id": self.order.id,
+                "componente_id": self.componente.id,
+                "accion_id": self.accion.id,
+                **vals,
+            }
+        )
+
+    def test_fecha_de_la_linea_por_defecto_es_hoy(self):
+        """Sin default quedaba en blanco casi siempre y no se podía situar el trabajo."""
+        self.assertEqual(self._linea().fecha, fields.Date.context_today(self.order))
+
+    def test_lineas_empatadas_en_secuencia_salen_en_orden_de_creacion(self):
+        """Todas nacen en sequence = 10; el id es lo que evita que se rebarajen.
+
+        Se consulta con search y no por el one2many: dentro de una misma transacción el
+        one2many puede venir del caché en orden de inserción y el test pasaría igual
+        aunque el _order estuviera mal.
+        """
+        for _ in range(3):
+            self._linea()
+
+        lineas = self.env["mc.rov.linea.falla"].search([("repair_id", "=", self.order.id)])
+
+        self.assertEqual(lineas.ids, sorted(lineas.ids))
+
+    # --- mc_total_horas ---
+
+    def test_mc_total_horas_suma_las_lineas(self):
+        self._linea(horas=1.5)
+        self._linea(horas=2.0)
+        self.assertEqual(self.order.mc_total_horas, 3.5)
+
+    def test_mc_total_horas_se_puede_buscar(self):
+        """Es columna de la lista: sin store no se podría ordenar, filtrar ni agrupar.
+
+        La búsqueda es la prueba real de que está almacenado — sobre un campo no
+        almacenado, este search levanta excepción.
+        """
+        self._linea(horas=4.0)
+
+        encontradas = self.env["repair.order"].search([("mc_total_horas", ">", 3.0)])
+
+        self.assertIn(self.order, encontradas)
+
+    # --- Cierre de la orden ---
+
+    def test_no_se_puede_cerrar_una_orden_sin_tipo_de_intervencion(self):
+        """Sin tipo la orden es invisible para todo lo que se calcula a partir de ella.
+
+        No cuenta como mantención ni reparación, no reinicia el ciclo del equipo y no
+        suma a los contadores — y nada avisa. El síntoma aparece meses después.
+        """
+        with self.assertRaises(UserError):
+            self.order.state = "done"
+
+    def test_cerrar_con_tipo_de_intervencion_funciona(self):
+        self.order.tipo_intervencion_ids = [
+            (6, 0, self.env.ref("mc_rov.tipo_reparacion_correctiva").ids)
+        ]
+
+        self.order.state = "done"
+
+        self.assertEqual(self.order.state, "done")
+
+    def test_el_bloqueo_no_estorba_otras_escrituras(self):
+        """Solo la transición a done exige el tipo; editar la orden no."""
+        self.order.falla_reportada = "No enciende"
+        self.assertEqual(self.order.falla_reportada, "No enciende")

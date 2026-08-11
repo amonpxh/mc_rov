@@ -69,7 +69,10 @@ class McRovLineaFalla(models.Model):
 
     _name = "mc.rov.linea.falla"
     _description = "Línea de falla en orden de reparación"
-    _order = "sequence"
+    # El id desempata: todas las líneas nacen en sequence = 10 y solo se separan si
+    # alguien las arrastra. Sin el desempate, el orden entre ellas lo decide PostgreSQL
+    # y las filas se rebarajan solas entre una lectura y la siguiente.
+    _order = "sequence, id"
 
     sequence = fields.Integer(default=10)
     repair_id = fields.Many2one(
@@ -91,6 +94,9 @@ class McRovLineaFalla(models.Model):
         required=True,
         ondelete="restrict",
     )
-    fecha = fields.Date(string="Fecha")
+    # Por defecto hoy: la línea se registra el día en que se hace el trabajo, y sin
+    # default quedaba vacía casi siempre. Una fecha corregible sirve más que un campo en
+    # blanco, porque de ella depende poder situar cada trabajo en el tiempo.
+    fecha = fields.Date(string="Fecha", default=fields.Date.context_today)
     horas = fields.Float(string="HH.", digits=(5, 1))
     detalle = fields.Text(string="Detalle")
