@@ -6,11 +6,11 @@
 
 - [ ] **Separar el workspace del runner de CI del addons de producción.** Hoy son el mismo directorio: `/opt/odoo/custom-addons/mc_rov`. Descubierto el 2026-08-07 al desplegar `19.0.5.0.0`.
 
-  1. **`git pull` como root no funciona y nunca funcionó** — el remoto es SSH y root no tiene deploy key. El runbook documentaba ese comando; ya está corregido en [`runbooks/deploy.md`](runbooks/deploy.md) con el workaround real (`merge --ff-only origin/main`, que es local porque el runner ya dejó los refs actualizados).
-  2. **El código llega a producción por efecto secundario de CI**, no por una acción deliberada de desplegar. Un job de CI puede cambiar lo que Odoo está sirviendo.
-  3. Arreglo: mover el workspace del runner fuera del addons path, y darle al deploy una credencial propia de solo lectura. Recién ahí el runbook puede volver a decir `git pull`.
+  **El deploy en sí ya no es el problema**: el usuario `odoo` tiene deploy key y hace `fetch` por su cuenta. Lo único que fallaba era que el runbook decía `git pull` a secas, que corre como root — corregido en [`runbooks/deploy.md`](runbooks/deploy.md).
 
-  **Mientras tanto**, verificar siempre `git log --oneline -1` y la versión del manifiesto antes de correr el `-u mc_rov`. Desplegar la migración equivocada sobre `odoo_prod` no se deshace con un `git checkout`.
+  Lo que queda es el directorio compartido: **un job de CI puede cambiar lo que Odoo está sirviendo**, porque el checkout aterriza en el addons path de producción. Desplegar no es lo único que mueve ese código.
+
+  Arreglo: mover el workspace del runner fuera de `/opt/odoo/custom-addons/mc_rov`. No urge —el deploy funciona y es deliberado— pero es una fuente de sorpresas que nadie va a relacionar con CI cuando ocurra.
 
 - [ ] **Carga de productos ROV** — el árbol de categorías ya está en producción (164 categorías), pero todavía no hay productos ROV cargados. Al cargarlos:
 
