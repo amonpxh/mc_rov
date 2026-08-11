@@ -4,6 +4,18 @@ All notable changes to the `mc_rov` Odoo module are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this module adheres to [semantic versioning](https://semver.org/) within the constraints of Odoo's version scheme: `19.0.X.Y.Z` where `19.0` is the Odoo major, `X` is breaking-change/migration, `Y` is feature, `Z` is bugfix.
 
+## [19.0.5.0.2] — 2026-08-11
+
+### Changed
+- **The decommission buttons moved to a form header.** The lot form ships without one, so this view adds it. It is where a user already looks for actions that change a record's state, without being told.
+- **A red "De baja" ribbon** now appears on decommissioned units. A ribbon is seen on opening the record; a status field has to be gone and read.
+- **Odoo's description block moved into a notebook page.** Loose in the sheet, its empty text area left a large gap between the fields and the tabs — which is its normal state, since the note is rarely filled. The whole `group[@name='description']` is moved, so its title travels with it and nothing is orphaned; the title is then cleared, being redundant inside a page of the same name.
+
+  That page is **not** hidden for non-ROV lots, unlike the rest: it is the only place the field lives, and hiding it would make notes unreachable on component lots.
+
+### Note
+Moving a node out of the inherited view couples this module to `group[@name='description']` existing in `stock.view_production_lot_form`. It is a named group, which is the stable kind of anchor, but if a future Odoo release drops it the view will fail to load. Same class of dependency the module already accepts for `//field[@name='product_id']` and `//sheet`.
+
 ## [19.0.5.0.1] — 2026-08-11
 
 ### Fixed
