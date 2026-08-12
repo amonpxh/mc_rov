@@ -4,6 +4,44 @@ All notable changes to the `mc_rov` Odoo module are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this module adheres to [semantic versioning](https://semver.org/) within the constraints of Odoo's version scheme: `19.0.X.Y.Z` where `19.0` is the Odoo major, `X` is breaking-change/migration, `Y` is feature, `Z` is bugfix.
 
+## [19.0.7.0.0] — 2026-08-12
+
+Both changes come from using `19.0.6.0.0` in production for half an hour.
+
+### Removed
+- **`Desconocido` is gone from every `Selection` in the spec sheet.** It was added one
+  version earlier so that pre-Odoo field units could be saved without inventing data. Two
+  problems, one cosmetic and one not:
+
+  Six of those fields render as radio buttons, and **a radio makes every option cost the
+  same** — which is the opposite of what an escape hatch should do. And more importantly,
+  the call is to make people go and find out the unit's actual specs rather than accept a
+  non-answer.
+
+  The trade-off, stated plainly because it is real: **a presumed value is now
+  indistinguishable from a verified one.** Someone types `4.1.0` from memory and the sheet
+  reports as complete. That is the price of forcing the investigation.
+
+### Added
+- **`mc_ficha_faltantes`**, shown as a banner at the top of the serial form.
+
+  The browser does reject a save when a numeric field is zero — but **it does not
+  highlight the field**, so the user sees a save that fails with no visible cause, which
+  trains people to guess. Naming the fields is more reliable than fighting Odoo's
+  highlighting, and it covers two cases the red dots never could: fields that live on
+  another notebook page (*Cantidad de luces* is under *Periféricos*) and records created
+  by import, where there is no form at all.
+
+### Migration
+`19.0.7.0.0/post-migrate.py` clears any `Desconocido` left in the eight affected columns.
+Odoo does not fail on a stored value its `Selection` no longer offers — it renders the
+field blank — but the value stays in the database, invisible, and would resurface in any
+export or pipeline query. Emptying it makes it what it actually is: an unfilled field,
+which is exactly what the *Ficha incompleta* filter should catch. On a database where
+nobody used it, the script touches nothing.
+
+- 3 tests net (103 → 106).
+
 ## [19.0.6.0.0] — 2026-08-12
 
 The manufacturing spec sheet becomes mandatory for ROVs, and the two flight/surface

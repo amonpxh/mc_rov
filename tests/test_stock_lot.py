@@ -7,7 +7,6 @@ from odoo.tests import tagged
 
 from odoo.addons.mc_rov.models.stock_lot import (
     CICLO_MANTENCION_PARAM,
-    DESCONOCIDO,
     ROV_CATEG_PARAM,
 )
 
@@ -774,13 +773,28 @@ class TestStockLotFichaCompleta(StockLotPropiedadCommon):
     def test_con_todos_los_datos_la_ficha_esta_completa(self):
         self.assertTrue(self._completar().mc_ficha_completa)
 
-    def test_un_desconocido_deja_la_ficha_incompleta(self):
-        """Es un valor honesto para guardar, pero no es el dato.
+    def test_un_campo_vacio_deja_la_ficha_incompleta(self):
+        self.assertFalse(self._completar(mc_chasis=False).mc_ficha_completa)
 
-        Si contara como completa, la lista de pendientes se vaciaría sin que nadie
-        hubiera levantado nada — que es justo lo contrario de para qué existe.
+    def test_los_faltantes_nombran_el_numerico_en_cero(self):
+        """Es la razón de ser de mc_ficha_faltantes.
+
+        El navegador rechaza guardar con un numérico en cero pero no lo pinta de rojo, así
+        que el usuario ve un guardado que falla sin causa visible. Nombrar el campo es más
+        confiable que pelear con el resaltado de Odoo.
         """
-        self.assertFalse(self._completar(mc_chasis=DESCONOCIDO).mc_ficha_completa)
+        lot = self._completar(mc_n_motores=0)
+
+        self.assertIn("N° motores", lot.mc_ficha_faltantes)
+
+    def test_los_faltantes_cubren_las_otras_pestanas(self):
+        """Cantidad de luces vive en Periféricos: bloquea sin que a nadie se le ocurra ir."""
+        lot = self._completar(mc_cantidad_luces=0)
+
+        self.assertIn("Cantidad de luces", lot.mc_ficha_faltantes)
+
+    def test_una_ficha_completa_no_reporta_faltantes(self):
+        self.assertFalse(self._completar().mc_ficha_faltantes)
 
     def test_cero_motores_deja_la_ficha_incompleta(self):
         """En Odoo un Integer nunca queda vacío: se lee como 0.

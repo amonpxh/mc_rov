@@ -47,7 +47,7 @@
                     name="filtro_ficha_incompleta"
                     string="Ficha incompleta"
                     domain="[('es_un_rov', '=', True), ('mc_ficha_completa', '=', False)]"
-                    help="ROVs a los que les falta algún dato esencial de ficha técnica, o que lo tienen en «Desconocido»."/>
+                    help="ROVs a los que les falta algún dato esencial de ficha técnica."/>
             </filter>
         </field>
     </record>

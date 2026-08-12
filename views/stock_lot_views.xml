@@ -45,6 +45,20 @@
             <!-- Pestañas de ficha técnica ROV (ocultas si no es ROV) -->
             <!-- Anclado a //sheet para no depender de nombres internos de grupos de Odoo -->
             <xpath expr="//sheet" position="inside">
+
+                <!-- El navegador rechaza guardar con un numérico en cero, pero no lo pinta
+                     de rojo: el usuario ve un guardado que falla sin causa visible. Este
+                     aviso nombra los campos en vez de esperar que los deduzca, y de paso
+                     cubre los que viven en otra pestaña —Cantidad de luces— y los
+                     registros creados por importación, donde no hay formulario ni puntos
+                     rojos que mirar. -->
+                <div class="alert alert-warning" role="alert"
+                     invisible="not es_un_rov or mc_ficha_completa">
+                    <strong>Faltan datos de la ficha técnica: </strong>
+                    <field name="mc_ficha_faltantes" nolabel="1" readonly="1" class="oe_inline"/>
+                </div>
+                <field name="mc_ficha_completa" invisible="1"/>
+
                 <notebook name="notebook_ficha_rov">
 
                     <page string="Especificaciones" name="page_especificaciones" invisible="not es_un_rov">
