@@ -87,6 +87,13 @@
                                     <span>kg</span>
                                 </div>
                                 <field name="mc_sensor_presion" widget="radio" options="{&quot;horizontal&quot;:true}" required="es_un_rov"/>
+                                <!-- Vive aquí y no en Periféricos porque es un conteo de
+                                     componentes del equipo, como N° de motores, y no un
+                                     accesorio. Con esto la regla de obligatoriedad se
+                                     vuelve enunciable: es todo Especificaciones y nada
+                                     más. La ficha de reparación compara contra este
+                                     número el conteo de luces de la prueba. -->
+                                <field name="mc_cantidad_luces" required="es_un_rov"/>
                             </group>
                             <group name="group_especificaciones_right">
                                 <field name="mc_tarjeta_comunicacion_rov" widget="radio" options="{&quot;horizontal&quot;:true}" required="es_un_rov"/>
@@ -107,10 +114,6 @@
                                 <field name="mc_brazo"/>
                             </group>
                             <group name="group_perifericos_right">
-                                <!-- Único obligatorio fuera de Especificaciones: la ficha
-                                     de reparación compara el conteo de luces de la prueba
-                                     contra este número. -->
-                                <field name="mc_cantidad_luces" required="es_un_rov"/>
                                 <field name="mc_dispositivos_extra"/>
                             </group>
                         </group>

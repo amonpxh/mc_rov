@@ -44,7 +44,7 @@ sudo -u odoo odoo \
   --config /etc/odoo/odoo.conf
 ```
 
-Available test classes (as of v19.0.7.0.0):
+Available test classes (as of v19.0.7.0.1):
 
 | Class | Tests | Coverage |
 |---|---|---|
