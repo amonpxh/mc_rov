@@ -1,8 +1,9 @@
 # Diseño: ficha de reparación digital
 
-**Versión objetivo:** `19.0.6.0.0`
+**Versión objetivo:** `19.0.8.0.0` — `19.0.6.x` y `19.0.7.x` se ocuparon en la ficha de
+fabricación, que se adelantó por ser corta e independiente
 **Estado:** propuesta, pendiente de aprobación
-**Fecha:** 2026-08-11 (reescrito el mismo día — ver § 1.1)
+**Fecha:** 2026-08-11, reescrito el mismo día (§ 1.1) y ampliado el 2026-08-12 (§ 16)
 
 ---
 
@@ -136,7 +137,19 @@ tipo              Selection  fabricacion | recepcion | entrega | terreno   requi
 fecha             Date       required, default hoy
 responsable_id    M2o hr.employee      default env.user.employee_id
 estado            Selection  borrador | confirmado                          default borrador
+horas_operacion   Float h    lectura del horómetro, si el equipo tiene
 ```
+
+**`horas_operacion` es el dato de mayor apalancamiento del modelo, y es opcional.** Solo
+algunos ROV traen horómetro. Se anota **la lectura**, no un acumulado calculado, y en cada
+visita: lo que sirve para análisis es el **delta entre dos protocolos consecutivos** — las
+horas que el equipo voló entre una visita y la siguiente. Es el denominador que le falta a
+cualquier cálculo de confiabilidad, porque un equipo que bucea ocho horas diarias y uno
+guardado en bodega acumulan el mismo tiempo de calendario.
+
+Verificación gratis: como la prueba de esfuerzo corre el ROV 1 a 1½ horas, la lectura del
+protocolo de entrega menos la de recepción debería dar aproximadamente las horas de prueba
+de esa visita.
 
 **`repair_id` es opcional a propósito.** Un ROV nuevo pasa por el mismo protocolo antes de
 despacharse y ahí no hay orden de reparación. Si el protocolo colgara de la orden, toda la
@@ -323,10 +336,16 @@ protocolo_id    M2o mc.rov.protocolo      required, ondelete cascade
 sequence        Integer
 componente_id   M2o mc.rov.componente     REQUERIDO
 subtipo_id      M2o mc.rov.subtipo        domain [('componente_id','=',componente_id)]
-hallazgo_id     M2o mc.rov.hallazgo       REQUERIDO
-severidad       Selection  informativo | atencion | impide_operar   required, default atencion
-detalle         Text                      complemento, nunca sustituto
+hallazgo_id       M2o mc.rov.hallazgo     REQUERIDO
+severidad         Selection  informativo | atencion | impide_operar   required, default atencion
+chequeo_origen_id M2o mc.rov.protocolo.chequeo   opcional: qué chequeo lo destapó
+detalle           Text                    complemento, nunca sustituto
 ```
+
+**`chequeo_origen_id` es el que hace medible la detección** (§ 16.2). Sin él no se puede
+saber si un hallazgo lo reveló un chequeo del protocolo o si alguien lo vio de casualidad —
+y esa diferencia es la que dice si al protocolo le falta un chequeo. Cuesta un campo ahora y
+es imposible de reconstruir después.
 
 Reusa `mc.rov.componente` y `mc.rov.subtipo`, los mismos catálogos de las líneas de trabajo.
 Eso es lo que permite correlacionar: *dónde* se encuentran los hallazgos y *dónde* se hacen
@@ -498,22 +517,25 @@ fotos antes de que el disco importe.
 
 ---
 
-### 12.1 Impresión para el cliente
+## 12.1 El reporte no es el adorno final
 
-Las dos fichas —la de manufactura y la de reparación— van a tener que imprimirse para el
-cliente, **con una parte de los datos y no todos**. El detalle se define al final, pero hay
-que tenerlo presente desde ahora por una razón: significa que cada dato tiene una audiencia,
-y eso ya está influyendo en una decisión tomada.
+**La ficha de reparación existe, entre otras cosas, para entregársela al cliente.** Eso
+convierte al reporte QWeb en un requisito del entregable, no en un extra que se agrega si
+sobra tiempo. Lo mismo aplica a la ficha de fabricación, que hoy tampoco imprime nada.
 
-`observaciones_salida` pasa a ser explícitamente **lo que se le informa al cliente en la
-entrega** (§ 6.4). Ese campo es el que sale en el PDF; los hallazgos internos no. Sin esa
-distinción, la caja de texto seguiría siendo el lugar donde caen los hallazgos, que es
-justamente lo que este diseño viene a evitar.
+La consecuencia de diseño es que **cada dato tiene una audiencia** y hay que decidirlo campo
+por campo antes de escribir el reporte:
 
-Al definir el reporte habrá que decidir, campo por campo, qué es interno y qué es del
-cliente. Los hallazgos de familia *intervención de terceros* son el caso delicado: puede
-convenir mostrarlos —es la conversación de garantía— o reservarlos. Es una decisión del
-reporte, no del modelo, así que no bloquea nada ahora.
+| Va al cliente | Se queda interno |
+|---|---|
+| Chequeos ejecutados y su resultado | Horas de trabajo por línea y por técnico |
+| Mediciones de las corridas | El responsable, salvo que quieran firmarlo |
+| `observaciones_salida` — definido en § 6.4 como *lo que se le informa al cliente* | `detalle` de cada hallazgo |
+| Hallazgos, con criterio | La lectura del horómetro |
+
+Los hallazgos de familia **intervención de terceros** son el caso a decidir: puede convenir
+mostrarlos —es la conversación de garantía, con evidencia— o reservarlos. Es una decisión
+del reporte y no del modelo, así que no bloquea la implementación.
 
 ## 13. Fuera de alcance
 
@@ -622,3 +644,75 @@ extra, brazo. Son descriptivos y nada depende de ellos.
    reacciona a un hallazgo `impide_operar`, y que el reporte imprime.
 4. **Rollback** — según `docs/runbooks/deploy.md`. La ficha técnica de fabricación no se
    toca, así que un rollback no arriesga nada de manufactura.
+
+---
+
+## 16. Para qué sirven estos datos
+
+Esta sección existe para que ningún campo del modelo parezca gratuito. Cada uno de los que
+cuestan discusión —`severidad`, `chequeo_origen_id`, `horas_operacion`, `esfuerzo_duracion`—
+está aquí porque habilita algo concreto.
+
+Ordenado por **cuándo empieza a servir**, no por lo impresionante que suena. La mitad de las
+metodologías de confiabilidad necesitan un volumen de datos que Marine Connection no va a
+tener por años, y prometerlas antes de tiempo es vender humo.
+
+### 16.1 Desde el primer mes
+
+| Qué | Con qué datos |
+|---|---|
+| **Pareto de fallas** — qué componentes concentran hallazgos, horas y visitas | `componente_id` + `horas` de las líneas de trabajo |
+| **Análisis de garantía** — qué falla dentro de garantía (costo propio) y qué después | `repair.order.under_warranty` × hallazgos. Los de familia *intervención de terceros* son evidencia directa para invalidarla |
+
+### 16.2 Con un año de datos
+
+**Tabla de fallas — que es un FMEA, y armado al revés del habitual.** El FMEA clásico lo
+arman ingenieros *imaginando* modos de falla en una sala de reuniones. Aquí se arma **desde
+el historial real**, que es estrictamente mejor y que casi ningún taller puede hacer porque
+no guarda los datos. Sus tres ejes salen del modelo:
+
+| Eje del FMEA | De dónde sale |
+|---|---|
+| **Severidad** | `severidad` del hallazgo |
+| **Ocurrencia** | Cuántas veces aparece ese hallazgo en la flota |
+| **Detección** | `chequeo_origen_id`: ¿lo agarró un chequeo, o se vio de casualidad? |
+
+**La detección es el eje que casi nadie puede calcular**, y de ahí sale el resultado más
+útil de todos: *un hallazgo que aparece seguido y que ningún chequeo detecta es un chequeo
+que falta*. Y al revés, un chequeo que sale OK siempre, en toda la flota, durante un año, o
+no mide nada o mide algo que no falla — se elimina. **El protocolo se audita a sí mismo.**
+
+**Degradación por equipo.** Subida, bajada y `esfuerzo_duracion` de cada visita, en serie.
+Un equipo cuyo enlace cae visita tras visita se está deteriorando antes de fallar. Es lo
+único de toda la lista que hoy es *literalmente imposible*, porque no existe la segunda
+medición.
+
+**Cohortes por configuración.** Como el protocolo guarda la versión de firmware del día de
+la prueba, se puede preguntar *"¿las fallas de motor aparecieron después de ArduSub 4.1?"*.
+Para un fabricante es de lo más accionable que hay: dice si el problema lo introdujo uno
+mismo.
+
+### 16.3 Con volumen — y con una condición
+
+**MTBF y análisis de supervivencia (Weibull).** La curva de bañera distingue falla infantil
+—defecto de fabricación, problema propio— de desgaste normal, que es problema del cliente.
+Esa distinción vale dinero.
+
+Pero **necesita horas de uso, no de calendario.** Un ROV que bucea ocho horas diarias y uno
+guardado en bodega acumulan el mismo tiempo de calendario, así que un MTBF calculado sobre
+fechas favorece a los equipos que nadie usa.
+
+De ahí `horas_operacion`. Y como **solo algunos ROV traen horómetro**, la flota se parte en
+dos poblaciones: los que dan confiabilidad real y los que dan aproximaciones por calendario.
+No es un problema —tener datos buenos de una parte es muchísimo mejor que nada— pero
+**cualquier dashboard tiene que declarar de qué población sale cada número**, o alguien va a
+promediar los dos.
+
+Dos decisiones que se derivan de eso y que no son técnicas:
+
+1. **`mc_tiene_horometro` en la ficha de fabricación**, para que una lectura vacía no
+   confunda *"el equipo no tiene"* con *"nadie lo anotó"* — la misma distinción que se
+   resolvió al retirar «Desconocido». Y de una consulta dice qué porcentaje de la flota es
+   analizable.
+2. **Que los equipos nuevos salgan todos con horómetro**, si el análisis de confiabilidad
+   les importa. Es lo único que hace crecer esa población.
