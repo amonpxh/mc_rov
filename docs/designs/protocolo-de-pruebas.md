@@ -569,14 +569,26 @@ la gente a esquivarla — con lo cual deja de servir donde sí hace falta.
 
 **Para pasar a `confirmado`:**
 
-| Regla | Por qué |
-|---|---|
-| `responsable_id` | Sin atribución, todo el trabajo de poner empleados no sirve de nada |
-| Al menos **una corrida** | Un protocolo sin corridas dice que no se probó nada |
-| En cada corrida: `umbilical` y `largo` | Sin saber con qué cable se midió, las mediciones no se pueden interpretar ni comparar |
-| En cada corrida: `alimentacion` y `tension_salida` | Son las condiciones del banco; sin ellas no hay comparación entre visitas |
-| **Todos** los chequeos con `resultado`, incluido *No aplica* | Es el punto del checklist: probar que se miró |
-| Pares coherentes: si hay `esfuerzo_resultado` hay `esfuerzo_duracion`; si hay `subida` hay `bajada` | Media medición es peor que ninguna — parece un dato y no lo es |
+| Regla | Por qué | Origen |
+|---|---|---|
+| `responsable_id` | Sin atribución, todo el trabajo de poner empleados no sirve de nada | **Confirmado**: la ficha la llena el técnico que hizo el trabajo, así que es una firma real y no la memoria de quien transcribe |
+| Al menos **una corrida**, con `esfuerzo_resultado` y `esfuerzo_duracion` | Un protocolo sin corridas dice que no se probó nada | **Confirmado**: la prueba de esfuerzo siempre se hace |
+| En cada corrida: `alimentacion` y `tension_salida` | Son las condiciones del banco; sin ellas no hay comparación entre visitas | **Confirmado**: se anotan siempre en la ficha de reparación |
+| En cada corrida: `umbilical` y `largo` | Sin saber con qué cable se midió, las mediciones no se pueden interpretar ni comparar | Criterio propio |
+| **Todos** los chequeos con `resultado`, incluido *No aplica* | Es el punto del checklist: probar que se miró | Criterio propio — **pendiente del taller**, ver abajo |
+| Pares coherentes: si hay `subida` hay `bajada` | Media medición es peor que ninguna — parece un dato y no lo es | Criterio propio |
+
+**Lo único que falta preguntar en el taller**, y de la respuesta depende qué significa
+*No aplica*:
+
+1. ¿**Todas** las pruebas se hacen siempre —presión, leak, navegación, video, sistema,
+   luces— o algunas se saltan según lo que traiga el equipo?
+2. ¿La inspección física recorre siempre los cinco componentes, o solo se miran cuando hay
+   sospecha?
+
+Si todo se hace siempre, «todos los chequeos respondidos» es la regla natural y *No aplica*
+casi no se usa. Si algunas se saltan, *No aplica* pasa a ser un dato con contenido —dice qué
+no se probó— y la regla sigue valiendo, pero por otra razón.
 
 **Deliberadamente NO obligatorios:**
 
