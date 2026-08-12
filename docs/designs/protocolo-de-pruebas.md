@@ -2,7 +2,7 @@
 
 **Versión objetivo:** `19.0.8.0.0` — `19.0.6.x` y `19.0.7.x` se ocuparon en la ficha de
 fabricación, que se adelantó por ser corta e independiente
-**Estado:** propuesta, pendiente de aprobación
+**Estado:** **aprobado por Paulo el 2026-08-12.** Listo para implementar
 **Fecha:** 2026-08-11, reescrito el mismo día (§ 1.1) y ampliado el 2026-08-12 (§ 16)
 
 ---
@@ -73,12 +73,14 @@ No confundirlas es lo más importante de este documento.
 | Resultado de la prueba de esfuerzo | Binario + **duración** |
 | Responsable en la línea de trabajo | **Sí** — es el único campo que no se puede retrofitear |
 | `resultado` del protocolo | **Derivado, no forzable** — un override sería el texto libre en otra forma |
-| Chequeos que no aplican a un modelo | Se muestran todos y se marcan *No aplica*; filtrar por modelo solo si la lista crece |
+| Chequeos de algo que el equipo no lleva | Se muestran todos y se responden ***No lo tiene***, que afirma algo del equipo y no del técnico |
 | Cliente vs dueño en el protocolo | Ninguno propio: ambos derivados |
 | Firma / aprobación con nombre | Se posterga; `estado: confirmado` es la aprobación por sistema |
 | Fotos de hallazgos | Se implementan al final, con `fields.Image` (§ 12) |
 | Ficha de papel como fuente | **No.** El diseño se hizo sin verla, a propósito |
 | `item_2` … `item_5` | Se eliminan — 0 de 10 órdenes los usaron |
+| Fabricación y reparación | **No corren la misma batería** — el catálogo de chequeos declara a qué tipos aplica cada uno (§ 5.3.1) |
+| ¿Se hacen todas las pruebas siempre? | **Sí**, confirmado por el taller. *No lo tiene* queda solo para componentes ausentes |
 
 ---
 
@@ -275,12 +277,43 @@ evidencia. Es la materia prima de cualquier análisis de confiabilidad.
 ### 5.3 `mc.rov.chequeo` — catálogo de pasos de testeo
 
 ```
-name             Char       required
-sequence         Integer
-seccion          Selection  inspeccion_fisica | presion | leak | navegacion | video | otro
-por_componente   Boolean    si la línea debe indicar sobre qué componente se hizo
-active           Boolean    default True
+name                Char       required
+sequence            Integer
+seccion             Selection  inspeccion_fisica | presion | leak | navegacion | video | otro
+por_componente      Boolean    si la línea debe indicar sobre qué componente se hizo
+aplica_fabricacion  Boolean
+aplica_recepcion    Boolean    default True
+aplica_entrega      Boolean
+aplica_terreno      Boolean
+active              Boolean    default True
 ```
+
+### 5.3.1 Fabricación y reparación no corren la misma batería
+
+Los cuatro booleanos separan qué chequeos aparecen en cada tipo de protocolo, y la
+generación automática de líneas (§ 5.4) filtra por el `tipo` del protocolo.
+
+**El caso que lo justifica es la inspección física.** Existe para detectar si alguien más
+intervino el equipo — marcas de plumón, sellos ajenos, tornillería cambiada. En un ROV
+**recién fabricado eso no significa nada**: nadie busca huellas de terceros en algo que armó
+uno mismo la semana pasada. Sin el filtro, el protocolo de fabricación generaría quince
+líneas de inspección que alguien tendría que responder para poder confirmar, y que no
+dirían nada.
+
+Semilla propuesta:
+
+| Chequeos | fabricación | recepción | entrega | terreno |
+|---|:---:|:---:|:---:|:---:|
+| Inspección física (plumón, sellos) | — | **sí** | — | — |
+| Presión, leak, navegación, video | sí | sí | sí | sí |
+| Sistema, luces | sí | sí | sí | sí |
+
+Son cuatro booleanos y no un modelo de tipos porque `tipo` es un `Selection` estable: los
+tipos de protocolo son la estructura del proceso, no un catálogo operativo. Es la misma
+distinción que se hizo con `seccion`.
+
+El mismo criterio ordena la navegación: el menú de protocolos se filtra por tipo, para que
+el taller no tenga que mirar los de fabricación ni manufactura los de reparación.
 
 Agregar *lateral*, *yaw*, *roll* o *pitch* para un equipo 6DOF es crear cuatro registros
 desde `Reparaciones → Configuración`, no tocar código. Lo mismo para sonar, USBL o cualquier
@@ -297,7 +330,7 @@ protocolo_id    M2o mc.rov.protocolo      required, ondelete cascade
 sequence        Integer
 chequeo_id      M2o mc.rov.chequeo        required
 componente_id   M2o mc.rov.componente     required si chequeo_id.por_componente
-resultado       Selection  ok | no_ok | na
+resultado       Selection  ok | no_ok | no_lo_tiene
 detalle         Char
 ```
 
@@ -306,14 +339,33 @@ principalmente *qué se testeó* y no *qué resultó*:
 
 | Valor | Significa |
 |---|---|
-| *(vacío)* | no se hizo |
-| No aplica | no corresponde a este equipo |
-| OK / No OK | se hizo, con resultado |
+| *(vacío)* | todavía sin responder — impide confirmar |
+| **No lo tiene** | el equipo no lleva ese componente o no puede hacer eso |
+| OK / No OK | se revisó, con resultado |
+
+**El tercer valor se llama «No lo tiene» y no «No aplica» a propósito.** La inspección
+física no siempre recorre los cinco componentes: no todos los ROV llevan joystick, y el
+«cilindro fuente» solo existe en los que tienen **dos e-pods en vez de uno**.
+
+«No aplica» dejaría el registro diciendo dos cosas a la vez —*el equipo no lo tiene* y *no
+lo revisamos*— y con eso se pierde el denominador de cualquier estadística: *de los equipos
+que sí tienen joystick, ¿cuántos llegaron con marcas de plumón?* deja de ser calculable. Es
+la misma ambigüedad que se rechazó al retirar «Desconocido», en otro disfraz. El nombre
+nuevo afirma algo sobre **el equipo**, no sobre lo que hizo el técnico.
+
+> **Refinamiento posible más adelante, no ahora:** si la ficha de fabricación registrara
+> cuántos e-pods lleva el equipo y si tiene joystick, el protocolo podría generar solo las
+> líneas que corresponden, en vez de generarlas todas y hacer que alguien marque «No lo
+> tiene» cada vez. Es mejor a la larga —el dato se declara una vez y no en cada visita— pero
+> exige campos nuevos en la ficha de fabricación y que estén bien llenos. Con «No lo tiene»
+> el análisis ya es correcto; esto solo ahorraría clics.
 
 Las líneas se generan solas al crear el protocolo, con todos los chequeos activos. **La
-inspección física es un checklist, no una lista de excepciones:** se recorren los cinco
-componentes siempre. Si solo se anotaran los hallazgos, *el joystick estaba limpio* sería
-indistinguible de *nadie miró el joystick*.
+inspección física es un checklist, no una lista de excepciones:** se pasa por los cinco
+componentes siempre, aunque en algunos equipos la respuesta sea *No lo tiene*. Si solo se
+anotaran los hallazgos, *el joystick estaba limpio* sería indistinguible de *nadie miró el
+joystick* y de *este equipo no tiene joystick* — tres cosas distintas colapsadas en la
+ausencia de una fila.
 
 `resultado` no es `required` en el campo — lo valida el paso a `confirmado`, para poder
 guardar a medio llenar sin poder cerrar incompleto.
@@ -575,20 +627,16 @@ la gente a esquivarla — con lo cual deja de servir donde sí hace falta.
 | Al menos **una corrida**, con `esfuerzo_resultado` y `esfuerzo_duracion` | Un protocolo sin corridas dice que no se probó nada | **Confirmado**: la prueba de esfuerzo siempre se hace |
 | En cada corrida: `alimentacion` y `tension_salida` | Son las condiciones del banco; sin ellas no hay comparación entre visitas | **Confirmado**: se anotan siempre en la ficha de reparación |
 | En cada corrida: `umbilical` y `largo` | Sin saber con qué cable se midió, las mediciones no se pueden interpretar ni comparar | Criterio propio |
-| **Todos** los chequeos con `resultado`, incluido *No aplica* | Es el punto del checklist: probar que se miró | Criterio propio — **pendiente del taller**, ver abajo |
+| **Todos** los chequeos con `resultado`, incluido *No lo tiene* | Es el punto del checklist: probar que se miró | **Confirmado**: la inspección no siempre recorre los cinco componentes, así que *No lo tiene* es un valor de uso corriente y no una excepción |
 | Pares coherentes: si hay `subida` hay `bajada` | Media medición es peor que ninguna — parece un dato y no lo es | Criterio propio |
 
-**Lo único que falta preguntar en el taller**, y de la respuesta depende qué significa
-*No aplica*:
+**Confirmado por el taller: todas las pruebas se hacen siempre.** Así que exigir todos los
+chequeos respondidos no impone nada que no ocurra ya — solo obliga a dejar constancia.
 
-1. ¿**Todas** las pruebas se hacen siempre —presión, leak, navegación, video, sistema,
-   luces— o algunas se saltan según lo que traiga el equipo?
-2. ¿La inspección física recorre siempre los cinco componentes, o solo se miran cuando hay
-   sospecha?
-
-Si todo se hace siempre, «todos los chequeos respondidos» es la regla natural y *No aplica*
-casi no se usa. Si algunas se saltan, *No aplica* pasa a ser un dato con contenido —dice qué
-no se probó— y la regla sigue valiendo, pero por otra razón.
+El único caso en que un chequeo no se responde con OK o No OK es cuando **el equipo no lleva
+ese componente**: no todos los ROV tienen joystick, y el «cilindro fuente» solo existe en
+los que tienen dos e-pods. Para eso está *No lo tiene* (§ 5.4), que afirma algo sobre el
+equipo y no sobre lo que hizo el técnico.
 
 **Deliberadamente NO obligatorios:**
 
