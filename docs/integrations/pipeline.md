@@ -91,7 +91,40 @@ or a distributor, and the original sale never produces a repair order at all.
 - `ultima_mantencion` (computed) — **narrowed in 19.0.3.0.0** to preventive maintenance only
   (`tipo_intervencion = mantencion_preventiva`). It previously returned the date of any
   closed order, so pipeline history built before that version overstates maintenance.
-- *(48 ficha técnica `mc_*` fields — pipeline consumes a subset; TBD list in Phase 1)*
+- `mc_ficha_completa` — **new in 19.0.6.0.0.** Stored computed boolean: true when the unit's
+  spec sheet carries every field considered essential. False on component lots too, so
+  always pair it with `es_un_rov` when looking for ROVs with an incomplete sheet.
+
+  Numeric fields are checked with `> 0`, not "is set". In Odoo an `Integer` or a `Float` is
+  never empty — it reads as `0` — so a zero motor count means *nobody filled it in*, not
+  *zero motors*. The pipeline should read this field rather than re-deriving the rule.
+
+- *(the remaining ficha técnica `mc_*` fields — pipeline consumes a subset; TBD list in
+  Phase 1)*
+
+#### Breaking field changes in 19.0.6.0.0
+
+Three columns were **dropped**, not renamed in place. A pipeline query naming them errors
+out rather than returning empty:
+
+| Removed | Replaced by | Why |
+|---|---|---|
+| `mc_version_qground` | `mc_software_superficie` (Selection) + `mc_version_software` | QGroundControl stopped being the only surface software. Crabby and ROVControl exist, and ROVControl is temporary |
+| `mc_version_px4`, `mc_version_navigator` | `mc_controlador_vuelo` (already existed) + `mc_version_controlador` | A unit has a Pixhawk **or** a Navigator, never both, so one column was always empty. And Navigator is itself slated for replacement |
+
+The pattern in both cases is the same and worth knowing for anything built on top: **one
+column per product means a schema change every time the product landscape moves.** These
+are now a selector plus a single version field, so adding or retiring a product is a list
+edit.
+
+Migration merged the two controller versions by preferring the one matching the selected
+controller, falling back to the other rather than dropping a value, and seeded
+`mc_software_superficie` as `QGroundControl` only on rows that actually had a version
+recorded.
+
+> `19.0.6.0.0` briefly shipped a `Desconocido` option on eight spec-sheet `Selection`
+> fields; `19.0.7.0.0` removed it and cleared any stored value. If anything read those
+> columns during that window, treat `Desconocido` as null.
 
 ### `repair.order`
 
@@ -104,14 +137,31 @@ Custom mc_rov fields:
   `mc.rov.tipo.intervencion`, because one workshop visit can be several things at once.
   Pipeline queries reading the old name will return nothing. Read `name` for the label, or
   `es_mantencion` to identify maintenance visits — do not match on the label text.
-- `item_2..5`
 - `falla_reportada`
 - `linea_falla_ids` (one2many)
-- `estado_final`, `causa_raiz`
-- `garantia_reparacion`, `fecha_garantia`
+- `causa_raiz`
 - `fecha_entrega_real`
 - `observaciones_salida`
-- `mc_total_horas` (computed)
+- `mc_total_horas` — **stored since 19.0.5.2.0.** It was an unstored computed field, which
+  meant it could be read per record but not sorted, filtered or aggregated in a query. It
+  is now a real column. Same name, same value; what changed is that you can `GROUP BY` it.
+- `mc_propietario_lot_id`, `mc_propietario_difiere` — related/computed from the unit's
+  registered owner. `mc_propietario_difiere` is the resale signal: it fires when the order's
+  customer is not the unit's registered owner.
+- `item_2..5` — **deprecated, slated for removal.** Four unlabelled `Char` fields left over
+  from Studio. **Zero of the ten orders in production have ever used them.** They will be
+  dropped and replaced by a Many2many to `stock.lot` (the units received alongside the ROV,
+  which are traceable because e-pods carry their own serial). Do not build anything on them.
+
+**A semantic guarantee that only holds going forward:** since `19.0.5.2.0` an order cannot
+be closed without at least one `tipo_intervencion_ids`. Before that it could, and such an
+order counted as neither maintenance nor repair, never restarted the unit's cycle and never
+reached the counters — silently. **Orders closed before that version may still have none**,
+so do not assume the field is populated when reading history.
+
+> An earlier version of this document also listed `estado_final`, `garantia_reparacion` and
+> `fecha_garantia` on `repair.order`. **Those three fields have never existed in the code**
+> — they were only ever in this file. Removed 2026-08-12.
 
 ### `mc.rov.componente` and related
 
