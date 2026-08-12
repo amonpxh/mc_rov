@@ -2,7 +2,7 @@
 
 **Audience:** anyone validating changes before merging or deploying.
 
-**Time:** ~1-2 minutes for the full test suite (103 tests).
+**Time:** ~1-2 minutes for the full test suite (106 tests).
 
 ---
 
@@ -13,7 +13,7 @@
 | Test database | `odoo_test` |
 | Config | `/etc/odoo/odoo.conf` |
 | Test runner | Odoo's native test framework |
-| Total tests | 103 (69 `stock.lot` + 16 `repair.order` + 18 `mc.rov.componente`) |
+| Total tests | 106 (72 `stock.lot` + 16 `repair.order` + 18 `mc.rov.componente`) |
 
 ## Running all tests
 
@@ -44,7 +44,7 @@ sudo -u odoo odoo \
   --config /etc/odoo/odoo.conf
 ```
 
-Available test classes (as of v19.0.6.0.0):
+Available test classes (as of v19.0.7.0.0):
 
 | Class | Tests | Coverage |
 |---|---|---|
@@ -56,7 +56,7 @@ Available test classes (as of v19.0.6.0.0):
 | `TestStockLotPropiedad` | 6 | `mc_propietario_id` and the ownership history written by `write` |
 | `TestStockLotEstadoComercial` | 7 | `mc_estado_comercial`, rentals, decommissioning |
 | `TestStockLotTraspasoDesdeOrden` | 4 | resale detected at intake, transfer from the repair order |
-| `TestStockLotFichaCompleta` | 7 | `mc_ficha_completa`, «Desconocido» y el cero de los numéricos |
+| `TestStockLotFichaCompleta` | 10 | `mc_ficha_completa`, `mc_ficha_faltantes` y el cero de los numéricos |
 | `TestMcRovBajaWizard` | 5 | the decommission dialog, including the required reason |
 | `TestRepairOrder` | 16 | defaults, `tipo_intervencion_ids`, `fecha_entrega_real`, `linea_falla_ids`, `mc_total_horas`, the close-without-type block |
 | `TestMcRovComponente` | 18 | all four custom models (`componente`, `subtipo`, `accion`, `linea.falla`) |
@@ -71,7 +71,7 @@ written for units with `es_un_rov` on).
 
 ## Expected output
 
-All 103 tests should pass. Look for `0 failed, 0 error(s) of 103 tests` in the output (exact format depends on Odoo verbosity).
+All 106 tests should pass. Look for `0 failed, 0 error(s) of 106 tests` in the output (exact format depends on Odoo verbosity).
 
 ## When tests fail
 

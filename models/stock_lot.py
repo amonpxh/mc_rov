@@ -19,15 +19,9 @@ ROV_CATEG_PARAM = "mc_rov.rov_category_id"
 ROV_CATEG_XMLID_MODULE = "__import__"
 ROV_CATEG_XMLID_NAME = "cat_ROV"
 
-# Valor explícito de ignorancia. Existe porque un campo vacío no distingue "nadie lo llenó"
-# de "nadie lo sabe", y en los equipos anteriores a Odoo la segunda es la respuesta honesta.
-# Deja guardar la ficha de un equipo de terreno sin inventar datos, y no cuenta como
-# completa: el filtro "Ficha incompleta" los sigue mostrando hasta que se levante el dato.
-DESCONOCIDO = "Desconocido"
-
 # Campos que debe traer la ficha de un ROV para considerarse levantada. Se agrupan por tipo
-# porque cada uno se comprueba distinto: un Selection puede decir DESCONOCIDO, un Char puede
-# venir con espacios, y un numérico nunca está vacío en Odoo — se lee como 0.
+# porque cada uno se comprueba distinto: un Char puede venir con solo espacios, y un numérico
+# nunca está vacío en Odoo — se lee como 0.
 CAMPOS_FICHA_SELECCION = (
     "mc_chasis",
     "mc_modelo_motores",
@@ -294,7 +288,6 @@ class StockLot(models.Model):
         [
             ("Plástico", "Plástico"),
             ("Inox", "Inox"),
-            (DESCONOCIDO, DESCONOCIDO),
         ],
         string="Chasis",
     )
@@ -306,7 +299,6 @@ class StockLot(models.Model):
             ("T500", "T500"),
             ("W170", "W170"),
             ("DWT8537", "DWT8537"),
-            (DESCONOCIDO, DESCONOCIDO),
         ],
         string="Modelo motores",
     )
@@ -317,7 +309,6 @@ class StockLot(models.Model):
         [
             ("Recto", "Recto"),
             ("Vectorial", "Vectorial"),
-            (DESCONOCIDO, DESCONOCIDO),
         ],
         string="Posición motores",
     )
@@ -329,7 +320,6 @@ class StockLot(models.Model):
         [
             ("30 bar", "30 bar (300 m)"),
             ("100 bar (1000m)", "100 bar (1000m)"),
-            (DESCONOCIDO, DESCONOCIDO),
         ],
         string="Sensor de presión",
     )
@@ -338,7 +328,6 @@ class StockLot(models.Model):
         [
             ("V50", "V50"),
             ("V30", "V30"),
-            (DESCONOCIDO, DESCONOCIDO),
         ],
         string="Tarjeta de comunicación ROV",
     )
@@ -347,7 +336,6 @@ class StockLot(models.Model):
         [
             ("V50", "V50"),
             ("V30", "V30"),
-            (DESCONOCIDO, DESCONOCIDO),
         ],
         string="Tarjeta de comunicación Consola",
     )
@@ -361,7 +349,6 @@ class StockLot(models.Model):
             ("QGroundControl", "QGroundControl"),
             ("Crabby", "Crabby"),
             ("ROVControl", "ROVControl"),
-            (DESCONOCIDO, DESCONOCIDO),
         ],
         string="Software de superficie",
     )
@@ -375,7 +362,6 @@ class StockLot(models.Model):
         [
             ("Navigator", "Navigator"),
             ("Pixhawk", "Pixhawk"),
-            (DESCONOCIDO, DESCONOCIDO),
         ],
         string="Controlador de Vuelo",
     )
@@ -391,37 +377,56 @@ class StockLot(models.Model):
         compute="_compute_mc_ficha_completa",
         store=True,
         help="Se enciende cuando la ficha técnica del equipo trae todos los datos que se "
-        "consideran esenciales. Un campo en «Desconocido» no cuenta como levantado.",
+        "consideran esenciales.",
     )
+
+    mc_ficha_faltantes = fields.Char(
+        string="Datos que faltan",
+        compute="_compute_mc_ficha_completa",
+        help="Los campos de ficha técnica que todavía están vacíos, por nombre.",
+    )
+
+    def _falta_en_ficha(self, lot, campo):
+        """Si `campo` cuenta como no levantado en `lot`.
+
+        Cada tipo se comprueba distinto, y el numérico es el que importa: en Odoo un
+        Integer o un Float nunca queda vacío, se lee como 0. Por eso se exige > 0 y no
+        "está lleno" — un ROV con cero motores o cero kilos no existe, así que el cero es
+        exactamente la señal de que nadie lo llenó.
+
+        Recibe el lote como argumento en vez de operar sobre self porque lo llama el
+        compute sobre un registro a la vez, siguiendo la convención del módulo.
+        """
+        if campo in CAMPOS_FICHA_NUMERO:
+            return lot[campo] <= 0
+        if campo in CAMPOS_FICHA_TEXTO:
+            return not (lot[campo] or "").strip()
+        return not lot[campo]
 
     @api.depends("es_un_rov", *CAMPOS_FICHA)
     def _compute_mc_ficha_completa(self):
-        """Marca las fichas que ya están levantadas del todo.
+        """Marca las fichas levantadas del todo, y nombra lo que le falta al resto.
 
         Existe porque las reglas de obligatoriedad viven en la vista y solo alcanzan a
         quien abre el formulario: un número de serie que crea la orden de fabricación, o
         que entra por importación, nunca pasa por ahí. Este campo es lo que los encuentra.
 
-        «Desconocido» cuenta como faltante a propósito. Es un valor honesto para guardar
-        un equipo de terreno del que no se sabe todo, pero no es el dato — y si contara
-        como completo, la lista de pendientes se vaciaría sin que nadie levantara nada.
-
-        Los numéricos se comprueban con > 0 y no con "está lleno": en Odoo un Integer o un
-        Float nunca queda vacío, se lee como 0. Un ROV con cero motores o cero kilos no
-        existe, así que el cero es exactamente la señal de que nadie lo llenó.
+        mc_ficha_faltantes existe por una razón distinta y más concreta: el navegador
+        rechaza guardar con un numérico en cero, pero **no lo pinta de rojo**, así que el
+        usuario ve un guardado que falla sin causa visible. Nombrar los campos es más
+        confiable que pelear con el resaltado, y de paso cubre los que están en otra
+        pestaña y los registros que entraron por importación, donde no hay formulario.
         """
         for lot in self:
             if not lot.es_un_rov:
                 lot.mc_ficha_completa = False
+                lot.mc_ficha_faltantes = False
                 continue
 
-            faltantes = any(lot[campo] in (False, DESCONOCIDO) for campo in CAMPOS_FICHA_SELECCION)
-            faltantes = faltantes or any(
-                (lot[campo] or "").strip() in ("", DESCONOCIDO) for campo in CAMPOS_FICHA_TEXTO
-            )
-            faltantes = faltantes or any(lot[campo] <= 0 for campo in CAMPOS_FICHA_NUMERO)
+            faltan = [campo for campo in CAMPOS_FICHA if self._falta_en_ficha(lot, campo)]
 
-            lot.mc_ficha_completa = not faltantes
+            lot.mc_ficha_completa = not faltan
+            lot.mc_ficha_faltantes = ", ".join(self._fields[campo].string for campo in faltan)
 
     # --- Periféricos ---
 
