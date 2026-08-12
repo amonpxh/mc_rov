@@ -7,8 +7,29 @@ from odoo.tests import tagged
 
 from odoo.addons.mc_rov.models.stock_lot import (
     CICLO_MANTENCION_PARAM,
+    DESCONOCIDO,
     ROV_CATEG_PARAM,
 )
+
+# Una ficha técnica que sí cuenta como levantada. Los tests parten de aquí y le sacan una
+# cosa por vez, para que cada caso diga exactamente qué la deja incompleta.
+FICHA_COMPLETA = {
+    "mc_chasis": "Inox",
+    "mc_modelo_motores": "T200",
+    "mc_n_motores": 6,
+    "mc_posicion_motores": "Vectorial",
+    "mc_peso_consola": 12.0,
+    "mc_peso_rov": 25.0,
+    "mc_sensor_presion": "30 bar",
+    "mc_tarjeta_comunicacion_rov": "V50",
+    "mc_tarjeta_comunicacion_consola": "V50",
+    "mc_controlador_vuelo": "Navigator",
+    "mc_version_controlador": "1.2.0",
+    "mc_version_ardusub": "4.1.0",
+    "mc_software_superficie": "QGroundControl",
+    "mc_version_software": "4.2.6",
+    "mc_cantidad_luces": 4,
+}
 
 
 @tagged("post_install", "-at_install")
@@ -736,3 +757,58 @@ class TestMcRovBajaWizard(StockLotPropiedadCommon):
         self.assertFalse(self.lot.mc_fecha_baja)
         self.assertFalse(self.lot.mc_motivo_baja)
         self.assertEqual(self.lot.mc_estado_comercial, "Disponible")
+
+
+@tagged("post_install", "-at_install")
+class TestStockLotFichaCompleta(StockLotPropiedadCommon):
+    """Tests de mc_ficha_completa, el indicador de ficha técnica levantada."""
+
+    def _completar(self, **cambios):
+        """Deja la ficha completa y luego aplica los cambios del caso."""
+        self.lot.write({**FICHA_COMPLETA, **cambios})
+        return self.lot
+
+    def test_una_serie_recien_creada_tiene_la_ficha_incompleta(self):
+        self.assertFalse(self.lot.mc_ficha_completa)
+
+    def test_con_todos_los_datos_la_ficha_esta_completa(self):
+        self.assertTrue(self._completar().mc_ficha_completa)
+
+    def test_un_desconocido_deja_la_ficha_incompleta(self):
+        """Es un valor honesto para guardar, pero no es el dato.
+
+        Si contara como completa, la lista de pendientes se vaciaría sin que nadie
+        hubiera levantado nada — que es justo lo contrario de para qué existe.
+        """
+        self.assertFalse(self._completar(mc_chasis=DESCONOCIDO).mc_ficha_completa)
+
+    def test_cero_motores_deja_la_ficha_incompleta(self):
+        """En Odoo un Integer nunca queda vacío: se lee como 0.
+
+        Por eso el numérico se comprueba con > 0 y no con "está lleno". Un ROV con cero
+        motores no existe, así que el cero es exactamente la señal de que nadie lo llenó
+        —y es lo que entra por importación o por código, donde el required de la vista no
+        alcanza.
+        """
+        self.assertFalse(self._completar(mc_n_motores=0).mc_ficha_completa)
+
+    def test_un_peso_en_cero_deja_la_ficha_incompleta(self):
+        self.assertFalse(self._completar(mc_peso_rov=0.0).mc_ficha_completa)
+
+    def test_una_version_de_solo_espacios_deja_la_ficha_incompleta(self):
+        self.assertFalse(self._completar(mc_version_ardusub="   ").mc_ficha_completa)
+
+    def test_un_lote_que_no_es_rov_nunca_tiene_la_ficha_completa(self):
+        """Y por eso el filtro de pendientes exige es_un_rov en su dominio.
+
+        Un lote de componentes no tiene ninguno de estos datos ni va a tenerlos: sin esa
+        condición, la lista de fichas por levantar traería miles de filas que nadie puede
+        completar.
+        """
+        componente = self.env["stock.lot"].create(
+            {"name": "COMP-FICHA-001", "product_id": self.product_ajeno.id}
+        )
+        componente.write(FICHA_COMPLETA)
+
+        self.assertFalse(componente.es_un_rov)
+        self.assertFalse(componente.mc_ficha_completa)

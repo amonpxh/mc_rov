@@ -4,6 +4,68 @@ All notable changes to the `mc_rov` Odoo module are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this module adheres to [semantic versioning](https://semver.org/) within the constraints of Odoo's version scheme: `19.0.X.Y.Z` where `19.0` is the Odoo major, `X` is breaking-change/migration, `Y` is feature, `Z` is bugfix.
 
+## [19.0.6.0.0] — 2026-08-12
+
+The manufacturing spec sheet becomes mandatory for ROVs, and the two flight/surface
+software fields stop having one column per product.
+
+### Changed
+- **Every field in *Especificaciones*, plus *Cantidad de luces*, is now required for ROV
+  serials** — via `required="es_un_rov"` **in the view**, not `required=True` on the model.
+
+  The distinction matters. A model-level `required` puts `NOT NULL` on the column and
+  applies everywhere: to component lots, which have none of these fields and never will,
+  and to the moment a manufacturing order creates the serial, which happens before anyone
+  fills the sheet. Either would break manufacturing. A view-level rule blocks nobody from
+  creating a serial by code, and blocks everybody from saving an incomplete ROV sheet by
+  hand.
+
+- **`mc_version_px4` and `mc_version_navigator` collapse into `mc_version_controlador`;
+  `mc_version_qground` becomes `mc_software_superficie` + `mc_version_software`.**
+
+  Both pairs had one column per product, which means a deploy every time the product
+  landscape moves — and it is moving: ROVControl is temporary and will be replaced by
+  Crabby, PX4 is nearly gone in favour of Navigator, and Navigator is itself slated for
+  replacement. The two version columns also never coexisted: a unit has a Pixhawk or a
+  Navigator, so one of them was always empty. Retiring or adding a product is now a list
+  edit.
+
+  `mc_version_ardusub` stays on its own, because it is the one thing that genuinely does
+  coexist with either controller.
+
+  A side effect worth noting: this **removes the conditional show/hide** the design
+  originally called for. With a single version field per slot there is nothing to hide.
+
+### Added
+- **`Desconocido` as an explicit option in every `Selection` of the spec sheet.** An empty
+  field cannot tell *nobody filled it in* from *nobody knows*, and for units that predate
+  Odoo the second is the honest answer. It is what makes the strict requirement liveable:
+  a field unit can be saved without inventing data.
+
+- **`mc_ficha_completa`**, a stored computed flag, and a **"Ficha incompleta"** filter on
+  the serials list.
+
+  The two mechanisms are complementary rather than redundant. The view rule only reaches
+  whoever opens the form — a serial created by a manufacturing order or by import never
+  passes through it. This flag is what finds those. And **`Desconocido` counts as
+  missing**: it unblocks saving without emptying the to-do list.
+
+  Numeric fields are checked with `> 0`, not "is filled". In Odoo an `Integer` or a `Float`
+  is never empty — it reads as `0` — so `required` cannot tell *nobody filled it* from
+  *they typed zero*. A ROV with zero motors or zero kilos does not exist, which makes zero
+  exactly the right signal.
+
+### Migration
+`19.0.6.0.0/post-migrate.py`, in strict order: merge the two controller versions into one
+(keeping the one matching the selected controller, falling back to the other rather than
+losing a value), move `mc_version_qground` into the new pair seeding `QGroundControl` only
+where a version was actually recorded, and **only then** drop the three old columns.
+
+`mc_ficha_completa` is not touched there: it is a new column, and the ORM computes new
+columns on its own after the script runs.
+
+- 7 tests (96 → 103).
+
 ## [19.0.5.2.0] — 2026-08-11
 
 ### Added

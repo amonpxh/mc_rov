@@ -49,31 +49,39 @@
 
                     <page string="Especificaciones" name="page_especificaciones" invisible="not es_un_rov">
                         <group name="group_especificaciones">
+                            <!-- required="es_un_rov" y no required=True en el modelo: la
+                                 orden de fabricación crea el número de serie por código,
+                                 antes de que nadie llene la ficha, y los lotes de
+                                 componentes no tienen ninguno de estos datos. Un NOT NULL
+                                 en la base rompería las dos cosas. En la vista, en cambio,
+                                 nadie puede guardar a mano la ficha de un ROV incompleta,
+                                 y lo que entra por código o por importación queda marcado
+                                 por mc_ficha_completa. -->
                             <group name="group_especificaciones_left">
-                                <field name="mc_chasis" widget="radio" options="{&quot;horizontal&quot;:true}"/>
-                                <field name="mc_modelo_motores" widget="selection" placeholder="Seleccione modelo de motor"/>
-                                <field name="mc_n_motores"/>
-                                <field name="mc_posicion_motores" widget="radio" options="{&quot;horizontal&quot;:true}"/>
+                                <field name="mc_chasis" widget="radio" options="{&quot;horizontal&quot;:true}" required="es_un_rov"/>
+                                <field name="mc_modelo_motores" widget="selection" placeholder="Seleccione modelo de motor" required="es_un_rov"/>
+                                <field name="mc_n_motores" required="es_un_rov"/>
+                                <field name="mc_posicion_motores" widget="radio" options="{&quot;horizontal&quot;:true}" required="es_un_rov"/>
                                 <label for="mc_peso_consola" string="Peso Consola"/>
                                 <div class="o_row">
-                                    <field name="mc_peso_consola" nolabel="1" class="o_field_number" style="max-width: 80px;"/>
+                                    <field name="mc_peso_consola" nolabel="1" class="o_field_number" style="max-width: 80px;" required="es_un_rov"/>
                                     <span>kg</span>
                                 </div>
                                 <label for="mc_peso_rov" string="Peso ROV"/>
                                 <div class="o_row">
-                                    <field name="mc_peso_rov" nolabel="1" class="o_field_number" style="max-width: 80px;"/>
+                                    <field name="mc_peso_rov" nolabel="1" class="o_field_number" style="max-width: 80px;" required="es_un_rov"/>
                                     <span>kg</span>
                                 </div>
-                                <field name="mc_sensor_presion" widget="radio" options="{&quot;horizontal&quot;:true}"/>
+                                <field name="mc_sensor_presion" widget="radio" options="{&quot;horizontal&quot;:true}" required="es_un_rov"/>
                             </group>
                             <group name="group_especificaciones_right">
-                                <field name="mc_tarjeta_comunicacion_rov" widget="radio" options="{&quot;horizontal&quot;:true}"/>
-                                <field name="mc_tarjeta_comunicacion_consola" widget="radio" options="{&quot;size&quot;:&quot;md&quot;,&quot;horizontal&quot;:true}"/>
-                                <field name="mc_version_qground" placeholder="0.0.0"/>
-                                <field name="mc_controlador_vuelo" widget="radio" options="{&quot;horizontal&quot;:true}"/>
-                                <field name="mc_version_px4" placeholder="0.0.0"/>
-                                <field name="mc_version_navigator" placeholder="0.0.0"/>
-                                <field name="mc_version_ardusub" placeholder="0.0.0"/>
+                                <field name="mc_tarjeta_comunicacion_rov" widget="radio" options="{&quot;horizontal&quot;:true}" required="es_un_rov"/>
+                                <field name="mc_tarjeta_comunicacion_consola" widget="radio" options="{&quot;size&quot;:&quot;md&quot;,&quot;horizontal&quot;:true}" required="es_un_rov"/>
+                                <field name="mc_software_superficie" widget="selection" placeholder="Seleccione el software" required="es_un_rov"/>
+                                <field name="mc_version_software" placeholder="0.0.0" required="es_un_rov"/>
+                                <field name="mc_controlador_vuelo" widget="radio" options="{&quot;horizontal&quot;:true}" required="es_un_rov"/>
+                                <field name="mc_version_controlador" placeholder="0.0.0" required="es_un_rov"/>
+                                <field name="mc_version_ardusub" placeholder="0.0.0" required="es_un_rov"/>
                             </group>
                         </group>
                     </page>
@@ -85,7 +93,10 @@
                                 <field name="mc_brazo"/>
                             </group>
                             <group name="group_perifericos_right">
-                                <field name="mc_cantidad_luces"/>
+                                <!-- Único obligatorio fuera de Especificaciones: la ficha
+                                     de reparación compara el conteo de luces de la prueba
+                                     contra este número. -->
+                                <field name="mc_cantidad_luces" required="es_un_rov"/>
                                 <field name="mc_dispositivos_extra"/>
                             </group>
                         </group>

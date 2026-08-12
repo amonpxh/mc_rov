@@ -38,6 +38,16 @@
                     name="filtro_es_rov"
                     string="Es un ROV"
                     domain="[('es_un_rov', '=', True)]"/>
+                <!-- Las reglas de obligatoriedad viven en la vista y solo alcanzan a quien
+                     abre el formulario. Una serie creada por la orden de fabricación o por
+                     importación nunca pasa por ahí: esta es la lista que las encuentra.
+                     El es_un_rov del dominio es necesario — los lotes de componentes
+                     también tienen la ficha incompleta, y siempre la van a tener. -->
+                <filter
+                    name="filtro_ficha_incompleta"
+                    string="Ficha incompleta"
+                    domain="[('es_un_rov', '=', True), ('mc_ficha_completa', '=', False)]"
+                    help="ROVs a los que les falta algún dato esencial de ficha técnica, o que lo tienen en «Desconocido»."/>
             </filter>
         </field>
     </record>

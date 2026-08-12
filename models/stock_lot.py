@@ -19,6 +19,38 @@ ROV_CATEG_PARAM = "mc_rov.rov_category_id"
 ROV_CATEG_XMLID_MODULE = "__import__"
 ROV_CATEG_XMLID_NAME = "cat_ROV"
 
+# Valor explícito de ignorancia. Existe porque un campo vacío no distingue "nadie lo llenó"
+# de "nadie lo sabe", y en los equipos anteriores a Odoo la segunda es la respuesta honesta.
+# Deja guardar la ficha de un equipo de terreno sin inventar datos, y no cuenta como
+# completa: el filtro "Ficha incompleta" los sigue mostrando hasta que se levante el dato.
+DESCONOCIDO = "Desconocido"
+
+# Campos que debe traer la ficha de un ROV para considerarse levantada. Se agrupan por tipo
+# porque cada uno se comprueba distinto: un Selection puede decir DESCONOCIDO, un Char puede
+# venir con espacios, y un numérico nunca está vacío en Odoo — se lee como 0.
+CAMPOS_FICHA_SELECCION = (
+    "mc_chasis",
+    "mc_modelo_motores",
+    "mc_posicion_motores",
+    "mc_sensor_presion",
+    "mc_tarjeta_comunicacion_rov",
+    "mc_tarjeta_comunicacion_consola",
+    "mc_controlador_vuelo",
+    "mc_software_superficie",
+)
+CAMPOS_FICHA_TEXTO = (
+    "mc_version_controlador",
+    "mc_version_ardusub",
+    "mc_version_software",
+)
+CAMPOS_FICHA_NUMERO = (
+    "mc_n_motores",
+    "mc_peso_consola",
+    "mc_peso_rov",
+    "mc_cantidad_luces",
+)
+CAMPOS_FICHA = CAMPOS_FICHA_SELECCION + CAMPOS_FICHA_TEXTO + CAMPOS_FICHA_NUMERO
+
 
 class StockLot(models.Model):
     """Extensión de stock.lot para seguimiento de reparaciones ROV y ficha técnica del equipo.
@@ -130,8 +162,9 @@ class StockLot(models.Model):
     # --- Baja ---
 
     # Fecha y no booleano: cuándo se dio de baja un equipo es dato de análisis y un sí/no
-    # lo pierde. Deliberadamente no se usa el archivado de Odoo, que esconde el número de
-    # serie de todas partes y corta la trazabilidad de las reparaciones que ya tuvo.
+    # lo pierde. El archivado de Odoo no es una alternativa que se haya descartado: en
+    # Odoo 19 stock.lot no tiene campo `active`, así que los números de serie no se pueden
+    # archivar. Esta fecha es el único mecanismo, y no hay otro que pueda contradecirla.
     mc_fecha_baja = fields.Date(
         string="Fecha de baja",
         copy=False,
@@ -261,6 +294,7 @@ class StockLot(models.Model):
         [
             ("Plástico", "Plástico"),
             ("Inox", "Inox"),
+            (DESCONOCIDO, DESCONOCIDO),
         ],
         string="Chasis",
     )
@@ -272,6 +306,7 @@ class StockLot(models.Model):
             ("T500", "T500"),
             ("W170", "W170"),
             ("DWT8537", "DWT8537"),
+            (DESCONOCIDO, DESCONOCIDO),
         ],
         string="Modelo motores",
     )
@@ -282,6 +317,7 @@ class StockLot(models.Model):
         [
             ("Recto", "Recto"),
             ("Vectorial", "Vectorial"),
+            (DESCONOCIDO, DESCONOCIDO),
         ],
         string="Posición motores",
     )
@@ -293,6 +329,7 @@ class StockLot(models.Model):
         [
             ("30 bar", "30 bar (300 m)"),
             ("100 bar (1000m)", "100 bar (1000m)"),
+            (DESCONOCIDO, DESCONOCIDO),
         ],
         string="Sensor de presión",
     )
@@ -301,6 +338,7 @@ class StockLot(models.Model):
         [
             ("V50", "V50"),
             ("V30", "V30"),
+            (DESCONOCIDO, DESCONOCIDO),
         ],
         string="Tarjeta de comunicación ROV",
     )
@@ -309,23 +347,81 @@ class StockLot(models.Model):
         [
             ("V50", "V50"),
             ("V30", "V30"),
+            (DESCONOCIDO, DESCONOCIDO),
         ],
         string="Tarjeta de comunicación Consola",
     )
 
-    mc_version_qground = fields.Char(string="Versión QGround")
+    # Un solo par selector + versión, en vez de una columna por producto. El panorama ya
+    # está en movimiento —ROVControl es temporal y lo reemplaza Crabby— y un diseño que
+    # necesita una columna nueva cada vez que cambia es el diseño equivocado. Retirar un
+    # software pasa a ser editar esta lista.
+    mc_software_superficie = fields.Selection(
+        [
+            ("QGroundControl", "QGroundControl"),
+            ("Crabby", "Crabby"),
+            ("ROVControl", "ROVControl"),
+            (DESCONOCIDO, DESCONOCIDO),
+        ],
+        string="Software de superficie",
+    )
 
+    mc_version_software = fields.Char(string="Versión del software de superficie")
+
+    # Mismo criterio que arriba: PX4 y Navigator nunca conviven en un equipo, así que eran
+    # dos columnas de las que siempre había una vacía. Y Navigator también se va a
+    # reemplazar algún día.
     mc_controlador_vuelo = fields.Selection(
         [
             ("Navigator", "Navigator"),
             ("Pixhawk", "Pixhawk"),
+            (DESCONOCIDO, DESCONOCIDO),
         ],
         string="Controlador de Vuelo",
     )
 
-    mc_version_px4 = fields.Char(string="Versión PX4")
-    mc_version_navigator = fields.Char(string="Versión Navigator")
+    mc_version_controlador = fields.Char(string="Versión del controlador")
+
+    # ArduSub va aparte y siempre: es el software de vuelo y corre sobre cualquiera de los
+    # dos controladores, así que no es alternativa de ninguno.
     mc_version_ardusub = fields.Char(string="Versión Ardusub")
+
+    mc_ficha_completa = fields.Boolean(
+        string="Ficha completa",
+        compute="_compute_mc_ficha_completa",
+        store=True,
+        help="Se enciende cuando la ficha técnica del equipo trae todos los datos que se "
+        "consideran esenciales. Un campo en «Desconocido» no cuenta como levantado.",
+    )
+
+    @api.depends("es_un_rov", *CAMPOS_FICHA)
+    def _compute_mc_ficha_completa(self):
+        """Marca las fichas que ya están levantadas del todo.
+
+        Existe porque las reglas de obligatoriedad viven en la vista y solo alcanzan a
+        quien abre el formulario: un número de serie que crea la orden de fabricación, o
+        que entra por importación, nunca pasa por ahí. Este campo es lo que los encuentra.
+
+        «Desconocido» cuenta como faltante a propósito. Es un valor honesto para guardar
+        un equipo de terreno del que no se sabe todo, pero no es el dato — y si contara
+        como completo, la lista de pendientes se vaciaría sin que nadie levantara nada.
+
+        Los numéricos se comprueban con > 0 y no con "está lleno": en Odoo un Integer o un
+        Float nunca queda vacío, se lee como 0. Un ROV con cero motores o cero kilos no
+        existe, así que el cero es exactamente la señal de que nadie lo llenó.
+        """
+        for lot in self:
+            if not lot.es_un_rov:
+                lot.mc_ficha_completa = False
+                continue
+
+            faltantes = any(lot[campo] in (False, DESCONOCIDO) for campo in CAMPOS_FICHA_SELECCION)
+            faltantes = faltantes or any(
+                (lot[campo] or "").strip() in ("", DESCONOCIDO) for campo in CAMPOS_FICHA_TEXTO
+            )
+            faltantes = faltantes or any(lot[campo] <= 0 for campo in CAMPOS_FICHA_NUMERO)
+
+            lot.mc_ficha_completa = not faltantes
 
     # --- Periféricos ---
 
