@@ -1,117 +1,173 @@
-# Diseño: protocolo de pruebas y análisis de fallas
+# Diseño: ficha de reparación digital
 
-**Versión objetivo:** `19.0.6.0.0` (segmento `X`: mueve datos y requiere migración)
+**Versión objetivo:** `19.0.6.0.0`
 **Estado:** propuesta, pendiente de aprobación
-**Fecha:** 2026-08-11
+**Fecha:** 2026-08-11 (reescrito el mismo día — ver § 1.1)
 
 ---
 
 ## 1. El problema
 
-En el taller llenan a mano una *ficha de equipo reparado*: responsable, fecha, modelo, serie,
-cliente, inspección física, pruebas de esfuerzo / presión / leak / navegación / sistema /
-luces, y observaciones al final. Nada de eso existe en Odoo como tal.
+En el taller llenan a mano una **ficha de reparación**. Registra principalmente *qué se
+probó*: inspección física, esfuerzo, presión, leak, navegación, video, sistema, luces. Y
+al final, **todos los hallazgos caen en un campo de observaciones en texto libre.**
 
-Lo que sí existe es peor que nada: **24 campos de `stock.lot` que parecen ficha técnica pero
-son el resultado de una sola prueba.**
+Eso hace imposible el análisis de patrones sin leer los párrafos uno por uno. No se puede
+preguntar *cuál es la falla más común del motor*, *cuántos equipos llegan intervenidos por
+terceros*, ni *qué hallazgo predice una falla posterior*.
 
-| En `stock.lot` hoy | Lo que realmente es |
+El módulo ya tiene **la mitad buena de la solución**. `mc.rov.linea.falla` registra
+componente + subtipo contra catálogos configurables — esa era la idea correcta desde el
+principio. Lo que falta es una sola cosa:
+
+> El modelo guarda `accion_id`, que es **lo que se hizo**. No tiene ningún campo para **lo
+> que se encontró**. Se llama `linea.falla` y no guarda ninguna falla.
+
+Por eso todo termina en observaciones: no hay otro lugar donde ponerlo.
+
+### 1.1 Corrección de alcance
+
+Una versión anterior de este documento proponía **mover 24 campos de `stock.lot`** al
+protocolo, argumentando que repetir las pruebas sobrescribía los valores anteriores.
+
+**Era falso, por dos razones independientes:**
+
+1. Esos campos son la **ficha técnica de fabricación** de un equipo nuevo. Otra hoja, otro
+   departamento, otro momento. La ficha de reparación es una cosa distinta.
+2. Los resultados de una reparación **nunca se escriben ahí** — van al texto libre. No hay
+   nada que se esté sobrescribiendo.
+
+El error de origen fue no preguntar de cuál de las dos fichas venían esos campos, y esa
+pregunta decidía todo el diseño.
+
+**`stock.lot` queda completamente fuera del alcance: cero campos movidos, cero columnas
+eliminadas, cero cambios en la ficha técnica, ninguna migración de mediciones.**
+
+---
+
+## 2. Las dos fichas
+
+No confundirlas es lo más importante de este documento.
+
+| | Ficha técnica de fabricación | Ficha de reparación |
+|---|---|---|
+| Qué describe | Cómo **es** el equipo | Qué **pasó** en una visita al taller |
+| Dónde vive | `stock.lot` (número de serie) | **no existe en el sistema** |
+| Quién la llena | Manufactura, al fabricar | El taller, en cada visita |
+| Cada cuánto | Una vez; se actualiza si el equipo se modifica | Cada vez que el equipo entra |
+| Este diseño la toca | **No** | Es todo el alcance |
+
+---
+
+## 3. Decisiones tomadas
+
+| Decisión | Elección |
 |---|---|
-| `mc_fuente_energia`, `mc_tension_salida`, `mc_modelo_fuente` | Con qué se alimentó *una* prueba |
-| `mc_consumo_corriente`, `mc_en_reposo`, `mc_esfuerzo` | Medición de *una* prueba de esfuerzo |
-| `mc_prueba_leak` | Resultado de *una* prueba de leak |
-| `mc_ancho_banda`, `mc_subida`, `mc_bajada` | Medición de *una* prueba de sistema |
-| `mc_limitacion_pilot_gain`, `mc_ganancia_luz` | Ajustes con los que se corrió *una* prueba |
-| `mc_tiempo_prueba_lab`, `mc_temperatura_interior_lab`, `mc_temperatura_exterior_lab` | Condiciones de *una* prueba |
-| Página *Prueba en Terreno* completa (9 campos) | *Una* salida a terreno |
-
-Como viven en el lote hay **un solo valor por equipo**. Cuando el ROV vuelva el próximo año y
-se le repitan las pruebas, los números del año pasado se sobrescriben. El ancho de banda que
-bajó de 90 a 40 Mbps, la corriente en reposo que subió, el leak que empezó a fallar
-intermitente — **la degradación se destruye en cada escritura, y es exactamente el análisis
-que se quiere hacer.** Nada avisa.
-
-Es el patrón recurrente del módulo (`es_un_rov`, `mc_estado_operativo`) llevado un paso más
-allá: no es que el dato se desincronice, es que se borra.
-
-Segundo problema: las observaciones son texto libre (`observaciones_salida`,
-`mc_observacion`, `detalle` en las líneas de trabajo). Un historial de fallas construido
-sobre texto libre no se puede agregar, contar ni comparar.
+| `stock.lot` | **Fuera de alcance.** No se toca |
+| Relación con la orden de reparación | `repair_id` **opcional** — "técnico que fabrica y/o repara" |
+| Responsable | `hr.employee`, no `res.users` — 3-4 logins para no pagar suscripciones |
+| Hallazgos | Catálogo obligatorio; el texto libre deja de ser el registro |
+| Chequeos que crecen (6DOF, sonar…) | Catálogo configurable, sin desplegar |
+| Corridas con dos umbilicales | Modelo de línea propio (§ 5.2) |
+| Resultado de la prueba de esfuerzo | Binario + **duración** |
+| Responsable en la línea de trabajo | **Sí** — es el único campo que no se puede retrofitear |
+| `resultado` del protocolo | **Derivado, no forzable** — un override sería el texto libre en otra forma |
+| Chequeos que no aplican a un modelo | Se muestran todos y se marcan *No aplica*; filtrar por modelo solo si la lista crece |
+| Cliente vs dueño en el protocolo | Ninguno propio: ambos derivados |
+| Firma / aprobación con nombre | Se posterga; `estado: confirmado` es la aprobación por sistema |
+| Fotos de hallazgos | Se implementan al final, con `fields.Image` (§ 12) |
+| Ficha de papel como fuente | **No.** El diseño se hizo sin verla, a propósito |
+| `item_2` … `item_5` | Se eliminan — 0 de 10 órdenes los usaron |
 
 ---
 
-## 2. Decisiones tomadas
+## 4. Qué contiene la ficha de reparación
 
-| Decisión | Elección | Quién |
+Inventario cerrado con Paulo. Es lo que hacen hoy.
+
+**Cabecera:** responsable (técnico que fabrica y/o repara), fecha, modelo del ROV, N° de
+serie, cliente/dueño.
+
+**Inspección física** — para saber si alguien más aparte de ellos intervino el equipo. Se
+revisa en E-pod, cilindro fuente, motores, consola y joystick si hay **marcas de plumón,
+sellos antiguos o sellos nuevos**.
+
+**Pruebas:**
+
+| Prueba | En qué consiste | Depende del cable |
 |---|---|---|
-| Dónde viven los resultados de prueba | Modelo nuevo, N por equipo | — |
-| Relación con la orden de reparación | `repair_id` **opcional** | Paulo: "técnico que fabrica y/o repara" |
-| Responsable | `hr.employee`, no `res.users` | Paulo: 3-4 logins para no pagar suscripciones |
-| Historial de configuración | `tracking=True` + snapshot de versiones en el protocolo | Paulo preguntó; no se construye modelo SCD-2 |
-| Pilot gain y ganancia de luz | Se mueven al protocolo | Paulo: "se pueden mover en cada prueba" |
-| `item_2` … `item_5` | Se eliminan | 0 de 10 órdenes los usan; etiqueta original ya era "Ítem 2" |
-| Observaciones | Catálogo de hallazgos, no texto libre | Paulo |
-| Chequeos que crecen (6DOF, sonar…) | Catálogo configurable | Paulo preguntó por 6DOF |
-| Cliente vs dueño en el protocolo | Ninguno propio: ambos derivados | Cierra la separación de `19.0.5.0.0` |
-| Firma / aprobación con nombre | Se posterga; `estado: confirmado` es la aprobación por sistema | Paulo: "lo vemos luego" |
-| Fotos de hallazgos | Se implementan al final, con `fields.Image` (§ 12) | Paulo: "dejémoslo para el final" |
-| Ficha de papel como fuente | **No.** El diseño se hizo sin verla a propósito | Paulo: "mi trabajo es mejorarlo, no replicarlo" |
+| Esfuerzo | El ROV funcionando en un bin con agua, 1 a 1½ horas o más, para ver si algo falla — típicamente los motores | **sí** |
+| Presión | Si el equipo está bien sellado, usando el sensor de presión | no |
+| Leak | Si el sensor de leak funciona | no |
+| Navegación | Hélices en posición correcta, movimiento vertical, movimiento horizontal | no |
+| Video | Cámara y tilt | no |
+| Sistema | Ancho de banda, subida, bajada | **sí** |
+| Luces | Cantidad de internas, externas y total | no |
+
+**Observaciones finales:** los hallazgos, en texto libre. Esto es lo que el diseño cambia.
+
+### 4.1 El umbilical como muestra de control
+
+Normalmente se prueba con **el cable con el que viene el equipo**. Si viene sin cable, se
+usa el **umbilical de prueba estándar**. Y a veces se prueba con **ambos**, para ver si el
+umbilical propio tiene algo o si hay comportamiento que varíe con el largo: el de prueba
+funciona como **muestra de control**.
+
+Cuando eso pasa, las pruebas que dependen del cable —esfuerzo y sistema— **se hacen dos
+veces**. Las demás se hacen una sola vez. La primera corrida siempre existe.
+
+Ahí está el diagnóstico de mayor valor de toda la ficha, y hoy no se puede sacar de ella:
+mismo ROV, mismo banco, distinto cable. **Si el ancho de banda solo cae con el umbilical
+propio, el problema es el cable y no el vehículo.**
 
 ---
 
-## 3. Los tres tipos de dato
+## 5. Modelo de datos
 
-| Qué | Dónde | Cardinalidad |
-|---|---|---|
-| **Configuración del equipo** — chasis, motores, tarjetas, versiones, sensor de presión, umbilical propio, cantidad de luces | `stock.lot` (donde ya está) | 1 por equipo; cambia si lo modifican |
-| **Protocolo de pruebas** — la ficha de papel | `mc.rov.protocolo` (nuevo) | N por equipo, 1 por sesión de pruebas |
-| **Hallazgos** — qué se encontró | Líneas del protocolo, contra catálogo | N por protocolo |
+Seis modelos nuevos: una cabecera, tres modelos de línea, dos catálogos.
 
----
-
-## 4. Modelo de datos
-
-Cinco modelos nuevos: una cabecera, dos modelos de línea, dos catálogos.
-
-### 4.1 `mc.rov.protocolo` — cabecera
+### 5.1 `mc.rov.protocolo` — la ficha
 
 ```
-name                    Char       secuencia PROT/00001, readonly
-lot_id                  M2o stock.lot        required, index
-repair_id               M2o repair.order     opcional, index, ondelete set null
-tipo                    Selection  fabricacion | recepcion | entrega | terreno   required
-fecha                   Date       required, default hoy
-responsable_id          M2o hr.employee      default env.user.employee_id
-estado                  Selection  borrador | confirmado                          default borrador
+name              Char       secuencia PROT/00001, readonly
+lot_id            M2o stock.lot        required, index
+repair_id         M2o repair.order     opcional, index, ondelete set null
+tipo              Selection  fabricacion | recepcion | entrega | terreno   required
+fecha             Date       required, default hoy
+responsable_id    M2o hr.employee      default env.user.employee_id
+estado            Selection  borrador | confirmado                          default borrador
 ```
 
 **`repair_id` es opcional a propósito.** Un ROV nuevo pasa por el mismo protocolo antes de
 despacharse y ahí no hay orden de reparación. Si el protocolo colgara de la orden, toda la
 fabricación quedaría fuera del análisis.
 
-**`tipo` con recepción y entrega** permite lo que ya hacen: probar al recibir, arreglar, y
-volver a probar antes de entregar. Dos protocolos, misma visita. La comparación entre ambos
-es la evidencia de que el trabajo sirvió.
+**`tipo` con recepción y entrega** permite probar al recibir, arreglar, y volver a probar
+antes de entregar. Dos protocolos, misma visita; la comparación entre ambos es la evidencia
+de que el trabajo sirvió.
 
-**El protocolo de recepción es la actividad de diagnosticar**, y ahí es donde este modelo se
-une con el registro de fallas. Conviene no confundir dos niveles:
+**El protocolo de recepción es la actividad de diagnosticar.** Tres niveles que conviene no
+mezclar:
 
-- `tipo_diagnostico` (tipo de intervención) sigue siendo lo que ya es: el tipo de **visita**.
-  No cambia nada de él.
-- El **protocolo de recepción** es el paso de diagnóstico, y ocurre en toda visita — sea
-  reparación, mantención o diagnóstico puro.
-- Una visita de solo diagnóstico produce un protocolo de recepción con hallazgos y **cero
-  líneas de trabajo**. Ese es su resultado completo, y hoy no queda registrado en ninguna
-  parte: el diagnóstico termina en el texto libre de observaciones y se pierde.
+| Cosa | Qué es | Nombre |
+|---|---|---|
+| La lista de qué se prueba siempre | catálogo configurable | pasos de testeo estándar (`mc.rov.chequeo`) |
+| El registro de haberlos corrido un día | el documento | protocolo de pruebas (`mc.rov.protocolo`) |
+| Para qué sirve al recibir el equipo | el propósito | diagnóstico |
 
-**`estado`** existe para que el protocolo se pueda llenar por partes. En `borrador` se guarda
-incompleto; al confirmar se valida que todos los chequeos estén respondidos y el registro
-queda en solo lectura. Sin eso, un checklist a medio llenar no se distingue de uno completo.
+El registro no se puede llamar "diagnóstico" porque la misma batería se corre **antes de
+entregar**, y ahí no diagnostica: verifica.
 
-**`responsable_id` no es `required` a nivel de modelo, sí en la vista.** Los registros que
-cree la migración no tienen a quién atribuirse, y un empleado ficticio tipo "Sin registrar"
-ensuciaría la lista de empleados para siempre. Un protocolo migrado se reconoce porque el
-responsable está vacío, que es la verdad.
+`tipo_diagnostico` (tipo de intervención) no cambia: sigue siendo el tipo de **visita**. Una
+visita de solo diagnóstico produce un protocolo de recepción con hallazgos y **cero líneas
+de trabajo** — su resultado completo, que hoy no queda registrado en ninguna parte.
+
+**`estado`** existe para llenar la ficha por partes. En `borrador` se guarda incompleta; al
+confirmar se valida que todos los chequeos estén respondidos y el registro queda en solo
+lectura. Sin eso, un checklist a medio llenar no se distingue de uno completo.
+
+**`responsable_id` no es `required` a nivel de modelo, sí en la vista.** Un empleado ficticio
+tipo "Sin registrar" ensuciaría la lista de empleados para siempre.
 
 Derivados, sin columna propia:
 
@@ -122,110 +178,106 @@ partner_id       related repair_id.partner_id         readonly   quién paga est
 es_un_rov        related lot_id.es_un_rov             readonly
 ```
 
-**Sobre la nomenclatura cliente/dueño:** el protocolo no lleva contacto propio. `propietario_id`
-es de quién es el equipo (dura años); `partner_id` es a quién se le factura esta visita (dura
-lo que dura la orden). Agregar un tercer contacto aquí reabriría justo la confusión que se
-cerró en `19.0.5.0.0`.
+**Cliente vs dueño:** el protocolo no lleva contacto propio. `propietario_id` es de quién es
+el equipo (dura años); `partner_id` es a quién se factura esta visita. Un tercer contacto
+aquí reabriría la confusión que se cerró en `19.0.5.0.0`.
 
-Configuración al momento de la prueba — las cuatro versiones que más cambian:
-
-```
-version_qground     Char
-version_px4         Char
-version_navigator   Char
-version_ardusub     Char
-```
-
-Se proponen desde el lote al crear el protocolo. Se duplican **solo estas cuatro** porque son
-las únicas que se quieren leer *en la misma fila* que las mediciones: el ancho de banda de esa
-prueba junto a la versión de firmware de esa prueba. El resto de la configuración se resuelve
-con `tracking` (§ 6).
-
-Mediciones — los campos que bajan de `stock.lot`:
+Mediciones que **no** dependen del cable:
 
 ```
---- esfuerzo ---
-umbilical_prueba          Boolean    ¿se usó umbilical de prueba en vez del propio?
-umbilical_prueba_largo    Float m    largo del umbilical de prueba
-umbilical_equipo_largo    Float m    propuesto desde lot_id.mc_longitud, editable
-umbilical_difiere         Boolean    computed, largo medido != el de la ficha
-alimentacion              Selection  UPS | Generador | Transformador
-modelo_fuente             Char
-tension_salida            Integer V
-consumo_corriente         Char
-consumo_reposo            Float kWh
-consumo_esfuerzo          Float kWh
-
---- parámetros de trabajo ---
-limitacion_pilot_gain     Integer %
-ganancia_luz              Integer %
-
---- sistema ---
-ancho_banda               Char
-subida                    Float Mbps
-bajada                    Float Mbps
-
 --- luces ---
-luces_internas            Integer
-luces_externas            Integer
-luces_total               Integer    computed, internas + externas
-luces_ficha               Integer    related lot_id.mc_cantidad_luces, readonly
-luces_difieren            Boolean    computed, total != ficha
+luces_internas    Integer
+luces_externas    Integer
+luces_total       Integer   computed, internas + externas
+luces_ficha       Integer   related lot_id.mc_cantidad_luces, readonly
+luces_difieren    Boolean   computed, total != ficha
 
 --- condiciones ---
-tiempo_prueba             Float h
-temperatura_interior      Float °C
-temperatura_exterior      Float °C
+temperatura_interior   Float °C
+temperatura_exterior   Float °C
 
 --- solo cuando tipo = terreno ---
-lugar                     Char
-profundidad               Integer m
-velocidad_corriente       Float knots
+lugar                  Char
+profundidad            Integer m
+velocidad_corriente    Float knots
 ```
 
-Dos comparaciones automáticas que hoy nadie hace:
+`luces_difieren` compara el conteo de la prueba contra la especificación del equipo: si
+debería tener 6 luces y se contaron 4, el sistema lo dice. Es **la única lectura que este
+modelo hace de la ficha técnica**, y es de solo lectura.
 
-- **`umbilical_difiere`** compara el largo medido contra el de la ficha. El campo se propone
-  desde el lote pero **queda editable**: en el papel anotan los dos largos, y si lo anotan es
-  porque puede no coincidir con lo registrado. De solo lectura, el sistema impediría anotar
-  la verdad.
-- **`luces_difieren`** compara el conteo de la prueba contra la especificación del equipo. Si
-  el ROV debería tener 6 luces y se contaron 4, el sistema lo dice. Es una de las cosas que
-  la inspección busca.
-
-Resultado del protocolo, derivado (no editable, igual que `mc_estado_comercial` y
-`mc_estado_operativo`):
+Líneas y resumen:
 
 ```
-resultado   Selection  aprobado | aprobado_con_observaciones | rechazado   computed, store
+corrida_ids    O2m mc.rov.protocolo.corrida
+chequeo_ids    O2m mc.rov.protocolo.chequeo
+hallazgo_ids   O2m mc.rov.protocolo.hallazgo
+resultado      Selection  aprobado | aprobado_con_observaciones | rechazado   computed, store
 ```
 
-Regla, en orden de precedencia:
+`resultado`, en orden de precedencia:
 
-1. Algún chequeo en `no_ok`, o algún hallazgo con severidad `impide_operar` → **rechazado**
+1. Algún chequeo en `no_ok`, alguna corrida con esfuerzo `con_problemas`, o algún hallazgo
+   con severidad `impide_operar` → **rechazado**
 2. Algún hallazgo → **aprobado con observaciones**
 3. Si no → **aprobado**
 
-### 4.2 `mc.rov.chequeo` — catálogo de chequeos
+### 5.2 `mc.rov.protocolo.corrida` — una pasada con un umbilical
+
+```
+protocolo_id          M2o mc.rov.protocolo    required, ondelete cascade
+sequence              Integer
+umbilical             Selection  equipo | prueba          required
+largo                 Float m                             required
+alimentacion          Selection  UPS | Generador | Transformador
+tension_salida        Integer V
+
+--- esfuerzo ---
+esfuerzo_duracion     Float h
+esfuerzo_resultado    Selection  ok | con_problemas
+
+--- sistema (ancho de banda) ---
+subida                Float Mbps
+bajada                Float Mbps
+```
+
+**No hay un campo `ancho_banda`.** "Ancho de banda" es el nombre de la prueba, no una tercera
+medición: lo que se mide es la velocidad de **subida** y de **bajada**, ambas en Mbps. En la
+ficha de fabricación existe un `mc_ancho_banda` de texto que sí es otra cosa — un valor
+nominal— y que no se toca, porque esa ficha está fuera de alcance.
+
+Existe porque **el umbilical es una condición de la corrida, no un dato de una prueba**.
+Normalmente hay una sola línea, con el cable del equipo. Hay dos cuando usan el de control,
+y entonces la comparación entre líneas aísla el cable como fuente de falla.
+
+Lo que **no** depende del cable se queda en el protocolo y se hace una sola vez, aunque haya
+dos corridas: repetir la inspección física dos veces no aporta nada.
+
+**`esfuerzo_duracion` es el campo que hoy no existe y más vale.** El resultado de la prueba
+es binario —pasó o presentó problemas— pero *cuánto aguantó* es información distinta y
+comparable: "aguantó 90 minutos" y "falló a los 15" hoy quedan registrados igual, o sea, no
+registrados. Si falló, la duración es tiempo hasta la falla; si pasó, es la fuerza de la
+evidencia. Es la materia prima de cualquier análisis de confiabilidad.
+
+### 5.3 `mc.rov.chequeo` — catálogo de pasos de testeo
 
 ```
 name             Char       required
 sequence         Integer
-seccion          Selection  inspeccion_fisica | presion | leak | navegacion | otro
+seccion          Selection  inspeccion_fisica | presion | leak | navegacion | video | otro
 por_componente   Boolean    si la línea debe indicar sobre qué componente se hizo
 active           Boolean    default True
 ```
 
-**Aquí se contesta la pregunta del 6DOF.** Agregar *lateral*, *yaw*, *roll* o *pitch* es crear
-cuatro registros desde `Reparaciones → Configuración`, no tocar código ni desplegar. Lo mismo
-para sonar, USBL o cualquier chequeo que aparezca en un modelo nuevo.
+Agregar *lateral*, *yaw*, *roll* o *pitch* para un equipo 6DOF es crear cuatro registros
+desde `Reparaciones → Configuración`, no tocar código. Lo mismo para sonar, USBL o cualquier
+chequeo de un modelo nuevo.
 
-`seccion` sí es un `Selection`, o sea que agregar una **sección** nueva requiere código. Es un
-límite deliberado: las secciones son la estructura de la ficha y son estables; los chequeos
-dentro de ellas son operativos y cambian. Un catálogo de secciones sería un catálogo de
-catálogos para resolver un problema que no existe.
+`seccion` sí es `Selection`, o sea que una **sección** nueva requiere código. Límite
+deliberado: las secciones son la estructura de la ficha y son estables; los chequeos dentro
+de ellas son operativos y cambian.
 
-### 4.3 `mc.rov.protocolo.chequeo` — línea de chequeo
+### 5.4 `mc.rov.protocolo.chequeo` — línea de chequeo
 
 ```
 protocolo_id    M2o mc.rov.protocolo      required, ondelete cascade
@@ -236,16 +288,24 @@ resultado       Selection  ok | no_ok | na
 detalle         Char
 ```
 
-Las líneas se generan solas al crear el protocolo, con todos los chequeos activos de la
-sección que corresponda al `tipo`. **La inspección física es un checklist, no una lista de
-excepciones:** se recorren los cinco componentes siempre y "revisado y limpio" queda
-registrado. Si solo se anotaran los hallazgos, *el joystick estaba limpio* sería
+**`resultado` cubre dos dimensiones con un campo**, porque la ficha de hoy registra
+principalmente *qué se testeó* y no *qué resultó*:
+
+| Valor | Significa |
+|---|---|
+| *(vacío)* | no se hizo |
+| No aplica | no corresponde a este equipo |
+| OK / No OK | se hizo, con resultado |
+
+Las líneas se generan solas al crear el protocolo, con todos los chequeos activos. **La
+inspección física es un checklist, no una lista de excepciones:** se recorren los cinco
+componentes siempre. Si solo se anotaran los hallazgos, *el joystick estaba limpio* sería
 indistinguible de *nadie miró el joystick*.
 
-`resultado` no es `required` en el campo — lo valida el paso a `confirmado`. Así se puede
+`resultado` no es `required` en el campo — lo valida el paso a `confirmado`, para poder
 guardar a medio llenar sin poder cerrar incompleto.
 
-### 4.4 `mc.rov.hallazgo` — catálogo de hallazgos
+### 5.5 `mc.rov.hallazgo` — catálogo de hallazgos
 
 ```
 name       Char       required
@@ -254,101 +314,69 @@ sequence   Integer
 active     Boolean    default True
 ```
 
-Este catálogo es **lo que falta hoy**. `mc.rov.linea.falla` ya es estructurado (componente +
-subtipo + acción), pero `accion_id` es *lo que se hizo*, no *lo que se encontró*. No existe
-vocabulario de hallazgos, y sin él el análisis de fallas se apoya en el `detalle` de texto
-libre.
+Este catálogo **es la pieza que falta hoy** y la razón de todo el diseño.
 
-### 4.5 `mc.rov.protocolo.hallazgo` — línea de hallazgo
+### 5.6 `mc.rov.protocolo.hallazgo` — línea de hallazgo
 
 ```
 protocolo_id    M2o mc.rov.protocolo      required, ondelete cascade
 sequence        Integer
-componente_id   M2o mc.rov.componente     required
+componente_id   M2o mc.rov.componente     REQUERIDO
 subtipo_id      M2o mc.rov.subtipo        domain [('componente_id','=',componente_id)]
-hallazgo_id     M2o mc.rov.hallazgo       required
+hallazgo_id     M2o mc.rov.hallazgo       REQUERIDO
 severidad       Selection  informativo | atencion | impide_operar   required, default atencion
-detalle         Text                      complemento, no reemplazo
+detalle         Text                      complemento, nunca sustituto
 ```
 
 Reusa `mc.rov.componente` y `mc.rov.subtipo`, los mismos catálogos de las líneas de trabajo.
 Eso es lo que permite correlacionar: *dónde* se encuentran los hallazgos y *dónde* se hacen
 los trabajos hablan el mismo idioma.
 
-`detalle` sigue existiendo, pero **como complemento del hallazgo, no en su lugar**. Sin la
-parte estructurada el técnico escribe "se vio raro el motor" y no hay nada que agregar.
-
-### 4.6 Cambio en `mc.rov.linea.falla`
+### 5.7 Cambios en `mc.rov.linea.falla`
 
 ```
 hallazgo_origen_id   M2o mc.rov.protocolo.hallazgo   opcional
+responsable_id       M2o hr.employee                 quién hizo este trabajo
+causa_raiz           Selection                       baja desde repair.order (§ 9)
 ```
 
-Es el campo que cierra el circuito:
+**`responsable_id` en la línea y no solo en la cabecera**, porque dos técnicos pueden
+trabajar la misma orden y cada línea ya lleva sus horas. Con él, las HH quedan atribuidas y
+se puede costear por técnico o ver quién concentra qué tipo de trabajo. Se propone desde el
+responsable del protocolo o el de la orden.
+
+Es el único de los campos discutidos que **no se puede retrofitear**: agregarlo después deja
+todas las líneas anteriores sin atribuir para siempre.
+
+`hallazgo_origen_id` cierra el circuito:
 
 ```
 protocolo de recepción → hallazgo → línea de trabajo (acción + HH) → protocolo de entrega
 ```
 
-Con eso se puede preguntar: *de los hallazgos de recepción, cuántos se cerraron*; *qué
-componente concentra los hallazgos*; *cuántos equipos llegan con intervención de terceros*;
-*cuánto demora en promedio cada acción*; *qué hallazgo predice una falla posterior*.
-
-Se deja opcional: un trabajo puede surgir sin hallazgo previo, y un hallazgo puede quedarse
+Se deja opcional: un trabajo puede surgir sin hallazgo previo, y un hallazgo puede quedar
 sin resolver — que también es un dato.
 
 ---
 
-## 5. Qué sale de `stock.lot`
+## 6. Cómo se evita que el texto libre se coma los hallazgos
 
-**Se van al protocolo (24 campos):**
+La estructura no gana por existir. Gana cuando el texto libre deja de ser el camino fácil.
+Si se deja una caja de texto grande donde la costumbre pone los hallazgos, ahí van a seguir.
 
-`mc_modelo_fuente`, `mc_fuente_energia`, `mc_tension_salida`, `mc_consumo_corriente`,
-`mc_en_reposo`, `mc_esfuerzo`, `mc_limitacion_pilot_gain`, `mc_ganancia_luz`,
-`mc_tiempo_prueba_lab`, `mc_prueba_leak`, `mc_ancho_banda`, `mc_subida`, `mc_bajada`,
-`mc_temperatura_interior_lab`, `mc_temperatura_exterior_lab`, `mc_fecha_prueba`, `mc_lugar`,
-`mc_profundidad`, `mc_velocidad_corriente`, `mc_alimentacion`, `mc_tiempo_prueba_terreno`,
-`mc_temperatura_interior_terreno`, `mc_temperatura_exterior_terreno`, `mc_observacion`
-
-`mc_fuente_energia` (página Umbilical) y `mc_alimentacion` (página Prueba en Terreno) eran la
-**misma selección con los mismos tres valores, duplicada**. Colapsan en un solo
-`alimentacion` en el protocolo, distinguidas por el `tipo`.
-
-**Se queda como especificación:** chasis, modelo / N° / posición de motores, pesos, sensor de
-presión, tarjetas de comunicación, versiones de software, controlador de vuelo, brazo y salida
-de brazo, cantidad de luces, dispositivos extra, N° de serie / longitud / diámetro / peso del
-umbilical.
-
-**Desaparecen del formulario del lote:** la sección *Prueba de rendimiento*, la sección
-*Parámetros de trabajo* y la pestaña *Prueba en Terreno* completa.
-
----
-
-## 6. Historial de configuración
-
-La configuración también cambia: las versiones de software se actualizan en cada upgrade
-—*Conversión / Upgrade* es un tipo de intervención existente—, los motores pasan de T200 a
-T500, el umbilical se reemplaza por otro con distinto número de serie. Sin historial no se
-puede preguntar *"¿con qué versión de ArduSub estaba corriendo cuando falló el motor?"*.
-
-**Solución: `tracking=True` en los campos de configuración de `stock.lot`.** `stock.lot`
-hereda `mail.thread` —por eso funciona el `message_post` de la baja—, así que cada cambio
-queda en el chatter con fecha y valor anterior → valor nuevo, en `mail_tracking_value`,
-consultable por SQL. Cero modelos nuevos, cero migración, una palabra por campo.
-
-**No se construye** un `mc.rov.configuracion.historial` estilo el de propietarios. Veinte
-campos por períodos es caro, y entre el `tracking` y el snapshot de versiones del protocolo
-quedan cubiertas todas las preguntas planteadas hasta ahora. Si aparece una que ninguno
-responde, se construye entonces — con la pregunta en la mano.
-
-**Dos límites, dichos explícitamente:**
-
-- `tracking` registra **desde que se activa**. Lo anterior se perdió. Hoy no cuesta nada
-  porque no hay datos reales.
-- Con logins compartidos, el *quién* del chatter va a decir "Trabajadores". El *cuándo* y el
-  *de qué a qué* —la parte que importa— quedan igual. Y el quién que de verdad interesa
-  —quién hizo el trabajo físico— es `responsable_id`, que es un dato distinto del autor del
-  registro y haría falta aunque cada técnico tuviera su propio login.
+1. **`hallazgo_id` y `componente_id` son obligatorios.** Escribir un párrafo no es una
+   opción disponible: no se puede guardar un hallazgo sin elegir del catálogo.
+2. **`detalle` es complemento.** Existe para el matiz —"la trizadura arranca en el
+   penetrador de babor"— no para el hallazgo. Siempre hay algo contable al lado.
+3. **Cuando el catálogo no alcanza, se agrega al catálogo, no al detalle.** Se administra
+   desde `Reparaciones → Configuración` sin tocar código, igual que componentes y acciones.
+   Esa es la diferencia entre un catálogo vivo y uno decorativo.
+4. **`observaciones_salida` deja de ser la caja de los hallazgos.** Hoy es un `Text` sin
+   propósito declarado, justo donde la costumbre los pone. Pasa a tener destino explícito:
+   **lo que se le informa al cliente en la entrega**, y sale en el PDF. Los hallazgos
+   internos no van ahí.
+5. **El uso de "Otro" es la señal de qué le falta al catálogo**, y es medible. Con texto
+   libre no hay señal de nada.
 
 ---
 
@@ -366,8 +394,10 @@ responde, se construye entonces — con la pregunta en la mano.
 | Navegación | Hélices en posición correcta | no |
 | Navegación | Movimiento vertical | no |
 | Navegación | Movimiento horizontal | no |
+| Video | Imagen de cámara | no |
+| Video | Tilt | no |
 
-### Componentes que se agregan al catálogo
+### Componentes que se agregan
 
 `mc.rov.componente` hoy tiene Motor, Umbilical, Electrónica/Software, Estructura/Chasis,
 Consola, Cámara, Sensor, Otro. La inspección física necesita además:
@@ -386,7 +416,11 @@ Consola, Cámara, Sensor, Otro. La inspección física necesita además:
 | Estructura | Corrosión · Trizadura · Deformación · Soldadura rota |
 | Eléctrico | Cable pellizcado · Conector dañado · Aislación deteriorada · Falso contacto |
 | Funcional | No responde · Intermitente · Fuera de rango · Ruido anormal |
-| Otro | Sin hallazgos |
+
+**No hay un hallazgo "Sin hallazgos".** Un protocolo sin líneas de hallazgo ya significa que
+no se encontró nada, y los chequeos respondidos son la prueba de que se miró. Tener las dos
+formas de decirlo crearía registros ambiguos: una línea "sin hallazgos" junto a otra con un
+hallazgo real no querría decir nada.
 
 ---
 
@@ -395,132 +429,196 @@ Consola, Cámara, Sensor, Otro. La inspección física necesita además:
 | Dónde | Qué |
 |---|---|
 | `Reparaciones → Protocolos de prueba` | Lista y formulario |
-| `Reparaciones → Configuración` | Chequeos ROV, Hallazgos ROV (junto a Componentes y Acciones) |
-| Botón inteligente en `stock.lot` | "Protocolos" con contador → **el historial del equipo; esta es la serie de tiempo** |
+| `Reparaciones → Configuración` | Chequeos ROV, Hallazgos ROV, junto a Componentes y Acciones |
+| Botón inteligente en `stock.lot` | "Protocolos" con contador → el historial del equipo. **Único cambio en el lote, y es de solo lectura** |
 | Página en `repair.order` | Los protocolos de esa visita |
 | Reporte QWeb sobre `mc.rov.protocolo` | La versión digital de la hoja de papel, imprimible y adjuntable |
 
-El reporte también tapa un hueco que existe hoy: el técnico llena trabajos, causa raíz y
-observaciones de salida, y **nada de eso sale en un PDF** — el único documento imprimible es
-el presupuesto por defecto de Odoo.
+El reporte también tapa un hueco actual: el técnico llena trabajos, causa raíz y
+observaciones, y **nada de eso sale en un PDF** — el único documento imprimible es el
+presupuesto por defecto de Odoo.
 
 ---
 
-## 9. Migración `19.0.6.0.0`
+## 9. Qué cambia en `repair.order`
 
-Pasos en orden estricto. El orden importa: los valores se leen **antes** de borrar las
-columnas, igual que `_convertir_bajas` en `19.0.5.0.0`.
+Poco, y nada de lo que se usa a diario cambia de significado.
+
+| Cambio | Por qué |
+|---|---|
+| Se eliminan `item_2` … `item_5` | 0 de 10 órdenes los usaron; la etiqueta original ya era "Ítem 2" |
+| Nuevo `mc_items_recibidos_ids` (M2m a `stock.lot`) | Reemplaza la necesidad real: los equipos que llegan junto al ROV. Sin tope, y **trazable** — el E-pod tiene serie propia |
+| `causa_raiz` baja a `mc.rov.linea.falla` | Una orden puede tener tres causas distintas; hoy hay que elegir una |
+| Nueva pestaña con los protocolos de la visita | — |
+
+---
+
+## 10. Migración `19.0.6.0.0`
+
+Mucho más corta que la del diseño anterior, porque **no se mueve ninguna medición**.
 
 1. **Sembrar catálogos** — chequeos, hallazgos, componentes nuevos (vía `data/`, no SQL).
-2. **Rescatar mediciones** — por cada lote con al menos un valor no vacío, crear un
-   `mc.rov.protocolo`:
-   - `tipo` = `terreno` si hay datos de terreno, si no `recepcion`
-   - `fecha` = `mc_fecha_prueba`, o `write_date::date` si está vacía
-   - `responsable_id` vacío, con `mc_observacion` volcado a un hallazgo de familia *Otro* y
-     detalle con el texto original
-   - Motivo en el chatter indicando que es un registro migrado y que la fecha es aproximada
+2. **`causa_raiz`**: copiar el valor de cada orden a sus líneas de trabajo antes de eliminar
+   la columna. Las órdenes sin líneas pierden el valor — hay que contarlas antes.
+3. **Eliminar** `item_2` … `item_5`.
 
-   **Cuidado con `mc_prueba_leak`.** Hoy ese booleano significa **"se hizo la prueba"**, no
-   **"la prueba pasó"** — el resultado siempre terminó en el texto libre de observaciones.
-   La migración no debe convertirlo en `resultado = ok`, porque el dato de si pasó nunca
-   existió. Se convierte en una línea de chequeo con el resultado sin responder.
-3. **Eliminar columnas** — los 24 campos movidos más `item_2` … `item_5`.
-4. **Activar `tracking`** — no requiere migración, pero conviene registrar en el log desde qué
-   fecha hay historial.
-
-**En su base de datos hoy esto produce como mucho 3 protocolos desechables**, porque las tres
-series de producción son de prueba. El paso 2 se escribe igual, para que el módulo sea correcto
-para cualquiera que despliegue después con datos reales.
-
-**Este es el momento más barato para hacerlo.** Hecho después de cargar la flota, hay que
-reconstruir a mano de qué visita venía cada medición, y en la mayoría de los casos no se va a
-poder.
+`stock.lot` no aparece en la migración.
 
 ---
 
-## 10. Contrato del pipeline
+## 11. Contrato del pipeline
 
 `docs/integrations/pipeline.md` exige coordinar por PR antes de cambiar cualquier campo
-listado. Esta versión toca varios:
+listado. Esta versión toca:
 
-- **`item_2..5` se eliminan.**
-- **24 campos `mc_*` salen de `stock.lot`.** El doc los cubre con una línea genérica
-  *(48 ficha técnica `mc_*` fields — TBD list in Phase 1)*, así que hay que enumerar los que se
-  van.
-- **Modelos nuevos** que el pipeline va a querer: `mc.rov.protocolo` y sus dos modelos de
-  línea son, de aquí en adelante, **la fuente principal del análisis de fallas**.
+- **`item_2..5` se eliminan** y **`causa_raiz` cambia de modelo.**
+- **Modelos nuevos**: `mc.rov.protocolo` y sus tres modelos de línea son, de aquí en
+  adelante, **la fuente principal del análisis de fallas** — el insumo del dashboard.
+- **Los 48 campos `mc_*` de `stock.lot` no cambian.** El contrato los cubre con una línea
+  genérica y sigue siendo válida.
 
 **Además hay que corregir el contrato, que ya está desactualizado:** lista `estado_final`,
-`garantia_reparacion` y `fecha_garantia` en `repair.order`, y esos tres campos **no existen en
-el código** — solo en ese documento.
-
----
-
-## 11. Correcciones que se arrastran
-
-Salieron de la revisión del módulo de reparación y tocan los mismos archivos. Se pueden
-separar en su propio PR si este crece demasiado.
-
-| Corrección | Por qué ahora |
-|---|---|
-| Reordenar pestañas: Trabajos realizados → Piezas → Resultado → Notas | Ya se va a agregar una pestaña de protocolos; se ordena todo de una vez |
-| `mc_total_horas` a `store=True` | Hoy está en la lista y no se puede ordenar, filtrar ni agrupar. Columna nueva ⇒ **sin migración** |
-| Constraint: no cerrar una orden sin `tipo_intervencion_ids` | Sin tipo, la orden no cuenta para mantención, reparación, contadores ni reloj. Falla silenciosa idéntica a la de `fecha_entrega_real` |
-| `_order = "sequence, id"` en `mc.rov.linea.falla` | Todas las líneas nacen en `sequence = 10`; hoy el orden lo decide PostgreSQL |
-| `fecha` con default hoy en `mc.rov.linea.falla` | Se deja en blanco casi siempre |
-| Vista de búsqueda para `repair.order` | No se puede filtrar por tipo ni agrupar por causa raíz |
-| `causa_raiz` baja a la línea | Una orden puede tener tres causas distintas; hoy hay que elegir una |
+`garantia_reparacion` y `fecha_garantia` en `repair.order`, y esos tres campos **no existen
+en el código** — solo en ese documento.
 
 ---
 
 ## 12. Fase posterior: fotos de los hallazgos
 
-**Decidido, pero fuera del alcance inicial** (Paulo, 2026-08-11: "dejémoslo para el final").
+**Decidido, pero fuera del alcance inicial.**
 
-El almacenamiento resultó no ser un problema. Estado del VPS al 2026-08-11:
-
-| Dato | Valor |
-|---|---|
-| Disco | 75 GB, 50 GB libres (32% usado) |
-| Adjuntos actuales | 1.037 archivos, 86 MB |
-| `ir_attachment.location` | vacío ⇒ **van a disco, no a la base** |
-
-Que no vayan a la base es lo que más importa: no inflan los backups de PostgreSQL.
+Estado del VPS al 2026-08-11: disco de 75 GB con 50 GB libres, 1.037 adjuntos que suman
+86 MB, y `ir_attachment.location` vacío ⇒ **van a disco, no a la base**, así que no inflan
+los backups de PostgreSQL.
 
 Cuando se implemente, el campo va en la **línea de hallazgo** y debe ser
-`fields.Image(max_width=1920, max_height=1920)`, **no `fields.Binary`**. `Image`
-redimensiona al guardar y deja una foto de celular de 4 MB en 300-500 KB; `Binary` guarda el
-original completo. Con `Image` caben unas 125.000 fotos antes de que el disco importe.
-
-## 13. Preguntas abiertas
-
-1. **¿El responsable va también en la línea de trabajo?** Si quieren costear HH por técnico,
-   sí: dos técnicos pueden trabajar la misma orden. Hoy el diseño lo pone solo en la cabecera
-   del protocolo.
-2. **¿`resultado` debe poder forzarse?** El diseño lo deriva de chequeos y hallazgos. Si un
-   técnico necesita rechazar un protocolo por algo que el catálogo no captura, hace falta un
-   override — pero eso rompe la regla de "derivado no editable" que rige el resto del módulo.
-3. **¿Qué chequeos de navegación aplican a cada modelo?** El catálogo permite agregarlos; falta
-   saber si un ROV de 4 grados debería mostrar los chequeos de 6DOF como *no aplica* o no
-   mostrarlos.
+`fields.Image(max_width=1920, max_height=1920)`, **no `fields.Binary`**. `Image` redimensiona
+al guardar y deja una foto de celular de 4 MB en 300-500 KB. Con `Image` caben unas 125.000
+fotos antes de que el disco importe.
 
 ---
 
-## 14. Verificación
+### 12.1 Impresión para el cliente
 
-1. **Tests** — clases nuevas: `TestMcRovProtocolo` (cabecera, derivados, `resultado` calculado,
-   generación automática de líneas), `TestMcRovProtocoloChequeo` (validación al confirmar),
-   `TestMcRovProtocoloHallazgo` (severidad y precedencia), `TestMcRovLineaFallaHallazgo` (el
-   enlace). Más los casos de las correcciones del § 11.
-2. **Auditoría previa al deploy** — cuántos lotes tienen mediciones que la migración va a
-   convertir:
+Las dos fichas —la de manufactura y la de reparación— van a tener que imprimirse para el
+cliente, **con una parte de los datos y no todos**. El detalle se define al final, pero hay
+que tenerlo presente desde ahora por una razón: significa que cada dato tiene una audiencia,
+y eso ya está influyendo en una decisión tomada.
+
+`observaciones_salida` pasa a ser explícitamente **lo que se le informa al cliente en la
+entrega** (§ 6.4). Ese campo es el que sale en el PDF; los hallazgos internos no. Sin esa
+distinción, la caja de texto seguiría siendo el lugar donde caen los hallazgos, que es
+justamente lo que este diseño viene a evitar.
+
+Al definir el reporte habrá que decidir, campo por campo, qué es interno y qué es del
+cliente. Los hallazgos de familia *intervención de terceros* son el caso delicado: puede
+convenir mostrarlos —es la conversación de garantía— o reservarlos. Es una decisión del
+reporte, no del modelo, así que no bloquea nada ahora.
+
+## 13. Fuera de alcance
+
+- **`stock.lot` y su ficha técnica de fabricación.** Ver § 1.1 y § 2.
+- **`tracking=True` en los campos de configuración del lote.** Sigue siendo una buena idea
+  —la ficha técnica se puede actualizar cuando se modifica un equipo preexistente, y hoy ese
+  cambio no deja rastro— pero es trabajo del lado de manufactura, no de este diseño. Anotado
+  para cuando se aborde esa hoja.
+- **El dashboard de patrones de fallas.** Es el destino de estos datos, pero se construye
+  después de que existan.
+
+---
+
+## 14. Qué campos son obligatorios
+
+**Propuesta con criterio propio, pendiente de que Paulo consulte en el taller.**
+
+El principio: **se exige lo que hace inútil al registro si falta, y se exige al confirmar, no
+al escribir.** Cada campo obligatorio es fricción, y la fricción donde no hace falta enseña a
+la gente a esquivarla — con lo cual deja de servir donde sí hace falta.
+
+### 14.1 Ficha de reparación (el protocolo)
+
+**Siempre, no se puede ni guardar el borrador:**
+
+| Campo | Por qué |
+|---|---|
+| `lot_id` | Sin equipo el registro no es de nadie |
+| `tipo` | Recepción y entrega significan cosas opuestas; sin él el registro es ambiguo |
+| `fecha` | Trae default de hoy, así que en la práctica no cuesta nada |
+
+**Para pasar a `confirmado`:**
+
+| Regla | Por qué |
+|---|---|
+| `responsable_id` | Sin atribución, todo el trabajo de poner empleados no sirve de nada |
+| Al menos **una corrida** | Un protocolo sin corridas dice que no se probó nada |
+| En cada corrida: `umbilical` y `largo` | Sin saber con qué cable se midió, las mediciones no se pueden interpretar ni comparar |
+| En cada corrida: `alimentacion` y `tension_salida` | Son las condiciones del banco; sin ellas no hay comparación entre visitas |
+| **Todos** los chequeos con `resultado`, incluido *No aplica* | Es el punto del checklist: probar que se miró |
+| Pares coherentes: si hay `esfuerzo_resultado` hay `esfuerzo_duracion`; si hay `subida` hay `bajada` | Media medición es peor que ninguna — parece un dato y no lo es |
+
+**Deliberadamente NO obligatorios:**
+
+- `repair_id` — la fabricación no tiene orden.
+- Cero hallazgos es legal: significa que el equipo llegó limpio, y los chequeos lo prueban.
+- Las pruebas que no se hicieron. Se puede confirmar un protocolo parcial siempre que cada
+  chequeo diga explícitamente *no aplica*; lo que no se puede es dejarlo en blanco.
+- Temperaturas, y los campos de terreno cuando el tipo no es terreno.
+
+### 14.2 Ficha de fabricación (`stock.lot`)
+
+**Ningún campo pasa a `required` a nivel de modelo.** Un número de serie lo crea la orden de
+fabricación **antes** de que nadie llene la ficha: exigir campos al guardar rompería
+manufactura, y además los lotes de componentes no tienen ninguno de estos datos.
+
+En su lugar, un indicador derivado y un filtro:
+
+```
+mc_ficha_completa   Boolean   computed, store   solo tiene sentido si es_un_rov
+```
+
+Y un filtro **"Ficha incompleta"** en la lista de números de serie. Es visible sin bloquear,
+y convierte "hay que acordarse de llenarla" en una lista concreta.
+
+Lo que propongo contar como completa, con la justificación de cada uno:
+
+| Campo | Por qué es esencial |
+|---|---|
+| `mc_fecha_puesta_servicio` | **Sin ella no hay reloj de mantención** y el equipo no aparece nunca en la lista de vencidos |
+| `mc_chasis`, `mc_modelo_motores`, `mc_n_motores`, `mc_posicion_motores` | La identidad física del equipo; sin ella no se puede agrupar fallas por configuración |
+| `mc_controlador_vuelo` y la versión que corresponda | Para correlacionar fallas con firmware, que es media razón del análisis |
+| `mc_n_serie_umbilical` y `mc_longitud` | **El protocolo de reparación compara contra `mc_longitud`**; sin ella la comparación no existe |
+| `mc_cantidad_luces` | **El protocolo compara el conteo de la prueba contra este número** |
+
+Los últimos dos grupos son el caso más claro: no son obligatorios por sí mismos, sino porque
+**hay otra ficha que los lee**. Si están vacíos, dos de las verificaciones automáticas de la
+reparación quedan mudas.
+
+Lo que **no** propongo exigir: pesos, temperaturas, tarjetas de comunicación, dispositivos
+extra, brazo. Son descriptivos y nada depende de ellos.
+
+> Esto es lo único de este diseño que toca `stock.lot`, y no cambia ni un dato: agrega un
+> campo derivado y un filtro. Si prefieren que la ficha de fabricación quede completamente
+> intacta, se cae sin afectar nada más.
+
+---
+
+## 15. Verificación
+
+1. **Tests** — clases nuevas: `TestMcRovProtocolo` (cabecera, derivados, `resultado`
+   calculado, generación automática de líneas), `TestMcRovProtocoloCorrida` (una y dos
+   corridas, esfuerzo), `TestMcRovProtocoloChequeo` (validación al confirmar),
+   `TestMcRovProtocoloHallazgo` (severidad y precedencia), `TestMcRovLineaFallaHallazgo`
+   (el enlace y la baja de `causa_raiz`).
+2. **Auditoría previa al deploy** — cuántas órdenes tienen `causa_raiz` sin líneas de
+   trabajo, que son las que perderían el valor:
    ```sql
-   SELECT count(*) FROM stock_lot
-    WHERE mc_ancho_banda IS NOT NULL OR mc_subida <> 0 OR mc_bajada <> 0
-       OR mc_fecha_prueba IS NOT NULL OR mc_tension_salida <> 0;
+   SELECT count(*) FROM repair_order ro
+    WHERE ro.causa_raiz IS NOT NULL
+      AND NOT EXISTS (SELECT 1 FROM mc_rov_linea_falla lf WHERE lf.repair_id = ro.id);
    ```
-3. **Manual, en staging** — crear un protocolo de recepción sobre una serie ROV, confirmar que
-   las líneas de chequeo se generan solas, que no deja confirmar con chequeos sin responder,
-   que `resultado` reacciona a un hallazgo `impide_operar`, y que el reporte imprime.
-4. **Rollback** — según `docs/runbooks/deploy.md`. **Volver atrás el código no restaura los 24
-   campos borrados**; para eso está el backup de la base.
+3. **Manual, en staging** — crear un protocolo de recepción sobre una serie ROV; confirmar
+   que las líneas de chequeo se generan solas, que no deja confirmar con chequeos sin
+   responder, que dos corridas con distinto umbilical se pueden comparar, que `resultado`
+   reacciona a un hallazgo `impide_operar`, y que el reporte imprime.
+4. **Rollback** — según `docs/runbooks/deploy.md`. La ficha técnica de fabricación no se
+   toca, así que un rollback no arriesga nada de manufactura.
