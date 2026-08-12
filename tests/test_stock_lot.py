@@ -787,8 +787,14 @@ class TestStockLotFichaCompleta(StockLotPropiedadCommon):
 
         self.assertIn("N° motores", lot.mc_ficha_faltantes)
 
-    def test_los_faltantes_cubren_las_otras_pestanas(self):
-        """Cantidad de luces vive en Periféricos: bloquea sin que a nadie se le ocurra ir."""
+    def test_los_faltantes_incluyen_la_cantidad_de_luces(self):
+        """El segundo numérico, y el que la ficha de reparación lee para comparar.
+
+        Hasta 19.0.7.0.1 este campo vivía en Periféricos, así que bloqueaba el guardado
+        desde otra pestaña sin que a nadie se le ocurriera ir a mirar allá. Ya está en
+        Especificaciones con el resto, pero el caso se conserva: sigue siendo un conteo que
+        en cero no significa "cero luces" sino "nadie lo llenó".
+        """
         lot = self._completar(mc_cantidad_luces=0)
 
         self.assertIn("Cantidad de luces", lot.mc_ficha_faltantes)
