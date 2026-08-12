@@ -1,8 +1,9 @@
 # Diseño: ficha de reparación digital
 
-**Versión objetivo:** `19.0.6.0.0`
-**Estado:** propuesta, pendiente de aprobación
-**Fecha:** 2026-08-11 (reescrito el mismo día — ver § 1.1)
+**Versión objetivo:** `19.0.8.0.0` — `19.0.6.x` y `19.0.7.x` se ocuparon en la ficha de
+fabricación, que se adelantó por ser corta e independiente
+**Estado:** **aprobado por Paulo el 2026-08-12.** Listo para implementar
+**Fecha:** 2026-08-11, reescrito el mismo día (§ 1.1) y ampliado el 2026-08-12 (§ 16)
 
 ---
 
@@ -72,12 +73,14 @@ No confundirlas es lo más importante de este documento.
 | Resultado de la prueba de esfuerzo | Binario + **duración** |
 | Responsable en la línea de trabajo | **Sí** — es el único campo que no se puede retrofitear |
 | `resultado` del protocolo | **Derivado, no forzable** — un override sería el texto libre en otra forma |
-| Chequeos que no aplican a un modelo | Se muestran todos y se marcan *No aplica*; filtrar por modelo solo si la lista crece |
+| Chequeos de algo que el equipo no lleva | Se muestran todos y se responden ***No lo tiene***, que afirma algo del equipo y no del técnico |
 | Cliente vs dueño en el protocolo | Ninguno propio: ambos derivados |
 | Firma / aprobación con nombre | Se posterga; `estado: confirmado` es la aprobación por sistema |
 | Fotos de hallazgos | Se implementan al final, con `fields.Image` (§ 12) |
 | Ficha de papel como fuente | **No.** El diseño se hizo sin verla, a propósito |
 | `item_2` … `item_5` | Se eliminan — 0 de 10 órdenes los usaron |
+| Fabricación y reparación | **No corren la misma batería** — el catálogo de chequeos declara a qué tipos aplica cada uno (§ 5.3.1) |
+| ¿Se hacen todas las pruebas siempre? | **Sí**, confirmado por el taller. *No lo tiene* queda solo para componentes ausentes |
 
 ---
 
@@ -136,7 +139,19 @@ tipo              Selection  fabricacion | recepcion | entrega | terreno   requi
 fecha             Date       required, default hoy
 responsable_id    M2o hr.employee      default env.user.employee_id
 estado            Selection  borrador | confirmado                          default borrador
+horas_operacion   Float h    lectura del horómetro, si el equipo tiene
 ```
+
+**`horas_operacion` es el dato de mayor apalancamiento del modelo, y es opcional.** Solo
+algunos ROV traen horómetro. Se anota **la lectura**, no un acumulado calculado, y en cada
+visita: lo que sirve para análisis es el **delta entre dos protocolos consecutivos** — las
+horas que el equipo voló entre una visita y la siguiente. Es el denominador que le falta a
+cualquier cálculo de confiabilidad, porque un equipo que bucea ocho horas diarias y uno
+guardado en bodega acumulan el mismo tiempo de calendario.
+
+Verificación gratis: como la prueba de esfuerzo corre el ROV 1 a 1½ horas, la lectura del
+protocolo de entrega menos la de recepción debería dar aproximadamente las horas de prueba
+de esa visita.
 
 **`repair_id` es opcional a propósito.** Un ROV nuevo pasa por el mismo protocolo antes de
 despacharse y ahí no hay orden de reparación. Si el protocolo colgara de la orden, toda la
@@ -262,12 +277,43 @@ evidencia. Es la materia prima de cualquier análisis de confiabilidad.
 ### 5.3 `mc.rov.chequeo` — catálogo de pasos de testeo
 
 ```
-name             Char       required
-sequence         Integer
-seccion          Selection  inspeccion_fisica | presion | leak | navegacion | video | otro
-por_componente   Boolean    si la línea debe indicar sobre qué componente se hizo
-active           Boolean    default True
+name                Char       required
+sequence            Integer
+seccion             Selection  inspeccion_fisica | presion | leak | navegacion | video | otro
+por_componente      Boolean    si la línea debe indicar sobre qué componente se hizo
+aplica_fabricacion  Boolean
+aplica_recepcion    Boolean    default True
+aplica_entrega      Boolean
+aplica_terreno      Boolean
+active              Boolean    default True
 ```
+
+### 5.3.1 Fabricación y reparación no corren la misma batería
+
+Los cuatro booleanos separan qué chequeos aparecen en cada tipo de protocolo, y la
+generación automática de líneas (§ 5.4) filtra por el `tipo` del protocolo.
+
+**El caso que lo justifica es la inspección física.** Existe para detectar si alguien más
+intervino el equipo — marcas de plumón, sellos ajenos, tornillería cambiada. En un ROV
+**recién fabricado eso no significa nada**: nadie busca huellas de terceros en algo que armó
+uno mismo la semana pasada. Sin el filtro, el protocolo de fabricación generaría quince
+líneas de inspección que alguien tendría que responder para poder confirmar, y que no
+dirían nada.
+
+Semilla propuesta:
+
+| Chequeos | fabricación | recepción | entrega | terreno |
+|---|:---:|:---:|:---:|:---:|
+| Inspección física (plumón, sellos) | — | **sí** | — | — |
+| Presión, leak, navegación, video | sí | sí | sí | sí |
+| Sistema, luces | sí | sí | sí | sí |
+
+Son cuatro booleanos y no un modelo de tipos porque `tipo` es un `Selection` estable: los
+tipos de protocolo son la estructura del proceso, no un catálogo operativo. Es la misma
+distinción que se hizo con `seccion`.
+
+El mismo criterio ordena la navegación: el menú de protocolos se filtra por tipo, para que
+el taller no tenga que mirar los de fabricación ni manufactura los de reparación.
 
 Agregar *lateral*, *yaw*, *roll* o *pitch* para un equipo 6DOF es crear cuatro registros
 desde `Reparaciones → Configuración`, no tocar código. Lo mismo para sonar, USBL o cualquier
@@ -284,7 +330,7 @@ protocolo_id    M2o mc.rov.protocolo      required, ondelete cascade
 sequence        Integer
 chequeo_id      M2o mc.rov.chequeo        required
 componente_id   M2o mc.rov.componente     required si chequeo_id.por_componente
-resultado       Selection  ok | no_ok | na
+resultado       Selection  ok | no_ok | no_lo_tiene
 detalle         Char
 ```
 
@@ -293,14 +339,33 @@ principalmente *qué se testeó* y no *qué resultó*:
 
 | Valor | Significa |
 |---|---|
-| *(vacío)* | no se hizo |
-| No aplica | no corresponde a este equipo |
-| OK / No OK | se hizo, con resultado |
+| *(vacío)* | todavía sin responder — impide confirmar |
+| **No lo tiene** | el equipo no lleva ese componente o no puede hacer eso |
+| OK / No OK | se revisó, con resultado |
+
+**El tercer valor se llama «No lo tiene» y no «No aplica» a propósito.** La inspección
+física no siempre recorre los cinco componentes: no todos los ROV llevan joystick, y el
+«cilindro fuente» solo existe en los que tienen **dos e-pods en vez de uno**.
+
+«No aplica» dejaría el registro diciendo dos cosas a la vez —*el equipo no lo tiene* y *no
+lo revisamos*— y con eso se pierde el denominador de cualquier estadística: *de los equipos
+que sí tienen joystick, ¿cuántos llegaron con marcas de plumón?* deja de ser calculable. Es
+la misma ambigüedad que se rechazó al retirar «Desconocido», en otro disfraz. El nombre
+nuevo afirma algo sobre **el equipo**, no sobre lo que hizo el técnico.
+
+> **Refinamiento posible más adelante, no ahora:** si la ficha de fabricación registrara
+> cuántos e-pods lleva el equipo y si tiene joystick, el protocolo podría generar solo las
+> líneas que corresponden, en vez de generarlas todas y hacer que alguien marque «No lo
+> tiene» cada vez. Es mejor a la larga —el dato se declara una vez y no en cada visita— pero
+> exige campos nuevos en la ficha de fabricación y que estén bien llenos. Con «No lo tiene»
+> el análisis ya es correcto; esto solo ahorraría clics.
 
 Las líneas se generan solas al crear el protocolo, con todos los chequeos activos. **La
-inspección física es un checklist, no una lista de excepciones:** se recorren los cinco
-componentes siempre. Si solo se anotaran los hallazgos, *el joystick estaba limpio* sería
-indistinguible de *nadie miró el joystick*.
+inspección física es un checklist, no una lista de excepciones:** se pasa por los cinco
+componentes siempre, aunque en algunos equipos la respuesta sea *No lo tiene*. Si solo se
+anotaran los hallazgos, *el joystick estaba limpio* sería indistinguible de *nadie miró el
+joystick* y de *este equipo no tiene joystick* — tres cosas distintas colapsadas en la
+ausencia de una fila.
 
 `resultado` no es `required` en el campo — lo valida el paso a `confirmado`, para poder
 guardar a medio llenar sin poder cerrar incompleto.
@@ -323,10 +388,16 @@ protocolo_id    M2o mc.rov.protocolo      required, ondelete cascade
 sequence        Integer
 componente_id   M2o mc.rov.componente     REQUERIDO
 subtipo_id      M2o mc.rov.subtipo        domain [('componente_id','=',componente_id)]
-hallazgo_id     M2o mc.rov.hallazgo       REQUERIDO
-severidad       Selection  informativo | atencion | impide_operar   required, default atencion
-detalle         Text                      complemento, nunca sustituto
+hallazgo_id       M2o mc.rov.hallazgo     REQUERIDO
+severidad         Selection  informativo | atencion | impide_operar   required, default atencion
+chequeo_origen_id M2o mc.rov.protocolo.chequeo   opcional: qué chequeo lo destapó
+detalle           Text                    complemento, nunca sustituto
 ```
+
+**`chequeo_origen_id` es el que hace medible la detección** (§ 16.2). Sin él no se puede
+saber si un hallazgo lo reveló un chequeo del protocolo o si alguien lo vio de casualidad —
+y esa diferencia es la que dice si al protocolo le falta un chequeo. Cuesta un campo ahora y
+es imposible de reconstruir después.
 
 Reusa `mc.rov.componente` y `mc.rov.subtipo`, los mismos catálogos de las líneas de trabajo.
 Eso es lo que permite correlacionar: *dónde* se encuentran los hallazgos y *dónde* se hacen
@@ -498,22 +569,25 @@ fotos antes de que el disco importe.
 
 ---
 
-### 12.1 Impresión para el cliente
+## 12.1 El reporte no es el adorno final
 
-Las dos fichas —la de manufactura y la de reparación— van a tener que imprimirse para el
-cliente, **con una parte de los datos y no todos**. El detalle se define al final, pero hay
-que tenerlo presente desde ahora por una razón: significa que cada dato tiene una audiencia,
-y eso ya está influyendo en una decisión tomada.
+**La ficha de reparación existe, entre otras cosas, para entregársela al cliente.** Eso
+convierte al reporte QWeb en un requisito del entregable, no en un extra que se agrega si
+sobra tiempo. Lo mismo aplica a la ficha de fabricación, que hoy tampoco imprime nada.
 
-`observaciones_salida` pasa a ser explícitamente **lo que se le informa al cliente en la
-entrega** (§ 6.4). Ese campo es el que sale en el PDF; los hallazgos internos no. Sin esa
-distinción, la caja de texto seguiría siendo el lugar donde caen los hallazgos, que es
-justamente lo que este diseño viene a evitar.
+La consecuencia de diseño es que **cada dato tiene una audiencia** y hay que decidirlo campo
+por campo antes de escribir el reporte:
 
-Al definir el reporte habrá que decidir, campo por campo, qué es interno y qué es del
-cliente. Los hallazgos de familia *intervención de terceros* son el caso delicado: puede
-convenir mostrarlos —es la conversación de garantía— o reservarlos. Es una decisión del
-reporte, no del modelo, así que no bloquea nada ahora.
+| Va al cliente | Se queda interno |
+|---|---|
+| Chequeos ejecutados y su resultado | Horas de trabajo por línea y por técnico |
+| Mediciones de las corridas | El responsable, salvo que quieran firmarlo |
+| `observaciones_salida` — definido en § 6.4 como *lo que se le informa al cliente* | `detalle` de cada hallazgo |
+| Hallazgos, con criterio | La lectura del horómetro |
+
+Los hallazgos de familia **intervención de terceros** son el caso a decidir: puede convenir
+mostrarlos —es la conversación de garantía, con evidencia— o reservarlos. Es una decisión
+del reporte y no del modelo, así que no bloquea la implementación.
 
 ## 13. Fuera de alcance
 
@@ -547,14 +621,22 @@ la gente a esquivarla — con lo cual deja de servir donde sí hace falta.
 
 **Para pasar a `confirmado`:**
 
-| Regla | Por qué |
-|---|---|
-| `responsable_id` | Sin atribución, todo el trabajo de poner empleados no sirve de nada |
-| Al menos **una corrida** | Un protocolo sin corridas dice que no se probó nada |
-| En cada corrida: `umbilical` y `largo` | Sin saber con qué cable se midió, las mediciones no se pueden interpretar ni comparar |
-| En cada corrida: `alimentacion` y `tension_salida` | Son las condiciones del banco; sin ellas no hay comparación entre visitas |
-| **Todos** los chequeos con `resultado`, incluido *No aplica* | Es el punto del checklist: probar que se miró |
-| Pares coherentes: si hay `esfuerzo_resultado` hay `esfuerzo_duracion`; si hay `subida` hay `bajada` | Media medición es peor que ninguna — parece un dato y no lo es |
+| Regla | Por qué | Origen |
+|---|---|---|
+| `responsable_id` | Sin atribución, todo el trabajo de poner empleados no sirve de nada | **Confirmado**: la ficha la llena el técnico que hizo el trabajo, así que es una firma real y no la memoria de quien transcribe |
+| Al menos **una corrida**, con `esfuerzo_resultado` y `esfuerzo_duracion` | Un protocolo sin corridas dice que no se probó nada | **Confirmado**: la prueba de esfuerzo siempre se hace |
+| En cada corrida: `alimentacion` y `tension_salida` | Son las condiciones del banco; sin ellas no hay comparación entre visitas | **Confirmado**: se anotan siempre en la ficha de reparación |
+| En cada corrida: `umbilical` y `largo` | Sin saber con qué cable se midió, las mediciones no se pueden interpretar ni comparar | Criterio propio |
+| **Todos** los chequeos con `resultado`, incluido *No lo tiene* | Es el punto del checklist: probar que se miró | **Confirmado**: la inspección no siempre recorre los cinco componentes, así que *No lo tiene* es un valor de uso corriente y no una excepción |
+| Pares coherentes: si hay `subida` hay `bajada` | Media medición es peor que ninguna — parece un dato y no lo es | Criterio propio |
+
+**Confirmado por el taller: todas las pruebas se hacen siempre.** Así que exigir todos los
+chequeos respondidos no impone nada que no ocurra ya — solo obliga a dejar constancia.
+
+El único caso en que un chequeo no se responde con OK o No OK es cuando **el equipo no lleva
+ese componente**: no todos los ROV tienen joystick, y el «cilindro fuente» solo existe en
+los que tienen dos e-pods. Para eso está *No lo tiene* (§ 5.4), que afirma algo sobre el
+equipo y no sobre lo que hizo el técnico.
 
 **Deliberadamente NO obligatorios:**
 
@@ -622,3 +704,75 @@ extra, brazo. Son descriptivos y nada depende de ellos.
    reacciona a un hallazgo `impide_operar`, y que el reporte imprime.
 4. **Rollback** — según `docs/runbooks/deploy.md`. La ficha técnica de fabricación no se
    toca, así que un rollback no arriesga nada de manufactura.
+
+---
+
+## 16. Para qué sirven estos datos
+
+Esta sección existe para que ningún campo del modelo parezca gratuito. Cada uno de los que
+cuestan discusión —`severidad`, `chequeo_origen_id`, `horas_operacion`, `esfuerzo_duracion`—
+está aquí porque habilita algo concreto.
+
+Ordenado por **cuándo empieza a servir**, no por lo impresionante que suena. La mitad de las
+metodologías de confiabilidad necesitan un volumen de datos que Marine Connection no va a
+tener por años, y prometerlas antes de tiempo es vender humo.
+
+### 16.1 Desde el primer mes
+
+| Qué | Con qué datos |
+|---|---|
+| **Pareto de fallas** — qué componentes concentran hallazgos, horas y visitas | `componente_id` + `horas` de las líneas de trabajo |
+| **Análisis de garantía** — qué falla dentro de garantía (costo propio) y qué después | `repair.order.under_warranty` × hallazgos. Los de familia *intervención de terceros* son evidencia directa para invalidarla |
+
+### 16.2 Con un año de datos
+
+**Tabla de fallas — que es un FMEA, y armado al revés del habitual.** El FMEA clásico lo
+arman ingenieros *imaginando* modos de falla en una sala de reuniones. Aquí se arma **desde
+el historial real**, que es estrictamente mejor y que casi ningún taller puede hacer porque
+no guarda los datos. Sus tres ejes salen del modelo:
+
+| Eje del FMEA | De dónde sale |
+|---|---|
+| **Severidad** | `severidad` del hallazgo |
+| **Ocurrencia** | Cuántas veces aparece ese hallazgo en la flota |
+| **Detección** | `chequeo_origen_id`: ¿lo agarró un chequeo, o se vio de casualidad? |
+
+**La detección es el eje que casi nadie puede calcular**, y de ahí sale el resultado más
+útil de todos: *un hallazgo que aparece seguido y que ningún chequeo detecta es un chequeo
+que falta*. Y al revés, un chequeo que sale OK siempre, en toda la flota, durante un año, o
+no mide nada o mide algo que no falla — se elimina. **El protocolo se audita a sí mismo.**
+
+**Degradación por equipo.** Subida, bajada y `esfuerzo_duracion` de cada visita, en serie.
+Un equipo cuyo enlace cae visita tras visita se está deteriorando antes de fallar. Es lo
+único de toda la lista que hoy es *literalmente imposible*, porque no existe la segunda
+medición.
+
+**Cohortes por configuración.** Como el protocolo guarda la versión de firmware del día de
+la prueba, se puede preguntar *"¿las fallas de motor aparecieron después de ArduSub 4.1?"*.
+Para un fabricante es de lo más accionable que hay: dice si el problema lo introdujo uno
+mismo.
+
+### 16.3 Con volumen — y con una condición
+
+**MTBF y análisis de supervivencia (Weibull).** La curva de bañera distingue falla infantil
+—defecto de fabricación, problema propio— de desgaste normal, que es problema del cliente.
+Esa distinción vale dinero.
+
+Pero **necesita horas de uso, no de calendario.** Un ROV que bucea ocho horas diarias y uno
+guardado en bodega acumulan el mismo tiempo de calendario, así que un MTBF calculado sobre
+fechas favorece a los equipos que nadie usa.
+
+De ahí `horas_operacion`. Y como **solo algunos ROV traen horómetro**, la flota se parte en
+dos poblaciones: los que dan confiabilidad real y los que dan aproximaciones por calendario.
+No es un problema —tener datos buenos de una parte es muchísimo mejor que nada— pero
+**cualquier dashboard tiene que declarar de qué población sale cada número**, o alguien va a
+promediar los dos.
+
+Dos decisiones que se derivan de eso y que no son técnicas:
+
+1. **`mc_tiene_horometro` en la ficha de fabricación**, para que una lectura vacía no
+   confunda *"el equipo no tiene"* con *"nadie lo anotó"* — la misma distinción que se
+   resolvió al retirar «Desconocido». Y de una consulta dice qué porcentaje de la flota es
+   analizable.
+2. **Que los equipos nuevos salgan todos con horómetro**, si el análisis de confiabilidad
+   les importa. Es lo único que hace crecer esa población.

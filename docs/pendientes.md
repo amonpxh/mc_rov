@@ -20,6 +20,13 @@
   4. Los equipos de clientes entran en consignación: la categoría dice **qué es** el equipo, la propiedad se maneja aparte. Ver [`INVENTARIO.md`](../INVENTARIO.md) § Equipos de clientes.
   5. **Llenar `mc_propietario_id` al cargar cada número de serie.** Desde `19.0.5.0.0` de ahí sale el estado comercial: un equipo vendido que quede a nombre de la empresa va a aparecer como "Disponible" y va a ensuciar la lista de flota. Los que son de clientes se cargan a nombre del cliente; los de flota se dejan como vienen, ya que el valor por defecto es la propia empresa.
   6. **Llenar también `mc_fecha_puesta_servicio`** en los equipos que ya están en terreno, o el reloj de mantención no arranca y no aparecerán nunca en la lista de vencidos.
+  7. **Desde `19.0.6.0.0` hay catorce campos más que llenar por equipo**, no dos. Toda la pestaña *Especificaciones* pasó a ser obligatoria para los ROV: chasis, modelo / N° / posición de motores, ambos pesos, sensor de presión, ambas tarjetas de comunicación, controlador de vuelo y su versión, ArduSub, software de superficie y su versión, y cantidad de luces.
+
+     **La obligatoriedad vive en la vista, no en el modelo**, así que una **importación entra igual con los campos vacíos** — eso es deliberado, porque un `required` de modelo rompería la creación de series desde la orden de fabricación. Lo que encuentra a las series incompletas es el campo `mc_ficha_completa` y el filtro **«Ficha incompleta»** en la lista de números de serie. Después de cualquier carga masiva, revisar ese filtro.
+
+     Cuidado con los numéricos: en Odoo un `Integer` o un `Float` nunca queda vacío, se lee como 0, así que N° de motores, ambos pesos y cantidad de luces pueden entrar en cero sin que nada chiste. `mc_ficha_completa` los exige `> 0` justamente por eso.
+
+     Y **ya no hay opción «Desconocido»**: se probó en `19.0.6.0.0` y se retiró en `19.0.7.0.0`, porque la decisión es obligar a averiguar las especificaciones reales del equipo. Para los equipos anteriores a Odoo eso significa que hay que ir a levantar el dato o poner un valor supuesto — y un valor supuesto es indistinguible de uno verificado, que es el precio conocido de esa decisión.
 
   **Residuo a limpiar antes de cargar datos reales:** quedan 2 números de serie de prueba con `es_un_rov = TRUE` cuya cadena producto → categoría está rota; por eso la migración `19.0.2.0.0` reportó 0 filas recalculadas y no los tocó. Se apagarán solos la primera vez que algo los escriba. Conviene borrarlos para no confundirlos con equipos reales.
 
@@ -40,7 +47,17 @@
 
   **Para asignar grupos a usuarios:** `Ajustes → Usuarios → [usuario]` (sin tocar código). Cambiar qué puede hacer un grupo requiere modificar el módulo.
 
-- [ ] **Validación de línea de producto en cierre de orden**: hoy una orden se puede cerrar con líneas de falla de tipo "cambio" sin haber registrado el repuesto como línea de producto. Cuando eso pasa se pierde el vínculo con el lote y se corta el análisis de fallas. Diseño acordado:
+- [ ] **Vista de búsqueda de `repair.order`** — hoy no se puede filtrar "mantenciones de este año" ni agrupar por causa raíz. Quedó fuera de `19.0.5.2.0` a propósito, por no tener el arch de la vista base y no querer adivinar internos de una vista heredada.
+
+  Ya se resolvió esa parte: la vista se llama **`repair.view_repair_order_form_filter`** (no `view_repair_order_search`), su grupo de "agrupar por" no tiene nombre pero el último filtro adentro sí — `group_by_repair_properties`—, así que ahí hay dónde anclarse sin producir un segundo encabezado. Su `arch_db` tiene claves `en_US` y `es_CL`.
+
+  Va junto con mover `mc_total_horas` al pie de la columna con `sum`, en vez del grupo suelto al final de la pestaña *Trabajos realizados*.
+
+- [ ] **Reporte PDF de las dos fichas.** Ni la ficha de fabricación ni la de reparación se pueden imprimir hoy; el único documento imprimible de una orden es el presupuesto por defecto de Odoo. **La ficha de reparación existe, entre otras cosas, para entregársela al cliente**, así que esto no es un extra. Obliga a decidir campo por campo qué es interno y qué va impreso — ver `designs/protocolo-de-pruebas.md` § 12.1.
+
+- [ ] **Validación de línea de producto en cierre de orden**: hoy una orden se puede cerrar con líneas de falla de tipo "cambio" sin haber registrado el repuesto como línea de producto.
+
+  **Desde `19.0.5.2.0` ya hay dónde ponerla**: el override de `write` en `repair_order.py` valida la transición a `done` antes del `super()` para exigir el tipo de intervención. La misma validación cubre este caso sin infraestructura nueva. Cuando eso pasa se pierde el vínculo con el lote y se corta el análisis de fallas. Diseño acordado:
 
   1. `mc.rov.accion` — agregar booleano `consume_repuesto`. Marcarlo en "Cambio completo" y "Cambio de componente"; el resto de las acciones (limpieza, calibración, configuración, soldadura) queda en `False`.
   2. `repair.order` — constraint o `write` override: si alguna línea de `linea_falla_ids` tiene `accion_id.consume_repuesto = True`, la orden no puede pasar a `done` sin al menos una línea de producto.
