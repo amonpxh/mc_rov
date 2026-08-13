@@ -98,7 +98,7 @@
                             <group name="group_especificaciones_right">
                                 <field name="mc_tarjeta_comunicacion_rov" widget="radio" options="{&quot;horizontal&quot;:true}" required="es_un_rov"/>
                                 <field name="mc_tarjeta_comunicacion_consola" widget="radio" options="{&quot;size&quot;:&quot;md&quot;,&quot;horizontal&quot;:true}" required="es_un_rov"/>
-                                <field name="mc_software_superficie" widget="selection" placeholder="Seleccione el software" required="es_un_rov"/>
+                                <field name="mc_software_superficie" widget="radio" options="{&quot;horizontal&quot;:true}" required="es_un_rov"/>
                                 <field name="mc_version_software" placeholder="0.0.0" required="es_un_rov"/>
                                 <field name="mc_controlador_vuelo" widget="radio" options="{&quot;horizontal&quot;:true}" required="es_un_rov"/>
                                 <field name="mc_version_controlador" placeholder="0.0.0" required="es_un_rov"/>

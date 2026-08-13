@@ -282,4 +282,33 @@
         <field name="name">USBL / Beacon</field>
         <field name="componente_id" ref="comp_sensor"/>
     </record>
+
+    <!-- Software de superficie. ROVControl es temporal: cuando Crabby lo reemplace, se
+         desmarca `active` y los equipos que lo tienen registrado siguen resolviendo. -->
+    <record id="soft_qgroundcontrol" model="mc.rov.software.superficie">
+        <field name="name">QGroundControl</field>
+        <field name="sequence">10</field>
+    </record>
+    <record id="soft_crabby" model="mc.rov.software.superficie">
+        <field name="name">Crabby</field>
+        <field name="sequence">20</field>
+    </record>
+    <record id="soft_rovcontrol" model="mc.rov.software.superficie">
+        <field name="name">ROVControl</field>
+        <field name="sequence">30</field>
+    </record>
+
+    <!-- Controladores de vuelo -->
+    <record id="ctrl_navigator" model="mc.rov.controlador.vuelo">
+        <field name="name">Navigator</field>
+        <field name="sequence">10</field>
+    </record>
+    <!-- "Pixhawk (PX4)" y no solo "Pixhawk": la placa es Pixhawk y el firmware que corre
+         encima es PX4, pero en el taller lo nombran por el firmware. La etiqueta la lee el
+         técnico al elegir, así que manda cómo lo llaman ellos. -->
+    <record id="ctrl_pixhawk" model="mc.rov.controlador.vuelo">
+        <field name="name">Pixhawk (PX4)</field>
+        <field name="sequence">20</field>
+    </record>
+
 </odoo>

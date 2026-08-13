@@ -22,10 +22,8 @@ FICHA_COMPLETA = {
     "mc_sensor_presion": "30 bar",
     "mc_tarjeta_comunicacion_rov": "V50",
     "mc_tarjeta_comunicacion_consola": "V50",
-    "mc_controlador_vuelo": "Navigator",
     "mc_version_controlador": "1.2.0",
     "mc_version_ardusub": "4.1.0",
-    "mc_software_superficie": "QGroundControl",
     "mc_version_software": "4.2.6",
     "mc_cantidad_luces": 4,
     "mc_tiene_horometro": "si",
@@ -764,8 +762,16 @@ class TestStockLotFichaCompleta(StockLotPropiedadCommon):
     """Tests de mc_ficha_completa, el indicador de ficha técnica levantada."""
 
     def _completar(self, **cambios):
-        """Deja la ficha completa y luego aplica los cambios del caso."""
-        self.lot.write({**FICHA_COMPLETA, **cambios})
+        """Deja la ficha completa y luego aplica los cambios del caso.
+
+        Los dos catálogos se resuelven aquí y no en FICHA_COMPLETA porque env.ref necesita
+        un entorno, y el diccionario es de módulo.
+        """
+        catalogos = {
+            "mc_controlador_vuelo": self.env.ref("mc_rov.ctrl_navigator").id,
+            "mc_software_superficie": self.env.ref("mc_rov.soft_qgroundcontrol").id,
+        }
+        self.lot.write({**FICHA_COMPLETA, **catalogos, **cambios})
         return self.lot
 
     def test_una_serie_recien_creada_tiene_la_ficha_incompleta(self):
@@ -776,6 +782,11 @@ class TestStockLotFichaCompleta(StockLotPropiedadCommon):
 
     def test_un_campo_vacio_deja_la_ficha_incompleta(self):
         self.assertFalse(self._completar(mc_chasis=False).mc_ficha_completa)
+
+    def test_un_catalogo_sin_elegir_deja_la_ficha_incompleta(self):
+        """Un Many2one vacío se comprueba igual que un Selection vacío: basta con que no
+        esté puesto."""
+        self.assertFalse(self._completar(mc_software_superficie=False).mc_ficha_completa)
 
     def test_los_faltantes_nombran_el_numerico_en_cero(self):
         """Es la razón de ser de mc_ficha_faltantes.
@@ -829,7 +840,13 @@ class TestStockLotFichaCompleta(StockLotPropiedadCommon):
         componente = self.env["stock.lot"].create(
             {"name": "COMP-FICHA-001", "product_id": self.product_ajeno.id}
         )
-        componente.write(FICHA_COMPLETA)
+        componente.write(
+            {
+                **FICHA_COMPLETA,
+                "mc_controlador_vuelo": self.env.ref("mc_rov.ctrl_navigator").id,
+                "mc_software_superficie": self.env.ref("mc_rov.soft_qgroundcontrol").id,
+            }
+        )
 
         self.assertFalse(componente.es_un_rov)
         self.assertFalse(componente.mc_ficha_completa)
