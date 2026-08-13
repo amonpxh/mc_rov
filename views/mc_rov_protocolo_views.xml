@@ -176,7 +176,10 @@
                         domain="[('tipo', '=', 'entrega')]"/>
                 <filter name="filtro_fabricacion" string="Fabricación"
                         domain="[('tipo', '=', 'fabricacion')]"/>
-                <group expand="0" string="Agrupar por">
+                <!-- El group va pelado: el schema de vistas de búsqueda de Odoo 19 rechaza
+                     expand y string en este elemento. Misma forma que el arch base de
+                     repair.view_repair_order_form_filter. -->
+                <group>
                     <filter name="group_equipo" string="Equipo"
                             context="{'group_by': 'lot_id'}"/>
                     <filter name="group_tipo" string="Tipo"
