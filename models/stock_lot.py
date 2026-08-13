@@ -31,6 +31,7 @@ CAMPOS_FICHA_SELECCION = (
     "mc_tarjeta_comunicacion_consola",
     "mc_controlador_vuelo",
     "mc_software_superficie",
+    "mc_tiene_horometro",
 )
 CAMPOS_FICHA_TEXTO = (
     "mc_version_controlador",
@@ -195,6 +196,36 @@ class StockLot(models.Model):
         "lot_id",
         string="Órdenes de reparación",
     )
+
+    # El historial de pruebas del equipo. Es la serie de tiempo: dos protocolos del mismo
+    # número de serie separados por un año son lo que permite ver que el ancho de banda
+    # cayó, o que el horómetro avanzó tantas horas entre visitas.
+    protocolo_ids = fields.One2many(
+        "mc.rov.protocolo",
+        "lot_id",
+        string="Protocolos de prueba",
+    )
+
+    mc_protocolo_count = fields.Integer(
+        string="Protocolos",
+        compute="_compute_mc_protocolo_count",
+    )
+
+    def _compute_mc_protocolo_count(self):
+        for lot in self:
+            lot.mc_protocolo_count = len(lot.protocolo_ids)
+
+    def action_ver_protocolos(self):
+        """Abre el historial de pruebas de este equipo."""
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Protocolos de prueba",
+            "res_model": "mc.rov.protocolo",
+            "view_mode": "list,form",
+            "domain": [("lot_id", "=", self.id)],
+            "context": {"default_lot_id": self.id},
+        }
 
     mc_estado_operativo = fields.Selection(
         [
@@ -371,6 +402,18 @@ class StockLot(models.Model):
     # ArduSub va aparte y siempre: es el software de vuelo y corre sobre cualquiera de los
     # dos controladores, así que no es alternativa de ninguno.
     mc_version_ardusub = fields.Char(string="Versión Ardusub")
+
+    # Selection de Sí/No y no un Boolean: una casilla nunca está vacía, así que False
+    # significaría a la vez "no tiene horómetro" y "nadie lo revisó". De este dato depende
+    # saber sobre qué parte de la flota se puede calcular confiabilidad de verdad — con
+    # horas de uso y no de calendario — así que confundir esas dos cosas arruinaría
+    # justamente el análisis que justifica pedirlo.
+    mc_tiene_horometro = fields.Selection(
+        [("si", "Sí"), ("no", "No")],
+        string="Tiene horómetro",
+        help="Si el equipo registra sus horas de operación. Solo en los que lo tienen se "
+        "puede medir confiabilidad por horas de uso en vez de por tiempo de calendario.",
+    )
 
     mc_ficha_completa = fields.Boolean(
         string="Ficha completa",

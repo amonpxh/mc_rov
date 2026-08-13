@@ -6,3 +6,9 @@ access_mc_rov_tipo_intervencion,mc.rov.tipo.intervencion,model_mc_rov_tipo_inter
 access_mc_rov_linea_falla,mc.rov.linea.falla,model_mc_rov_linea_falla,,1,1,1,1
 access_mc_rov_propietario_historial,mc.rov.propietario.historial,model_mc_rov_propietario_historial,,1,1,1,1
 access_mc_rov_baja_wizard,mc.rov.baja.wizard,model_mc_rov_baja_wizard,,1,1,1,1
+access_mc_rov_chequeo,mc.rov.chequeo,model_mc_rov_chequeo,,1,1,1,1
+access_mc_rov_hallazgo,mc.rov.hallazgo,model_mc_rov_hallazgo,,1,1,1,1
+access_mc_rov_protocolo,mc.rov.protocolo,model_mc_rov_protocolo,,1,1,1,1
+access_mc_rov_protocolo_corrida,mc.rov.protocolo.corrida,model_mc_rov_protocolo_corrida,,1,1,1,1
+access_mc_rov_protocolo_chequeo,mc.rov.protocolo.chequeo,model_mc_rov_protocolo_chequeo,,1,1,1,1
+access_mc_rov_protocolo_hallazgo,mc.rov.protocolo.hallazgo,model_mc_rov_protocolo_hallazgo,,1,1,1,1

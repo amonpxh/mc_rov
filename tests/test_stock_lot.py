@@ -28,6 +28,7 @@ FICHA_COMPLETA = {
     "mc_software_superficie": "QGroundControl",
     "mc_version_software": "4.2.6",
     "mc_cantidad_luces": 4,
+    "mc_tiene_horometro": "si",
 }
 
 

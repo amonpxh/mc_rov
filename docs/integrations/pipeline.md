@@ -139,7 +139,11 @@ Custom mc_rov fields:
   `es_mantencion` to identify maintenance visits — do not match on the label text.
 - `falla_reportada`
 - `linea_falla_ids` (one2many)
-- `causa_raiz`
+- `causa_raiz` — **moved to `mc.rov.linea.falla` in 19.0.8.0.0.** It was one value per
+  order, which forced a choice when a visit had several: an umbilical cut by accident and a
+  motor worn by use are two different root causes. Migration copied each order's value down
+  to its work lines; orders that had a root cause and **no** work lines lost it, and the
+  migration logs how many.
 - `fecha_entrega_real`
 - `observaciones_salida`
 - `mc_total_horas` — **stored since 19.0.5.2.0.** It was an unstored computed field, which
@@ -148,10 +152,12 @@ Custom mc_rov fields:
 - `mc_propietario_lot_id`, `mc_propietario_difiere` — related/computed from the unit's
   registered owner. `mc_propietario_difiere` is the resale signal: it fires when the order's
   customer is not the unit's registered owner.
-- `item_2..5` — **deprecated, slated for removal.** Four unlabelled `Char` fields left over
-  from Studio. **Zero of the ten orders in production have ever used them.** They will be
-  dropped and replaced by a Many2many to `stock.lot` (the units received alongside the ROV,
-  which are traceable because e-pods carry their own serial). Do not build anything on them.
+- `item_2..5` — **removed in 19.0.8.0.0.** Four unlabelled `Char` fields left over from
+  Studio; zero of the ten orders in production ever used them. Replaced by
+  `mc_items_recibidos_ids`, a Many2many to `stock.lot` — no fixed arity, and traceable,
+  since e-pods carry their own serial.
+- `protocolo_ids` — **new in 19.0.8.0.0.** The test protocols of this visit, typically one
+  at intake and one at delivery.
 
 **A semantic guarantee that only holds going forward:** since `19.0.5.2.0` an order cannot
 be closed without at least one `tipo_intervencion_ids`. Before that it could, and such an

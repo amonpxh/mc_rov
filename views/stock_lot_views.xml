@@ -103,6 +103,12 @@
                                 <field name="mc_controlador_vuelo" widget="radio" options="{&quot;horizontal&quot;:true}" required="es_un_rov"/>
                                 <field name="mc_version_controlador" placeholder="0.0.0" required="es_un_rov"/>
                                 <field name="mc_version_ardusub" placeholder="0.0.0" required="es_un_rov"/>
+                                <!-- Selection de Sí/No y no casilla: un booleano nunca está
+                                     vacío, así que un "no" no se distinguiría de un "nadie
+                                     lo revisó". De este dato depende sobre qué parte de la
+                                     flota se puede medir confiabilidad por horas de uso en
+                                     vez de por calendario. -->
+                                <field name="mc_tiene_horometro" widget="radio" options="{&quot;horizontal&quot;:true}" required="es_un_rov"/>
                             </group>
                         </group>
                     </page>
@@ -261,6 +267,32 @@
                                 <field name="fecha_hasta"/>
                                 <field name="partner_id"/>
                                 <field name="repair_id"/>
+                            </list>
+                        </field>
+                    </page>
+
+                    <!-- El historial de pruebas del equipo. Va como pestaña y no como botón
+                         inteligente porque el formulario de lote no declara un
+                         oe_button_box con nombre estable al que anclarse, y adivinar
+                         internos de una vista heredada es lo que causó los defectos de
+                         19.0.5.0.1 y 19.0.5.1.0.
+
+                         Esta es la serie de tiempo del equipo: dos protocolos separados por
+                         un año son lo que deja ver que el ancho de banda cayó, o cuántas
+                         horas voló entre visitas. -->
+                    <page string="Protocolos" name="page_protocolos" invisible="not es_un_rov">
+                        <field name="protocolo_ids" readonly="1">
+                            <list>
+                                <field name="name"/>
+                                <field name="fecha"/>
+                                <field name="tipo"/>
+                                <field name="responsable_id"/>
+                                <field name="horas_operacion" optional="show"/>
+                                <field name="resultado"
+                                       decoration-danger="resultado == 'rechazado'"
+                                       decoration-warning="resultado == 'aprobado_con_observaciones'"
+                                       decoration-success="resultado == 'aprobado'"/>
+                                <field name="estado"/>
                             </list>
                         </field>
                     </page>

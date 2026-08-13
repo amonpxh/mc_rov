@@ -17,6 +17,18 @@ class McRovComponente(models.Model):
     name = fields.Char(string="Componente", required=True)
     # Subtipos gestionados desde el formulario del componente (inline)
     subtipo_ids = fields.One2many("mc.rov.subtipo", "componente_id", string="Subtipos")
+
+    # Qué componentes recorre la inspección física del protocolo. Es una casilla y no una
+    # lista fija en el código para que agregar uno sea marcarlo desde Configuración, igual
+    # que es_mantencion en los tipos de intervención. Sin esta marca, un chequeo "por
+    # componente" generaría una línea por cada componente del catálogo —incluidos umbilical,
+    # cámara o sensor, que no se inspeccionan buscando sellos ajenos.
+    es_inspeccionable = fields.Boolean(
+        string="Entra en la inspección física",
+        help="Marque los componentes que se revisan uno por uno al recibir un equipo, "
+        "buscando marcas de plumón o sellos de terceros.",
+    )
+
     active = fields.Boolean(default=True)
 
 
@@ -93,6 +105,39 @@ class McRovLineaFalla(models.Model):
         string="Acción",
         required=True,
         ondelete="restrict",
+    )
+
+    # Lo que cierra el circuito: qué hallazgo del protocolo de recepción resuelve este
+    # trabajo. Con él se puede preguntar cuántos de los hallazgos de entrada quedaron
+    # cerrados, y qué hallazgo predice qué acción. Opcional porque un trabajo puede surgir
+    # sin hallazgo previo, y un hallazgo puede quedarse sin resolver — que también es dato.
+    hallazgo_origen_id = fields.Many2one(
+        "mc.rov.protocolo.hallazgo",
+        string="Resuelve el hallazgo",
+        ondelete="set null",
+    )
+
+    # En la línea y no solo en la cabecera: dos técnicos pueden trabajar la misma orden y
+    # cada línea ya lleva sus horas. Sin esto las HH no se pueden atribuir, y agregarlo
+    # después dejaría sin atribuir todo lo anterior.
+    responsable_id = fields.Many2one(
+        "hr.employee",
+        string="Responsable",
+        help="Quién hizo este trabajo en particular.",
+    )
+
+    # Baja desde repair.order: una orden puede tener tres causas distintas —umbilical
+    # cortado por accidente y motor gastado por uso— y una sola casilla obligaba a elegir.
+    causa_raiz = fields.Selection(
+        [
+            ("mal_uso", "Mal uso"),
+            ("desgaste", "Desgaste normal"),
+            ("accidente", "Accidente"),
+            ("falla_fabricacion", "Falla de fabricación"),
+            ("corrosion", "Corrosión"),
+            ("desconocida", "Desconocida"),
+        ],
+        string="Causa raíz",
     )
     # Por defecto hoy: la línea se registra el día en que se hace el trabajo, y sin
     # default quedaba vacía casi siempre. Una fecha corregible sirve más que un campo en

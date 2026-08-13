@@ -18,4 +18,33 @@
         parent="repair.repair_menu_config"
         action="action_mc_rov_tipo_intervencion"
         sequence="22"/>
+    <menuitem
+        id="menu_mc_rov_chequeos"
+        name="Pasos de testeo ROV"
+        parent="repair.repair_menu_config"
+        action="action_mc_rov_chequeo"
+        sequence="23"/>
+    <menuitem
+        id="menu_mc_rov_hallazgos"
+        name="Hallazgos ROV"
+        parent="repair.repair_menu_config"
+        action="action_mc_rov_hallazgo"
+        sequence="24"/>
+
+    <!-- Los protocolos van al menú principal de Reparaciones y no a Configuración: son
+         registros de trabajo diario, no catálogo. Van entre Órdenes y Reporting (que
+         ocupa la secuencia 15), y separados por tipo para que el taller no tenga que
+         mirar los de fabricación ni manufactura los de reparación. -->
+    <menuitem
+        id="menu_mc_rov_protocolos"
+        name="Protocolos de reparación"
+        parent="repair.menu_repair_order"
+        action="action_mc_rov_protocolo"
+        sequence="12"/>
+    <menuitem
+        id="menu_mc_rov_protocolos_fabricacion"
+        name="Protocolos de fabricación"
+        parent="repair.menu_repair_order"
+        action="action_mc_rov_protocolo_fabricacion"
+        sequence="13"/>
 </odoo>

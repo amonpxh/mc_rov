@@ -24,14 +24,30 @@ class RepairOrder(models.Model):
         string="Tipo de intervención",
     )
 
-    # Ítems adicionales del sistema ROV asociados a la orden (además del número de serie)
-    item_2 = fields.Char(string="Ítem 2")
-    item_3 = fields.Char(string="Ítem 3")
-    item_4 = fields.Char(string="Ítem 4")
-    item_5 = fields.Char(string="Ítem 5")
+    # Reemplaza a los cuatro item_2..item_5 heredados de Studio: Char sin etiqueta, con la
+    # cantidad fija en el código, y que ninguna de las diez órdenes de producción usó nunca.
+    # Un Many2many no tiene tope y es trazable — los e-pods llevan número de serie propio,
+    # así que queda registrado cuál llegó con cuál ROV en cuál visita.
+    mc_items_recibidos_ids = fields.Many2many(
+        "stock.lot",
+        relation="mc_rov_repair_order_item_rel",
+        column1="repair_order_id",
+        column2="lot_id",
+        string="Equipos recibidos",
+        help="Lo que llegó junto al ROV: consola, umbilical, e-pods. Es lo que la "
+        "inspección física del protocolo va a mirar.",
+    )
 
     # Descripción literal de la falla según el cliente, sin interpretación técnica
     falla_reportada = fields.Text(string="Falla reportada por cliente")
+
+    # Los protocolos de esta visita: típicamente uno de recepción y uno de entrega, y la
+    # comparación entre ambos es la evidencia de que el trabajo sirvió.
+    protocolo_ids = fields.One2many(
+        "mc.rov.protocolo",
+        "repair_id",
+        string="Protocolos de prueba",
+    )
 
     # Detalle técnico de los trabajos ejecutados (ver mc.rov.linea.falla)
     linea_falla_ids = fields.One2many(
@@ -52,18 +68,6 @@ class RepairOrder(models.Model):
     def _compute_mc_total_horas(self):
         for order in self:
             order.mc_total_horas = sum(order.linea_falla_ids.mapped("horas"))
-
-    causa_raiz = fields.Selection(
-        [
-            ("mal_uso", "Mal uso"),
-            ("desgaste", "Desgaste normal"),
-            ("accidente", "Accidente"),
-            ("falla_fabricacion", "Falla de fabricación"),
-            ("corrosion", "Corrosión"),
-            ("desconocida", "Desconocida"),
-        ],
-        string="Causa raíz",
-    )
 
     fecha_entrega_real = fields.Date(
         string="Fecha de entrega real",
