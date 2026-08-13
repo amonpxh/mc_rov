@@ -189,8 +189,37 @@ class RepairOrder(models.Model):
             "reinicia el ciclo de mantención del equipo ni aparece en su historial."
         )
 
+    def _crear_revision_recepcion(self, order):
+        """Abre la revisión de recepción de una orden que acaba de entrar al taller.
+
+        Se crea sola y no con un botón porque **siempre ocurre**: toda visita empieza
+        revisando cómo llegó el equipo. Depender de que alguien se acuerde de apretar algo
+        es lo que hace que un paso obligatorio se salte en silencio, y meses después nadie
+        entienda por qué no hay datos.
+
+        Es el criterio inverso al de la revisión de fabricación, que sí es un botón: esa a
+        veces ocurre y a veces no.
+
+        Tres condiciones, y las tres importan:
+
+        - **Al salir de borrador**, no al crearse. Una orden en borrador es una cotización
+          y el equipo puede no haber llegado todavía; es la misma distinción que usan
+          mc_estado_operativo y los contadores.
+        - **Solo ROVs.** Una reparación de componente no lleva revisión.
+        - **Solo si no hay una.** Un ida y vuelta entre estados no debe generar duplicados.
+        """
+        if not order.lot_id or not order.lot_id.es_un_rov:
+            return
+
+        Revision = self.env["mc.rov.revision"]
+        if Revision.search_count([("repair_id", "=", order.id), ("tipo", "=", "recepcion")]):
+            return
+
+        Revision.create({"lot_id": order.lot_id.id, "repair_id": order.id, "tipo": "recepcion"})
+        order.message_post(body="Se abrió la revisión de recepción de esta visita.")
+
     def write(self, vals):
-        """Valida el cierre y sella la fecha de entrega si nadie la escribió.
+        """Abre la revisión de recepción, valida el cierre y sella la fecha de entrega.
 
         La validación va **antes** del super() para que el estado no llegue a
         escribirse. Y cubre solo la transición a done, no un @api.constrains, para no
@@ -211,7 +240,17 @@ class RepairOrder(models.Model):
         if vals.get("state") == "done":
             self._validar_tipo_intervencion()
 
+        # Se anota antes del super() quiénes estaban en borrador: después ya cambiaron.
+        entran_al_taller = (
+            self.filtered(lambda order: order.state == "draft")
+            if vals.get("state") not in (None, "draft", "cancel")
+            else self.browse()
+        )
+
         res = super().write(vals)
+
+        for order in entran_al_taller:
+            self._crear_revision_recepcion(order)
 
         if vals.get("state") == "done":
             sin_fecha = self.filtered(lambda order: not order.fecha_entrega_real)

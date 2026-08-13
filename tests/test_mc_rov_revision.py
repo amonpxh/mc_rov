@@ -412,3 +412,61 @@ class TestMcRovRevisionSellos(RevisionCommon):
         revision.action_confirmar()
 
         self.assertEqual(revision.estado, "confirmado")
+
+
+@tagged("post_install", "-at_install")
+class TestMcRovRevisionAutomatica(RevisionCommon):
+    """Tests de la revisión de recepción que se abre sola al entrar el equipo al taller."""
+
+    def _orden(self, **vals):
+        return self.env["repair.order"].create(
+            {"product_id": self.product.id, "lot_id": self.lot.id, **vals}
+        )
+
+    def _recepciones(self, orden):
+        return self.env["mc.rov.revision"].search(
+            [("repair_id", "=", orden.id), ("tipo", "=", "recepcion")]
+        )
+
+    def test_una_orden_en_borrador_no_abre_revision(self):
+        """Un borrador es una cotización: el equipo puede no haber llegado."""
+        self.assertFalse(self._recepciones(self._orden()))
+
+    def test_confirmar_la_orden_abre_la_revision_de_recepcion(self):
+        """Siempre ocurre, así que no puede depender de que alguien apriete un botón."""
+        orden = self._orden()
+
+        orden.state = "confirmed"
+
+        self.assertEqual(len(self._recepciones(orden)), 1)
+
+    def test_no_se_duplica_al_avanzar_de_estado(self):
+        orden = self._orden()
+
+        orden.state = "confirmed"
+        orden.state = "under_repair"
+
+        self.assertEqual(len(self._recepciones(orden)), 1)
+
+    def test_cancelar_no_abre_revision(self):
+        orden = self._orden()
+
+        orden.state = "cancel"
+
+        self.assertFalse(self._recepciones(orden))
+
+    def test_una_orden_sin_rov_no_abre_revision(self):
+        """Una reparación de componente no lleva revisión técnica."""
+        product_ajeno = self.env["product.product"].create(
+            {"name": "Componente Test Rev", "tracking": "serial"}
+        )
+        lot_ajeno = self.env["stock.lot"].create(
+            {"name": "COMP-REV-001", "product_id": product_ajeno.id}
+        )
+        orden = self.env["repair.order"].create(
+            {"product_id": product_ajeno.id, "lot_id": lot_ajeno.id}
+        )
+
+        orden.state = "confirmed"
+
+        self.assertFalse(self._recepciones(orden))

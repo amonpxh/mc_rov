@@ -1,6 +1,6 @@
-# Diseño: ficha de reparación digital
+# Diseño: la revisión técnica
 
-**Versión objetivo:** `19.0.8.0.0` — `19.0.6.x` y `19.0.7.x` se ocuparon en la ficha de
+**Versión objetivo:** implementado en `19.0.8.0.0` … `19.0.11.0.1` — `19.0.6.x` y `19.0.7.x` se ocuparon en la ficha de
 fabricación, que se adelantó por ser corta e independiente
 **Estado:** **aprobado por Paulo el 2026-08-12.** Listo para implementar
 **Fecha:** 2026-08-11, reescrito el mismo día (§ 1.1) y ampliado el 2026-08-12 (§ 16)
@@ -29,7 +29,7 @@ Por eso todo termina en observaciones: no hay otro lugar donde ponerlo.
 ### 1.1 Corrección de alcance
 
 Una versión anterior de este documento proponía **mover 24 campos de `stock.lot`** al
-protocolo, argumentando que repetir las pruebas sobrescribía los valores anteriores.
+revisión, argumentando que repetir las pruebas sobrescribía los valores anteriores.
 
 **Era falso, por dos razones independientes:**
 
@@ -43,6 +43,24 @@ pregunta decidía todo el diseño.
 
 **`stock.lot` queda completamente fuera del alcance: cero campos movidos, cero columnas
 eliminadas, cero cambios en la ficha técnica, ninguna migración de mediciones.**
+
+### 1.2 Corrección de nombre
+
+Este diseño se implementó llamando **«protocolo»** al registro, y se renombró a **«revisión
+técnica»** en `19.0.11.0.0`.
+
+*Protocolo* significa **procedimiento**, y el registro no es el procedimiento — el
+procedimiento es el catálogo de pasos de testeo (§ 5.3). Lo que se crea en cada visita es el
+**resultado de ejecutarlo**.
+
+El nombre alcanzó a causar una confusión real antes de corregirse: *"¿no debería ser siempre
+el mismo?"*. Y la respuesta es que sí — el **procedimiento** es siempre el mismo; el registro
+lleno no.
+
+*Revisión técnica* se eligió porque en Chile el modelo mental ya existe: una batería
+estandarizada y periódica sobre un vehículo, cuyo resultado es aprobado / aprobado con
+observaciones / rechazado, que deja un documento y un historial por unidad. Coincide hasta
+en los tres resultados, que ya estaban implementados con esos nombres.
 
 ---
 
@@ -72,9 +90,9 @@ No confundirlas es lo más importante de este documento.
 | Corridas con dos umbilicales | Modelo de línea propio (§ 5.2) |
 | Resultado de la prueba de esfuerzo | Binario + **duración** |
 | Responsable en la línea de trabajo | **Sí** — es el único campo que no se puede retrofitear |
-| `resultado` del protocolo | **Derivado, no forzable** — un override sería el texto libre en otra forma |
+| `resultado` de la revisión | **Derivado, no forzable** — un override sería el texto libre en otra forma |
 | Chequeos de algo que el equipo no lleva | Se muestran todos y se responden ***No lo tiene***, que afirma algo del equipo y no del técnico |
-| Cliente vs dueño en el protocolo | Ninguno propio: ambos derivados |
+| Cliente vs dueño en la revisión | Ninguno propio: ambos derivados |
 | Firma / aprobación con nombre | Se posterga; `estado: confirmado` es la aprobación por sistema |
 | Fotos de hallazgos | Se implementan al final, con `fields.Image` (§ 12) |
 | Ficha de papel como fuente | **No.** El diseño se hizo sin verla, a propósito |
@@ -129,7 +147,7 @@ propio, el problema es el cable y no el vehículo.**
 
 Seis modelos nuevos: una cabecera, tres modelos de línea, dos catálogos.
 
-### 5.1 `mc.rov.protocolo` — la ficha
+### 5.1 `mc.rov.revision` — la ficha
 
 ```
 name              Char       secuencia PROT/00001, readonly
@@ -144,37 +162,37 @@ horas_operacion   Float h    lectura del horómetro, si el equipo tiene
 
 **`horas_operacion` es el dato de mayor apalancamiento del modelo, y es opcional.** Solo
 algunos ROV traen horómetro. Se anota **la lectura**, no un acumulado calculado, y en cada
-visita: lo que sirve para análisis es el **delta entre dos protocolos consecutivos** — las
+visita: lo que sirve para análisis es el **delta entre dos revisiones consecutivos** — las
 horas que el equipo voló entre una visita y la siguiente. Es el denominador que le falta a
 cualquier cálculo de confiabilidad, porque un equipo que bucea ocho horas diarias y uno
 guardado en bodega acumulan el mismo tiempo de calendario.
 
 Verificación gratis: como la prueba de esfuerzo corre el ROV 1 a 1½ horas, la lectura del
-protocolo de entrega menos la de recepción debería dar aproximadamente las horas de prueba
+revisión de entrega menos la de recepción debería dar aproximadamente las horas de prueba
 de esa visita.
 
-**`repair_id` es opcional a propósito.** Un ROV nuevo pasa por el mismo protocolo antes de
-despacharse y ahí no hay orden de reparación. Si el protocolo colgara de la orden, toda la
+**`repair_id` es opcional a propósito.** Un ROV nuevo pasa por el mismo revisión antes de
+despacharse y ahí no hay orden de reparación. Si la revisión colgara de la orden, toda la
 fabricación quedaría fuera del análisis.
 
 **`tipo` con recepción y entrega** permite probar al recibir, arreglar, y volver a probar
-antes de entregar. Dos protocolos, misma visita; la comparación entre ambos es la evidencia
+antes de entregar. Dos revisiones, misma visita; la comparación entre ambos es la evidencia
 de que el trabajo sirvió.
 
-**El protocolo de recepción es la actividad de diagnosticar.** Tres niveles que conviene no
+**La revisión de recepción es la actividad de diagnosticar.** Tres niveles que conviene no
 mezclar:
 
 | Cosa | Qué es | Nombre |
 |---|---|---|
 | La lista de qué se prueba siempre | catálogo configurable | pasos de testeo estándar (`mc.rov.chequeo`) |
-| El registro de haberlos corrido un día | el documento | protocolo de pruebas (`mc.rov.protocolo`) |
+| El registro de haberlos corrido un día | el documento | revisión técnica (`mc.rov.revision`) |
 | Para qué sirve al recibir el equipo | el propósito | diagnóstico |
 
 El registro no se puede llamar "diagnóstico" porque la misma batería se corre **antes de
 entregar**, y ahí no diagnostica: verifica.
 
 `tipo_diagnostico` (tipo de intervención) no cambia: sigue siendo el tipo de **visita**. Una
-visita de solo diagnóstico produce un protocolo de recepción con hallazgos y **cero líneas
+visita de solo diagnóstico produce una revisión de recepción con hallazgos y **cero líneas
 de trabajo** — su resultado completo, que hoy no queda registrado en ninguna parte.
 
 **`estado`** existe para llenar la ficha por partes. En `borrador` se guarda incompleta; al
@@ -193,7 +211,7 @@ partner_id       related repair_id.partner_id         readonly   quién paga est
 es_un_rov        related lot_id.es_un_rov             readonly
 ```
 
-**Cliente vs dueño:** el protocolo no lleva contacto propio. `propietario_id` es de quién es
+**Cliente vs dueño:** la revisión no lleva contacto propio. `propietario_id` es de quién es
 el equipo (dura años); `partner_id` es a quién se factura esta visita. Un tercer contacto
 aquí reabriría la confusión que se cerró en `19.0.5.0.0`.
 
@@ -224,9 +242,9 @@ modelo hace de la ficha técnica**, y es de solo lectura.
 Líneas y resumen:
 
 ```
-corrida_ids    O2m mc.rov.protocolo.corrida
-chequeo_ids    O2m mc.rov.protocolo.chequeo
-hallazgo_ids   O2m mc.rov.protocolo.hallazgo
+corrida_ids    O2m mc.rov.revision.corrida
+chequeo_ids    O2m mc.rov.revision.chequeo
+hallazgo_ids   O2m mc.rov.revision.hallazgo
 resultado      Selection  aprobado | aprobado_con_observaciones | rechazado   computed, store
 ```
 
@@ -237,10 +255,10 @@ resultado      Selection  aprobado | aprobado_con_observaciones | rechazado   co
 2. Algún hallazgo → **aprobado con observaciones**
 3. Si no → **aprobado**
 
-### 5.2 `mc.rov.protocolo.corrida` — una pasada con un umbilical
+### 5.2 `mc.rov.revision.corrida` — una pasada con un umbilical
 
 ```
-protocolo_id          M2o mc.rov.protocolo    required, ondelete cascade
+revision_id          M2o mc.rov.revision    required, ondelete cascade
 sequence              Integer
 umbilical             Selection  equipo | prueba          required
 largo                 Float m                             required
@@ -265,7 +283,7 @@ Existe porque **el umbilical es una condición de la corrida, no un dato de una 
 Normalmente hay una sola línea, con el cable del equipo. Hay dos cuando usan el de control,
 y entonces la comparación entre líneas aísla el cable como fuente de falla.
 
-Lo que **no** depende del cable se queda en el protocolo y se hace una sola vez, aunque haya
+Lo que **no** depende del cable se queda en la revisión y se hace una sola vez, aunque haya
 dos corridas: repetir la inspección física dos veces no aporta nada.
 
 **`esfuerzo_duracion` es el campo que hoy no existe y más vale.** El resultado de la prueba
@@ -290,13 +308,13 @@ active              Boolean    default True
 
 ### 5.3.1 Fabricación y reparación no corren la misma batería
 
-Los cuatro booleanos separan qué chequeos aparecen en cada tipo de protocolo, y la
-generación automática de líneas (§ 5.4) filtra por el `tipo` del protocolo.
+Los cuatro booleanos separan qué chequeos aparecen en cada tipo de revisión, y la
+generación automática de líneas (§ 5.4) filtra por el `tipo` de la revisión.
 
 **El caso que lo justifica es la inspección física.** Existe para detectar si alguien más
 intervino el equipo — marcas de plumón, sellos ajenos, tornillería cambiada. En un ROV
 **recién fabricado eso no significa nada**: nadie busca huellas de terceros en algo que armó
-uno mismo la semana pasada. Sin el filtro, el protocolo de fabricación generaría quince
+uno mismo la semana pasada. Sin el filtro, la revisión de fabricación generaría quince
 líneas de inspección que alguien tendría que responder para poder confirmar, y que no
 dirían nada.
 
@@ -309,10 +327,10 @@ Semilla propuesta:
 | Sistema, luces | sí | sí | sí | sí |
 
 Son cuatro booleanos y no un modelo de tipos porque `tipo` es un `Selection` estable: los
-tipos de protocolo son la estructura del proceso, no un catálogo operativo. Es la misma
+tipos de revisión son la estructura del proceso, no un catálogo operativo. Es la misma
 distinción que se hizo con `seccion`.
 
-El mismo criterio ordena la navegación: el menú de protocolos se filtra por tipo, para que
+El mismo criterio ordena la navegación: el menú de revisiones se filtra por tipo, para que
 el taller no tenga que mirar los de fabricación ni manufactura los de reparación.
 
 Agregar *lateral*, *yaw*, *roll* o *pitch* para un equipo 6DOF es crear cuatro registros
@@ -323,10 +341,10 @@ chequeo de un modelo nuevo.
 deliberado: las secciones son la estructura de la ficha y son estables; los chequeos dentro
 de ellas son operativos y cambian.
 
-### 5.4 `mc.rov.protocolo.chequeo` — línea de chequeo
+### 5.4 `mc.rov.revision.chequeo` — línea de chequeo
 
 ```
-protocolo_id    M2o mc.rov.protocolo      required, ondelete cascade
+revision_id    M2o mc.rov.revision      required, ondelete cascade
 sequence        Integer
 chequeo_id      M2o mc.rov.chequeo        required
 componente_id   M2o mc.rov.componente     required si chequeo_id.por_componente
@@ -354,13 +372,13 @@ la misma ambigüedad que se rechazó al retirar «Desconocido», en otro disfraz
 nuevo afirma algo sobre **el equipo**, no sobre lo que hizo el técnico.
 
 > **Refinamiento posible más adelante, no ahora:** si la ficha de fabricación registrara
-> cuántos e-pods lleva el equipo y si tiene joystick, el protocolo podría generar solo las
+> cuántos e-pods lleva el equipo y si tiene joystick, la revisión podría generar solo las
 > líneas que corresponden, en vez de generarlas todas y hacer que alguien marque «No lo
 > tiene» cada vez. Es mejor a la larga —el dato se declara una vez y no en cada visita— pero
 > exige campos nuevos en la ficha de fabricación y que estén bien llenos. Con «No lo tiene»
 > el análisis ya es correcto; esto solo ahorraría clics.
 
-Las líneas se generan solas al crear el protocolo, con todos los chequeos activos. **La
+Las líneas se generan solas al crear la revisión, con todos los chequeos activos. **La
 inspección física es un checklist, no una lista de excepciones:** se pasa por los cinco
 componentes siempre, aunque en algunos equipos la respuesta sea *No lo tiene*. Si solo se
 anotaran los hallazgos, *el joystick estaba limpio* sería indistinguible de *nadie miró el
@@ -381,22 +399,22 @@ active     Boolean    default True
 
 Este catálogo **es la pieza que falta hoy** y la razón de todo el diseño.
 
-### 5.6 `mc.rov.protocolo.hallazgo` — línea de hallazgo
+### 5.6 `mc.rov.revision.hallazgo` — línea de hallazgo
 
 ```
-protocolo_id    M2o mc.rov.protocolo      required, ondelete cascade
+revision_id    M2o mc.rov.revision      required, ondelete cascade
 sequence        Integer
 componente_id   M2o mc.rov.componente     REQUERIDO
 subtipo_id      M2o mc.rov.subtipo        domain [('componente_id','=',componente_id)]
 hallazgo_id       M2o mc.rov.hallazgo     REQUERIDO
 severidad         Selection  informativo | atencion | impide_operar   required, default atencion
-chequeo_origen_id M2o mc.rov.protocolo.chequeo   opcional: qué chequeo lo destapó
+chequeo_origen_id M2o mc.rov.revision.chequeo   opcional: qué chequeo lo destapó
 detalle           Text                    complemento, nunca sustituto
 ```
 
 **`chequeo_origen_id` es el que hace medible la detección** (§ 16.2). Sin él no se puede
-saber si un hallazgo lo reveló un chequeo del protocolo o si alguien lo vio de casualidad —
-y esa diferencia es la que dice si al protocolo le falta un chequeo. Cuesta un campo ahora y
+saber si un hallazgo lo reveló un chequeo de la revisión o si alguien lo vio de casualidad —
+y esa diferencia es la que dice si a la revisión le falta un chequeo. Cuesta un campo ahora y
 es imposible de reconstruir después.
 
 Reusa `mc.rov.componente` y `mc.rov.subtipo`, los mismos catálogos de las líneas de trabajo.
@@ -406,7 +424,7 @@ los trabajos hablan el mismo idioma.
 ### 5.7 Cambios en `mc.rov.linea.falla`
 
 ```
-hallazgo_origen_id   M2o mc.rov.protocolo.hallazgo   opcional
+hallazgo_origen_id   M2o mc.rov.revision.hallazgo   opcional
 responsable_id       M2o hr.employee                 quién hizo este trabajo
 causa_raiz           Selection                       baja desde repair.order (§ 9)
 ```
@@ -414,7 +432,7 @@ causa_raiz           Selection                       baja desde repair.order (§
 **`responsable_id` en la línea y no solo en la cabecera**, porque dos técnicos pueden
 trabajar la misma orden y cada línea ya lleva sus horas. Con él, las HH quedan atribuidas y
 se puede costear por técnico o ver quién concentra qué tipo de trabajo. Se propone desde el
-responsable del protocolo o el de la orden.
+responsable de la revisión o el de la orden.
 
 Es el único de los campos discutidos que **no se puede retrofitear**: agregarlo después deja
 todas las líneas anteriores sin atribuir para siempre.
@@ -422,7 +440,7 @@ todas las líneas anteriores sin atribuir para siempre.
 `hallazgo_origen_id` cierra el circuito:
 
 ```
-protocolo de recepción → hallazgo → línea de trabajo (acción + HH) → protocolo de entrega
+revisión de recepción → hallazgo → línea de trabajo (acción + HH) → revisión de entrega
 ```
 
 Se deja opcional: un trabajo puede surgir sin hallazgo previo, y un hallazgo puede quedar
@@ -488,7 +506,7 @@ Consola, Cámara, Sensor, Otro. La inspección física necesita además:
 | Eléctrico | Cable pellizcado · Conector dañado · Aislación deteriorada · Falso contacto |
 | Funcional | No responde · Intermitente · Fuera de rango · Ruido anormal |
 
-**No hay un hallazgo "Sin hallazgos".** Un protocolo sin líneas de hallazgo ya significa que
+**No hay un hallazgo "Sin hallazgos".** Una revisión sin líneas de hallazgo ya significa que
 no se encontró nada, y los chequeos respondidos son la prueba de que se miró. Tener las dos
 formas de decirlo crearía registros ambiguos: una línea "sin hallazgos" junto a otra con un
 hallazgo real no querría decir nada.
@@ -499,11 +517,11 @@ hallazgo real no querría decir nada.
 
 | Dónde | Qué |
 |---|---|
-| `Reparaciones → Protocolos de prueba` | Lista y formulario |
+| `Reparaciones → Revisiones de prueba` | Lista y formulario |
 | `Reparaciones → Configuración` | Chequeos ROV, Hallazgos ROV, junto a Componentes y Acciones |
-| Botón inteligente en `stock.lot` | "Protocolos" con contador → el historial del equipo. **Único cambio en el lote, y es de solo lectura** |
-| Página en `repair.order` | Los protocolos de esa visita |
-| Reporte QWeb sobre `mc.rov.protocolo` | La versión digital de la hoja de papel, imprimible y adjuntable |
+| Botón inteligente en `stock.lot` | "Revisiones" con contador → el historial del equipo. **Único cambio en el lote, y es de solo lectura** |
+| Página en `repair.order` | Las revisiones de esa visita |
+| Reporte QWeb sobre `mc.rov.revision` | La versión digital de la hoja de papel, imprimible y adjuntable |
 
 El reporte también tapa un hueco actual: el técnico llena trabajos, causa raíz y
 observaciones, y **nada de eso sale en un PDF** — el único documento imprimible es el
@@ -520,7 +538,7 @@ Poco, y nada de lo que se usa a diario cambia de significado.
 | Se eliminan `item_2` … `item_5` | 0 de 10 órdenes los usaron; la etiqueta original ya era "Ítem 2" |
 | Nuevo `mc_items_recibidos_ids` (M2m a `stock.lot`) | Reemplaza la necesidad real: los equipos que llegan junto al ROV. Sin tope, y **trazable** — el E-pod tiene serie propia |
 | `causa_raiz` baja a `mc.rov.linea.falla` | Una orden puede tener tres causas distintas; hoy hay que elegir una |
-| Nueva pestaña con los protocolos de la visita | — |
+| Nueva pestaña con las revisiones de la visita | — |
 
 ---
 
@@ -543,7 +561,7 @@ Mucho más corta que la del diseño anterior, porque **no se mueve ninguna medic
 listado. Esta versión toca:
 
 - **`item_2..5` se eliminan** y **`causa_raiz` cambia de modelo.**
-- **Modelos nuevos**: `mc.rov.protocolo` y sus tres modelos de línea son, de aquí en
+- **Modelos nuevos**: `mc.rov.revision` y sus tres modelos de línea son, de aquí en
   adelante, **la fuente principal del análisis de fallas** — el insumo del dashboard.
 - **Los 48 campos `mc_*` de `stock.lot` no cambian.** El contrato los cubre con una línea
   genérica y sigue siendo válida.
@@ -609,7 +627,7 @@ El principio: **se exige lo que hace inútil al registro si falta, y se exige al
 al escribir.** Cada campo obligatorio es fricción, y la fricción donde no hace falta enseña a
 la gente a esquivarla — con lo cual deja de servir donde sí hace falta.
 
-### 14.1 Ficha de reparación (el protocolo)
+### 14.1 Ficha de reparación (la revisión)
 
 **Siempre, no se puede ni guardar el borrador:**
 
@@ -624,7 +642,7 @@ la gente a esquivarla — con lo cual deja de servir donde sí hace falta.
 | Regla | Por qué | Origen |
 |---|---|---|
 | `responsable_id` | Sin atribución, todo el trabajo de poner empleados no sirve de nada | **Confirmado**: la ficha la llena el técnico que hizo el trabajo, así que es una firma real y no la memoria de quien transcribe |
-| Al menos **una corrida**, con `esfuerzo_resultado` y `esfuerzo_duracion` | Un protocolo sin corridas dice que no se probó nada | **Confirmado**: la prueba de esfuerzo siempre se hace |
+| Al menos **una corrida**, con `esfuerzo_resultado` y `esfuerzo_duracion` | Una revisión sin corridas dice que no se probó nada | **Confirmado**: la prueba de esfuerzo siempre se hace |
 | En cada corrida: `alimentacion` y `tension_salida` | Son las condiciones del banco; sin ellas no hay comparación entre visitas | **Confirmado**: se anotan siempre en la ficha de reparación |
 | En cada corrida: `umbilical` y `largo` | Sin saber con qué cable se midió, las mediciones no se pueden interpretar ni comparar | Criterio propio |
 | **Todos** los chequeos con `resultado`, incluido *No lo tiene* | Es el punto del checklist: probar que se miró | **Confirmado**: la inspección no siempre recorre los cinco componentes, así que *No lo tiene* es un valor de uso corriente y no una excepción |
@@ -642,7 +660,7 @@ equipo y no sobre lo que hizo el técnico.
 
 - `repair_id` — la fabricación no tiene orden.
 - Cero hallazgos es legal: significa que el equipo llegó limpio, y los chequeos lo prueban.
-- Las pruebas que no se hicieron. Se puede confirmar un protocolo parcial siempre que cada
+- Las pruebas que no se hicieron. Se puede confirmar una revisión parcial siempre que cada
   chequeo diga explícitamente *no aplica*; lo que no se puede es dejarlo en blanco.
 - Temperaturas, y los campos de terreno cuando el tipo no es terreno.
 
@@ -668,8 +686,8 @@ Lo que propongo contar como completa, con la justificación de cada uno:
 | `mc_fecha_puesta_servicio` | **Sin ella no hay reloj de mantención** y el equipo no aparece nunca en la lista de vencidos |
 | `mc_chasis`, `mc_modelo_motores`, `mc_n_motores`, `mc_posicion_motores` | La identidad física del equipo; sin ella no se puede agrupar fallas por configuración |
 | `mc_controlador_vuelo` y la versión que corresponda | Para correlacionar fallas con firmware, que es media razón del análisis |
-| `mc_n_serie_umbilical` y `mc_longitud` | **El protocolo de reparación compara contra `mc_longitud`**; sin ella la comparación no existe |
-| `mc_cantidad_luces` | **El protocolo compara el conteo de la prueba contra este número** |
+| `mc_n_serie_umbilical` y `mc_longitud` | **La revisión de reparación compara contra `mc_longitud`**; sin ella la comparación no existe |
+| `mc_cantidad_luces` | **La revisión compara el conteo de la prueba contra este número** |
 
 Los últimos dos grupos son el caso más claro: no son obligatorios por sí mismos, sino porque
 **hay otra ficha que los lee**. Si están vacíos, dos de las verificaciones automáticas de la
@@ -686,10 +704,10 @@ extra, brazo. Son descriptivos y nada depende de ellos.
 
 ## 15. Verificación
 
-1. **Tests** — clases nuevas: `TestMcRovProtocolo` (cabecera, derivados, `resultado`
-   calculado, generación automática de líneas), `TestMcRovProtocoloCorrida` (una y dos
-   corridas, esfuerzo), `TestMcRovProtocoloChequeo` (validación al confirmar),
-   `TestMcRovProtocoloHallazgo` (severidad y precedencia), `TestMcRovLineaFallaHallazgo`
+1. **Tests** — clases nuevas: `TestMcRovRevisión` (cabecera, derivados, `resultado`
+   calculado, generación automática de líneas), `TestMcRovRevisiónCorrida` (una y dos
+   corridas, esfuerzo), `TestMcRovRevisiónChequeo` (validación al confirmar),
+   `TestMcRovRevisiónHallazgo` (severidad y precedencia), `TestMcRovLineaFallaHallazgo`
    (el enlace y la baja de `causa_raiz`).
 2. **Auditoría previa al deploy** — cuántas órdenes tienen `causa_raiz` sin líneas de
    trabajo, que son las que perderían el valor:
@@ -698,7 +716,7 @@ extra, brazo. Son descriptivos y nada depende de ellos.
     WHERE ro.causa_raiz IS NOT NULL
       AND NOT EXISTS (SELECT 1 FROM mc_rov_linea_falla lf WHERE lf.repair_id = ro.id);
    ```
-3. **Manual, en staging** — crear un protocolo de recepción sobre una serie ROV; confirmar
+3. **Manual, en staging** — crear una revisión de recepción sobre una serie ROV; confirmar
    que las líneas de chequeo se generan solas, que no deja confirmar con chequeos sin
    responder, que dos corridas con distinto umbilical se pueden comparar, que `resultado`
    reacciona a un hallazgo `impide_operar`, y que el reporte imprime.
@@ -740,14 +758,14 @@ no guarda los datos. Sus tres ejes salen del modelo:
 **La detección es el eje que casi nadie puede calcular**, y de ahí sale el resultado más
 útil de todos: *un hallazgo que aparece seguido y que ningún chequeo detecta es un chequeo
 que falta*. Y al revés, un chequeo que sale OK siempre, en toda la flota, durante un año, o
-no mide nada o mide algo que no falla — se elimina. **El protocolo se audita a sí mismo.**
+no mide nada o mide algo que no falla — se elimina. **La revisión se audita a sí mismo.**
 
 **Degradación por equipo.** Subida, bajada y `esfuerzo_duracion` de cada visita, en serie.
 Un equipo cuyo enlace cae visita tras visita se está deteriorando antes de fallar. Es lo
 único de toda la lista que hoy es *literalmente imposible*, porque no existe la segunda
 medición.
 
-**Cohortes por configuración.** Como el protocolo guarda la versión de firmware del día de
+**Cohortes por configuración.** Como la revisión guarda la versión de firmware del día de
 la prueba, se puede preguntar *"¿las fallas de motor aparecieron después de ArduSub 4.1?"*.
 Para un fabricante es de lo más accionable que hay: dice si el problema lo introdujo uno
 mismo.

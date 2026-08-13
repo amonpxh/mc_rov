@@ -4,6 +4,39 @@ All notable changes to the `mc_rov` Odoo module are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this module adheres to [semantic versioning](https://semver.org/) within the constraints of Odoo's version scheme: `19.0.X.Y.Z` where `19.0` is the Odoo major, `X` is breaking-change/migration, `Y` is feature, `Z` is bugfix.
 
+## [19.0.11.1.0] — 2026-08-13
+
+### Added
+- **The intake revision is now created automatically** when a repair order leaves draft,
+  instead of waiting for someone to press a button.
+
+  It always happens — every workshop visit starts by checking how the unit arrived — and
+  the module's rule is that **what always happens gets created automatically; what
+  sometimes happens gets a button.** Depending on memory for a mandatory step is how a step
+  gets skipped in silence, and months later nobody understands why there is no data. The
+  manufacturing revision keeps its button, because that one genuinely does not always
+  happen.
+
+  Three conditions, and all three matter: **on leaving draft** and not on creation, since a
+  draft is a quotation and the unit may not have arrived; **ROVs only**, since a component
+  repair carries no revision; and **only if none exists**, so bouncing between states does
+  not duplicate.
+
+### Documentation
+- **The pipeline contract listed `mc.rov.protocolo` and its line models, which no longer
+  exist.** Same class of breakage as the one corrected on 2026-08-12, committed again by the
+  rename. It now documents `mc.rov.revision` and its five models in full — including the
+  warning that **`numero_en_visita` must be read before aggregating**, because counting
+  findings per revision rather than per visit drops a rate to a third when a visit held
+  three of them.
+- `designs/protocolo-de-pruebas.md` renamed to `designs/revision-tecnica.md` and brought up
+  to date, with § 1.2 recording why the name changed — beside § 1.1, which records the scope
+  error. Both are kept rather than erased: the next reader needs to know those questions
+  exist.
+- `pendientes.md` rewritten. It described a state three versions old.
+
+- 5 tests (139 → 144).
+
 ## [19.0.11.0.1] — 2026-08-13
 
 ### Fixed
