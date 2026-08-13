@@ -8,7 +8,7 @@ TIPOS = [
     ("terreno", "Prueba en terreno"),
 ]
 
-# Qué campo del catálogo de chequeos habilita cada tipo de protocolo. Se lee de aquí en vez
+# Qué campo del catálogo de chequeos habilita cada tipo de revision. Se lee de aquí en vez
 # de encadenar ifs, para que agregar un tipo sea tocar dos listas y no buscar condicionales
 # repartidos por el archivo.
 CAMPO_APLICA = {
@@ -34,7 +34,7 @@ RESULTADOS_CHEQUEO = [
 # continuidad: el que se pone hoy es el que se inspecciona en la próxima visita, y lo que
 # interesa saber es en qué estado llegó.
 #
-# En un protocolo de RECEPCIÓN, "roto" o "ausente" significan manipulación de terceros sin
+# En una revisión de RECEPCIÓN, "roto" o "ausente" significan manipulación de terceros sin
 # ambigüedad: el taller nunca rompe un sello sin registrarlo, y sus propias roturas ocurren
 # durante el trabajo, después de la recepción.
 # La inspección de sellos solo tiene sentido cuando hay un sello previo que mirar o uno
@@ -56,7 +56,7 @@ SEVERIDADES = [
 ]
 
 
-class McRovProtocolo(models.Model):
+class McRovRevision(models.Model):
     """Una sesión de pruebas sobre un equipo: la ficha de reparación, digital.
 
     Reemplaza la hoja de papel del taller. Lo que esa hoja registra bien es **qué se
@@ -68,13 +68,13 @@ class McRovProtocolo(models.Model):
     orden, toda la fabricación quedaría fuera del análisis.
     """
 
-    _name = "mc.rov.protocolo"
-    _description = "Protocolo de pruebas ROV"
+    _name = "mc.rov.revision"
+    _description = "Revisión técnica ROV"
     _inherit = ["mail.thread"]
     _order = "fecha desc, id desc"
     _rec_name = "name"
 
-    name = fields.Char(string="Protocolo", readonly=True, copy=False, default="/")
+    name = fields.Char(string="Revisión", readonly=True, copy=False, default="/")
 
     lot_id = fields.Many2one(
         "stock.lot",
@@ -89,7 +89,7 @@ class McRovProtocolo(models.Model):
         string="Orden de reparación",
         index=True,
         ondelete="set null",
-        help="La visita al taller, si la hubo. Vacío en los protocolos de fabricación, que "
+        help="La visita al taller, si la hubo. Vacío en las revisiones de fabricación, que "
         "ocurren antes de que exista ninguna orden.",
     )
 
@@ -121,11 +121,11 @@ class McRovProtocolo(models.Model):
         string="Horómetro (h)",
         digits=(10, 1),
         help="Lectura del horómetro al recibir el equipo, si lo tiene. Lo que sirve para "
-        "análisis es la diferencia entre dos protocolos: las horas que voló entre una "
+        "análisis es la diferencia entre dos revisiones: las horas que voló entre una "
         "visita y la siguiente.",
     )
 
-    # --- Derivados: el protocolo no guarda contactos propios ---
+    # --- Derivados: la revisión no guarda contactos propios ---
 
     product_id = fields.Many2one(related="lot_id.product_id", string="Modelo", readonly=True)
     es_un_rov = fields.Boolean(related="lot_id.es_un_rov", readonly=True)
@@ -163,12 +163,39 @@ class McRovProtocolo(models.Model):
 
     # --- Líneas ---
 
-    corrida_ids = fields.One2many("mc.rov.protocolo.corrida", "protocolo_id", string="Corridas")
-    chequeo_ids = fields.One2many("mc.rov.protocolo.chequeo", "protocolo_id", string="Chequeos")
-    hallazgo_ids = fields.One2many("mc.rov.protocolo.hallazgo", "protocolo_id", string="Hallazgos")
+    corrida_ids = fields.One2many("mc.rov.revision.corrida", "revision_id", string="Corridas")
+    chequeo_ids = fields.One2many("mc.rov.revision.chequeo", "revision_id", string="Chequeos")
+    hallazgo_ids = fields.One2many("mc.rov.revision.hallazgo", "revision_id", string="Hallazgos")
     inspeccion_ids = fields.One2many(
-        "mc.rov.protocolo.inspeccion", "protocolo_id", string="Inspección de sellos"
+        "mc.rov.revision.inspeccion", "revision_id", string="Inspección de sellos"
     )
+
+    # Varias revisiones en una misma visita son legítimas —se prueba, se arregla, se
+    # vuelve a probar— pero envenenan las estadísticas si no se sabe cuál es cuál: la tasa
+    # de "equipos que llegan con el motor roto" cae a un tercio si una visita tuvo tres
+    # revisiones y el hallazgo está en una.
+    #
+    # La regla es que la unidad de análisis es la VISITA, no la revisión. Este número la
+    # hace inequívoca: la #1 dice con qué llegó el equipo, la última cómo quedó. Sin él
+    # habría que ordenar por fecha, y varias del mismo día no se ordenan solas.
+    numero_en_visita = fields.Integer(
+        string="N° en la visita",
+        compute="_compute_numero_en_visita",
+        store=True,
+        help="1 para la primera revisión de esta orden, 2 para la siguiente, etc. Las "
+        "revisiones sin orden asociada quedan en 0.",
+    )
+
+    @api.depends("repair_id", "fecha")
+    def _compute_numero_en_visita(self):
+        for revision in self:
+            if not revision.repair_id:
+                revision.numero_en_visita = 0
+                continue
+            hermanas = self.search([("repair_id", "=", revision.repair_id.id)], order="fecha, id")
+            revision.numero_en_visita = (
+                list(hermanas).index(revision) + 1 if revision in hermanas else 1
+            )
 
     resultado = fields.Selection(
         [
@@ -190,10 +217,10 @@ class McRovProtocolo(models.Model):
         Si el ROV debería tener seis luces y se contaron cuatro, el sistema lo dice sin que
         nadie tenga que acordarse de comparar. Es una de las cosas que la inspección busca.
         """
-        for protocolo in self:
-            protocolo.luces_total = protocolo.luces_internas + protocolo.luces_externas
-            protocolo.luces_difieren = bool(protocolo.luces_ficha) and (
-                protocolo.luces_total != protocolo.luces_ficha
+        for revision in self:
+            revision.luces_total = revision.luces_internas + revision.luces_externas
+            revision.luces_difieren = bool(revision.luces_ficha) and (
+                revision.luces_total != revision.luces_ficha
             )
 
     @api.depends(
@@ -204,62 +231,60 @@ class McRovProtocolo(models.Model):
     def _compute_resultado(self):
         """El orden de las condiciones es la regla de negocio.
 
-        Un chequeo fallado o un esfuerzo con problemas rechazan el protocolo aunque no se
+        Un chequeo fallado o un esfuerzo con problemas rechazan la revisión aunque no se
         haya registrado ningún hallazgo: el equipo no pasó, y eso no se compensa con que
         nadie haya escrito por qué.
         """
-        for protocolo in self:
+        for revision in self:
             rechaza = (
-                any(linea.resultado == "no_ok" for linea in protocolo.chequeo_ids)
+                any(linea.resultado == "no_ok" for linea in revision.chequeo_ids)
                 or any(
                     corrida.esfuerzo_resultado == "con_problemas"
-                    for corrida in protocolo.corrida_ids
+                    for corrida in revision.corrida_ids
                 )
-                or any(
-                    hallazgo.severidad == "impide_operar" for hallazgo in protocolo.hallazgo_ids
-                )
+                or any(hallazgo.severidad == "impide_operar" for hallazgo in revision.hallazgo_ids)
             )
             if rechaza:
-                protocolo.resultado = "rechazado"
-            elif protocolo.hallazgo_ids:
-                protocolo.resultado = "aprobado_con_observaciones"
+                revision.resultado = "rechazado"
+            elif revision.hallazgo_ids:
+                revision.resultado = "aprobado_con_observaciones"
             else:
-                protocolo.resultado = "aprobado"
+                revision.resultado = "aprobado"
 
     # --- Generación del checklist ---
 
     def _chequeos_del_tipo(self, tipo):
-        """Los chequeos activos del catálogo que corresponden a este tipo de protocolo."""
+        """Los chequeos activos del catálogo que corresponden a este tipo de revision."""
         campo = CAMPO_APLICA.get(tipo)
         if not campo:
             return self.env["mc.rov.chequeo"]
         return self.env["mc.rov.chequeo"].search([(campo, "=", True)])
 
-    def _generar_chequeos(self, protocolo):
-        """Crea las líneas de checklist que falten para el tipo del protocolo.
+    def _generar_chequeos(self, revision):
+        """Crea las líneas de checklist que falten para el tipo de la revisión.
 
         Las genera el sistema y no la persona porque el punto de un checklist es que
         siempre traiga los mismos ítems: si el técnico eligiera cuáles agregar, no habría
         forma de distinguir "revisado y limpio" de "no se me ocurrió mirarlo".
 
         Solo agrega lo que falta y nunca borra respuestas. Un chequeo respondido sobrevive
-        aunque cambie el tipo del protocolo, porque el dato ya se levantó y perderlo sería
+        aunque cambie el tipo de la revisión, porque el dato ya se levantó y perderlo sería
         peor que tener una línea de más.
 
-        Recibe el protocolo como argumento en vez de operar sobre self: lo llaman create y
+        Recibe la revisión como argumento en vez de operar sobre self: lo llaman create y
         write sobre un registro a la vez, siguiendo la convención del módulo.
         """
-        Linea = self.env["mc.rov.protocolo.chequeo"]
+        Linea = self.env["mc.rov.revision.chequeo"]
         # Solo los marcados como inspeccionables: sin ese filtro un chequeo "por componente"
         # generaría una línea por cada entrada del catálogo, incluidos umbilical, cámara o
         # sensor, que no se revisan buscando sellos de terceros.
         componentes = self.env["mc.rov.componente"].search([("es_inspeccionable", "=", True)])
         existentes = {
-            (linea.chequeo_id.id, linea.componente_id.id) for linea in protocolo.chequeo_ids
+            (linea.chequeo_id.id, linea.componente_id.id) for linea in revision.chequeo_ids
         }
 
         valores = []
-        for chequeo in self._chequeos_del_tipo(protocolo.tipo):
+        for chequeo in self._chequeos_del_tipo(revision.tipo):
             objetivos = componentes if chequeo.por_componente else [False]
             for componente in objetivos:
                 componente_id = componente.id if componente else False
@@ -267,7 +292,7 @@ class McRovProtocolo(models.Model):
                     continue
                 valores.append(
                     {
-                        "protocolo_id": protocolo.id,
+                        "revision_id": revision.id,
                         "chequeo_id": chequeo.id,
                         "componente_id": componente_id,
                         "sequence": chequeo.sequence,
@@ -277,34 +302,34 @@ class McRovProtocolo(models.Model):
         if valores:
             Linea.create(valores)
 
-    def _generar_inspeccion(self, protocolo):
-        """Crea una fila por componente sellado, si el tipo de protocolo la lleva.
+    def _generar_inspeccion(self, revision):
+        """Crea una fila por componente sellado, si el tipo de revision la lleva.
 
         Igual que el checklist, la genera el sistema: si el técnico eligiera qué
         componentes revisar, la ausencia de una fila no distinguiría "no lo tiene" de
         "no lo miré".
         """
-        if protocolo.tipo not in TIPOS_CON_INSPECCION:
+        if revision.tipo not in TIPOS_CON_INSPECCION:
             return
 
         componentes = self.env["mc.rov.componente"].search([("es_inspeccionable", "=", True)])
-        existentes = protocolo.inspeccion_ids.mapped("componente_id")
+        existentes = revision.inspeccion_ids.mapped("componente_id")
 
         valores = [
-            {"protocolo_id": protocolo.id, "componente_id": componente.id}
+            {"revision_id": revision.id, "componente_id": componente.id}
             for componente in componentes - existentes
         ]
         if valores:
-            self.env["mc.rov.protocolo.inspeccion"].create(valores)
+            self.env["mc.rov.revision.inspeccion"].create(valores)
 
-    def _limpiar_chequeos_sin_responder(self, protocolo):
+    def _limpiar_chequeos_sin_responder(self, revision):
         """Borra las líneas que dejaron de corresponder y que nadie contestó.
 
-        Solo las sin responder: cambiar el tipo de un protocolo a medio llenar no debe
+        Solo las sin responder: cambiar el tipo de una revisión a medio llenar no debe
         borrar trabajo hecho.
         """
-        validos = self._chequeos_del_tipo(protocolo.tipo)
-        sobrantes = protocolo.chequeo_ids.filtered(
+        validos = self._chequeos_del_tipo(revision.tipo)
+        sobrantes = revision.chequeo_ids.filtered(
             lambda linea: not linea.resultado and linea.chequeo_id not in validos
         )
         sobrantes.unlink()
@@ -313,27 +338,27 @@ class McRovProtocolo(models.Model):
     def create(self, vals_list):
         for vals in vals_list:
             if vals.get("name", "/") == "/":
-                vals["name"] = self.env["ir.sequence"].next_by_code("mc.rov.protocolo") or "/"
+                vals["name"] = self.env["ir.sequence"].next_by_code("mc.rov.revision") or "/"
 
-        protocolos = super().create(vals_list)
-        for protocolo in protocolos:
-            self._generar_chequeos(protocolo)
-            self._generar_inspeccion(protocolo)
-        return protocolos
+        revisiones = super().create(vals_list)
+        for revision in revisiones:
+            self._generar_chequeos(revision)
+            self._generar_inspeccion(revision)
+        return revisiones
 
     def write(self, vals):
         res = super().write(vals)
         if "tipo" in vals:
-            for protocolo in self:
-                self._limpiar_chequeos_sin_responder(protocolo)
-                self._generar_chequeos(protocolo)
-                self._generar_inspeccion(protocolo)
+            for revision in self:
+                self._limpiar_chequeos_sin_responder(revision)
+                self._generar_chequeos(revision)
+                self._generar_inspeccion(revision)
         return res
 
     # --- Confirmación ---
 
-    def _faltantes_para_confirmar(self, protocolo):
-        """Qué le impide a este protocolo pasar a confirmado, en lenguaje del taller.
+    def _faltantes_para_confirmar(self, revision):
+        """Qué le impide a esta revisión pasar a confirmado, en lenguaje del taller.
 
         Se devuelve una lista y no el primer problema encontrado: hacer que el técnico
         descubra los faltantes de a uno, guardando entre medio, es la forma más segura de
@@ -341,13 +366,13 @@ class McRovProtocolo(models.Model):
         """
         faltan = []
 
-        if not protocolo.responsable_id:
+        if not revision.responsable_id:
             faltan.append("indicar el responsable")
 
-        if not protocolo.corrida_ids:
+        if not revision.corrida_ids:
             faltan.append("registrar al menos una corrida (la prueba de esfuerzo siempre se hace)")
 
-        for corrida in protocolo.corrida_ids:
+        for corrida in revision.corrida_ids:
             etiqueta = corrida.display_name
             if not corrida.esfuerzo_resultado:
                 faltan.append(f"el resultado del esfuerzo en {etiqueta}")
@@ -358,38 +383,38 @@ class McRovProtocolo(models.Model):
             if bool(corrida.subida) != bool(corrida.bajada):
                 faltan.append(f"la subida y la bajada en {etiqueta} — o ambas, o ninguna")
 
-        sin_responder = protocolo.chequeo_ids.filtered(lambda linea: not linea.resultado)
+        sin_responder = revision.chequeo_ids.filtered(lambda linea: not linea.resultado)
         if sin_responder:
             faltan.append(f"responder {len(sin_responder)} chequeo(s) pendiente(s)")
 
-        sellos_sin_ver = protocolo.inspeccion_ids.filtered(lambda linea: not linea.estado_sello)
+        sellos_sin_ver = revision.inspeccion_ids.filtered(lambda linea: not linea.estado_sello)
         if sellos_sin_ver:
             faltan.append(f"revisar el sello de {len(sellos_sin_ver)} componente(s)")
 
         return faltan
 
     def action_confirmar(self):
-        """Cierra el protocolo. A partir de aquí el registro es evidencia, no borrador."""
-        for protocolo in self:
-            faltan = self._faltantes_para_confirmar(protocolo)
+        """Cierra la revisión. A partir de aquí el registro es evidencia, no borrador."""
+        for revision in self:
+            faltan = self._faltantes_para_confirmar(revision)
             if faltan:
                 detalle = "\n".join(f"· {item}" for item in faltan)
                 raise UserError(
-                    f"Falta lo siguiente para confirmar {protocolo.display_name}:\n\n{detalle}"
+                    f"Falta lo siguiente para confirmar {revision.display_name}:\n\n{detalle}"
                 )
-            protocolo.estado = "confirmado"
+            revision.estado = "confirmado"
 
     def action_volver_a_borrador(self):
-        """Reabre un protocolo confirmado. Existe porque las fichas se equivocan.
+        """Reabre una revisión confirmado. Existe porque las fichas se equivocan.
 
         Queda en el chatter, que es lo que distingue una corrección de un borrado.
         """
-        for protocolo in self:
-            protocolo.estado = "borrador"
-            protocolo.message_post(body="El protocolo volvió a borrador para corregirse.")
+        for revision in self:
+            revision.estado = "borrador"
+            revision.message_post(body="La revisión volvió a borrador para corregirse.")
 
 
-class McRovProtocoloCorrida(models.Model):
+class McRovRevisionCorrida(models.Model):
     """Una pasada de pruebas con un umbilical determinado.
 
     Existe como modelo aparte porque **el umbilical es una condición de la corrida y no un
@@ -400,15 +425,15 @@ class McRovProtocoloCorrida(models.Model):
     problema es el cable y no el vehículo.
 
     Lo que no depende del cable —inspección física, presión, leak, luces, video— vive en el
-    protocolo y se hace una sola vez aunque haya dos corridas.
+    revision y se hace una sola vez aunque haya dos corridas.
     """
 
-    _name = "mc.rov.protocolo.corrida"
+    _name = "mc.rov.revision.corrida"
     _description = "Corrida de pruebas con un umbilical"
-    _order = "protocolo_id, sequence, id"
+    _order = "revision_id, sequence, id"
 
-    protocolo_id = fields.Many2one(
-        "mc.rov.protocolo", string="Protocolo", required=True, ondelete="cascade", index=True
+    revision_id = fields.Many2one(
+        "mc.rov.revision", string="Revisión", required=True, ondelete="cascade", index=True
     )
     sequence = fields.Integer(default=10)
 
@@ -447,7 +472,7 @@ class McRovProtocoloCorrida(models.Model):
             corrida.display_name = f"{etiqueta} · {corrida.largo:g} m"
 
 
-class McRovProtocoloChequeo(models.Model):
+class McRovRevisionChequeo(models.Model):
     """Una línea del checklist: qué se revisó y qué salió.
 
     El campo `resultado` cubre dos dimensiones con un solo valor, porque la ficha de papel
@@ -456,12 +481,12 @@ class McRovProtocoloChequeo(models.Model):
     válida y de uso corriente.
     """
 
-    _name = "mc.rov.protocolo.chequeo"
-    _description = "Línea de chequeo de un protocolo"
-    _order = "protocolo_id, sequence, id"
+    _name = "mc.rov.revision.chequeo"
+    _description = "Línea de chequeo de una revisión"
+    _order = "revision_id, sequence, id"
 
-    protocolo_id = fields.Many2one(
-        "mc.rov.protocolo", string="Protocolo", required=True, ondelete="cascade", index=True
+    revision_id = fields.Many2one(
+        "mc.rov.revision", string="Revisión", required=True, ondelete="cascade", index=True
     )
     sequence = fields.Integer(default=10)
 
@@ -476,7 +501,7 @@ class McRovProtocoloChequeo(models.Model):
     detalle = fields.Char(string="Detalle")
 
 
-class McRovProtocoloHallazgo(models.Model):
+class McRovRevisionHallazgo(models.Model):
     """Lo que se encontró, estructurado.
 
     Reusa `mc.rov.componente` y `mc.rov.subtipo`, los mismos catálogos que usan las líneas
@@ -487,12 +512,12 @@ class McRovProtocoloHallazgo(models.Model):
     parte estructurada el técnico escribe "se vio raro el motor" y no hay nada que agregar.
     """
 
-    _name = "mc.rov.protocolo.hallazgo"
-    _description = "Hallazgo registrado en un protocolo"
-    _order = "protocolo_id, sequence, id"
+    _name = "mc.rov.revision.hallazgo"
+    _description = "Hallazgo registrado en una revisión"
+    _order = "revision_id, sequence, id"
 
-    protocolo_id = fields.Many2one(
-        "mc.rov.protocolo", string="Protocolo", required=True, ondelete="cascade", index=True
+    revision_id = fields.Many2one(
+        "mc.rov.revision", string="Revisión", required=True, ondelete="cascade", index=True
     )
     sequence = fields.Integer(default=10)
 
@@ -513,11 +538,11 @@ class McRovProtocoloHallazgo(models.Model):
     )
 
     # El eje de detección del FMEA, y el que casi ningún taller puede calcular: si el
-    # hallazgo lo reveló un chequeo del protocolo o si alguien lo vio de casualidad. De ahí
+    # hallazgo lo reveló un chequeo de la revisión o si alguien lo vio de casualidad. De ahí
     # sale el resultado más útil de todos — un hallazgo frecuente que ningún chequeo detecta
     # es un chequeo que falta.
     chequeo_origen_id = fields.Many2one(
-        "mc.rov.protocolo.chequeo",
+        "mc.rov.revision.chequeo",
         string="Detectado por",
         ondelete="set null",
         help="El chequeo que lo destapó, si fue uno. Vacío significa que se encontró por "
@@ -526,10 +551,10 @@ class McRovProtocoloHallazgo(models.Model):
 
     detalle = fields.Text(string="Detalle")
 
-    lot_id = fields.Many2one(related="protocolo_id.lot_id", string="Equipo", store=True)
+    lot_id = fields.Many2one(related="revision_id.lot_id", string="Equipo", store=True)
 
 
-class McRovProtocoloInspeccion(models.Model):
+class McRovRevisionInspeccion(models.Model):
     """El estado del sello de un componente en una visita.
 
     Reemplaza a tres casillas independientes —"sello antiguo", "sello nuevo", "marca de
@@ -537,18 +562,18 @@ class McRovProtocoloInspeccion(models.Model):
     se pone hoy es el que se inspecciona en la próxima visita, y si llega roto eso es la
     evidencia de que alguien más abrió el equipo.
 
-    Un solo campo alcanza porque el tipo del protocolo da el contexto: en recepción el
+    Un solo campo alcanza porque el tipo de la revisión da el contexto: en recepción el
     estado es *cómo llegó*, en entrega es *cómo se dejó*. Y no hace falta distinguir quién
     rompió el sello, porque el taller nunca lo rompe sin registrarlo y sus roturas ocurren
     durante el trabajo, después de la recepción.
     """
 
-    _name = "mc.rov.protocolo.inspeccion"
-    _description = "Inspección de sellos de un protocolo"
-    _order = "protocolo_id, componente_id"
+    _name = "mc.rov.revision.inspeccion"
+    _description = "Inspección de sellos de una revisión"
+    _order = "revision_id, componente_id"
 
-    protocolo_id = fields.Many2one(
-        "mc.rov.protocolo", string="Protocolo", required=True, ondelete="cascade", index=True
+    revision_id = fields.Many2one(
+        "mc.rov.revision", string="Revisión", required=True, ondelete="cascade", index=True
     )
     componente_id = fields.Many2one(
         "mc.rov.componente", string="Componente", required=True, ondelete="restrict"
@@ -557,10 +582,10 @@ class McRovProtocoloInspeccion(models.Model):
     estado_sello = fields.Selection(ESTADOS_SELLO, string="Estado del sello")
     observacion = fields.Char(string="Observación")
 
-    tipo = fields.Selection(related="protocolo_id.tipo", store=True)
-    lot_id = fields.Many2one(related="protocolo_id.lot_id", string="Equipo", store=True)
+    tipo = fields.Selection(related="revision_id.tipo", store=True)
+    lot_id = fields.Many2one(related="revision_id.lot_id", string="Equipo", store=True)
 
-    # Almacenado para poder contar manipulaciones sin recorrer protocolos en cada consulta.
+    # Almacenado para poder contar manipulaciones sin recorrer revisiones en cada consulta.
     # Solo cuenta en recepción: en entrega los sellos los pone el propio taller.
     manipulacion_externa = fields.Boolean(
         string="Evidencia de manipulación",

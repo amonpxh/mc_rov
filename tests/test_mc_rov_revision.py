@@ -7,10 +7,10 @@ from odoo.addons.mc_rov.models.stock_lot import ROV_CATEG_PARAM
 
 
 @tagged("post_install", "-at_install")
-class ProtocoloCommon(TransactionCase):
-    """Fixtures de los tests de protocolo. No declara tests.
+class RevisionCommon(TransactionCase):
+    """Fixtures de los tests de revision. No declara tests.
 
-    Necesita el árbol de categorías porque el protocolo lee es_un_rov del lote, y sin
+    Necesita el árbol de categorías porque la revisión lee es_un_rov del lote, y sin
     categoría ROV los lotes de prueba no lo estarían.
     """
 
@@ -18,11 +18,11 @@ class ProtocoloCommon(TransactionCase):
     def setUpClass(cls):
         super().setUpClass()
 
-        categoria = cls.env["product.category"].create({"name": "ROV Test - Protocolos"})
+        categoria = cls.env["product.category"].create({"name": "ROV Test - Revisiones"})
         cls.env["ir.config_parameter"].sudo().set_param(ROV_CATEG_PARAM, str(categoria.id))
 
         cls.product = cls.env["product.product"].create(
-            {"name": "ROV Test Protocolo", "tracking": "serial", "categ_id": categoria.id}
+            {"name": "ROV Test Revisión", "tracking": "serial", "categ_id": categoria.id}
         )
         cls.empleado = cls.env["hr.employee"].create({"name": "Técnico de Prueba"})
 
@@ -32,8 +32,8 @@ class ProtocoloCommon(TransactionCase):
             {"name": "ROV-PROT-001", "product_id": self.product.id}
         )
 
-    def _protocolo(self, **vals):
-        return self.env["mc.rov.protocolo"].create(
+    def _revision(self, **vals):
+        return self.env["mc.rov.revision"].create(
             {
                 "lot_id": self.lot.id,
                 "responsable_id": self.empleado.id,
@@ -41,11 +41,11 @@ class ProtocoloCommon(TransactionCase):
             }
         )
 
-    def _corrida_completa(self, protocolo, **vals):
+    def _corrida_completa(self, revision, **vals):
         """Una corrida que no impide confirmar."""
-        return self.env["mc.rov.protocolo.corrida"].create(
+        return self.env["mc.rov.revision.corrida"].create(
             {
-                "protocolo_id": protocolo.id,
+                "revision_id": revision.id,
                 "umbilical": "equipo",
                 "largo": 100.0,
                 "alimentacion": "Generador",
@@ -56,42 +56,42 @@ class ProtocoloCommon(TransactionCase):
             }
         )
 
-    def _responder_todo(self, protocolo, resultado="ok"):
+    def _responder_todo(self, revision, resultado="ok"):
         """Responde el checklist. Los sellos van aparte, para poder probarlos solos."""
-        protocolo.chequeo_ids.write({"resultado": resultado})
+        revision.chequeo_ids.write({"resultado": resultado})
 
-    def _responder_sellos(self, protocolo, estado="intacto"):
-        protocolo.inspeccion_ids.write({"estado_sello": estado})
+    def _responder_sellos(self, revision, estado="intacto"):
+        revision.inspeccion_ids.write({"estado_sello": estado})
 
 
 @tagged("post_install", "-at_install")
-class TestMcRovProtocolo(ProtocoloCommon):
+class TestMcRovRevision(RevisionCommon):
     """Tests de la cabecera: secuencia, derivados y generación del checklist."""
 
-    def test_el_protocolo_toma_su_numero_de_la_secuencia(self):
-        self.assertTrue(self._protocolo().name.startswith("PROT/"))
+    def test_el_revision_toma_su_numero_de_la_secuencia(self):
+        self.assertTrue(self._revision().name.startswith("REV/"))
 
-    def test_el_protocolo_deriva_el_equipo_sin_guardar_contactos_propios(self):
+    def test_el_revision_deriva_el_equipo_sin_guardar_contactos_propios(self):
         """Propietario y cliente son dos cosas distintas y ninguna vive acá."""
-        protocolo = self._protocolo()
+        revision = self._revision()
 
-        self.assertEqual(protocolo.product_id, self.product)
-        self.assertEqual(protocolo.propietario_id, self.lot.mc_propietario_id)
-        self.assertFalse(protocolo.partner_id)
+        self.assertEqual(revision.product_id, self.product)
+        self.assertEqual(revision.propietario_id, self.lot.mc_propietario_id)
+        self.assertFalse(revision.partner_id)
 
-    def test_un_protocolo_de_recepcion_trae_su_checklist_generado(self):
+    def test_un_revision_de_recepcion_trae_su_checklist_generado(self):
         """Las líneas las pone el sistema: si las eligiera el técnico, no habría forma de
         distinguir "revisado y limpio" de "no se me ocurrió mirarlo"."""
-        protocolo = self._protocolo(tipo="recepcion")
+        revision = self._revision(tipo="recepcion")
 
-        self.assertTrue(protocolo.chequeo_ids)
+        self.assertTrue(revision.chequeo_ids)
 
     def test_fabricacion_no_trae_la_inspeccion_fisica(self):
         """La inspección física busca huellas de terceros. En un equipo recién armado por
         ellos mismos eso no significa nada, y generar quince líneas que hay que responder
         para poder confirmar sería puro ruido."""
-        fabricacion = self._protocolo(tipo="fabricacion")
-        recepcion = self._protocolo(tipo="recepcion")
+        fabricacion = self._revision(tipo="fabricacion")
+        recepcion = self._revision(tipo="recepcion")
 
         secciones_fab = set(fabricacion.chequeo_ids.mapped("seccion"))
         secciones_rec = set(recepcion.chequeo_ids.mapped("seccion"))
@@ -103,9 +103,9 @@ class TestMcRovProtocolo(ProtocoloCommon):
         """Sin es_inspeccionable, un chequeo por componente generaría una línea por cada
         entrada del catálogo — umbilical y sensor incluidos, que nadie revisa buscando
         sellos ajenos."""
-        protocolo = self._protocolo(tipo="recepcion")
+        revision = self._revision(tipo="recepcion")
 
-        inspeccion = protocolo.chequeo_ids.filtered(
+        inspeccion = revision.chequeo_ids.filtered(
             lambda linea: linea.seccion == "inspeccion_fisica"
         )
         componentes = inspeccion.mapped("componente_id")
@@ -116,133 +116,133 @@ class TestMcRovProtocolo(ProtocoloCommon):
     def test_cambiar_el_tipo_ajusta_el_checklist_sin_borrar_respuestas(self):
         """Cambiar de recepción a fabricación quita las líneas que ya no corresponden, pero
         nunca las que alguien contestó: el dato ya se levantó."""
-        protocolo = self._protocolo(tipo="recepcion")
-        inspeccion = protocolo.chequeo_ids.filtered(
+        revision = self._revision(tipo="recepcion")
+        inspeccion = revision.chequeo_ids.filtered(
             lambda linea: linea.seccion == "inspeccion_fisica"
         )
         respondida = inspeccion[0]
         respondida.resultado = "ok"
 
-        protocolo.tipo = "fabricacion"
+        revision.tipo = "fabricacion"
 
-        self.assertIn(respondida, protocolo.chequeo_ids)
+        self.assertIn(respondida, revision.chequeo_ids)
         sin_responder = inspeccion - respondida
         self.assertFalse(sin_responder.exists())
 
 
 @tagged("post_install", "-at_install")
-class TestMcRovProtocoloResultado(ProtocoloCommon):
+class TestMcRovRevisionResultado(RevisionCommon):
     """Tests de `resultado`, que se deriva y no se decide."""
 
-    def test_sin_hallazgos_ni_fallas_el_protocolo_esta_aprobado(self):
-        protocolo = self._protocolo()
-        self._corrida_completa(protocolo)
-        self._responder_todo(protocolo)
+    def test_sin_hallazgos_ni_fallas_el_revision_esta_aprobado(self):
+        revision = self._revision()
+        self._corrida_completa(revision)
+        self._responder_todo(revision)
 
-        self.assertEqual(protocolo.resultado, "aprobado")
+        self.assertEqual(revision.resultado, "aprobado")
 
     def test_un_hallazgo_cualquiera_lo_deja_con_observaciones(self):
-        protocolo = self._protocolo()
-        self._corrida_completa(protocolo)
-        self._responder_todo(protocolo)
-        self.env["mc.rov.protocolo.hallazgo"].create(
+        revision = self._revision()
+        self._corrida_completa(revision)
+        self._responder_todo(revision)
+        self.env["mc.rov.revision.hallazgo"].create(
             {
-                "protocolo_id": protocolo.id,
+                "revision_id": revision.id,
                 "componente_id": self.env.ref("mc_rov.comp_motor").id,
                 "hallazgo_id": self.env.ref("mc_rov.hallazgo_corrosion").id,
                 "severidad": "informativo",
             }
         )
 
-        self.assertEqual(protocolo.resultado, "aprobado_con_observaciones")
+        self.assertEqual(revision.resultado, "aprobado_con_observaciones")
 
     def test_un_hallazgo_que_impide_operar_lo_rechaza(self):
-        protocolo = self._protocolo()
-        self._corrida_completa(protocolo)
-        self._responder_todo(protocolo)
-        self.env["mc.rov.protocolo.hallazgo"].create(
+        revision = self._revision()
+        self._corrida_completa(revision)
+        self._responder_todo(revision)
+        self.env["mc.rov.revision.hallazgo"].create(
             {
-                "protocolo_id": protocolo.id,
+                "revision_id": revision.id,
                 "componente_id": self.env.ref("mc_rov.comp_motor").id,
                 "hallazgo_id": self.env.ref("mc_rov.hallazgo_no_responde").id,
                 "severidad": "impide_operar",
             }
         )
 
-        self.assertEqual(protocolo.resultado, "rechazado")
+        self.assertEqual(revision.resultado, "rechazado")
 
     def test_un_chequeo_fallado_rechaza_aunque_nadie_escriba_el_hallazgo(self):
         """El equipo no pasó, y eso no se compensa con que nadie haya explicado por qué."""
-        protocolo = self._protocolo()
-        self._corrida_completa(protocolo)
-        self._responder_todo(protocolo)
-        protocolo.chequeo_ids[0].resultado = "no_ok"
+        revision = self._revision()
+        self._corrida_completa(revision)
+        self._responder_todo(revision)
+        revision.chequeo_ids[0].resultado = "no_ok"
 
-        self.assertEqual(protocolo.resultado, "rechazado")
+        self.assertEqual(revision.resultado, "rechazado")
 
     def test_un_esfuerzo_con_problemas_rechaza(self):
-        protocolo = self._protocolo()
-        self._corrida_completa(protocolo, esfuerzo_resultado="con_problemas")
-        self._responder_todo(protocolo)
+        revision = self._revision()
+        self._corrida_completa(revision, esfuerzo_resultado="con_problemas")
+        self._responder_todo(revision)
 
-        self.assertEqual(protocolo.resultado, "rechazado")
+        self.assertEqual(revision.resultado, "rechazado")
 
     def test_no_lo_tiene_no_es_una_falla(self):
         """Un equipo sin joystick no está reprobado por no tenerlo."""
-        protocolo = self._protocolo()
-        self._corrida_completa(protocolo)
-        self._responder_todo(protocolo, resultado="no_lo_tiene")
+        revision = self._revision()
+        self._corrida_completa(revision)
+        self._responder_todo(revision, resultado="no_lo_tiene")
 
-        self.assertEqual(protocolo.resultado, "aprobado")
+        self.assertEqual(revision.resultado, "aprobado")
 
 
 @tagged("post_install", "-at_install")
-class TestMcRovProtocoloConfirmacion(ProtocoloCommon):
+class TestMcRovRevisionConfirmacion(RevisionCommon):
     """Tests de lo que se exige para confirmar."""
 
     def test_sin_corridas_no_deja_confirmar(self):
-        """La prueba de esfuerzo siempre se hace, así que un protocolo sin corridas dice
+        """La prueba de esfuerzo siempre se hace, así que una revisión sin corridas dice
         que no se probó nada."""
-        protocolo = self._protocolo()
-        self._responder_todo(protocolo)
+        revision = self._revision()
+        self._responder_todo(revision)
 
         with self.assertRaises(UserError):
-            protocolo.action_confirmar()
+            revision.action_confirmar()
 
     def test_con_chequeos_sin_responder_no_deja_confirmar(self):
-        protocolo = self._protocolo()
-        self._corrida_completa(protocolo)
+        revision = self._revision()
+        self._corrida_completa(revision)
 
         with self.assertRaises(UserError):
-            protocolo.action_confirmar()
+            revision.action_confirmar()
 
     def test_media_medicion_no_deja_confirmar(self):
         """Subida sin bajada parece un dato y no lo es."""
-        protocolo = self._protocolo()
-        self._corrida_completa(protocolo, subida=90.0)
-        self._responder_todo(protocolo)
+        revision = self._revision()
+        self._corrida_completa(revision, subida=90.0)
+        self._responder_todo(revision)
 
         with self.assertRaises(UserError):
-            protocolo.action_confirmar()
+            revision.action_confirmar()
 
     def test_un_esfuerzo_sin_duracion_no_deja_confirmar(self):
         """Cuánto aguantó es información distinta de si pasó."""
-        protocolo = self._protocolo()
-        self._corrida_completa(protocolo, esfuerzo_duracion=0.0)
-        self._responder_todo(protocolo)
+        revision = self._revision()
+        self._corrida_completa(revision, esfuerzo_duracion=0.0)
+        self._responder_todo(revision)
 
         with self.assertRaises(UserError):
-            protocolo.action_confirmar()
+            revision.action_confirmar()
 
-    def test_un_protocolo_completo_se_confirma(self):
-        protocolo = self._protocolo()
-        self._corrida_completa(protocolo)
-        self._responder_todo(protocolo)
-        self._responder_sellos(protocolo)
+    def test_un_revision_completo_se_confirma(self):
+        revision = self._revision()
+        self._corrida_completa(revision)
+        self._responder_todo(revision)
+        self._responder_sellos(revision)
 
-        protocolo.action_confirmar()
+        revision.action_confirmar()
 
-        self.assertEqual(protocolo.estado, "confirmado")
+        self.assertEqual(revision.estado, "confirmado")
 
     def test_el_mensaje_de_error_nombra_todo_lo_que_falta_de_una_vez(self):
         """Descubrir los faltantes de a uno, guardando entre medio, es la forma más segura
@@ -251,61 +251,61 @@ class TestMcRovProtocoloConfirmacion(ProtocoloCommon):
         Se comprueba sobre el mensaje que ve el usuario y no sobre el método interno: lo
         que importa es que enumere, no cómo lo calcula.
         """
-        protocolo = self._protocolo()
-        protocolo.responsable_id = False
+        revision = self._revision()
+        revision.responsable_id = False
 
         with self.assertRaises(UserError) as error:
-            protocolo.action_confirmar()
+            revision.action_confirmar()
 
         # El mensaje lista con viñetas; más de una significa que no se rindió en el primero.
         self.assertGreaterEqual(str(error.exception).count("·"), 2)
 
     def test_se_puede_volver_a_borrador(self):
-        protocolo = self._protocolo()
-        self._corrida_completa(protocolo)
-        self._responder_todo(protocolo)
-        self._responder_sellos(protocolo)
-        protocolo.action_confirmar()
+        revision = self._revision()
+        self._corrida_completa(revision)
+        self._responder_todo(revision)
+        self._responder_sellos(revision)
+        revision.action_confirmar()
 
-        protocolo.action_volver_a_borrador()
+        revision.action_volver_a_borrador()
 
-        self.assertEqual(protocolo.estado, "borrador")
+        self.assertEqual(revision.estado, "borrador")
 
 
 @tagged("post_install", "-at_install")
-class TestMcRovProtocoloLuces(ProtocoloCommon):
+class TestMcRovRevisionLuces(RevisionCommon):
     """Tests de la comparación contra la ficha técnica del equipo."""
 
     def test_el_conteo_de_luces_se_suma_solo(self):
-        protocolo = self._protocolo(luces_internas=2, luces_externas=4)
+        revision = self._revision(luces_internas=2, luces_externas=4)
 
-        self.assertEqual(protocolo.luces_total, 6)
+        self.assertEqual(revision.luces_total, 6)
 
     def test_avisa_cuando_el_conteo_no_cuadra_con_la_ficha(self):
         """Si el ROV debería tener seis luces y se contaron cuatro, el sistema lo dice sin
         que nadie tenga que acordarse de comparar."""
         self.lot.mc_cantidad_luces = 6
-        protocolo = self._protocolo(luces_internas=2, luces_externas=2)
+        revision = self._revision(luces_internas=2, luces_externas=2)
 
-        self.assertTrue(protocolo.luces_difieren)
+        self.assertTrue(revision.luces_difieren)
 
     def test_no_avisa_cuando_la_ficha_no_dice_cuantas_hay(self):
         """Sin referencia no hay comparación posible: la alerta se calla en vez de mentir."""
         self.lot.mc_cantidad_luces = 0
-        protocolo = self._protocolo(luces_internas=2, luces_externas=2)
+        revision = self._revision(luces_internas=2, luces_externas=2)
 
-        self.assertFalse(protocolo.luces_difieren)
+        self.assertFalse(revision.luces_difieren)
 
 
 @tagged("post_install", "-at_install")
-class TestMcRovProtocoloTrazabilidad(ProtocoloCommon):
+class TestMcRovRevisionTrazabilidad(RevisionCommon):
     """Tests del circuito hallazgo → trabajo, que es lo que hace servible al modelo."""
 
     def test_una_linea_de_trabajo_apunta_al_hallazgo_que_resuelve(self):
-        protocolo = self._protocolo()
-        hallazgo = self.env["mc.rov.protocolo.hallazgo"].create(
+        revision = self._revision()
+        hallazgo = self.env["mc.rov.revision.hallazgo"].create(
             {
-                "protocolo_id": protocolo.id,
+                "revision_id": revision.id,
                 "componente_id": self.env.ref("mc_rov.comp_motor").id,
                 "hallazgo_id": self.env.ref("mc_rov.hallazgo_corrosion").id,
             }
@@ -331,11 +331,11 @@ class TestMcRovProtocoloTrazabilidad(ProtocoloCommon):
 
     def test_el_hallazgo_sabe_de_que_equipo_es(self):
         """lot_id almacenado en la línea es lo que permite agregar hallazgos por equipo sin
-        pasar por el protocolo en cada consulta."""
-        protocolo = self._protocolo()
-        hallazgo = self.env["mc.rov.protocolo.hallazgo"].create(
+        pasar por la revisión en cada consulta."""
+        revision = self._revision()
+        hallazgo = self.env["mc.rov.revision.hallazgo"].create(
             {
-                "protocolo_id": protocolo.id,
+                "revision_id": revision.id,
                 "componente_id": self.env.ref("mc_rov.comp_motor").id,
                 "hallazgo_id": self.env.ref("mc_rov.hallazgo_corrosion").id,
             }
@@ -343,36 +343,36 @@ class TestMcRovProtocoloTrazabilidad(ProtocoloCommon):
 
         self.assertEqual(hallazgo.lot_id, self.lot)
 
-    def test_el_equipo_acumula_su_historial_de_protocolos(self):
-        """Dos protocolos del mismo equipo son la serie de tiempo: es lo que deja ver que
+    def test_el_equipo_acumula_su_historial_de_revisiones(self):
+        """Dos revisiones del mismo equipo son la serie de tiempo: es lo que deja ver que
         el ancho de banda cayó entre una visita y la siguiente."""
-        self._protocolo(tipo="recepcion", fecha=fields.Date.to_date("2026-01-15"))
-        self._protocolo(tipo="entrega", fecha=fields.Date.to_date("2026-01-20"))
+        self._revision(tipo="recepcion", fecha=fields.Date.to_date("2026-01-15"))
+        self._revision(tipo="entrega", fecha=fields.Date.to_date("2026-01-20"))
 
-        self.assertEqual(len(self.lot.protocolo_ids), 2)
-        self.assertEqual(self.lot.mc_protocolo_count, 2)
+        self.assertEqual(len(self.lot.revision_ids), 2)
+        self.assertEqual(self.lot.mc_revision_count, 2)
 
 
 @tagged("post_install", "-at_install")
-class TestMcRovProtocoloSellos(ProtocoloCommon):
+class TestMcRovRevisionSellos(RevisionCommon):
     """Tests de la inspección de sellos, que reemplazó a tres casillas independientes."""
 
     def test_la_recepcion_trae_una_fila_por_componente_sellado(self):
-        protocolo = self._protocolo(tipo="recepcion")
+        revision = self._revision(tipo="recepcion")
 
-        self.assertTrue(protocolo.inspeccion_ids)
-        componentes = protocolo.inspeccion_ids.mapped("componente_id")
+        self.assertTrue(revision.inspeccion_ids)
+        componentes = revision.inspeccion_ids.mapped("componente_id")
         self.assertTrue(all(componentes.mapped("es_inspeccionable")))
 
     def test_fabricacion_no_lleva_inspeccion_de_sellos(self):
         """En un equipo recién armado no hay sello previo que mirar."""
-        self.assertFalse(self._protocolo(tipo="fabricacion").inspeccion_ids)
+        self.assertFalse(self._revision(tipo="fabricacion").inspeccion_ids)
 
     def test_un_sello_roto_en_recepcion_es_manipulacion_externa(self):
         """El taller nunca rompe un sello sin registrarlo, y sus roturas ocurren durante el
         trabajo — después de la recepción. Así que roto al recibir no tiene ambigüedad."""
-        protocolo = self._protocolo(tipo="recepcion")
-        linea = protocolo.inspeccion_ids[0]
+        revision = self._revision(tipo="recepcion")
+        linea = revision.inspeccion_ids[0]
 
         linea.estado_sello = "roto"
 
@@ -380,35 +380,35 @@ class TestMcRovProtocoloSellos(ProtocoloCommon):
 
     def test_un_sello_roto_en_entrega_no_lo_es(self):
         """En entrega los sellos los pone el propio taller."""
-        protocolo = self._protocolo(tipo="entrega")
-        linea = protocolo.inspeccion_ids[0]
+        revision = self._revision(tipo="entrega")
+        linea = revision.inspeccion_ids[0]
 
         linea.estado_sello = "roto"
 
         self.assertFalse(linea.manipulacion_externa)
 
     def test_un_sello_intacto_no_es_manipulacion(self):
-        protocolo = self._protocolo(tipo="recepcion")
-        linea = protocolo.inspeccion_ids[0]
+        revision = self._revision(tipo="recepcion")
+        linea = revision.inspeccion_ids[0]
 
         linea.estado_sello = "intacto"
 
         self.assertFalse(linea.manipulacion_externa)
 
     def test_no_deja_confirmar_con_sellos_sin_revisar(self):
-        protocolo = self._protocolo(tipo="recepcion")
-        self._corrida_completa(protocolo)
-        self._responder_todo(protocolo)
+        revision = self._revision(tipo="recepcion")
+        self._corrida_completa(revision)
+        self._responder_todo(revision)
 
         with self.assertRaises(UserError):
-            protocolo.action_confirmar()
+            revision.action_confirmar()
 
     def test_confirma_cuando_los_sellos_estan_revisados(self):
-        protocolo = self._protocolo(tipo="recepcion")
-        self._corrida_completa(protocolo)
-        self._responder_todo(protocolo)
-        protocolo.inspeccion_ids.write({"estado_sello": "intacto"})
+        revision = self._revision(tipo="recepcion")
+        self._corrida_completa(revision)
+        self._responder_todo(revision)
+        revision.inspeccion_ids.write({"estado_sello": "intacto"})
 
-        protocolo.action_confirmar()
+        revision.action_confirmar()
 
-        self.assertEqual(protocolo.estado, "confirmado")
+        self.assertEqual(revision.estado, "confirmado")

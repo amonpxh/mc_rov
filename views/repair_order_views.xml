@@ -45,7 +45,7 @@
                          puede tener tres causas distintas —umbilical cortado por accidente
                          y motor gastado por uso— y dos técnicos pueden trabajar la misma
                          orden. hallazgo_origen_id es lo que cierra el circuito con el
-                         protocolo de recepción. -->
+                         revisión de recepción. -->
                     <field name="linea_falla_ids">
                         <list editable="bottom">
                             <field name="sequence" widget="handle"/>
@@ -63,7 +63,7 @@
                         </list>
                     </field>
                 </page>
-                <page string="Protocolos" name="protocolos">
+                <page string="Revisiones" name="revisiones">
                     <!-- Los de esta visita: típicamente uno de recepción y uno de entrega.
                          La comparación entre ambos es la evidencia de que el trabajo
                          sirvió.
@@ -72,14 +72,14 @@
                          es una tabla de pares etiqueta/campo, y un botón ocupa una celda
                          suelta que desincroniza todo lo que venga después (ver PR #10). -->
                     <div class="mb-3">
-                        <button name="action_nuevo_protocolo_recepcion" type="object"
-                                string="Nuevo protocolo de recepción" class="btn-primary"
+                        <button name="action_nuevo_revision_recepcion" type="object"
+                                string="Nueva revisión de recepción" class="btn-primary"
                                 invisible="not lot_id"/>
-                        <button name="action_nuevo_protocolo_entrega" type="object"
-                                string="Nuevo protocolo de entrega" class="btn-secondary"
+                        <button name="action_nuevo_revision_entrega" type="object"
+                                string="Nueva revisión de entrega" class="btn-secondary"
                                 invisible="not lot_id"/>
                     </div>
-                    <field name="protocolo_ids" readonly="1">
+                    <field name="revision_ids" readonly="1">
                         <list>
                             <field name="name"/>
                             <field name="tipo"/>
@@ -102,7 +102,7 @@
                     </group>
                     <!-- Este campo es lo que se le informa al cliente en la entrega, y es
                          lo que sale impreso. Los hallazgos internos no van aquí: viven
-                         estructurados en el protocolo. -->
+                         estructurados en la revisión. -->
                     <field name="observaciones_salida"
                            placeholder="Lo que se le informa al cliente en la entrega."/>
                 </page>
@@ -125,11 +125,11 @@
                 <xpath expr="//page[@name='trabajos_realizados']" position="move"/>
             </xpath>
 
-            <!-- Protocolos queda primero porque es el paso 1 de verdad: llega el equipo,
+            <!-- Revisiones queda primero porque es el paso 1 de verdad: llega el equipo,
                  se prueba, se encuentra. Estaba al final por comodidad al agregarlo, que
                  contradecía el propio criterio con el que se ordenaron las demás. -->
             <xpath expr="//page[@name='trabajos_realizados']" position="before">
-                <xpath expr="//page[@name='protocolos']" position="move"/>
+                <xpath expr="//page[@name='revisiones']" position="move"/>
             </xpath>
 
             <xpath expr="//page[@name='resultado']" position="after">

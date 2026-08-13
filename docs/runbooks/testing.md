@@ -13,7 +13,7 @@
 | Test database | `odoo_test` |
 | Config | `/etc/odoo/odoo.conf` |
 | Test runner | Odoo's native test framework |
-| Total tests | 139 (73 `stock.lot` + 16 `repair.order` + 18 `mc.rov.componente` + 32 `mc.rov.protocolo`) |
+| Total tests | 139 (73 `stock.lot` + 16 `repair.order` + 18 `mc.rov.componente` + 32 `mc.rov.revision`) |
 
 ## Running all tests
 
@@ -44,7 +44,7 @@ sudo -u odoo odoo \
   --config /etc/odoo/odoo.conf
 ```
 
-Available test classes (as of v19.0.10.0.0):
+Available test classes (as of v19.0.11.0.0):
 
 | Class | Tests | Coverage |
 |---|---|---|
@@ -59,16 +59,16 @@ Available test classes (as of v19.0.10.0.0):
 | `TestStockLotFichaCompleta` | 11 | `mc_ficha_completa`, `mc_ficha_faltantes` y el cero de los numéricos |
 | `TestMcRovBajaWizard` | 5 | the decommission dialog, including the required reason |
 | `TestRepairOrder` | 16 | defaults, `tipo_intervencion_ids`, `fecha_entrega_real`, `linea_falla_ids`, `mc_total_horas`, the close-without-type block |
-| `TestMcRovProtocolo` | 6 | secuencia, derivados, generación del checklist y el filtro por tipo |
-| `TestMcRovProtocoloResultado` | 6 | `resultado` derivado: hallazgos, chequeos fallados y esfuerzo |
-| `TestMcRovProtocoloConfirmacion` | 7 | qué se exige para confirmar |
-| `TestMcRovProtocoloLuces` | 3 | la comparación contra la ficha técnica |
-| `TestMcRovProtocoloSellos` | 7 | la inspección de sellos y la evidencia de manipulación |
-| `TestMcRovProtocoloTrazabilidad` | 3 | el circuito hallazgo → trabajo |
+| `TestMcRovRevision` | 6 | secuencia, derivados, generación del checklist y el filtro por tipo |
+| `TestMcRovRevisionResultado` | 6 | `resultado` derivado: hallazgos, chequeos fallados y esfuerzo |
+| `TestMcRovRevisionConfirmacion` | 7 | qué se exige para confirmar |
+| `TestMcRovRevisionLuces` | 3 | la comparación contra la ficha técnica |
+| `TestMcRovRevisionSellos` | 7 | la inspección de sellos y la evidencia de manipulación |
+| `TestMcRovRevisionTrazabilidad` | 3 | el circuito hallazgo → trabajo |
 | `TestMcRovComponente` | 18 | all four custom models (`componente`, `subtipo`, `accion`, `linea.falla`) |
 
 Two shared fixture bases declare no tests — do not target them with `--test-tags`:
-`StockLotOrdenesCommon` (classes that need repair orders), `ProtocoloCommon` (protocol
+`StockLotOrdenesCommon` (classes that need repair orders), `RevisionCommon` (revision
 classes) and `StockLotPropiedadCommon`
 (classes that need a real ROV, i.e. the category tree, because ownership history is only
 written for units with `es_un_rov` on).
