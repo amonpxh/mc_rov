@@ -281,6 +281,16 @@
                          un año son lo que deja ver que el ancho de banda cayó, o cuántas
                          horas voló entre visitas. -->
                     <page string="Revisiones" name="page_revisiones" invisible="not es_un_rov">
+                        <!-- El botón que reemplaza al menú de revisiones de
+                             fabricación: manufactura las crea desde aquí, que es donde ya
+                             trabaja. Va en su propio div y no en un group, porque un botón
+                             dentro de un group ocupa una celda suelta y desincroniza los
+                             pares etiqueta/campo de todo lo que venga después (PR #10). -->
+                        <div class="mb-3">
+                            <button name="action_nueva_revision_fabricacion" type="object"
+                                    string="Nueva revisión de fabricación"
+                                    class="btn-primary"/>
+                        </div>
                         <field name="revision_ids" readonly="1">
                             <list>
                                 <field name="name"/>

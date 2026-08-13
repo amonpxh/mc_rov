@@ -74,10 +74,10 @@ class RepairOrder(models.Model):
             "target": "current",
         }
 
-    def action_nuevo_revision_recepcion(self):
+    def action_nueva_revision_recepcion(self):
         return self._abrir_revision("recepcion")
 
-    def action_nuevo_revision_entrega(self):
+    def action_nueva_revision_entrega(self):
         return self._abrir_revision("entrega")
 
     # Detalle técnico de los trabajos ejecutados (ver mc.rov.linea.falla)

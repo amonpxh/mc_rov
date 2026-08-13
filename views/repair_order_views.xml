@@ -71,11 +71,17 @@
                          Los botones van en su propio div y no dentro de un group: un group
                          es una tabla de pares etiqueta/campo, y un botón ocupa una celda
                          suelta que desincroniza todo lo que venga después (ver PR #10). -->
+                    <!-- Sin número de serie no hay a qué equipo asociarle la revisión, y
+                         los botones se esconden. Sin este aviso la pestaña se ve vacía y
+                         parece rota. -->
+                    <div class="alert alert-info" role="alert" invisible="lot_id">
+                        Elija el producto y el número de serie para poder crear una revisión.
+                    </div>
                     <div class="mb-3">
-                        <button name="action_nuevo_revision_recepcion" type="object"
+                        <button name="action_nueva_revision_recepcion" type="object"
                                 string="Nueva revisión de recepción" class="btn-primary"
                                 invisible="not lot_id"/>
-                        <button name="action_nuevo_revision_entrega" type="object"
+                        <button name="action_nueva_revision_entrega" type="object"
                                 string="Nueva revisión de entrega" class="btn-secondary"
                                 invisible="not lot_id"/>
                     </div>

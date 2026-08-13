@@ -4,6 +4,19 @@ All notable changes to the `mc_rov` Odoo module are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this module adheres to [semantic versioning](https://semver.org/) within the constraints of Odoo's version scheme: `19.0.X.Y.Z` where `19.0` is the Odoo major, `X` is breaking-change/migration, `Y` is feature, `Z` is bugfix.
 
+## [19.0.11.0.1] — 2026-08-13
+
+### Fixed
+- **The button that replaced the manufacturing-revision menu was never added.**
+  `19.0.11.0.0` removed the menu on the grounds that a button on the serial number is the
+  right place — and shipped the model method with nothing calling it. Manufacturing was
+  left with no way to create a revision at all, which is worse than the menu it replaced.
+- **The revisions tab on a repair order without a serial looked broken.** The buttons hide
+  when there is no `lot_id`, since a revision needs a unit — but the result was an empty tab
+  with no explanation. It now says what to fill in first.
+- `action_nuevo_revision_*` renamed to `action_nueva_revision_*`. The bulk rename in
+  `19.0.11.0.0` left the article disagreeing with the noun in the method names.
+
 ## [19.0.11.0.0] — 2026-08-13
 
 ### Changed
