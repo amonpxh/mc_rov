@@ -303,8 +303,11 @@
         <field name="name">Navigator</field>
         <field name="sequence">10</field>
     </record>
+    <!-- "Pixhawk (PX4)" y no solo "Pixhawk": la placa es Pixhawk y el firmware que corre
+         encima es PX4, pero en el taller lo nombran por el firmware. La etiqueta la lee el
+         técnico al elegir, así que manda cómo lo llaman ellos. -->
     <record id="ctrl_pixhawk" model="mc.rov.controlador.vuelo">
-        <field name="name">Pixhawk</field>
+        <field name="name">Pixhawk (PX4)</field>
         <field name="sequence">20</field>
     </record>
 
