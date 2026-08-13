@@ -4,6 +4,59 @@ All notable changes to the `mc_rov` Odoo module are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this module adheres to [semantic versioning](https://semver.org/) within the constraints of Odoo's version scheme: `19.0.X.Y.Z` where `19.0` is the Odoo major, `X` is breaking-change/migration, `Y` is feature, `Z` is bugfix.
 
+## [19.0.9.0.0] — 2026-08-13
+
+### Changed
+- **`mc_software_superficie` and `mc_controlador_vuelo` become catalogues** —
+  `mc.rov.software.superficie` and `mc.rov.controlador.vuelo`, both manageable from
+  *Reparaciones → Configuración*.
+
+  The reason is not being able to **add** options; a `Selection` allows that too, at the
+  cost of a deploy. It is being able to **retire** them. Removing a value from a `Selection`
+  orphans every unit that has it stored, which needs a cleanup migration each time — the
+  same one `19.0.7.0.0` had to run for `Desconocido`. With `active`, the historical record
+  still resolves and the option simply stops being offered.
+
+  That matters because the landscape is already moving: ROVControl is temporary and Crabby
+  replaces it, and Navigator is itself slated for replacement.
+
+  *An earlier justification in `19.0.6.0.0` argued a `Selection` was fine here because
+  "unlike `tipo_intervencion`, only one value applies at a time". That was true about
+  cardinality and said nothing about changeability, which is the axis that actually
+  mattered.*
+
+- **Both fields render as radio buttons**, consistent with the other choices in
+  *Especificaciones*. Odoo's radio widget works on a Many2one, so the catalogue change costs
+  nothing visually.
+
+- **The protocols tab is now first on the repair order**, ahead of *Trabajos realizados* and
+  *Piezas*. The intake protocol is step one of the actual process — the unit arrives, it is
+  tested, findings are recorded — and it was sitting behind two tabs that cover what happens
+  afterwards. The tab order was reordered to the workshop's sequence in `19.0.5.2.0`; adding
+  protocols at the end contradicted that same criterion.
+
+### Added
+- **Two buttons on the protocols tab** — *Nuevo protocolo de recepción* and *Nuevo protocolo
+  de entrega* — that create the record already linked to the order and the serial.
+
+  Without them the protocol could be seen from the order but not created there: you had to
+  leave for the menu, find the serial and come back. That turned the first real step of the
+  process into a separate errand behind a navigation nobody was going to perform.
+
+### Migration
+`19.0.9.0.0` needs **two scripts**, because Odoo does not convert a column's type when a
+field goes from `Selection` to `Many2one` — it finds a `varchar` where it expects an
+`integer`, logs a warning and leaves the column, which would leave the field permanently
+broken.
+
+`pre-migrate` renames the text columns aside; the module load then creates clean integer
+columns; `post-migrate` translates each stored string to its catalogue record, matching by
+name — which is exactly what the `Selection` stored, since its keys were the visible
+strings. **A value with no match is created in the catalogue rather than dropped**: it may
+have arrived by import, and deleting it would assert the unit had nothing.
+
+- 1 test (131 → 132).
+
 ## [19.0.8.0.0] — 2026-08-12
 
 **The repair sheet becomes a record instead of a paragraph.** Design and rationale:

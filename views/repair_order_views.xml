@@ -66,7 +66,19 @@
                 <page string="Protocolos" name="protocolos">
                     <!-- Los de esta visita: típicamente uno de recepción y uno de entrega.
                          La comparación entre ambos es la evidencia de que el trabajo
-                         sirvió. -->
+                         sirvió.
+
+                         Los botones van en su propio div y no dentro de un group: un group
+                         es una tabla de pares etiqueta/campo, y un botón ocupa una celda
+                         suelta que desincroniza todo lo que venga después (ver PR #10). -->
+                    <div class="mb-3">
+                        <button name="action_nuevo_protocolo_recepcion" type="object"
+                                string="Nuevo protocolo de recepción" class="btn-primary"
+                                invisible="not lot_id"/>
+                        <button name="action_nuevo_protocolo_entrega" type="object"
+                                string="Nuevo protocolo de entrega" class="btn-secondary"
+                                invisible="not lot_id"/>
+                    </div>
                     <field name="protocolo_ids" readonly="1">
                         <list>
                             <field name="name"/>
@@ -111,6 +123,13 @@
                  anidado más adentro lo ignora en silencio (ver PR #12). -->
             <xpath expr="//page[@name='parts']" position="before">
                 <xpath expr="//page[@name='trabajos_realizados']" position="move"/>
+            </xpath>
+
+            <!-- Protocolos queda primero porque es el paso 1 de verdad: llega el equipo,
+                 se prueba, se encuentra. Estaba al final por comodidad al agregarlo, que
+                 contradecía el propio criterio con el que se ordenaron las demás. -->
+            <xpath expr="//page[@name='trabajos_realizados']" position="before">
+                <xpath expr="//page[@name='protocolos']" position="move"/>
             </xpath>
 
             <xpath expr="//page[@name='resultado']" position="after">

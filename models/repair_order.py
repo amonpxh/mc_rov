@@ -49,6 +49,37 @@ class RepairOrder(models.Model):
         string="Protocolos de prueba",
     )
 
+    def _abrir_protocolo(self, tipo):
+        """Crea un protocolo de esta visita y lo abre para llenarlo.
+
+        Existe para que el protocolo sea un paso del flujo y no un trámite aparte. Antes
+        había que salir al menú, buscar el número de serie y volver — con eso el protocolo
+        de recepción, que es el primer paso real del proceso, quedaba escondido detrás de
+        una navegación que nadie iba a hacer.
+        """
+        self.ensure_one()
+        protocolo = self.env["mc.rov.protocolo"].create(
+            {
+                "lot_id": self.lot_id.id,
+                "repair_id": self.id,
+                "tipo": tipo,
+            }
+        )
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Protocolo de pruebas",
+            "res_model": "mc.rov.protocolo",
+            "res_id": protocolo.id,
+            "view_mode": "form",
+            "target": "current",
+        }
+
+    def action_nuevo_protocolo_recepcion(self):
+        return self._abrir_protocolo("recepcion")
+
+    def action_nuevo_protocolo_entrega(self):
+        return self._abrir_protocolo("entrega")
+
     # Detalle técnico de los trabajos ejecutados (ver mc.rov.linea.falla)
     linea_falla_ids = fields.One2many(
         "mc.rov.linea.falla", "repair_id", string="Trabajos realizados"

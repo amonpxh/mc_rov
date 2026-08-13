@@ -2,7 +2,7 @@
 
 **Audience:** anyone validating changes before merging or deploying.
 
-**Time:** ~1-2 minutes for the full test suite (131 tests).
+**Time:** ~1-2 minutes for the full test suite (132 tests).
 
 ---
 
@@ -13,7 +13,7 @@
 | Test database | `odoo_test` |
 | Config | `/etc/odoo/odoo.conf` |
 | Test runner | Odoo's native test framework |
-| Total tests | 131 (72 `stock.lot` + 16 `repair.order` + 18 `mc.rov.componente` + 25 `mc.rov.protocolo`) |
+| Total tests | 132 (73 `stock.lot` + 16 `repair.order` + 18 `mc.rov.componente` + 25 `mc.rov.protocolo`) |
 
 ## Running all tests
 
@@ -44,7 +44,7 @@ sudo -u odoo odoo \
   --config /etc/odoo/odoo.conf
 ```
 
-Available test classes (as of v19.0.8.0.0):
+Available test classes (as of v19.0.9.0.0):
 
 | Class | Tests | Coverage |
 |---|---|---|
@@ -56,7 +56,7 @@ Available test classes (as of v19.0.8.0.0):
 | `TestStockLotPropiedad` | 6 | `mc_propietario_id` and the ownership history written by `write` |
 | `TestStockLotEstadoComercial` | 7 | `mc_estado_comercial`, rentals, decommissioning |
 | `TestStockLotTraspasoDesdeOrden` | 4 | resale detected at intake, transfer from the repair order |
-| `TestStockLotFichaCompleta` | 10 | `mc_ficha_completa`, `mc_ficha_faltantes` y el cero de los numéricos |
+| `TestStockLotFichaCompleta` | 11 | `mc_ficha_completa`, `mc_ficha_faltantes` y el cero de los numéricos |
 | `TestMcRovBajaWizard` | 5 | the decommission dialog, including the required reason |
 | `TestRepairOrder` | 16 | defaults, `tipo_intervencion_ids`, `fecha_entrega_real`, `linea_falla_ids`, `mc_total_horas`, the close-without-type block |
 | `TestMcRovProtocolo` | 6 | secuencia, derivados, generación del checklist y el filtro por tipo |
@@ -77,7 +77,7 @@ written for units with `es_un_rov` on).
 
 ## Expected output
 
-All 131 tests should pass. Look for `0 failed, 0 error(s) of 131 tests` in the output (exact format depends on Odoo verbosity).
+All 132 tests should pass. Look for `0 failed, 0 error(s) of 132 tests` in the output (exact format depends on Odoo verbosity).
 
 ## When tests fail
 

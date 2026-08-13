@@ -20,9 +20,10 @@ ROV_CATEG_XMLID_MODULE = "__import__"
 ROV_CATEG_XMLID_NAME = "cat_ROV"
 
 # Campos que debe traer la ficha de un ROV para considerarse levantada. Se agrupan por tipo
-# porque cada uno se comprueba distinto: un Char puede venir con solo espacios, y un numérico
-# nunca está vacío en Odoo — se lee como 0.
-CAMPOS_FICHA_SELECCION = (
+# porque cada uno se comprueba distinto: los de elección —Selection o Many2one— basta con
+# saber si están puestos, un Char puede venir con solo espacios, y un numérico nunca está
+# vacío en Odoo: se lee como 0.
+CAMPOS_FICHA_ELECCION = (
     "mc_chasis",
     "mc_modelo_motores",
     "mc_posicion_motores",
@@ -44,7 +45,7 @@ CAMPOS_FICHA_NUMERO = (
     "mc_peso_rov",
     "mc_cantidad_luces",
 )
-CAMPOS_FICHA = CAMPOS_FICHA_SELECCION + CAMPOS_FICHA_TEXTO + CAMPOS_FICHA_NUMERO
+CAMPOS_FICHA = CAMPOS_FICHA_ELECCION + CAMPOS_FICHA_TEXTO + CAMPOS_FICHA_NUMERO
 
 
 class StockLot(models.Model):
@@ -371,30 +372,27 @@ class StockLot(models.Model):
         string="Tarjeta de comunicación Consola",
     )
 
-    # Un solo par selector + versión, en vez de una columna por producto. El panorama ya
-    # está en movimiento —ROVControl es temporal y lo reemplaza Crabby— y un diseño que
-    # necesita una columna nueva cada vez que cambia es el diseño equivocado. Retirar un
-    # software pasa a ser editar esta lista.
-    mc_software_superficie = fields.Selection(
-        [
-            ("QGroundControl", "QGroundControl"),
-            ("Crabby", "Crabby"),
-            ("ROVControl", "ROVControl"),
-        ],
+    # Catálogo y no Selection desde 19.0.9.0.0. La razón no es poder agregar opciones
+    # —eso un Selection también lo permite, a costa de un despliegue— sino poder
+    # **retirarlas**: sacar un valor de un Selection deja huérfanos los equipos que lo
+    # tienen guardado y exige una migración de limpieza cada vez. Con `active` el registro
+    # histórico sigue resolviendo. Importa porque ROVControl es temporal y lo reemplaza
+    # Crabby.
+    mc_software_superficie = fields.Many2one(
+        "mc.rov.software.superficie",
         string="Software de superficie",
+        ondelete="restrict",
     )
 
     mc_version_software = fields.Char(string="Versión del software de superficie")
 
-    # Mismo criterio que arriba: PX4 y Navigator nunca conviven en un equipo, así que eran
-    # dos columnas de las que siempre había una vacía. Y Navigator también se va a
-    # reemplazar algún día.
-    mc_controlador_vuelo = fields.Selection(
-        [
-            ("Navigator", "Navigator"),
-            ("Pixhawk", "Pixhawk"),
-        ],
+    # Mismo criterio que arriba, y por partida doble: PX4 y Navigator nunca conviven en un
+    # equipo —eran dos columnas de las que siempre había una vacía— y Navigator también
+    # está previsto reemplazarlo, así que retirarlo tiene que ser desmarcar una casilla.
+    mc_controlador_vuelo = fields.Many2one(
+        "mc.rov.controlador.vuelo",
         string="Controlador de Vuelo",
+        ondelete="restrict",
     )
 
     mc_version_controlador = fields.Char(string="Versión del controlador")

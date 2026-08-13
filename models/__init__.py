@@ -2,6 +2,7 @@ from . import mc_rov_chequeo
 from . import mc_rov_componente
 from . import mc_rov_hallazgo
 from . import mc_rov_propietario_historial
+from . import mc_rov_software
 from . import mc_rov_protocolo
 from . import mc_rov_tipo_intervencion
 from . import product_category
