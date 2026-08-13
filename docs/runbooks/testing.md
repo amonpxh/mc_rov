@@ -2,7 +2,7 @@
 
 **Audience:** anyone validating changes before merging or deploying.
 
-**Time:** ~1-2 minutes for the full test suite (132 tests).
+**Time:** ~1-2 minutes for the full test suite (139 tests).
 
 ---
 
@@ -13,7 +13,7 @@
 | Test database | `odoo_test` |
 | Config | `/etc/odoo/odoo.conf` |
 | Test runner | Odoo's native test framework |
-| Total tests | 132 (73 `stock.lot` + 16 `repair.order` + 18 `mc.rov.componente` + 25 `mc.rov.protocolo`) |
+| Total tests | 139 (73 `stock.lot` + 16 `repair.order` + 18 `mc.rov.componente` + 32 `mc.rov.protocolo`) |
 
 ## Running all tests
 
@@ -44,7 +44,7 @@ sudo -u odoo odoo \
   --config /etc/odoo/odoo.conf
 ```
 
-Available test classes (as of v19.0.9.0.0):
+Available test classes (as of v19.0.10.0.0):
 
 | Class | Tests | Coverage |
 |---|---|---|
@@ -63,6 +63,7 @@ Available test classes (as of v19.0.9.0.0):
 | `TestMcRovProtocoloResultado` | 6 | `resultado` derivado: hallazgos, chequeos fallados y esfuerzo |
 | `TestMcRovProtocoloConfirmacion` | 7 | qué se exige para confirmar |
 | `TestMcRovProtocoloLuces` | 3 | la comparación contra la ficha técnica |
+| `TestMcRovProtocoloSellos` | 7 | la inspección de sellos y la evidencia de manipulación |
 | `TestMcRovProtocoloTrazabilidad` | 3 | el circuito hallazgo → trabajo |
 | `TestMcRovComponente` | 18 | all four custom models (`componente`, `subtipo`, `accion`, `linea.falla`) |
 
@@ -77,7 +78,7 @@ written for units with `es_un_rov` on).
 
 ## Expected output
 
-All 132 tests should pass. Look for `0 failed, 0 error(s) of 132 tests` in the output (exact format depends on Odoo verbosity).
+All 139 tests should pass. Look for `0 failed, 0 error(s) of 139 tests` in the output (exact format depends on Odoo verbosity).
 
 ## When tests fail
 

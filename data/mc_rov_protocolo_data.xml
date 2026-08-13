@@ -39,24 +39,15 @@
          La inspección física solo aplica a recepción: existe para detectar si alguien más
          intervino el equipo, y en un ROV recién fabricado eso no significa nada. -->
 
+    <!-- Las marcas de plumón se quedan en el catálogo y no en el modelo de inspección:
+         puede que dejen de usarse y pasen a solo sellos. Como chequeo se retiran
+         desmarcando `active`; como campo del modelo exigirían un despliegue. Es la
+         distinción que ordena las dos cosas: lo que tiene continuidad y estados necesita
+         modelo, lo que es un sí/no que puede desaparecer vive en el catálogo. -->
     <record id="chequeo_plumon" model="mc.rov.chequeo">
         <field name="name">Marcas de plumón</field>
         <field name="seccion">inspeccion_fisica</field>
         <field name="sequence">10</field>
-        <field name="por_componente" eval="True"/>
-        <field name="aplica_recepcion" eval="True"/>
-    </record>
-    <record id="chequeo_sellos_antiguos" model="mc.rov.chequeo">
-        <field name="name">Sellos antiguos</field>
-        <field name="seccion">inspeccion_fisica</field>
-        <field name="sequence">20</field>
-        <field name="por_componente" eval="True"/>
-        <field name="aplica_recepcion" eval="True"/>
-    </record>
-    <record id="chequeo_sellos_nuevos" model="mc.rov.chequeo">
-        <field name="name">Sellos nuevos</field>
-        <field name="seccion">inspeccion_fisica</field>
-        <field name="sequence">30</field>
         <field name="por_componente" eval="True"/>
         <field name="aplica_recepcion" eval="True"/>
     </record>

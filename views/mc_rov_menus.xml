@@ -31,16 +31,19 @@
         action="action_mc_rov_hallazgo"
         sequence="24"/>
 
+    <!-- Estos dos son vocabulario de la ficha de FABRICACIÓN, que vive en el número de
+         serie. Colgarlos de Reparaciones obligaba a manufactura a entrar al módulo
+         equivocado para agregar un software. -->
     <menuitem
         id="menu_mc_rov_software_superficie"
         name="Software de superficie ROV"
-        parent="repair.repair_menu_config"
+        parent="stock.menu_stock_config_settings"
         action="action_mc_rov_software_superficie"
         sequence="25"/>
     <menuitem
         id="menu_mc_rov_controlador_vuelo"
         name="Controladores de vuelo ROV"
-        parent="repair.repair_menu_config"
+        parent="stock.menu_stock_config_settings"
         action="action_mc_rov_controlador_vuelo"
         sequence="26"/>
 

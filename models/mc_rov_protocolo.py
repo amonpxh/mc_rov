@@ -29,6 +29,26 @@ RESULTADOS_CHEQUEO = [
     ("no_lo_tiene", "No lo tiene"),
 ]
 
+# El estado en que se encontró el sello de un componente. Es una sola dimensión y no tres
+# casillas ("sello antiguo", "sello nuevo", "marca de plumón") porque el sello tiene
+# continuidad: el que se pone hoy es el que se inspecciona en la próxima visita, y lo que
+# interesa saber es en qué estado llegó.
+#
+# En un protocolo de RECEPCIÓN, "roto" o "ausente" significan manipulación de terceros sin
+# ambigüedad: el taller nunca rompe un sello sin registrarlo, y sus propias roturas ocurren
+# durante el trabajo, después de la recepción.
+# La inspección de sellos solo tiene sentido cuando hay un sello previo que mirar o uno
+# nuevo que dejar puesto. En un equipo recién fabricado no hay nada que inspeccionar.
+TIPOS_CON_INSPECCION = ("recepcion", "entrega")
+
+ESTADOS_SELLO = [
+    ("intacto", "Intacto"),
+    ("roto", "Roto"),
+    ("ausente", "Ausente"),
+    ("sin_sello_previo", "Sin sello previo"),
+    ("no_lo_tiene", "No lo tiene"),
+]
+
 SEVERIDADES = [
     ("informativo", "Informativo"),
     ("atencion", "Requiere atención"),
@@ -146,6 +166,9 @@ class McRovProtocolo(models.Model):
     corrida_ids = fields.One2many("mc.rov.protocolo.corrida", "protocolo_id", string="Corridas")
     chequeo_ids = fields.One2many("mc.rov.protocolo.chequeo", "protocolo_id", string="Chequeos")
     hallazgo_ids = fields.One2many("mc.rov.protocolo.hallazgo", "protocolo_id", string="Hallazgos")
+    inspeccion_ids = fields.One2many(
+        "mc.rov.protocolo.inspeccion", "protocolo_id", string="Inspección de sellos"
+    )
 
     resultado = fields.Selection(
         [
@@ -254,6 +277,26 @@ class McRovProtocolo(models.Model):
         if valores:
             Linea.create(valores)
 
+    def _generar_inspeccion(self, protocolo):
+        """Crea una fila por componente sellado, si el tipo de protocolo la lleva.
+
+        Igual que el checklist, la genera el sistema: si el técnico eligiera qué
+        componentes revisar, la ausencia de una fila no distinguiría "no lo tiene" de
+        "no lo miré".
+        """
+        if protocolo.tipo not in TIPOS_CON_INSPECCION:
+            return
+
+        componentes = self.env["mc.rov.componente"].search([("es_inspeccionable", "=", True)])
+        existentes = protocolo.inspeccion_ids.mapped("componente_id")
+
+        valores = [
+            {"protocolo_id": protocolo.id, "componente_id": componente.id}
+            for componente in componentes - existentes
+        ]
+        if valores:
+            self.env["mc.rov.protocolo.inspeccion"].create(valores)
+
     def _limpiar_chequeos_sin_responder(self, protocolo):
         """Borra las líneas que dejaron de corresponder y que nadie contestó.
 
@@ -275,6 +318,7 @@ class McRovProtocolo(models.Model):
         protocolos = super().create(vals_list)
         for protocolo in protocolos:
             self._generar_chequeos(protocolo)
+            self._generar_inspeccion(protocolo)
         return protocolos
 
     def write(self, vals):
@@ -283,6 +327,7 @@ class McRovProtocolo(models.Model):
             for protocolo in self:
                 self._limpiar_chequeos_sin_responder(protocolo)
                 self._generar_chequeos(protocolo)
+                self._generar_inspeccion(protocolo)
         return res
 
     # --- Confirmación ---
@@ -316,6 +361,10 @@ class McRovProtocolo(models.Model):
         sin_responder = protocolo.chequeo_ids.filtered(lambda linea: not linea.resultado)
         if sin_responder:
             faltan.append(f"responder {len(sin_responder)} chequeo(s) pendiente(s)")
+
+        sellos_sin_ver = protocolo.inspeccion_ids.filtered(lambda linea: not linea.estado_sello)
+        if sellos_sin_ver:
+            faltan.append(f"revisar el sello de {len(sellos_sin_ver)} componente(s)")
 
         return faltan
 
@@ -478,3 +527,52 @@ class McRovProtocoloHallazgo(models.Model):
     detalle = fields.Text(string="Detalle")
 
     lot_id = fields.Many2one(related="protocolo_id.lot_id", string="Equipo", store=True)
+
+
+class McRovProtocoloInspeccion(models.Model):
+    """El estado del sello de un componente en una visita.
+
+    Reemplaza a tres casillas independientes —"sello antiguo", "sello nuevo", "marca de
+    plumón"— que no podían expresar el proceso real. El sello tiene **continuidad**: el que
+    se pone hoy es el que se inspecciona en la próxima visita, y si llega roto eso es la
+    evidencia de que alguien más abrió el equipo.
+
+    Un solo campo alcanza porque el tipo del protocolo da el contexto: en recepción el
+    estado es *cómo llegó*, en entrega es *cómo se dejó*. Y no hace falta distinguir quién
+    rompió el sello, porque el taller nunca lo rompe sin registrarlo y sus roturas ocurren
+    durante el trabajo, después de la recepción.
+    """
+
+    _name = "mc.rov.protocolo.inspeccion"
+    _description = "Inspección de sellos de un protocolo"
+    _order = "protocolo_id, componente_id"
+
+    protocolo_id = fields.Many2one(
+        "mc.rov.protocolo", string="Protocolo", required=True, ondelete="cascade", index=True
+    )
+    componente_id = fields.Many2one(
+        "mc.rov.componente", string="Componente", required=True, ondelete="restrict"
+    )
+
+    estado_sello = fields.Selection(ESTADOS_SELLO, string="Estado del sello")
+    observacion = fields.Char(string="Observación")
+
+    tipo = fields.Selection(related="protocolo_id.tipo", store=True)
+    lot_id = fields.Many2one(related="protocolo_id.lot_id", string="Equipo", store=True)
+
+    # Almacenado para poder contar manipulaciones sin recorrer protocolos en cada consulta.
+    # Solo cuenta en recepción: en entrega los sellos los pone el propio taller.
+    manipulacion_externa = fields.Boolean(
+        string="Evidencia de manipulación",
+        compute="_compute_manipulacion_externa",
+        store=True,
+        help="Se enciende cuando el sello llegó roto o ausente en una recepción.",
+    )
+
+    @api.depends("estado_sello", "tipo")
+    def _compute_manipulacion_externa(self):
+        for linea in self:
+            linea.manipulacion_externa = linea.tipo == "recepcion" and linea.estado_sello in (
+                "roto",
+                "ausente",
+            )

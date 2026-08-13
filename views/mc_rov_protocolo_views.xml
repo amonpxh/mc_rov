@@ -65,18 +65,42 @@
                             </field>
                         </page>
 
+                        <page string="Sellos" name="page_sellos"
+                              invisible="tipo not in ['recepcion', 'entrega']">
+                            <!-- Una fila por componente sellado. El tipo del protocolo da
+                                 el contexto: en recepción el estado es cómo llegó el
+                                 equipo, en entrega es cómo se dejó. -->
+                            <div class="alert alert-info" role="alert" invisible="tipo != 'recepcion'">
+                                Un sello <strong>roto o ausente</strong> al recibir significa
+                                que alguien más abrió el equipo: el taller nunca rompe uno sin
+                                registrarlo, y sus propias roturas ocurren después, durante el
+                                trabajo.
+                            </div>
+                            <field name="inspeccion_ids" readonly="estado == 'confirmado'">
+                                <list editable="bottom" create="0" delete="0">
+                                    <field name="componente_id" readonly="1"/>
+                                    <field name="estado_sello" widget="radio"
+                                           options="{&quot;horizontal&quot;: true}"/>
+                                    <field name="observacion"/>
+                                    <field name="manipulacion_externa" optional="hide"/>
+                                </list>
+                            </field>
+                        </page>
+
                         <page string="Chequeos" name="page_chequeos">
-                            <!-- Las líneas las genera el sistema al crear el protocolo. No
-                                 se pueden agregar a mano: el punto de un checklist es que
-                                 siempre traiga los mismos ítems. -->
+                            <!-- Las líneas las genera el sistema. Se puede agregar una —un
+                                 chequeo extra sigue siendo información— pero no borrar:
+                                 borrar una fila esconde que algo no se revisó, que es
+                                 exactamente lo que el checklist viene a evitar. -->
                             <field name="chequeo_ids" readonly="estado == 'confirmado'">
-                                <list editable="bottom" create="0" delete="0"
+                                <list editable="bottom" delete="0"
                                       default_group_by="seccion">
                                     <field name="sequence" widget="handle"/>
                                     <field name="seccion" optional="hide"/>
-                                    <field name="chequeo_id" readonly="1"/>
-                                    <field name="componente_id" readonly="1"/>
-                                    <field name="resultado"/>
+                                    <field name="chequeo_id"/>
+                                    <field name="componente_id"/>
+                                    <field name="resultado" widget="radio"
+                                           options="{&quot;horizontal&quot;: true}"/>
                                     <field name="detalle"/>
                                 </list>
                             </field>

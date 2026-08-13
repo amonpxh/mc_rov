@@ -57,7 +57,11 @@ class ProtocoloCommon(TransactionCase):
         )
 
     def _responder_todo(self, protocolo, resultado="ok"):
+        """Responde el checklist. Los sellos van aparte, para poder probarlos solos."""
         protocolo.chequeo_ids.write({"resultado": resultado})
+
+    def _responder_sellos(self, protocolo, estado="intacto"):
+        protocolo.inspeccion_ids.write({"estado_sello": estado})
 
 
 @tagged("post_install", "-at_install")
@@ -234,6 +238,7 @@ class TestMcRovProtocoloConfirmacion(ProtocoloCommon):
         protocolo = self._protocolo()
         self._corrida_completa(protocolo)
         self._responder_todo(protocolo)
+        self._responder_sellos(protocolo)
 
         protocolo.action_confirmar()
 
@@ -259,6 +264,7 @@ class TestMcRovProtocoloConfirmacion(ProtocoloCommon):
         protocolo = self._protocolo()
         self._corrida_completa(protocolo)
         self._responder_todo(protocolo)
+        self._responder_sellos(protocolo)
         protocolo.action_confirmar()
 
         protocolo.action_volver_a_borrador()
@@ -345,3 +351,64 @@ class TestMcRovProtocoloTrazabilidad(ProtocoloCommon):
 
         self.assertEqual(len(self.lot.protocolo_ids), 2)
         self.assertEqual(self.lot.mc_protocolo_count, 2)
+
+
+@tagged("post_install", "-at_install")
+class TestMcRovProtocoloSellos(ProtocoloCommon):
+    """Tests de la inspección de sellos, que reemplazó a tres casillas independientes."""
+
+    def test_la_recepcion_trae_una_fila_por_componente_sellado(self):
+        protocolo = self._protocolo(tipo="recepcion")
+
+        self.assertTrue(protocolo.inspeccion_ids)
+        componentes = protocolo.inspeccion_ids.mapped("componente_id")
+        self.assertTrue(all(componentes.mapped("es_inspeccionable")))
+
+    def test_fabricacion_no_lleva_inspeccion_de_sellos(self):
+        """En un equipo recién armado no hay sello previo que mirar."""
+        self.assertFalse(self._protocolo(tipo="fabricacion").inspeccion_ids)
+
+    def test_un_sello_roto_en_recepcion_es_manipulacion_externa(self):
+        """El taller nunca rompe un sello sin registrarlo, y sus roturas ocurren durante el
+        trabajo — después de la recepción. Así que roto al recibir no tiene ambigüedad."""
+        protocolo = self._protocolo(tipo="recepcion")
+        linea = protocolo.inspeccion_ids[0]
+
+        linea.estado_sello = "roto"
+
+        self.assertTrue(linea.manipulacion_externa)
+
+    def test_un_sello_roto_en_entrega_no_lo_es(self):
+        """En entrega los sellos los pone el propio taller."""
+        protocolo = self._protocolo(tipo="entrega")
+        linea = protocolo.inspeccion_ids[0]
+
+        linea.estado_sello = "roto"
+
+        self.assertFalse(linea.manipulacion_externa)
+
+    def test_un_sello_intacto_no_es_manipulacion(self):
+        protocolo = self._protocolo(tipo="recepcion")
+        linea = protocolo.inspeccion_ids[0]
+
+        linea.estado_sello = "intacto"
+
+        self.assertFalse(linea.manipulacion_externa)
+
+    def test_no_deja_confirmar_con_sellos_sin_revisar(self):
+        protocolo = self._protocolo(tipo="recepcion")
+        self._corrida_completa(protocolo)
+        self._responder_todo(protocolo)
+
+        with self.assertRaises(UserError):
+            protocolo.action_confirmar()
+
+    def test_confirma_cuando_los_sellos_estan_revisados(self):
+        protocolo = self._protocolo(tipo="recepcion")
+        self._corrida_completa(protocolo)
+        self._responder_todo(protocolo)
+        protocolo.inspeccion_ids.write({"estado_sello": "intacto"})
+
+        protocolo.action_confirmar()
+
+        self.assertEqual(protocolo.estado, "confirmado")
