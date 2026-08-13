@@ -14,3 +14,4 @@ access_mc_rov_protocolo_chequeo,mc.rov.protocolo.chequeo,model_mc_rov_protocolo_
 access_mc_rov_protocolo_hallazgo,mc.rov.protocolo.hallazgo,model_mc_rov_protocolo_hallazgo,,1,1,1,1
 access_mc_rov_software_superficie,mc.rov.software.superficie,model_mc_rov_software_superficie,,1,1,1,1
 access_mc_rov_controlador_vuelo,mc.rov.controlador.vuelo,model_mc_rov_controlador_vuelo,,1,1,1,1
+access_mc_rov_protocolo_inspeccion,mc.rov.protocolo.inspeccion,model_mc_rov_protocolo_inspeccion,,1,1,1,1

@@ -4,6 +4,51 @@ All notable changes to the `mc_rov` Odoo module are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this module adheres to [semantic versioning](https://semver.org/) within the constraints of Odoo's version scheme: `19.0.X.Y.Z` where `19.0` is the Odoo major, `X` is breaking-change/migration, `Y` is feature, `Z` is bugfix.
 
+## [19.0.10.0.0] — 2026-08-13
+
+### Changed
+- **The physical inspection was modelled wrong and is rebuilt.** It shipped as three
+  independent checkboxes per component — *marcas de plumón*, *sellos antiguos*, *sellos
+  nuevos* — which cannot express the process they describe.
+
+  A seal has **continuity**: the one placed today is the one inspected on the next visit.
+  If it is intact it stays; if it is broken a new one goes on, and *that* becomes the old
+  one next time. Three booleans say nothing about whether it was broken, and "sello antiguo
+  ✓ / sello nuevo ✓" is not an answer to the question the inspection exists to ask — *has
+  anyone else opened this unit?*
+
+  It is now **one row per sealed component** with a single field: the state the seal was
+  found in. Five rows instead of fifteen, one click each.
+
+  One field is enough because the protocol's `tipo` supplies the context: at intake the
+  state is *how it arrived*, at delivery it is *how we left it*. And **no field records who
+  broke it**, because the ambiguity does not exist — the workshop never breaks a seal
+  without recording it, and its own breakages happen during the work, after intake. So a
+  seal found broken at intake is third-party manipulation, full stop. `manipulacion_externa`
+  is stored and derived from exactly that.
+
+- **`Marcas de plumón` stays in the check catalogue** rather than moving into the new model.
+  It may stop being used in favour of seals only; as a catalogue check it retires by
+  unticking `active`, whereas as a model field it would need a deploy. That is the line
+  worth drawing: **what has continuity and states needs a model; a yes/no that may disappear
+  belongs in the configurable catalogue.**
+
+- **The check list now allows adding rows, but still not deleting them.** Blocking creation
+  protected nothing — an extra check a technician performed is still information. Blocking
+  deletion is what matters: removing a row hides that something went unchecked, which is
+  precisely what a checklist exists to prevent.
+
+- **Answers are radio buttons instead of dropdowns**, on both the checks and the seals. The
+  manufacturing sheet is filled with one click per field; the checklist took two per row
+  across fifteen-plus rows for the same kind of task.
+
+- **The surface-software and flight-controller catalogues moved to
+  `Inventario → Configuración`.** They are vocabulary of the **manufacturing** spec sheet,
+  which lives on the serial number — leaving their menus under Repairs forced manufacturing
+  into the wrong app to add a software.
+
+- 7 tests (132 → 139).
+
 ## [19.0.9.0.0] — 2026-08-13
 
 ### Changed
