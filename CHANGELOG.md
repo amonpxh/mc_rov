@@ -4,6 +4,116 @@ All notable changes to the `mc_rov` Odoo module are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this module adheres to [semantic versioning](https://semver.org/) within the constraints of Odoo's version scheme: `19.0.X.Y.Z` where `19.0` is the Odoo major, `X` is breaking-change/migration, `Y` is feature, `Z` is bugfix.
 
+## [19.0.8.0.0] — 2026-08-12
+
+**The repair sheet becomes a record instead of a paragraph.** Design and rationale:
+[`docs/designs/protocolo-de-pruebas.md`](docs/designs/protocolo-de-pruebas.md).
+
+### The problem
+
+The workshop fills a repair sheet by hand. It records **what was tested** reasonably well;
+what it records badly is the findings, which all land in one free-text observations field.
+That makes pattern analysis impossible without reading the paragraphs one by one — you
+cannot ask *what is the most common motor failure* or *how many units arrive with
+third-party intervention*.
+
+The module already had half the answer: `mc.rov.linea.falla` records component + subtype
+against configurable catalogues. What was missing is a single thing — the model stores
+`accion_id`, which is **what was done**, and has no field for **what was found**. It is
+called a failure line and holds no failure.
+
+### Added
+
+Six models. One header, three line models, two catalogues.
+
+- **`mc.rov.protocolo`** — one test session. It hangs off the **serial number, not the
+  repair order**: a new ROV goes through the same battery before shipping, and there is no
+  order then. Hanging it off the order would leave all of manufacturing out of the analysis.
+
+  `tipo` (fabricación / recepción / entrega / terreno) lets the same visit produce two
+  protocols — test on arrival, fix, test again before delivery — and the comparison between
+  them is the evidence that the work helped.
+
+  `horas_operacion` records the hour-meter reading. Only some ROVs have one, and what
+  matters analytically is **the delta between consecutive protocols**: the hours the unit
+  actually flew between visits. It is the denominator every reliability calculation needs,
+  because a unit diving eight hours a day and one sitting in a warehouse accumulate the
+  same calendar time.
+
+- **`mc.rov.protocolo.corrida`** — one pass with one umbilical. It exists because **the
+  umbilical is a condition of the run, not a datum of a test**. Usually one; two when the
+  standard test cable is used as a control sample, and then the comparison isolates the
+  cable as a fault source: same ROV, same bench, different cable. If bandwidth only drops
+  with the unit's own umbilical, the problem is the cable and not the vehicle.
+
+  `esfuerzo_duracion` is the field that did not exist and is worth the most. The result is
+  binary — the ROV runs 1 to 1½ hours in a water bin and either holds up or does not — but
+  *how long it held* is different, comparable information. "Held 90 minutes" and "failed at
+  15" are recorded identically today, which is to say not recorded.
+
+- **`mc.rov.chequeo`** and **`mc.rov.protocolo.chequeo`** — the standard test steps and the
+  checklist lines generated from them. Adding *yaw*, *roll* or *pitch* for a 6-DOF unit is
+  creating catalogue records, not deploying code.
+
+  `resultado` covers two dimensions with one value, because the paper sheet mainly records
+  *what was tested* rather than *what came out*: empty blocks confirmation, and **`No lo
+  tiene`** is a first-class answer. It is deliberately not called *No aplica* — the physical
+  inspection does not always cover all five components, since not every ROV has a joystick
+  and the "cilindro fuente" only exists on units with two e-pods. *No aplica* would leave
+  the record saying both *the unit doesn't have it* and *we didn't check*, and with that the
+  denominator of any statistic is lost.
+
+- **`mc.rov.hallazgo`** and **`mc.rov.protocolo.hallazgo`** — the missing vocabulary.
+  `componente_id`, `hallazgo_id` and `severidad` are all required, so **writing a paragraph
+  is not an available option**. `detalle` stays as a complement, never as the record.
+
+  `chequeo_origen_id` makes the FMEA's **detection** axis measurable — whether a checklist
+  step revealed the finding or someone spotted it by chance. That is the axis almost no
+  workshop can compute, and it yields the most useful result of all: *a frequent finding
+  that no check detects is a check that is missing*, and a check that comes out OK across
+  the whole fleet for a year can be retired. **The protocol audits itself.**
+
+- **Manufacturing and repair do not run the same battery.** The check catalogue declares
+  which protocol types each step belongs to. The case that justifies it is the physical
+  inspection: it exists to detect whether someone else opened the unit, which means nothing
+  on a ROV the workshop built itself last week.
+
+- `mc_tiene_horometro` on the spec sheet, as a **Sí/No `Selection` and not a checkbox**. A
+  boolean is never empty, so `False` would mean both *no hour meter* and *nobody checked* —
+  and this field decides which part of the fleet can be measured in operating hours rather
+  than calendar time.
+
+- `es_inspeccionable` on `mc.rov.componente`. Without it a per-component check would
+  generate one line for every catalogue entry — umbilical and sensor included, which nobody
+  inspects looking for third-party seals.
+
+### Changed
+
+- **`causa_raiz` moved from `repair.order` down to `mc.rov.linea.falla`.** One value per
+  order forced a choice when a visit had several causes: an umbilical cut by accident and a
+  motor worn by use are two different things.
+- **`responsable_id` on the work line**, not only on the protocol header. Two technicians
+  can work the same order and each line already carries its hours. Adding it later would
+  leave every prior line unattributed — the one field here that cannot be retrofitted.
+- **`item_2` … `item_5` removed**, replaced by `mc_items_recibidos_ids`, a Many2many to
+  `stock.lot`. No fixed arity, and traceable: e-pods carry their own serial, so the record
+  shows which e-pod arrived with which ROV on which visit.
+- **`mc_total_horas` moved to the foot of the hours column** with `sum`, instead of a
+  detached field at the bottom of the tab.
+
+### Migration
+`19.0.8.0.0/post-migrate.py`, in order of increasing risk: copy `causa_raiz` down to each
+order's work lines (orders with a root cause and **no** lines lose it — the script counts
+and logs how many), drop `item_2` … `item_5`, and finally force a recompute of
+`mc_ficha_completa`.
+
+That last step is mandatory and is the module's recurring trap: **the ORM only fills new
+columns.** `mc_ficha_completa` has existed since `19.0.6.0.0`, so adding `mc_tiene_horometro`
+to its list of essential fields triggers no recompute on its own — sheets currently marked
+complete would stay marked complete forever, without the hour meter.
+
+- 25 tests (106 → 131).
+
 ## [19.0.7.0.1] — 2026-08-12
 
 ### Changed

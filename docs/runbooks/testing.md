@@ -2,7 +2,7 @@
 
 **Audience:** anyone validating changes before merging or deploying.
 
-**Time:** ~1-2 minutes for the full test suite (106 tests).
+**Time:** ~1-2 minutes for the full test suite (131 tests).
 
 ---
 
@@ -13,7 +13,7 @@
 | Test database | `odoo_test` |
 | Config | `/etc/odoo/odoo.conf` |
 | Test runner | Odoo's native test framework |
-| Total tests | 106 (72 `stock.lot` + 16 `repair.order` + 18 `mc.rov.componente`) |
+| Total tests | 131 (72 `stock.lot` + 16 `repair.order` + 18 `mc.rov.componente` + 25 `mc.rov.protocolo`) |
 
 ## Running all tests
 
@@ -44,7 +44,7 @@ sudo -u odoo odoo \
   --config /etc/odoo/odoo.conf
 ```
 
-Available test classes (as of v19.0.7.0.1):
+Available test classes (as of v19.0.8.0.0):
 
 | Class | Tests | Coverage |
 |---|---|---|
@@ -59,10 +59,16 @@ Available test classes (as of v19.0.7.0.1):
 | `TestStockLotFichaCompleta` | 10 | `mc_ficha_completa`, `mc_ficha_faltantes` y el cero de los numéricos |
 | `TestMcRovBajaWizard` | 5 | the decommission dialog, including the required reason |
 | `TestRepairOrder` | 16 | defaults, `tipo_intervencion_ids`, `fecha_entrega_real`, `linea_falla_ids`, `mc_total_horas`, the close-without-type block |
+| `TestMcRovProtocolo` | 6 | secuencia, derivados, generación del checklist y el filtro por tipo |
+| `TestMcRovProtocoloResultado` | 6 | `resultado` derivado: hallazgos, chequeos fallados y esfuerzo |
+| `TestMcRovProtocoloConfirmacion` | 7 | qué se exige para confirmar |
+| `TestMcRovProtocoloLuces` | 3 | la comparación contra la ficha técnica |
+| `TestMcRovProtocoloTrazabilidad` | 3 | el circuito hallazgo → trabajo |
 | `TestMcRovComponente` | 18 | all four custom models (`componente`, `subtipo`, `accion`, `linea.falla`) |
 
 Two shared fixture bases declare no tests — do not target them with `--test-tags`:
-`StockLotOrdenesCommon` (classes that need repair orders) and `StockLotPropiedadCommon`
+`StockLotOrdenesCommon` (classes that need repair orders), `ProtocoloCommon` (protocol
+classes) and `StockLotPropiedadCommon`
 (classes that need a real ROV, i.e. the category tree, because ownership history is only
 written for units with `es_un_rov` on).
 
@@ -71,7 +77,7 @@ written for units with `es_un_rov` on).
 
 ## Expected output
 
-All 106 tests should pass. Look for `0 failed, 0 error(s) of 106 tests` in the output (exact format depends on Odoo verbosity).
+All 131 tests should pass. Look for `0 failed, 0 error(s) of 131 tests` in the output (exact format depends on Odoo verbosity).
 
 ## When tests fail
 
