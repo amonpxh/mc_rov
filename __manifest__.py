@@ -1,10 +1,10 @@
 {
     "name": "Marine Connection - ROV",
-    "version": "19.0.10.0.0",
+    "version": "19.0.11.0.0",
     "category": "Inventory",
     "summary": "Gestión de equipos ROV y órdenes de reparación",
     "author": "Marine Connection",
-    # hr entra en 19.0.8.0.0: el responsable de un protocolo es un empleado y no un usuario,
+    # hr entra en 19.0.8.0.0: el responsable de una revisión es un empleado y no un usuario,
     # porque los técnicos no tienen login propio —las licencias se pagan por usuario— y
     # porque quién hizo el trabajo y quién lo tecleó son dos cosas distintas.
     "depends": [
@@ -18,10 +18,10 @@
         "security/ir.model.access.csv",
         "data/mc_rov_data.xml",
         # Después de mc_rov_data.xml: marca como inspeccionables componentes definidos allí.
-        "data/mc_rov_protocolo_data.xml",
+        "data/mc_rov_revision_data.xml",
         "views/mc_rov_componente_views.xml",
         "views/mc_rov_tipo_intervencion_views.xml",
-        "views/mc_rov_protocolo_views.xml",
+        "views/mc_rov_revision_views.xml",
         "views/repair_order_views.xml",
         "views/stock_lot_views.xml",
         "views/mc_rov_mantencion_views.xml",

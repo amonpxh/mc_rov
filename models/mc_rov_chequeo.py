@@ -15,7 +15,7 @@ SECCIONES = [
 
 
 class McRovChequeo(models.Model):
-    """Catálogo de pasos de testeo estándar de un protocolo de pruebas.
+    """Catálogo de pasos de testeo estándar de una revisión técnica.
 
     Es la lista de qué se revisa siempre. Existe como catálogo y no como campos fijos
     porque la batería crece: un ROV de seis grados de libertad necesita chequeos de
@@ -31,18 +31,18 @@ class McRovChequeo(models.Model):
     sequence = fields.Integer(default=10)
     seccion = fields.Selection(SECCIONES, string="Sección", required=True, default="otro")
 
-    # Cuando está encendido, la línea del protocolo debe decir sobre qué componente se hizo
+    # Cuando está encendido, la línea de la revisión debe decir sobre qué componente se hizo
     # el chequeo. Es lo que convierte "marcas de plumón" en cinco filas —una por E-pod,
     # cilindro fuente, motores, consola y joystick— en vez de una sola respuesta global.
     por_componente = fields.Boolean(
         string="Por componente",
-        help="Marque los chequeos que se hacen componente por componente. El protocolo "
+        help="Marque los chequeos que se hacen componente por componente. La revisión "
         "generará una línea por cada componente inspeccionable.",
     )
 
     # Fabricación y reparación no corren la misma batería. El caso que lo justifica es la
     # inspección física: existe para detectar si alguien más intervino el equipo, y en un
-    # ROV recién fabricado eso no significa nada. Sin este filtro, el protocolo de
+    # ROV recién fabricado eso no significa nada. Sin este filtro, la revisión de
     # fabricación generaría quince líneas que alguien tendría que responder para poder
     # confirmar y que no dirían nada.
     aplica_fabricacion = fields.Boolean(string="En fabricación")

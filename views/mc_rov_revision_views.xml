@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <record id="view_mc_rov_protocolo_form" model="ir.ui.view">
-        <field name="name">mc.rov.protocolo.form</field>
-        <field name="model">mc.rov.protocolo</field>
+    <record id="view_mc_rov_revision_form" model="ir.ui.view">
+        <field name="name">mc.rov.revision.form</field>
+        <field name="model">mc.rov.revision</field>
         <field name="arch" type="xml">
-            <form string="Protocolo de pruebas">
+            <form string="Revisión técnica">
                 <header>
                     <button name="action_confirmar" type="object" string="Confirmar"
                             class="btn-primary" invisible="estado != 'borrador'"/>
@@ -67,7 +67,7 @@
 
                         <page string="Sellos" name="page_sellos"
                               invisible="tipo not in ['recepcion', 'entrega']">
-                            <!-- Una fila por componente sellado. El tipo del protocolo da
+                            <!-- Una fila por componente sellado. El tipo de la revisión da
                                  el contexto: en recepción el estado es cómo llegó el
                                  equipo, en entrega es cómo se dejó. -->
                             <div class="alert alert-info" role="alert" invisible="tipo != 'recepcion'">
@@ -116,7 +116,7 @@
                                     <field name="hallazgo_id"/>
                                     <field name="severidad"/>
                                     <field name="chequeo_origen_id"
-                                           domain="[('protocolo_id', '=', parent.id)]"
+                                           domain="[('revision_id', '=', parent.id)]"
                                            optional="show"/>
                                     <field name="detalle"/>
                                 </list>
@@ -159,11 +159,11 @@
         </field>
     </record>
 
-    <record id="view_mc_rov_protocolo_list" model="ir.ui.view">
-        <field name="name">mc.rov.protocolo.list</field>
-        <field name="model">mc.rov.protocolo</field>
+    <record id="view_mc_rov_revision_list" model="ir.ui.view">
+        <field name="name">mc.rov.revision.list</field>
+        <field name="model">mc.rov.revision</field>
         <field name="arch" type="xml">
-            <list string="Protocolos de prueba">
+            <list string="Revisiones técnicas">
                 <field name="name"/>
                 <field name="fecha"/>
                 <field name="lot_id"/>
@@ -181,11 +181,11 @@
         </field>
     </record>
 
-    <record id="view_mc_rov_protocolo_search" model="ir.ui.view">
-        <field name="name">mc.rov.protocolo.search</field>
-        <field name="model">mc.rov.protocolo</field>
+    <record id="view_mc_rov_revision_search" model="ir.ui.view">
+        <field name="name">mc.rov.revision.search</field>
+        <field name="model">mc.rov.revision</field>
         <field name="arch" type="xml">
-            <search string="Buscar protocolos">
+            <search string="Buscar revisiones">
                 <field name="name"/>
                 <field name="lot_id"/>
                 <field name="responsable_id"/>
@@ -218,19 +218,19 @@
         </field>
     </record>
 
-    <!-- Dos acciones y no una: el taller no tiene por qué mirar los protocolos de
+    <!-- Dos acciones y no una: el taller no tiene por qué mirar las revisiones de
          fabricación, ni manufactura los de reparación. -->
-    <record id="action_mc_rov_protocolo" model="ir.actions.act_window">
-        <field name="name">Protocolos de reparación</field>
-        <field name="res_model">mc.rov.protocolo</field>
+    <record id="action_mc_rov_revision" model="ir.actions.act_window">
+        <field name="name">Revisiones técnicas</field>
+        <field name="res_model">mc.rov.revision</field>
         <field name="view_mode">list,form</field>
         <field name="domain">[('tipo', '!=', 'fabricacion')]</field>
         <field name="context">{'default_tipo': 'recepcion'}</field>
     </record>
 
-    <record id="action_mc_rov_protocolo_fabricacion" model="ir.actions.act_window">
-        <field name="name">Protocolos de fabricación</field>
-        <field name="res_model">mc.rov.protocolo</field>
+    <record id="action_mc_rov_revision_fabricacion" model="ir.actions.act_window">
+        <field name="name">Revisiones de fabricación</field>
+        <field name="res_model">mc.rov.revision</field>
         <field name="view_mode">list,form</field>
         <field name="domain">[('tipo', '=', 'fabricacion')]</field>
         <field name="context">{'default_tipo': 'fabricacion'}</field>

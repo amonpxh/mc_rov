@@ -4,6 +4,65 @@ All notable changes to the `mc_rov` Odoo module are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this module adheres to [semantic versioning](https://semver.org/) within the constraints of Odoo's version scheme: `19.0.X.Y.Z` where `19.0` is the Odoo major, `X` is breaking-change/migration, `Y` is feature, `Z` is bugfix.
 
+## [19.0.11.0.0] — 2026-08-13
+
+### Changed
+- **`Protocolo` is renamed to `Revisión técnica`.** "Protocolo" means *procedure*, and the
+  record is not the procedure — the procedure is the check catalogue. What gets created on
+  every visit is the result of running it.
+
+  The name had already caused a real misunderstanding: *"shouldn't it always be the same
+  one?"*. It should — the **procedure** is always the same. The filled-in record is not.
+
+  `Revisión técnica` was chosen because in Chile everyone already knows what one is: a
+  periodic, standardised battery of tests on a vehicle, whose outcome is *approved /
+  approved with observations / rejected* and which leaves a document and a history per
+  unit. That is what this is, down to the three outcome values, which were already
+  implemented under those names. The long form names the model and the menu; `Revisión`
+  alone is used in buttons and columns, where it is unambiguous.
+
+- **`numero_en_visita`, and it is what protects the analysis.** Several revisions in one
+  visit are legitimate — test, fix, retest — but they poison statistics if you cannot tell
+  which is which: *"share of units arriving with a broken motor"* falls to a third if one
+  visit had three revisions and the finding sits in one.
+
+  **The rule is that the unit of analysis is the visit, not the revision.** This field
+  makes "the first" and "the last" unambiguous: #1 says what the unit arrived with, the
+  last says how it left. Ordering by date is not enough — several on the same day do not
+  order themselves.
+
+- **Manufacturing revisions lose their menu** and are created with a button on the serial
+  number, which is where manufacturing already works. A global menu would only serve to see
+  all of them together, and nobody has that question.
+
+  It is a button and not automatic because a manufacturing revision **does not always
+  happen** — a unit is built once and at most modified a few times — and because the system
+  cannot detect a modification: a spec-sheet change is a write, and so is fixing a typo. The
+  module's rule: create automatically what always happens, by hand what sometimes happens.
+
+- **The five repair catalogues now sit under one `Catálogos ROV` entry** instead of five
+  loose ones. For daily use nobody needs that menu anyway: typing a name into a catalogue
+  field offers *Create* inline. The menu is for **maintaining** the catalogue.
+
+### Added
+- **`tracking=True` on fifteen spec-sheet fields** — the re-engineering history. A ROV gets
+  modified over its life (T200 → T500 motors, Pixhawk → Navigator, a new umbilical) and
+  until now the change left no trace. Each one now lands in the chatter with a date and
+  old → new value, with no model and no migration.
+
+  It does not cover the *why* — that lives in a *Conversión / Upgrade* order — nor how the
+  unit measured afterwards, which is a manufacturing revision.
+
+### Migration
+`19.0.11.0.0/pre-migrate.py` **discards the old models and lets the ORM create the new
+ones**. The rename is of name, not of structure, so keeping the data would mean rewriting
+six system tables — and missing one leaves invisible debris: orphaned chatter, attachments
+pointing at a model that no longer exists.
+
+Production held **1 test record with 22 checklist lines and no findings** when this
+shipped, created the same day to look at the screen. **Anyone deploying this with real
+revisions will lose them**; the script logs the row count of every table it drops.
+
 ## [19.0.10.0.0] — 2026-08-13
 
 ### Changed

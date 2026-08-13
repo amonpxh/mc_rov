@@ -18,7 +18,7 @@ class McRovComponente(models.Model):
     # Subtipos gestionados desde el formulario del componente (inline)
     subtipo_ids = fields.One2many("mc.rov.subtipo", "componente_id", string="Subtipos")
 
-    # Qué componentes recorre la inspección física del protocolo. Es una casilla y no una
+    # Qué componentes recorre la inspección física de la revisión. Es una casilla y no una
     # lista fija en el código para que agregar uno sea marcarlo desde Configuración, igual
     # que es_mantencion en los tipos de intervención. Sin esta marca, un chequeo "por
     # componente" generaría una línea por cada componente del catálogo —incluidos umbilical,
@@ -107,12 +107,12 @@ class McRovLineaFalla(models.Model):
         ondelete="restrict",
     )
 
-    # Lo que cierra el circuito: qué hallazgo del protocolo de recepción resuelve este
+    # Lo que cierra el circuito: qué hallazgo de la revisión de recepción resuelve este
     # trabajo. Con él se puede preguntar cuántos de los hallazgos de entrada quedaron
     # cerrados, y qué hallazgo predice qué acción. Opcional porque un trabajo puede surgir
     # sin hallazgo previo, y un hallazgo puede quedarse sin resolver — que también es dato.
     hallazgo_origen_id = fields.Many2one(
-        "mc.rov.protocolo.hallazgo",
+        "mc.rov.revision.hallazgo",
         string="Resuelve el hallazgo",
         ondelete="set null",
     )

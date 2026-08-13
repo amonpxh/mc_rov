@@ -1,33 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+
+    <!-- Una sola entrada en Configuración en vez de cinco sueltas. Para el uso diario no
+         hace falta entrar aquí: si el técnico necesita un hallazgo que no existe, escribe
+         el nombre en el campo y Odoo le ofrece crearlo ahí mismo. Este menú es para
+         mantener el catálogo —reordenar, desactivar ROVControl cuando llegue Crabby— no
+         para usarlo. -->
+    <menuitem
+        id="menu_mc_rov_catalogos"
+        name="Catálogos ROV"
+        parent="repair.repair_menu_config"
+        sequence="20"/>
+
     <menuitem
         id="menu_mc_rov_componentes"
         name="Componentes ROV"
-        parent="repair.repair_menu_config"
+        parent="menu_mc_rov_catalogos"
         action="action_mc_rov_componente"
         sequence="20"/>
     <menuitem
         id="menu_mc_rov_acciones"
         name="Acciones ROV"
-        parent="repair.repair_menu_config"
+        parent="menu_mc_rov_catalogos"
         action="action_mc_rov_accion"
         sequence="21"/>
     <menuitem
         id="menu_mc_rov_tipos_intervencion"
         name="Tipos de intervención ROV"
-        parent="repair.repair_menu_config"
+        parent="menu_mc_rov_catalogos"
         action="action_mc_rov_tipo_intervencion"
         sequence="22"/>
     <menuitem
         id="menu_mc_rov_chequeos"
         name="Pasos de testeo ROV"
-        parent="repair.repair_menu_config"
+        parent="menu_mc_rov_catalogos"
         action="action_mc_rov_chequeo"
         sequence="23"/>
     <menuitem
         id="menu_mc_rov_hallazgos"
         name="Hallazgos ROV"
-        parent="repair.repair_menu_config"
+        parent="menu_mc_rov_catalogos"
         action="action_mc_rov_hallazgo"
         sequence="24"/>
 
@@ -47,20 +59,17 @@
         action="action_mc_rov_controlador_vuelo"
         sequence="26"/>
 
-    <!-- Los protocolos van al menú principal de Reparaciones y no a Configuración: son
-         registros de trabajo diario, no catálogo. Van entre Órdenes y Reporting (que
-         ocupa la secuencia 15), y separados por tipo para que el taller no tenga que
-         mirar los de fabricación ni manufactura los de reparación. -->
+    <!-- Las revisiones van al menú principal de Reparaciones y no a Configuración: son
+         registros de trabajo diario, no catálogo. Entre Órdenes y Reporting, que ocupa la
+         secuencia 15.
+
+         Las de fabricación no tienen menú propio: se crean con un botón desde el número
+         de serie, que es donde manufactura ya trabaja. Un menú global solo serviría para
+         verlas todas juntas, y esa pregunta no la tiene nadie. -->
     <menuitem
-        id="menu_mc_rov_protocolos"
-        name="Protocolos de reparación"
+        id="menu_mc_rov_revisiones"
+        name="Revisiones técnicas"
         parent="repair.menu_repair_order"
-        action="action_mc_rov_protocolo"
+        action="action_mc_rov_revision"
         sequence="12"/>
-    <menuitem
-        id="menu_mc_rov_protocolos_fabricacion"
-        name="Protocolos de fabricación"
-        parent="repair.menu_repair_order"
-        action="action_mc_rov_protocolo_fabricacion"
-        sequence="13"/>
 </odoo>

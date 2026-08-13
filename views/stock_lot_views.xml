@@ -277,11 +277,11 @@
                          internos de una vista heredada es lo que causó los defectos de
                          19.0.5.0.1 y 19.0.5.1.0.
 
-                         Esta es la serie de tiempo del equipo: dos protocolos separados por
+                         Esta es la serie de tiempo del equipo: dos revisiones separadas por
                          un año son lo que deja ver que el ancho de banda cayó, o cuántas
                          horas voló entre visitas. -->
-                    <page string="Protocolos" name="page_protocolos" invisible="not es_un_rov">
-                        <field name="protocolo_ids" readonly="1">
+                    <page string="Revisiones" name="page_revisiones" invisible="not es_un_rov">
+                        <field name="revision_ids" readonly="1">
                             <list>
                                 <field name="name"/>
                                 <field name="fecha"/>

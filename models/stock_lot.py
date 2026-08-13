@@ -198,31 +198,54 @@ class StockLot(models.Model):
         string="Órdenes de reparación",
     )
 
-    # El historial de pruebas del equipo. Es la serie de tiempo: dos protocolos del mismo
+    # El historial de pruebas del equipo. Es la serie de tiempo: dos revisiones del mismo
     # número de serie separados por un año son lo que permite ver que el ancho de banda
     # cayó, o que el horómetro avanzó tantas horas entre visitas.
-    protocolo_ids = fields.One2many(
-        "mc.rov.protocolo",
+    revision_ids = fields.One2many(
+        "mc.rov.revision",
         "lot_id",
-        string="Protocolos de prueba",
+        string="Revisiones técnicas",
     )
 
-    mc_protocolo_count = fields.Integer(
-        string="Protocolos",
-        compute="_compute_mc_protocolo_count",
+    mc_revision_count = fields.Integer(
+        string="Revisiones",
+        compute="_compute_mc_revision_count",
     )
 
-    def _compute_mc_protocolo_count(self):
+    def _compute_mc_revision_count(self):
         for lot in self:
-            lot.mc_protocolo_count = len(lot.protocolo_ids)
+            lot.mc_revision_count = len(lot.revision_ids)
 
-    def action_ver_protocolos(self):
+    def action_nueva_revision_fabricacion(self):
+        """Abre una revisión de fabricación para este equipo.
+
+        Es botón y no automático porque una revisión de fabricación **no siempre ocurre**:
+        un equipo se fabrica una vez y a lo más se le hacen unas pocas modificaciones. Y el
+        sistema no puede detectar una modificación — un cambio en la ficha técnica es una
+        escritura, y eso también pasa cuando alguien corrige una errata. Crearía revisiones
+        vacías por typos.
+
+        El criterio general del módulo: se crea solo lo que siempre ocurre, y a mano lo que
+        a veces ocurre.
+        """
+        self.ensure_one()
+        revision = self.env["mc.rov.revision"].create({"lot_id": self.id, "tipo": "fabricacion"})
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Revisión técnica",
+            "res_model": "mc.rov.revision",
+            "res_id": revision.id,
+            "view_mode": "form",
+            "target": "current",
+        }
+
+    def action_ver_revisiones(self):
         """Abre el historial de pruebas de este equipo."""
         self.ensure_one()
         return {
             "type": "ir.actions.act_window",
-            "name": "Protocolos de prueba",
-            "res_model": "mc.rov.protocolo",
+            "name": "Revisiones técnicas",
+            "res_model": "mc.rov.revision",
             "view_mode": "list,form",
             "domain": [("lot_id", "=", self.id)],
             "context": {"default_lot_id": self.id},
@@ -316,12 +339,20 @@ class StockLot(models.Model):
 
     # --- Especificaciones ---
 
+    # tracking=True en toda la configuración: es el historial de reingeniería del equipo.
+    # Un ROV se modifica a lo largo de su vida —motores T200 a T500, Pixhawk a Navigator,
+    # umbilical nuevo— y sin esto el cambio no deja rastro. Con esto cada uno queda en el
+    # chatter con fecha y valor anterior → valor nuevo, sin modelo ni migración.
+    #
+    # No cubre el *porqué* del cambio: eso vive en la orden de tipo Conversión / Upgrade,
+    # y cómo quedó midiendo después, en una revisión de fabricación.
     mc_chasis = fields.Selection(
         [
             ("Plástico", "Plástico"),
             ("Inox", "Inox"),
         ],
         string="Chasis",
+        tracking=True,
     )
 
     mc_modelo_motores = fields.Selection(
@@ -333,9 +364,10 @@ class StockLot(models.Model):
             ("DWT8537", "DWT8537"),
         ],
         string="Modelo motores",
+        tracking=True,
     )
 
-    mc_n_motores = fields.Integer(string="N° motores")
+    mc_n_motores = fields.Integer(string="N° motores", tracking=True)
 
     mc_posicion_motores = fields.Selection(
         [
@@ -343,6 +375,7 @@ class StockLot(models.Model):
             ("Vectorial", "Vectorial"),
         ],
         string="Posición motores",
+        tracking=True,
     )
 
     mc_peso_consola = fields.Float(string="Peso Consola")
@@ -354,6 +387,7 @@ class StockLot(models.Model):
             ("100 bar (1000m)", "100 bar (1000m)"),
         ],
         string="Sensor de presión",
+        tracking=True,
     )
 
     mc_tarjeta_comunicacion_rov = fields.Selection(
@@ -362,6 +396,7 @@ class StockLot(models.Model):
             ("V30", "V30"),
         ],
         string="Tarjeta de comunicación ROV",
+        tracking=True,
     )
 
     mc_tarjeta_comunicacion_consola = fields.Selection(
@@ -370,6 +405,7 @@ class StockLot(models.Model):
             ("V30", "V30"),
         ],
         string="Tarjeta de comunicación Consola",
+        tracking=True,
     )
 
     # Catálogo y no Selection desde 19.0.9.0.0. La razón no es poder agregar opciones
@@ -382,9 +418,10 @@ class StockLot(models.Model):
         "mc.rov.software.superficie",
         string="Software de superficie",
         ondelete="restrict",
+        tracking=True,
     )
 
-    mc_version_software = fields.Char(string="Versión del software de superficie")
+    mc_version_software = fields.Char(string="Versión del software de superficie", tracking=True)
 
     # Mismo criterio que arriba, y por partida doble: PX4 y Navigator nunca conviven en un
     # equipo —eran dos columnas de las que siempre había una vacía— y Navigator también
@@ -393,13 +430,14 @@ class StockLot(models.Model):
         "mc.rov.controlador.vuelo",
         string="Controlador de Vuelo",
         ondelete="restrict",
+        tracking=True,
     )
 
-    mc_version_controlador = fields.Char(string="Versión del controlador")
+    mc_version_controlador = fields.Char(string="Versión del controlador", tracking=True)
 
     # ArduSub va aparte y siempre: es el software de vuelo y corre sobre cualquiera de los
     # dos controladores, así que no es alternativa de ninguno.
-    mc_version_ardusub = fields.Char(string="Versión Ardusub")
+    mc_version_ardusub = fields.Char(string="Versión Ardusub", tracking=True)
 
     # Selection de Sí/No y no un Boolean: una casilla nunca está vacía, así que False
     # significaría a la vez "no tiene horómetro" y "nadie lo revisó". De este dato depende
@@ -411,6 +449,7 @@ class StockLot(models.Model):
         string="Tiene horómetro",
         help="Si el equipo registra sus horas de operación. Solo en los que lo tienen se "
         "puede medir confiabilidad por horas de uso en vez de por tiempo de calendario.",
+        tracking=True,
     )
 
     mc_ficha_completa = fields.Boolean(
@@ -473,12 +512,12 @@ class StockLot(models.Model):
 
     mc_salida_brazo = fields.Boolean(string="Salida de brazo")
     mc_brazo = fields.Char(string="Brazo")
-    mc_cantidad_luces = fields.Integer(string="Cantidad de luces")
+    mc_cantidad_luces = fields.Integer(string="Cantidad de luces", tracking=True)
     mc_dispositivos_extra = fields.Char(string="Dispositivos extra")
 
     # --- Umbilical ---
 
-    mc_n_serie_umbilical = fields.Char(string="N° serie de Umbilical")
+    mc_n_serie_umbilical = fields.Char(string="N° serie de Umbilical", tracking=True)
     mc_longitud = fields.Float(string="Longitud")
     mc_diametro = fields.Float(string="Diámetro")
     mc_peso_umbilical = fields.Float(string="Peso Umbilical")

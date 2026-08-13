@@ -35,30 +35,30 @@ class RepairOrder(models.Model):
         column2="lot_id",
         string="Equipos recibidos",
         help="Lo que llegó junto al ROV: consola, umbilical, e-pods. Es lo que la "
-        "inspección física del protocolo va a mirar.",
+        "inspección física de la revisión va a mirar.",
     )
 
     # Descripción literal de la falla según el cliente, sin interpretación técnica
     falla_reportada = fields.Text(string="Falla reportada por cliente")
 
-    # Los protocolos de esta visita: típicamente uno de recepción y uno de entrega, y la
+    # Las revisiones de esta visita: típicamente una de recepción y una de entrega, y la
     # comparación entre ambos es la evidencia de que el trabajo sirvió.
-    protocolo_ids = fields.One2many(
-        "mc.rov.protocolo",
+    revision_ids = fields.One2many(
+        "mc.rov.revision",
         "repair_id",
-        string="Protocolos de prueba",
+        string="Revisiones técnicas",
     )
 
-    def _abrir_protocolo(self, tipo):
-        """Crea un protocolo de esta visita y lo abre para llenarlo.
+    def _abrir_revision(self, tipo):
+        """Crea una revisión de esta visita y lo abre para llenarlo.
 
-        Existe para que el protocolo sea un paso del flujo y no un trámite aparte. Antes
-        había que salir al menú, buscar el número de serie y volver — con eso el protocolo
+        Existe para que la revisión sea un paso del flujo y no un trámite aparte. Antes
+        había que salir al menú, buscar el número de serie y volver — con eso la revisión
         de recepción, que es el primer paso real del proceso, quedaba escondido detrás de
         una navegación que nadie iba a hacer.
         """
         self.ensure_one()
-        protocolo = self.env["mc.rov.protocolo"].create(
+        revision = self.env["mc.rov.revision"].create(
             {
                 "lot_id": self.lot_id.id,
                 "repair_id": self.id,
@@ -67,18 +67,18 @@ class RepairOrder(models.Model):
         )
         return {
             "type": "ir.actions.act_window",
-            "name": "Protocolo de pruebas",
-            "res_model": "mc.rov.protocolo",
-            "res_id": protocolo.id,
+            "name": "Revisión técnica",
+            "res_model": "mc.rov.revision",
+            "res_id": revision.id,
             "view_mode": "form",
             "target": "current",
         }
 
-    def action_nuevo_protocolo_recepcion(self):
-        return self._abrir_protocolo("recepcion")
+    def action_nuevo_revision_recepcion(self):
+        return self._abrir_revision("recepcion")
 
-    def action_nuevo_protocolo_entrega(self):
-        return self._abrir_protocolo("entrega")
+    def action_nuevo_revision_entrega(self):
+        return self._abrir_revision("entrega")
 
     # Detalle técnico de los trabajos ejecutados (ver mc.rov.linea.falla)
     linea_falla_ids = fields.One2many(

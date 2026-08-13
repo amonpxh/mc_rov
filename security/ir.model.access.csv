@@ -8,10 +8,10 @@ access_mc_rov_propietario_historial,mc.rov.propietario.historial,model_mc_rov_pr
 access_mc_rov_baja_wizard,mc.rov.baja.wizard,model_mc_rov_baja_wizard,,1,1,1,1
 access_mc_rov_chequeo,mc.rov.chequeo,model_mc_rov_chequeo,,1,1,1,1
 access_mc_rov_hallazgo,mc.rov.hallazgo,model_mc_rov_hallazgo,,1,1,1,1
-access_mc_rov_protocolo,mc.rov.protocolo,model_mc_rov_protocolo,,1,1,1,1
-access_mc_rov_protocolo_corrida,mc.rov.protocolo.corrida,model_mc_rov_protocolo_corrida,,1,1,1,1
-access_mc_rov_protocolo_chequeo,mc.rov.protocolo.chequeo,model_mc_rov_protocolo_chequeo,,1,1,1,1
-access_mc_rov_protocolo_hallazgo,mc.rov.protocolo.hallazgo,model_mc_rov_protocolo_hallazgo,,1,1,1,1
+access_mc_rov_revision,mc.rov.revision,model_mc_rov_revision,,1,1,1,1
+access_mc_rov_revision_corrida,mc.rov.revision.corrida,model_mc_rov_revision_corrida,,1,1,1,1
+access_mc_rov_revision_chequeo,mc.rov.revision.chequeo,model_mc_rov_revision_chequeo,,1,1,1,1
+access_mc_rov_revision_hallazgo,mc.rov.revision.hallazgo,model_mc_rov_revision_hallazgo,,1,1,1,1
 access_mc_rov_software_superficie,mc.rov.software.superficie,model_mc_rov_software_superficie,,1,1,1,1
 access_mc_rov_controlador_vuelo,mc.rov.controlador.vuelo,model_mc_rov_controlador_vuelo,,1,1,1,1
-access_mc_rov_protocolo_inspeccion,mc.rov.protocolo.inspeccion,model_mc_rov_protocolo_inspeccion,,1,1,1,1
+access_mc_rov_revision_inspeccion,mc.rov.revision.inspeccion,model_mc_rov_revision_inspeccion,,1,1,1,1
