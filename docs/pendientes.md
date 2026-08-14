@@ -2,6 +2,35 @@
 
 > Actualizar esta sección al cerrar cada sesión de trabajo.
 
+## Estado al 2026-08-13
+
+La **revisión técnica** está implementada y desplegada (`19.0.11.0.1`): seis modelos, los
+catálogos de chequeos y hallazgos, la inspección de sellos, y la revisión de recepción que
+se abre sola al confirmar una orden. Diseño en
+[`designs/revision-tecnica.md`](designs/revision-tecnica.md).
+
+Lo que sigue del plan original, en orden:
+
+- [ ] **Reporte PDF de las dos fichas** (`19.0.9.0.0` del plan, ahora la siguiente versión
+  grande). Ni la ficha de fabricación ni la revisión técnica se pueden imprimir hoy; el
+  único documento imprimible de una orden es el presupuesto por defecto de Odoo.
+
+  **La revisión existe, entre otras cosas, para entregársela al cliente**, así que esto no
+  es un extra. Obliga a decidir campo por campo qué es interno y qué va impreso — ver
+  [`designs/revision-tecnica.md`](designs/revision-tecnica.md) § 12.1.
+
+- [ ] **Fotos de los hallazgos**, con `fields.Image(max_width=1920, max_height=1920)` y no
+  `fields.Binary`. Decidido dejarlo para el final. El disco no es problema: 50 GB libres y
+  los adjuntos van a disco, no a la base.
+
+- [ ] **Vista de búsqueda de `repair.order`** — filtrar por tipo de intervención, agrupar
+  por causa raíz, y `mc_total_horas` al pie de la columna con `sum`.
+
+  El dato que faltaba ya se averiguó: la vista base se llama
+  **`repair.view_repair_order_form_filter`**, su grupo de "agrupar por" no tiene nombre pero
+  el último filtro adentro sí (`group_by_repair_properties`), y **el schema de Odoo 19
+  rechaza `expand` y `string` en el elemento `group`** — eso rompió el módulo una vez.
+
 - [ ] **Phase -1 del pipeline roadmap — Foundation handoff** — prerequisito bloqueante para iniciar el pipeline. Checklist completo en `rov-pipeline-roadmap.md` Phase -1. Duración estimada: 1 semana.
 
 - [ ] **Separar el workspace del runner de CI del addons de producción.** Hoy son el mismo directorio: `/opt/odoo/custom-addons/mc_rov`. Descubierto el 2026-08-07 al desplegar `19.0.5.0.0`.
@@ -46,14 +75,6 @@
   4. Registrar `mc_rov_groups.xml` en `__manifest__.py` bajo `data`
 
   **Para asignar grupos a usuarios:** `Ajustes → Usuarios → [usuario]` (sin tocar código). Cambiar qué puede hacer un grupo requiere modificar el módulo.
-
-- [ ] **Vista de búsqueda de `repair.order`** — hoy no se puede filtrar "mantenciones de este año" ni agrupar por causa raíz. Quedó fuera de `19.0.5.2.0` a propósito, por no tener el arch de la vista base y no querer adivinar internos de una vista heredada.
-
-  Ya se resolvió esa parte: la vista se llama **`repair.view_repair_order_form_filter`** (no `view_repair_order_search`), su grupo de "agrupar por" no tiene nombre pero el último filtro adentro sí — `group_by_repair_properties`—, así que ahí hay dónde anclarse sin producir un segundo encabezado. Su `arch_db` tiene claves `en_US` y `es_CL`.
-
-  Va junto con mover `mc_total_horas` al pie de la columna con `sum`, en vez del grupo suelto al final de la pestaña *Trabajos realizados*.
-
-- [ ] **Reporte PDF de las dos fichas.** Ni la ficha de fabricación ni la de reparación se pueden imprimir hoy; el único documento imprimible de una orden es el presupuesto por defecto de Odoo. **La ficha de reparación existe, entre otras cosas, para entregársela al cliente**, así que esto no es un extra. Obliga a decidir campo por campo qué es interno y qué va impreso — ver `designs/protocolo-de-pruebas.md` § 12.1.
 
 - [ ] **Validación de línea de producto en cierre de orden**: hoy una orden se puede cerrar con líneas de falla de tipo "cambio" sin haber registrado el repuesto como línea de producto.
 

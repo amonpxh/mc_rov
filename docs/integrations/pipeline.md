@@ -156,8 +156,10 @@ Custom mc_rov fields:
   Studio; zero of the ten orders in production ever used them. Replaced by
   `mc_items_recibidos_ids`, a Many2many to `stock.lot` — no fixed arity, and traceable,
   since e-pods carry their own serial.
-- `protocolo_ids` — **new in 19.0.8.0.0.** The test protocols of this visit, typically one
-  at intake and one at delivery.
+- `revision_ids` — **new in 19.0.8.0.0 as `protocolo_ids`, renamed in 19.0.11.0.0.** The
+  technical revisions of this visit. Since 19.0.11.0.1 the intake one is **created
+  automatically** when the order leaves draft, so from that version on every ROV repair
+  order has at least one — but orders confirmed before it may have none.
 
 **A semantic guarantee that only holds going forward:** since `19.0.5.2.0` an order cannot
 be closed without at least one `tipo_intervencion_ids`. Before that it could, and such an
@@ -169,12 +171,79 @@ so do not assume the field is populated when reading history.
 > `fecha_garantia` on `repair.order`. **Those three fields have never existed in the code**
 > — they were only ever in this file. Removed 2026-08-12.
 
+### `mc.rov.revision` and its lines (new in 19.0.8.0.0, renamed in 19.0.11.0.0)
+
+**This is the intended source for failure analysis** — the thing the whole module was
+building towards. One record per test session on one unit.
+
+> **Breaking rename in 19.0.11.0.0.** These models shipped as `mc.rov.protocolo` and were
+> renamed to `mc.rov.revision`, along with `protocolo_id` → `revision_id` on every line.
+> The old models were **dropped, not migrated**: a pipeline query naming them errors out.
+> "Protocolo" means *procedure*, and the record is the result of running one — the procedure
+> is the check catalogue.
+
+- `mc.rov.revision`: `lot_id`, `repair_id` (nullable — manufacturing revisions have no
+  order), `tipo` (`fabricacion` | `recepcion` | `entrega` | `terreno`), `fecha`,
+  `responsable_id` (`hr.employee`), `estado`, `horas_operacion`, `resultado`,
+  `numero_en_visita`, plus the light counts and field-test fields.
+
+  **`numero_en_visita` is not decoration — read it before aggregating.** A visit may hold
+  several revisions (test, fix, retest). **The unit of analysis is the visit, not the
+  revision**: counting findings per revision drops a rate to a third if one visit had three
+  of them. Use `numero_en_visita = 1` for *what the unit arrived with*, and the maximum per
+  `repair_id` for *how it left*.
+
+  `resultado` is derived and stored: `rechazado` if any check is `no_ok`, any run's stress
+  test has problems, or any finding is `impide_operar`; `aprobado_con_observaciones` if
+  there are findings; `aprobado` otherwise.
+
+  `horas_operacion` is the hour-meter reading, **only present on units that have one**
+  (`stock.lot.mc_tiene_horometro`). What is analytically useful is the **delta between
+  consecutive revisions** — the hours the unit actually flew. Reliability figures computed
+  on calendar time flatter units that nobody uses.
+
+- `mc.rov.revision.corrida`: one pass with one umbilical — `umbilical` (`equipo` |
+  `prueba`), `largo`, `alimentacion`, `tension_salida`, `esfuerzo_duracion`,
+  `esfuerzo_resultado`, `subida`, `bajada`. Two rows when the standard test cable is used
+  as a **control sample**; comparing them isolates the cable as a fault source.
+
+- `mc.rov.revision.chequeo`: `chequeo_id`, `componente_id`, `resultado`
+  (`ok` | `no_ok` | `no_lo_tiene`), `detalle`. **`no_lo_tiene` means the unit lacks that
+  component** — not that it went unchecked. Empty means unanswered, which blocks
+  confirmation.
+
+- `mc.rov.revision.hallazgo`: `componente_id`, `subtipo_id`, `hallazgo_id`, `severidad`,
+  `chequeo_origen_id`, `detalle`, `lot_id` (stored). Reuses the same component and subtype
+  catalogues as the work lines, which is what makes findings and work correlatable.
+
+  `chequeo_origen_id` is the **detection** axis of an FMEA: whether a checklist step
+  revealed the finding or someone spotted it otherwise. A frequent finding that no check
+  detects is a check that is missing.
+
+- `mc.rov.revision.inspeccion`: `componente_id`, `estado_sello`, `observacion`,
+  `manipulacion_externa` (stored, derived). **One row per sealed component**, replacing what
+  had been three independent checkboxes. `manipulacion_externa` fires when a seal arrived
+  broken or absent **at intake** — unambiguous, because the workshop never breaks a seal
+  without recording it and its own breakages happen during the work.
+
+- `mc.rov.chequeo` (catalogue): `name`, `seccion`, `por_componente`, and four booleans
+  declaring which revision types it applies to. `mc.rov.hallazgo` (catalogue): `name`,
+  `familia`.
+
 ### `mc.rov.componente` and related
 
 - `mc.rov.componente`: `id`, `name`, `active`
 - `mc.rov.subtipo`: `id`, `name`, `componente_id`, `active`
 - `mc.rov.accion`: `id`, `name`, `active`
+- `mc.rov.chequeo`, `mc.rov.hallazgo`, `mc.rov.software.superficie`,
+  `mc.rov.controlador.vuelo`: catalogues added in 19.0.8.0.0 and 19.0.9.0.0, all with
+  `active`. **Retirement is a flag, not a deletion** — a unit that referenced a retired
+  option still resolves it.
 - `mc.rov.linea.falla`: `id`, `repair_id`, `componente_id`, `subtipo_id`, `accion_id`, `fecha`, `horas`, `detalle`
+  - **New in 19.0.8.0.0**: `hallazgo_origen_id` (which finding this work resolves — the
+    link that closes the circuit), `responsable_id` (`hr.employee`), and `causa_raiz`,
+    which moved down from `repair.order`.
+  - `mc.rov.componente` gained `es_inspeccionable`, which drives the seal inspection rows.
 
 ## Contract stability rules
 
