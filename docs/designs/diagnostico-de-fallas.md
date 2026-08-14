@@ -471,7 +471,7 @@ o «stabilize» tiene que encontrar la entrada, porque son las palabras que el p
 La familia **Cuándo ocurre** es la que absorbe al campo `momento_falla` retirado (§ 3.4). No
 lleva un «Siempre, desde que ocurrió»: es el supuesto por defecto y marcarlo no agrega nada.
 
-La familia **Otro** tiene una sola entrada, del mismo nombre. No es redundancia: ver § 6.4.
+La familia **Otro** tiene una sola entrada, del mismo nombre. No es redundancia: ver § 6.5.
 
 ### 6.2 Por qué los modos de vuelo van separados
 
@@ -503,7 +503,27 @@ Por lo mismo se descartó **«Pierde señal»**, que se había propuesto explíc
 cuando no queda claro si es comunicación, video u otra». Una opción que existe para lo dudoso
 absorbe todo lo dudoso. Para eso está «Otro» más el texto libre.
 
-### 6.4 «Otro» se queda
+### 6.4 Archivar un síntoma esconde el histórico, no lo conserva
+
+Esto salió de correr los tests, no de diseñar, y contradice lo que este documento daba por
+sentado. Retirar una entrada del catálogo es desmarcar `active` y nunca borrarla, para no
+dejar huérfanas las órdenes que la usaron. **Pero el enlace no sobrevive a la lectura:** el
+ORM aplica `active_test` al leer un `Many2many`, así que la orden pasa a informar un síntoma
+menos y nada avisa. La fila de la tabla de relación sigue ahí; hay que leer con
+`active_test=False` para verla.
+
+La consecuencia es de análisis y no de pantalla: **archivar un síntoma de uso corriente baja
+su conteo histórico a cero, y esa caída se ve idéntica a que hubiera dejado de ocurrir.**
+
+- Quien cuente síntomas del pasado tiene que leer con `active_test=False`.
+- Archivar una entrada muy usada es una decisión sobre los datos, no una limpieza de lista.
+- Cuando lo que sobra es un duplicado, lo correcto no es archivarlo sino reapuntar las órdenes
+  a la entrada buena antes de archivar.
+
+Aplica igual a `mc.rov.hallazgo`, `mc.rov.componente` y a todo catálogo con `active` que se lea
+por un x2many. No es nuevo de esta versión; lo nuevo es que quedó escrito.
+
+### 6.5 «Otro» se queda
 
 Aunque parezca redundante con el texto libre. Marcarlo explícitamente dice *«preguntamos y no
 estaba en la lista»*, que es distinto de que nadie clasificó. **Si «Otro» empieza a aparecer
@@ -881,7 +901,7 @@ dato y no lo es hace más daño que no tenerlo.
 | Cerrar con `analisis_causa` vacío | Se cierra: el análisis no bloquea nunca (§ 5.1) |
 | Guardar una línea sin origen, sin cerrar la orden | Se guarda: la exigencia es del cierre, no del modelo |
 | Sospecha y hallazgo sobre el mismo componente | La comparación los relaciona sin traducir (§ 3.2) |
-| Catálogo de síntomas con `active = False` | No aparece al elegir; las órdenes viejas lo conservan |
+| Catálogo de síntomas con `active = False` | No aparece al elegir **ni en la orden**; el enlace sigue y se lee con `active_test=False` (§ 6.4) |
 | `display_name` de una línea | Nombra componente y acción, no `mc.rov.linea.falla,42` |
 | El error nombra solo las líneas que faltan | Con dos líneas y una completa, la completa no aparece |
 | `linea_falla_cierre_ids` | Devuelve exactamente las mismas líneas que `linea_falla_ids` |
@@ -951,3 +971,4 @@ Antes de escribir una línea se leyó el diseño completo contra el módulo. Lo 
 | «Software de superficie» iba a entrar como cuarto componente | No entra | Apareció al escribir los datos: `comp_electronica` ya se llama «Electrónica / Software». El choque no era con el catálogo de software de la ficha técnica —ese es otro eje— sino dentro del propio catálogo de componentes (§ 3.2). |
 | Los dos ejes «hallazgo → origen» se daban por unidos | § 9.1, con el camino de cruce y el respaldo | No viven en el mismo registro y el puntero que los une es opcional. |
 | § 4.4 vivía solo en este documento | Cierra el `help` del campo | Si es «la condición de la que depende que todo lo demás sirva», tiene que leerla quien llena el campo. |
+| «Archivar un síntoma: las órdenes viejas lo conservan» | Lo conservan en la tabla, **no en la lectura** | Lo destapó el test al correrlo: el ORM aplica `active_test` al leer un x2many, así que archivar una entrada muy usada hunde su conteo histórico y se ve igual que si hubiera dejado de ocurrir (§ 6.4). |

@@ -89,6 +89,18 @@ Failure diagnostics. Design in
   fourth candidate, "Software de superficie", was dropped on writing the data: `comp_electronica`
   is already named "Electrónica / Software".
 
+### Documented (not a code change)
+
+- **Archiving a catalogue entry hides it from history, it does not preserve it.** Retiring an
+  entry is meant to be a flag rather than a deletion — but reading an x2many applies
+  `active_test`, so an order that reported a now-archived symptom comes back with one symptom
+  fewer, silently. The relation row survives; you need `active_test=False` to see it.
+
+  The consequence is analytical, not cosmetic: **archive a commonly used entry and its
+  historical count drops to zero, which looks exactly like it having stopped occurring.**
+  Applies to every catalogue with `active` reached through an x2many. Not new here — it had
+  never been written down. Surfaced by a test that asserted the opposite.
+
 ### Migration
 
 `19.0.13.0.0/pre-migrate.py`. `corrosion` → `desconocida`, with the old value appended to

@@ -271,11 +271,22 @@ building towards. One record per test session on one unit.
   `movimiento` | `video` | `comunicacion` | `sensores` | `accesorios` | `fisico` |
   `temporalidad` | `otro`), `sequence`, `active`. This is the **reported** side of the
   chain — the counterpart to `mc.rov.hallazgo`, which is the **observed** side. Retirement is
-  a flag, so an order that referenced a retired symptom still resolves it.
+  a flag, not a deletion.
 
   The `temporalidad` family carries what a `momento_falla` Selection would have held; that
   field was designed and cut before implementation, so **it never existed in any released
   version** and no data was ever stored under it.
+
+  > **Archiving a catalogue entry hides history from the ORM.** Reading an x2many applies
+  > `active_test`, so an order that reported a now-archived symptom comes back with one
+  > symptom fewer — silently. The relation row is still there: read with `active_test=False`,
+  > or read `mc_rov_repair_order_sintoma_rel` directly.
+  >
+  > **This is a live trap for any count over time.** Archive a commonly used symptom and its
+  > historical count drops to zero, which looks exactly like the symptom having stopped
+  > occurring. The same applies to every catalogue with `active` reached through an x2many —
+  > `mc.rov.hallazgo`, `mc.rov.componente`, `mc.rov.tipo.intervencion`. Not new in
+  > 19.0.13.0.0; it had simply never been written down.
 
 ### `mc.rov.componente` and related
 

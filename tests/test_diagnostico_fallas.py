@@ -96,19 +96,31 @@ class TestDiagnosticoFallas(TransactionCase):
 
         self.assertEqual(hallazgo.componente_id, self.order.componente_sospechado_ids)
 
-    def test_un_sintoma_archivado_no_se_ofrece_pero_las_ordenes_lo_conservan(self):
-        """Retirar una entrada es desmarcar `active`, nunca borrarla.
+    def test_un_sintoma_archivado_desaparece_de_la_lectura_del_many2many(self):
+        """Archivar no borra la fila, pero **sí la esconde de la lectura**, y hay que saberlo.
 
-        Un borrado dejaría huérfanas las órdenes que la usaron y falsearía el histórico:
-        aparecerían como si nunca hubieran reportado nada.
+        Retirar una entrada del catálogo es desmarcar `active` y nunca borrarla: un borrado
+        dejaría huérfanas las órdenes que la usaron. Pero el enlace no sobrevive a la vista:
+        el ORM aplica `active_test` al leer un x2many, así que la orden pasa a informar un
+        síntoma menos sin que nada avise.
+
+        **La consecuencia es de análisis, no de pantalla.** Archivar un síntoma de uso
+        corriente baja el conteo histórico de ese síntoma a cero, y la caída se ve idéntica a
+        que hubiera dejado de ocurrir. Quien cuente síntomas del pasado tiene que leer con
+        `active_test=False`; archivar una entrada muy usada es una decisión de datos.
         """
         sintoma = self.env.ref("mc_rov.sintoma_sonar_no_funciona")
         self.order.sintoma_ids = [(6, 0, sintoma.ids)]
 
         sintoma.active = False
+        self.order.invalidate_recordset(["sintoma_ids"])
 
+        # Ya no se ofrece al elegir, que es el punto de archivar.
         self.assertNotIn(sintoma, self.env["mc.rov.sintoma"].search([]))
-        self.assertIn(sintoma, self.order.sintoma_ids)
+        # Ni se ve en la orden, que es lo que el diseño daba por sentado y no es así.
+        self.assertNotIn(sintoma, self.order.sintoma_ids)
+        # Pero el enlace está: no se perdió nada, está escondido.
+        self.assertIn(sintoma, self.order.with_context(active_test=False).sintoma_ids)
 
     def test_la_temporalidad_es_un_sintoma_y_no_un_campo(self):
         """El campo `momento_falla` se retiró; la temporalidad entra como etiqueta.
