@@ -1,6 +1,6 @@
 {
     "name": "Marine Connection - ROV",
-    "version": "19.0.12.1.1",
+    "version": "19.0.13.0.0",
     "category": "Inventory",
     "summary": "Gestión de equipos ROV y órdenes de reparación",
     "author": "Marine Connection",
@@ -19,7 +19,9 @@
         "data/mc_rov_data.xml",
         # Después de mc_rov_data.xml: marca como inspeccionables componentes definidos allí.
         "data/mc_rov_revision_data.xml",
+        "data/mc_rov_sintoma_data.xml",
         "views/mc_rov_componente_views.xml",
+        "views/mc_rov_sintoma_views.xml",
         "views/mc_rov_tipo_intervencion_views.xml",
         "views/mc_rov_revision_views.xml",
         "views/repair_order_views.xml",

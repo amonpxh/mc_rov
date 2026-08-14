@@ -4,6 +4,12 @@
 
 ## Estado al 2026-08-14
 
+El **diagnóstico de fallas** está implementado (`19.0.13.0.0`): el catálogo de síntomas, los
+dos campos de recepción, `causa_raiz` partido en `origen` con su análisis escrito, y la vista
+de búsqueda que faltaba. Diseño en
+[`designs/diagnostico-de-fallas.md`](designs/diagnostico-de-fallas.md), con las correcciones
+que salieron de contrastarlo contra el código en su § 15.2. Lleva migración.
+
 La **revisión técnica** está implementada (`19.0.12.0.0`): seis modelos, los catálogos de
 chequeos y hallazgos, la inspección de sellos, y **una** revisión por visita que se abre sola
 al confirmar la orden. Diseño en
@@ -62,21 +68,32 @@ de la vista. Los dos se habían deducido de una captura, sin poder leer el arch 
   cilindro fuente: *si el equipo declarara lo que tiene, la revisión no preguntaría de más*.
   Conviene diseñarlos juntos.
 
-## Diseño acordado, sin implementar
+## Salido de implementar `19.0.13.0.0`
 
-- [ ] **Diagnóstico de fallas** (`19.0.13.0.0`) — diseño completo y acordado en
-  [`designs/diagnostico-de-fallas.md`](designs/diagnostico-de-fallas.md).
+- [ ] **Revisión a mano después de desplegar, que el script de migración no puede hacer.**
+  Las filas de `mc_rov_linea_falla` que hoy dicen `falla_fabricacion` — ¿se referían a
+  *nosotros* o a *el proveedor*? Con el volumen actual se miran una por una y se corrigen a
+  `pieza_proveedor` las que correspondan. La auditoría previa y el conteo posterior están en
+  §§ 11 y 14.2 de [`designs/diagnostico-de-fallas.md`](designs/diagnostico-de-fallas.md).
 
-  Marine Connection no ve fallar los equipos: llegan ya rotos y hay que reconstruir la
-  historia hacia atrás. El diseño separa **lo que alguien dice** de **lo que el taller
-  comprueba**, que es lo que hoy falta.
+  **Y no confundir el `desconocida` de antes con el de ahora**: las líneas que nunca tuvieron
+  causa quedaron ahí, así que un `desconocida` anterior al despliegue puede significar «no se
+  pudo determinar» o «nadie lo llenó», y eso ya no se distingue.
 
-  Tres campos nuevos en la orden (síntomas, componente que el cliente señala, cuándo ocurre),
-  `causa_raiz` partido en **origen** —el único campo obligatorio, y el que decide la
-  garantía— y dos catálogos nuevos, uno de los cuales nace vacío a propósito.
+- [ ] **`comp_electronica` se llama «Electrónica / Software» y mezcla dos cosas en una
+  etiqueta.** Apareció al agregar los componentes que faltaban: fue la razón por la que
+  «Software de superficie» no entró como componente propio. Separarlas obliga a decidir qué
+  pasa con las filas que ya la usan, así que queda anotado.
 
-  Lleva migración: dos filas se mueven y hay una revisión a mano que el script no puede hacer
-  (§ 11 del diseño).
+- [ ] **Medir la tasa de llenado de `hallazgo_origen_id`** antes de confiar en cualquier
+  análisis que cruce hallazgos con orígenes. Es opcional, y sin él la línea de trabajo tiene
+  «por qué pasó» sin «qué se encontró». Un cruce sobre el 20% de las líneas se ve idéntico a
+  un resultado (§ 9.1 del diseño).
+
+- [ ] **Revisar en seis meses si `analisis_causa` se llena.** Entró en parte para cumplir un
+  requerimiento y su aporte real no está probado: es plausible que sirva solo en los casos
+  complejos. Si queda vacío en la gran mayoría de las líneas, sacarlo cuesta un campo — se
+  eligió texto y no un modelo de porqués justamente para que retirarlo fuera barato.
 
 Lo que sigue del plan original, en orden:
 
@@ -92,13 +109,21 @@ Lo que sigue del plan original, en orden:
   `fields.Binary`. Decidido dejarlo para el final. El disco no es problema: 50 GB libres y
   los adjuntos van a disco, no a la base.
 
-- [ ] **Vista de búsqueda de `repair.order`** — filtrar por tipo de intervención, agrupar
-  por causa raíz, y `mc_total_horas` al pie de la columna con `sum`.
+- [x] **Vista de búsqueda de `repair.order`** — hecha en `19.0.13.0.0`: filtro «Sin síntoma
+  registrado», búsqueda y agrupación por tipo de intervención, y `sum` al pie de
+  `mc_total_horas`.
 
-  El dato que faltaba ya se averiguó: la vista base se llama
+  **«Agrupar por causa raíz» se retiró del pendiente y no se va a hacer.** Estaba anotado de
+  cuando el campo vivía en la orden; desde `19.0.8.0.0` vive en la línea de trabajo. Una orden
+  con tres trabajos tiene tres orígenes, y agruparla por uno exigiría el campo derivado que el
+  diseño prohíbe explícitamente, porque elegiría uno y botaría los otros dos en silencio.
+
+  Notas que siguen valiendo para cualquier herencia futura de esa vista: la base se llama
   **`repair.view_repair_order_form_filter`**, su grupo de "agrupar por" no tiene nombre pero
   el último filtro adentro sí (`group_by_repair_properties`), y **el schema de Odoo 19
-  rechaza `expand` y `string` en el elemento `group`** — eso rompió el módulo una vez.
+  rechaza `expand` y `string` en el elemento `group`** — eso rompió el módulo una vez. La
+  herencia que se escribió ancla en la raíz `<search>` justamente para no depender de nombres
+  del arch base que no se pueden leer desde el entorno de desarrollo.
 
 - [ ] **Phase -1 del pipeline roadmap — Foundation handoff** — prerequisito bloqueante para iniciar el pipeline. Checklist completo en `rov-pipeline-roadmap.md` Phase -1. Duración estimada: 1 semana.
 

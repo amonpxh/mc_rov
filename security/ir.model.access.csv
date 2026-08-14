@@ -15,3 +15,4 @@ access_mc_rov_revision_hallazgo,mc.rov.revision.hallazgo,model_mc_rov_revision_h
 access_mc_rov_software_superficie,mc.rov.software.superficie,model_mc_rov_software_superficie,,1,1,1,1
 access_mc_rov_controlador_vuelo,mc.rov.controlador.vuelo,model_mc_rov_controlador_vuelo,,1,1,1,1
 access_mc_rov_revision_inspeccion,mc.rov.revision.inspeccion,model_mc_rov_revision_inspeccion,,1,1,1,1
+access_mc_rov_sintoma,mc.rov.sintoma,model_mc_rov_sintoma,,1,1,1,1

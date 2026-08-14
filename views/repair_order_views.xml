@@ -52,9 +52,25 @@
                 </div>
             </notebook>
 
-            <!-- Falla reportada después de fecha programada -->
+            <!-- El bloque de recepción, después de la fecha programada y NO en una pestaña.
+                 Es lo primero que se ve al abrir la orden, que es cuando el cliente está
+                 delante — y es la única ventana en que hay a quién preguntarle: se va y no
+                 vuelve.
+
+                 Los dos catálogos van con no_create: en el mesón, con el cliente esperando,
+                 es donde aparecen cuatro maneras de escribir "no enciende" y el conteo se
+                 muere. Si falta una entrada se agrega desde Configuración, que es una
+                 decisión y no un descuido de apuro. -->
             <field name="schedule_date" position="after">
                 <field name="falla_reportada"/>
+                <field name="sintoma_ids"
+                       widget="many2many_tags"
+                       options="{'no_create': True}"
+                       placeholder="Lo que el cliente vio: no enciende, sin imagen, se apaga solo…"/>
+                <field name="componente_sospechado_ids"
+                       widget="many2many_tags"
+                       options="{'no_create': True}"
+                       placeholder="De qué sospecha, aunque no lo haya visto"/>
             </field>
 
             <!-- Pestaña nueva de trabajos realizados -->
@@ -74,7 +90,7 @@
                             <field name="hallazgo_origen_id"
                                    domain="[('lot_id', '=', parent.lot_id)]"
                                    optional="show"/>
-                            <field name="causa_raiz" optional="show"/>
+                            <field name="origen" optional="show"/>
                             <field name="responsable_id" optional="show"/>
                             <field name="fecha"/>
                             <field name="horas" class="text-start" sum="Total HH."/>
@@ -128,6 +144,34 @@
                         </group>
                         <group/>
                     </group>
+
+                    <!-- El origen y su análisis se contestan acá y no en "Trabajos
+                         realizados", aunque el campo viva en la misma línea. Dos razones:
+                         esa pestaña es donde se anota MIENTRAS se trabaja —y ahí el origen
+                         todavía es especulación—, y su lista ya lleva diez columnas, así que
+                         un campo de texto como columna doce no lo llena nadie.
+
+                         create="0" delete="0": de la pantalla de cierre no se crean ni se
+                         borran trabajos. Eso además garantiza que las dos listas sobre la
+                         misma relación nunca emitan comandos en conflicto en un guardado.
+
+                         El aviso explica por qué la lista puede estar vacía: una visita de
+                         diagnóstico puro no registra trabajos, y esa orden se cierra igual. -->
+                    <separator string="Por qué pasó"/>
+                    <div class="text-muted mb-2">
+                        El origen es lo que decide si la reparación la paga la empresa o el
+                        cliente, y sin él la orden no se cierra. «No determinado» es una
+                        respuesta válida.
+                    </div>
+                    <field name="linea_falla_cierre_ids">
+                        <list editable="bottom" create="0" delete="0">
+                            <field name="componente_id" readonly="1"/>
+                            <field name="accion_id" readonly="1"/>
+                            <field name="origen"/>
+                            <field name="analisis_causa"
+                                   placeholder="Por qué pasó. Dos frases si es evidente; la cadena completa si no lo es."/>
+                        </list>
+                    </field>
                     <!-- Este campo es lo que se le informa al cliente en la entrega, y es
                          lo que sale impreso. Los hallazgos internos no van aquí: viven
                          estructurados en la revisión. -->
@@ -174,8 +218,59 @@
         <field name="arch" type="xml">
             <field name="state" position="before">
                 <field name="tipo_intervencion_ids" widget="many2many_tags"/>
-                <field name="mc_total_horas"/>
+                <!-- El sum al pie: la columna existía desde 19.0.5.2.0 y el campo se
+                     almacenó justamente para poder agregarlo, pero el total nunca se puso. -->
+                <field name="mc_total_horas" sum="Total HH."/>
             </field>
+        </field>
+    </record>
+
+    <!-- El módulo no tenía vista de búsqueda propia sobre repair.order. La base se llama
+         `repair.view_repair_order_form_filter`. -->
+    <record id="view_repair_order_search_mc_rov" model="ir.ui.view">
+        <field name="name">repair.order.search.mc.rov</field>
+        <field name="model">repair.order</field>
+        <field name="inherit_id" ref="repair.view_repair_order_form_filter"/>
+        <field name="arch" type="xml">
+
+            <!-- Todo va anclado en la raíz `<search>` y no después de un campo o un filtro
+                 concreto de la vista base. No es pereza: el único dato que tenemos
+                 confirmado del arch base es el nombre del último filtro de agrupaciones
+                 (`group_by_repair_properties`), y adivinar el nombre de un elemento del arch
+                 de un módulo estándar ya rompió este módulo una vez. Odoo reparte los ítems
+                 entre "Filtros" y "Agrupar por" según lo que cada uno es —dominio o
+                 group_by— y no según dónde estén escritos, así que anclar en la raíz no
+                 cambia dónde salen. -->
+            <search position="inside">
+                <field name="tipo_intervencion_ids"/>
+                <field name="sintoma_ids"/>
+                <field name="componente_sospechado_ids"/>
+
+                <!-- El síntoma es opcional a propósito —obligarlo produciría inventos— y el
+                     precio es que el análisis de "reportado vs real" puede quedarse sin datos
+                     sin que nadie se entere. Este filtro es lo que lo hace visible, igual que
+                     "Ficha incompleta" en los números de serie.
+
+                     Acotado a órdenes abiertas, y esa parte no es cosmética: una serie
+                     incompleta se puede completar cualquier día, pero una orden cerrada hace
+                     un año no —el cliente ya no está—. Sin el acote el filtro arrastraría
+                     todo el histórico para siempre, nunca llegaría a cero, y un filtro que
+                     nunca llega a cero se deja de mirar. -->
+                <separator/>
+                <filter name="filtro_sin_sintoma"
+                        string="Sin síntoma registrado"
+                        domain="[('sintoma_ids', '=', False), ('state', 'not in', ['done', 'cancel'])]"
+                        help="Órdenes todavía abiertas en las que no se registró qué dijo el cliente."/>
+
+                <!-- No hay "agrupar por origen", aunque estaba anotado como pendiente: desde
+                     19.0.8.0.0 el origen vive en la línea de trabajo y no en la orden. Una
+                     orden con tres trabajos tiene tres orígenes, y agruparla por uno exigiría
+                     el campo derivado que elegiría uno y botaría los otros dos en silencio. -->
+                <filter name="agrupar_tipo_intervencion"
+                        string="Tipo de intervención"
+                        context="{'group_by': 'tipo_intervencion_ids'}"/>
+            </search>
+
         </field>
     </record>
 

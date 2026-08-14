@@ -1,4 +1,24 @@
-from odoo import models, fields
+from odoo import api, models, fields
+
+# De quién es el problema. Reemplaza a `causa_raiz` en 19.0.13.0.0, que mezclaba esta
+# pregunta con la de qué le pasó físicamente al equipo — y esa ya la contesta el hallazgo:
+# "Corrosión" y "Accidente", dos de los seis valores viejos, no eran causas raíz, y
+# "Corrosión" existe literalmente como entrada del catálogo de hallazgos.
+#
+# Los paréntesis van en la etiqueta y no en el help: el campo es una columna de lista, así
+# que el valor elegido se corta, pero el desplegable abierto muestra las opciones completas
+# —que es justo cuando hace falta la aclaración—.
+#
+# Se nombra al responsable cuando hay uno. "Uso del cliente" y no "mal uso" porque este es el
+# campo que decide quién paga la reparación, y un veredicto en la etiqueta sesga la respuesta.
+ORIGENES = [
+    ("diseno", "Diseño o especificación (lo pensamos mal)"),
+    ("falla_fabricacion", "Manufactura propia (lo hicimos mal)"),
+    ("pieza_proveedor", "Pieza de proveedor (vino fallada)"),
+    ("mal_uso", "Uso del cliente (mal uso o accidente)"),
+    ("desgaste", "Desgaste normal (duró lo que tenía que durar)"),
+    ("desconocida", "No determinado"),
+]
 
 
 class McRovComponente(models.Model):
@@ -126,18 +146,41 @@ class McRovLineaFalla(models.Model):
         help="Quién hizo este trabajo en particular.",
     )
 
-    # Baja desde repair.order: una orden puede tener tres causas distintas —umbilical
-    # cortado por accidente y motor gastado por uso— y una sola casilla obligaba a elegir.
-    causa_raiz = fields.Selection(
-        [
-            ("mal_uso", "Mal uso"),
-            ("desgaste", "Desgaste normal"),
-            ("accidente", "Accidente"),
-            ("falla_fabricacion", "Falla de fabricación"),
-            ("corrosion", "Corrosión"),
-            ("desconocida", "Desconocida"),
-        ],
-        string="Causa raíz",
+    # No lleva `required`: eso lo exigiría al guardar la línea, o sea mientras el técnico
+    # todavía está reparando y el origen es especulación. Se exige al CERRAR la orden
+    # (`repair.order._validar_origen`), que es el único momento en que se puede afirmar.
+    # Mismo criterio que `responsable_id` de la revisión.
+    origen = fields.Selection(
+        ORIGENES,
+        string="Origen",
+        help="Diseño o especificación: se armó tal como estaba definido y aun así falló. "
+        "Incluye elegir la pieza equivocada (un conector IP67 donde hacía falta IP68) y no "
+        "haber previsto las condiciones donde el equipo iba a trabajar.\n"
+        "Manufactura propia: estaba bien definido y el trabajo salió malo — soldadura, "
+        "sellado, torque, cableado.\n"
+        "Pieza de proveedor: la pieza comprada vino defectuosa de fábrica.\n"
+        "Uso del cliente: se operó fuera de lo indicado, o hubo un accidente.\n"
+        "Desgaste normal: cumplió su vida útil.\n"
+        "No determinado: no se pudo establecer. Es una respuesta válida.\n\n"
+        "Esto sirve para mejorar el producto, no para buscar culpables. «Manufactura "
+        "propia» y «Diseño» son respuestas normales y esperables.",
+    )
+
+    # El razonamiento que justifica el origen elegido. Entre el hallazgo ("O-ring dañado") y
+    # el origen ("diseño") hay un salto que ningún campo guardaba, y sin él un conteo alto de
+    # "diseño" no se puede revisar seis meses después.
+    #
+    # Texto y no un modelo de porqués numerados: la cantidad de eslabones varía —a veces son
+    # tres, a veces ocho— y obligar a cinco produce relleno. Además se retira barato si
+    # resulta que solo se llena en los casos complejos, que es lo que se espera.
+    #
+    # Nunca obligatorio, y en particular tampoco cuando el origen apunta hacia adentro:
+    # ponerle fricción justo a las opciones incómodas empuja a marcar "desgaste normal", que
+    # es plausible siempre.
+    analisis_causa = fields.Text(
+        string="Por qué pasó",
+        help="El razonamiento que lleva al origen elegido. Escriba lo que haga falta: dos "
+        "frases si el caso es evidente, o la cadena completa de porqués si no lo es.",
     )
     # Por defecto hoy: la línea se registra el día en que se hace el trabajo, y sin
     # default quedaba vacía casi siempre. Una fecha corregible sirve más que un campo en
@@ -145,3 +188,19 @@ class McRovLineaFalla(models.Model):
     fecha = fields.Date(string="Fecha", default=fields.Date.context_today)
     horas = fields.Float(string="HH.", digits=(5, 1))
     detalle = fields.Text(string="Detalle")
+
+    @api.depends("componente_id", "subtipo_id", "accion_id")
+    def _compute_display_name(self):
+        """Nombra la línea por lo que se hizo y dónde.
+
+        Sin esto el modelo no tiene `name` ni `_rec_name`, así que Odoo devuelve
+        "mc.rov.linea.falla,42" — y ese es el texto que vería el técnico en el error que le
+        impide cerrar la orden por falta de origen. Mismo caso y misma solución que
+        `mc.rov.revision.corrida`.
+        """
+        for linea in self:
+            componente = linea.componente_id.name or "sin componente"
+            if linea.subtipo_id:
+                componente = f"{componente} / {linea.subtipo_id.name}"
+            accion = linea.accion_id.name or "sin acción"
+            linea.display_name = f"{componente} · {accion}"

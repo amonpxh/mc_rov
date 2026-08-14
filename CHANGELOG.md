@@ -4,6 +4,132 @@ All notable changes to the `mc_rov` Odoo module are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this module adheres to [semantic versioning](https://semver.org/) within the constraints of Odoo's version scheme: `19.0.X.Y.Z` where `19.0` is the Odoo major, `X` is breaking-change/migration, `Y` is feature, `Z` is bugfix.
 
+## [19.0.13.0.0] — 2026-08-14
+
+Failure diagnostics. Design in
+[`docs/designs/diagnostico-de-fallas.md`](docs/designs/diagnostico-de-fallas.md).
+
+### Added
+
+- **`mc.rov.sintoma`** — catalogue of what the customer *reports*, 27 seed entries across
+  nine families. The module could already record what the workshop *finds*
+  (`mc.rov.revision.hallazgo`); what someone *says* went into a free-text paragraph and could
+  not be counted. Without both halves you lose the one analysis a workshop can produce and a
+  manufacturer cannot: **how often what the customer thought was broken was not what was
+  broken.**
+
+- **`repair.order.sintoma_ids`** and **`repair.order.componente_sospechado_ids`** — what the
+  customer *saw* and what the customer *deduces*, kept apart. The test for which list
+  something belongs in is "did they see it, or are they inferring it?": *a motor doesn't spin*
+  is a symptom, *I think it's the umbilical* is a suspicion. The suspicion field reuses
+  `mc.rov.componente`, the same catalogue as findings and work lines, so
+  "suspected the umbilical, turned out to be the connector" is a query rather than a read.
+
+  Both live on the order and not on the revision because they are captured in a window that
+  does not come back: **intake is the only time there is anyone to ask.** Neither is required
+  — an empty symptom is honestly empty, and forcing it would produce inventions. Both go with
+  `no_create`: at the counter with the customer waiting is exactly where four spellings of
+  "won't turn on" appear and the count dies.
+
+- **`mc.rov.linea.falla.analisis_causa`** (*Por qué pasó*) — free text next to `origen`,
+  never required. Between the finding ("O-ring damaged") and the origin ("design") sits the
+  reasoning, and in a field that is a self-assessment in three of its six values, that
+  reasoning is what makes the value auditable six months later. **Text and not five numbered
+  fields**: the number of links varies — sometimes three, sometimes eight — and forcing five
+  produces filler. It is also the cheap thing to retire if it turns out to be filled only in
+  complex cases, which is what is expected.
+
+- **Search view for `repair.order`** — the module had none. Adds a **"Sin síntoma
+  registrado"** filter, scoped to orders that are not yet done or cancelled, plus search and
+  group-by on intervention type. The scoping is not cosmetic: an incomplete serial can be
+  completed any day, but an order closed a year ago cannot — the customer is gone. Unscoped,
+  the filter would drag the whole history forever, never reach zero, and stop being looked at.
+
+  It does **not** group by origin, although that was on the pending list: since 19.0.8.0.0
+  the field lives on the work line. An order with three jobs has three origins, and grouping
+  it by one would need the derived field that silently drops the other two.
+
+- `sum` on the `mc_total_horas` column, which the field was stored for in 19.0.5.2.0.
+
+### Changed
+
+- **`causa_raiz` → `origen`, a breaking rename with new keys.** The old field mixed two
+  questions — *what physically happened* and *whose problem is it* — and two of its six values
+  are the proof: `corrosion` is a mechanism (it exists **as a finding** in
+  `mc.rov.hallazgo`) and `accidente` is a circumstance. Neither answers whose problem it is.
+
+  New keys: `diseno` · `falla_fabricacion` · `pieza_proveedor` · `mal_uso` · `desgaste` ·
+  `desconocida`. Four are reused verbatim; `corrosion` and `accidente` are migrated.
+
+  **The parentheses are in the label, not the tooltip** — the field is a list column, so the
+  chosen value gets cut off, but the open dropdown shows the options in full, which is exactly
+  when the clarification is needed.
+
+- **`origen` is required to close the order, not to save the line.** A model-level `required`
+  would demand it while the technician is still repairing, when the answer is speculation —
+  and would produce "No determinado" ticked to get past the dialog, indistinguishable from a
+  real one. It is validated on the transition to `done`, next to `_validar_tipo_intervencion`.
+  **"No determinado" closes the order**: forcing an accusation produces false accusations.
+
+  An order with **no** work lines closes fine — a pure diagnostic visit records none.
+
+- `mc.rov.linea.falla` gained `_compute_display_name` (component · action). Without it the
+  close-time error would name the line `mc.rov.linea.falla,42`.
+
+- The intake block (symptoms, suspicion) sits next to `falla_reportada` on the main form, not
+  in a tab: it is filled with the customer standing there.
+
+- **Origin and its written analysis are answered in the *Resultado* tab**, through a second
+  one2many over the same relation — the pattern the revision already uses for its seven
+  `chequeo_*_ids` fields. "Trabajos realizados" is where you write *while* working, and its
+  list already carries ten columns. The closing list is `create="0" delete="0"`.
+
+- Three new components: **Luces**, **Manipulador**, **Sonar**. Three symptoms named
+  components that did not exist, and the reported-vs-real crossing broke exactly there. A
+  fourth candidate, "Software de superficie", was dropped on writing the data: `comp_electronica`
+  is already named "Electrónica / Software".
+
+### Documented (not a code change)
+
+- **Archiving a catalogue entry hides it from history, it does not preserve it.** Retiring an
+  entry is meant to be a flag rather than a deletion — but reading an x2many applies
+  `active_test`, so an order that reported a now-archived symptom comes back with one symptom
+  fewer, silently. The relation row survives; you need `active_test=False` to see it.
+
+  The consequence is analytical, not cosmetic: **archive a commonly used entry and its
+  historical count drops to zero, which looks exactly like it having stopped occurring.**
+  Applies to every catalogue with `active` reached through an x2many. Not new here — it had
+  never been written down. Surfaced by a test that asserted the opposite.
+
+### Migration
+
+`19.0.13.0.0/pre-migrate.py`. `corrosion` → `desconocida`, with the old value appended to
+`detalle` so it is not lost; `accidente` → `mal_uso`, which the new label absorbs explicitly
+("Uso del cliente (mal uso o accidente)").
+
+**And rows with no `causa_raiz` at all → `desconocida`.** The old field was never required, so
+production has work lines with no cause; leaving them NULL would make them indistinguishable
+from a value lost in the migration.
+
+Pre-migrate and not post-migrate so the new column is written before the ORM processes the
+model, with no window in which the old value is gone and the new one is not there yet.
+
+### Removed
+
+- **`mc.rov.causa.sistemica`** — designed and cut before implementation. Linking the second
+  occurrence to the first requires a person to remember the first, months later. That is
+  pattern memory across time, which a person does not have and a query does: once symptom,
+  suspected component, finding, component and origin are all structured, `GROUP BY origen,
+  componente_id` finds the repeats on its own. A hand-maintained catalogue adds no query
+  power — it adds a label someone has to remember to apply, and a forgotten label makes the
+  query lie.
+
+- **`momento_falla`** — designed and cut before implementation. Temporality passes the design's
+  own test for what a symptom is (the customer *saw* the fault come and go), and as a separate
+  field it carried a default "No se sabe" that made the very distinction it existed for —
+  "doesn't know" versus "nobody asked" — impossible. It enters as three catalogue entries in a
+  `temporalidad` family instead.
+
 ## [19.0.12.1.1] — 2026-08-14
 
 ### Fixed

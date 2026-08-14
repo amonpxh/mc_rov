@@ -41,6 +41,42 @@ class RepairOrder(models.Model):
     # Descripción literal de la falla según el cliente, sin interpretación técnica
     falla_reportada = fields.Text(string="Falla reportada por cliente")
 
+    # --- Recepción: lo que alguien dice, separado de lo que el taller comprueba ---
+    #
+    # Los dos viven en la orden y no en la revisión porque se llenan en una ventana que no
+    # vuelve: la recepción es la única vez que hay alguien a quien preguntarle. El cliente se
+    # va y no vuelve, y para cuando el equipo está abierto ya nadie contesta.
+    #
+    # Ninguno es obligatorio, a propósito: un síntoma vacío es honestamente vacío —el que
+    # trajo el equipo puede no haberlo operado nunca— y obligar produciría inventos. Lo que
+    # cubre el hueco es el filtro "Sin síntoma registrado" de la vista de búsqueda.
+
+    # Lo que el cliente VIO. El criterio para distinguirlo de la sospecha es "¿lo vio, o lo
+    # deduce?": "un motor no gira" es síntoma, "creo que es el umbilical" es sospecha.
+    sintoma_ids = fields.Many2many(
+        "mc.rov.sintoma",
+        relation="mc_rov_repair_order_sintoma_rel",
+        column1="repair_order_id",
+        column2="sintoma_id",
+        string="Síntomas",
+        help="Lo que el cliente vio, no lo que deduce. Si se cortó el umbilical y el corte "
+        "está a la vista, es un síntoma; si solo lo sospecha, va en el campo de al lado.",
+    )
+
+    # Lo que el cliente DEDUCE. Reusa el catálogo de componentes —el mismo de los hallazgos y
+    # los trabajos— para que "sospechó del umbilical, resultó ser el conector" sea una
+    # consulta y no una lectura de párrafos. Un catálogo propio obligaría a mantener una
+    # tabla de equivalencias que nadie mantendría.
+    componente_sospechado_ids = fields.Many2many(
+        "mc.rov.componente",
+        relation="mc_rov_repair_order_sospecha_rel",
+        column1="repair_order_id",
+        column2="componente_id",
+        string="El cliente sospecha de",
+        help="De qué componente sospecha el cliente, aunque no lo haya visto. Que quede "
+        "vacío también es dato: significa que el equipo llegó sin diagnóstico.",
+    )
+
     # Las revisiones de esta visita. Normalmente una sola —la que se abre sola al confirmar
     # la orden—; una segunda aparece cuando el equipo se prueba, se arregla y se vuelve a
     # probar, y ahí `numero_en_visita` es lo que distingue con qué llegó de cómo quedó.
@@ -78,6 +114,23 @@ class RepairOrder(models.Model):
     # Detalle técnico de los trabajos ejecutados (ver mc.rov.linea.falla)
     linea_falla_ids = fields.One2many(
         "mc.rov.linea.falla", "repair_id", string="Trabajos realizados"
+    )
+
+    # Las mismas líneas, mostradas en la pestaña Resultado para contestar origen y "por qué
+    # pasó". No hay columnas nuevas: comparten tabla e inverso y solo se diferencian por la
+    # vista. Es el mismo patrón que los siete campos chequeo_*_ids de la revisión.
+    #
+    # El momento ya lo garantiza la validación del cierre; lo que arregla este campo es la
+    # PANTALLA. "Trabajos realizados" es donde se anota mientras se trabaja y su lista ya
+    # lleva diez columnas: un campo de texto como columna doce es donde el texto se muere.
+    # La pestaña Resultado es la de cierre —ahí ya están la fecha de entrega y las
+    # observaciones de salida— y es donde el origen se puede afirmar.
+    #
+    # Su vista va con create="0" delete="0": de la pantalla de cierre no se crean ni se
+    # borran trabajos, así que las dos listas sucias en el mismo guardado solo emiten
+    # actualizaciones y nunca comandos en conflicto.
+    linea_falla_cierre_ids = fields.One2many(
+        "mc.rov.linea.falla", "repair_id", string="Por qué pasó"
     )
     # Almacenado porque es columna de la lista de órdenes: sin store la columna se ve
     # pero no se puede ordenar, filtrar ni agrupar, que es justo lo que se le pide a un
@@ -184,6 +237,33 @@ class RepairOrder(models.Model):
             "reinicia el ciclo de mantención del equipo ni aparece en su historial."
         )
 
+    def _validar_origen(self):
+        """Impide cerrar una orden con trabajos de los que no se dijo por qué pasaron.
+
+        Va acá y no como `required` en el campo, y la diferencia importa: un `required`
+        exigiría el origen al guardar cada línea, o sea mientras el técnico todavía está
+        reparando y la respuesta es especulación. El resultado sería «No determinado» marcado
+        para salir del paso, que es indistinguible de un «no determinado» de verdad. Al
+        cerrar ya se sabe, y se contestan todas juntas.
+
+        Es además el campo que decide quién paga —si el origen es diseño o manufactura la
+        reparación la paga la empresa; si es uso del cliente, la paga el cliente— así que
+        bloquear el cierre no agrega una traba, formaliza una que ya existía.
+
+        **Una orden sin líneas de trabajo se cierra sin problema.** Una visita de diagnóstico
+        puro no registra trabajos, y eso no la deja incompleta.
+        """
+        sin_origen = self.linea_falla_ids.filtered(lambda linea: not linea.origen)
+        if not sin_origen:
+            return
+
+        detalle = "\n".join(f"· {linea.display_name}" for linea in sin_origen)
+        raise UserError(
+            f"Indique el origen de estos trabajos antes de cerrar:\n\n{detalle}\n\n"
+            "Es lo que decide si la reparación la paga la empresa o el cliente. Si no se "
+            "pudo establecer, «No determinado» es una respuesta válida y deja cerrar."
+        )
+
     def _crear_revision(self, order):
         """Abre la revisión técnica de una orden que acaba de entrar al taller.
 
@@ -236,6 +316,7 @@ class RepairOrder(models.Model):
         """
         if vals.get("state") == "done":
             self._validar_tipo_intervencion()
+            self._validar_origen()
 
         # Se anota antes del super() quiénes estaban en borrador: después ya cambiaron.
         entran_al_taller = (
