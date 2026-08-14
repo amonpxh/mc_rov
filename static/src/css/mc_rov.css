@@ -22,3 +22,27 @@
 th[data-name="horas"] .o_list_number_th {
     text-align: left !important;
 }
+
+/* Filas de relleno de las listas de chequeos de la revisión técnica.
+
+   Odoo rellena toda lista editable hasta un mínimo de cuatro filas
+   (web/static/src/views/list/list_renderer.js, getEmptyRowIds):
+
+       let nbEmptyRow = Math.max(0, 4 - this.props.list.records.length);
+       if (nbEmptyRow > 0 && this.displayRowCreates) { nbEmptyRow -= 1; }
+
+   La pestaña de pruebas es el peor caso posible: siete secciones, cada una con su lista
+   de uno a tres chequeos, y todas con create="0", así que no está el enlace "Agregar
+   línea" que descontaría una fila. Quedan nueve filas en blanco entre cuatro bloques.
+
+   Quitar editable no es alternativa: cada chequeo pasaría a responderse en un diálogo,
+   siete ventanas para llenar lo que en el papel son siete marcas seguidas.
+
+   La regla va por estructura porque Odoo no deja otra opción: el <tr> de relleno se
+   dibuja sin clase ni atributo que lo identifique, solo un <td> con un espacio de ancho
+   cero. Las filas de datos sí llevan o_data_row. Si una versión futura les pone una
+   clase, esta regla deja de aplicar y las filas vuelven a verse — se ve raro, no se
+   rompe nada. */
+.mc_rov_pruebas .o_list_table > tbody > tr:not(.o_data_row) {
+    display: none;
+}

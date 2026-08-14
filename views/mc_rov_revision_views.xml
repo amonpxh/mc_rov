@@ -121,7 +121,7 @@
                                  dimensiona sola. -->
                             <group string="Inspección física"
                                    invisible="not chequeo_inspeccion_fisica_ids">
-                                <field name="chequeo_inspeccion_fisica_ids" nolabel="1"
+                                <field name="chequeo_inspeccion_fisica_ids" nolabel="1" class="mc_rov_pruebas"
                                        colspan="2" readonly="estado == 'confirmado'">
                                     <list editable="bottom" create="0" delete="0">
                                         <field name="chequeo_id" readonly="1"/>
@@ -135,7 +135,7 @@
                             </group>
 
                             <group string="Prueba de presión" invisible="not chequeo_presion_ids">
-                                <field name="chequeo_presion_ids" nolabel="1"
+                                <field name="chequeo_presion_ids" nolabel="1" class="mc_rov_pruebas"
                                        colspan="2" readonly="estado == 'confirmado'">
                                     <list editable="bottom" create="0" delete="0">
                                         <field name="chequeo_id" readonly="1"/>
@@ -147,7 +147,7 @@
                             </group>
 
                             <group string="Prueba de leak" invisible="not chequeo_leak_ids">
-                                <field name="chequeo_leak_ids" nolabel="1"
+                                <field name="chequeo_leak_ids" nolabel="1" class="mc_rov_pruebas"
                                        colspan="2" readonly="estado == 'confirmado'">
                                     <list editable="bottom" create="0" delete="0">
                                         <field name="chequeo_id" readonly="1"/>
@@ -160,7 +160,7 @@
 
                             <group string="Prueba de navegación"
                                    invisible="not chequeo_navegacion_ids">
-                                <field name="chequeo_navegacion_ids" nolabel="1"
+                                <field name="chequeo_navegacion_ids" nolabel="1" class="mc_rov_pruebas"
                                        colspan="2" readonly="estado == 'confirmado'">
                                     <list editable="bottom" create="0" delete="0">
                                         <field name="chequeo_id" readonly="1"/>
@@ -172,7 +172,7 @@
                             </group>
 
                             <group string="Prueba de video" invisible="not chequeo_video_ids">
-                                <field name="chequeo_video_ids" nolabel="1"
+                                <field name="chequeo_video_ids" nolabel="1" class="mc_rov_pruebas"
                                        colspan="2" readonly="estado == 'confirmado'">
                                     <list editable="bottom" create="0" delete="0">
                                         <field name="chequeo_id" readonly="1"/>
@@ -196,7 +196,7 @@
                                     <field name="luces_ficha"/>
                                     <field name="luces_difieren" invisible="1"/>
                                 </group>
-                                <field name="chequeo_luces_ids" nolabel="1" colspan="2"
+                                <field name="chequeo_luces_ids" nolabel="1" class="mc_rov_pruebas" colspan="2"
                                        invisible="not chequeo_luces_ids"
                                        readonly="estado == 'confirmado'">
                                     <list editable="bottom" create="0" delete="0">
@@ -214,7 +214,7 @@
                             </div>
 
                             <group string="Otras pruebas" invisible="not chequeo_otro_ids">
-                                <field name="chequeo_otro_ids" nolabel="1"
+                                <field name="chequeo_otro_ids" nolabel="1" class="mc_rov_pruebas"
                                        colspan="2" readonly="estado == 'confirmado'">
                                     <list editable="bottom" create="0" delete="0">
                                         <field name="chequeo_id" readonly="1"/>
