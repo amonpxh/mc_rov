@@ -648,10 +648,43 @@ dato y no lo es hace más daño que no tenerlo.
 
 ---
 
-## 14. Correcciones durante el diseño
+## 14. Verificación
+
+### 14.1 Tests
+
+| Caso | Espera |
+|---|---|
+| Orden con dos síntomas y dos sospechas | Ambos se guardan; ninguno se pisa |
+| `momento_falla` sin tocar | Queda en `no_se_sabe`, no vacío |
+| Cerrar una orden con una línea sin origen | `UserError` que nombra la línea |
+| Cerrar con origen `desconocida` | Se cierra: «No determinado» es respuesta válida (§ 4.5) |
+| Sospecha y hallazgo sobre el mismo componente | La comparación los relaciona sin traducir (§ 3.2) |
+| Catálogo de síntomas con `active = False` | No aparece al elegir; las órdenes viejas lo conservan |
+| Causa sistémica borrada con líneas apuntando | `ondelete='set null'`: la línea sobrevive sin ella |
+| Migración: fila con `corrosion` | Queda en `desconocida` **y** el detalle conserva el valor viejo |
+| Migración: fila con `accidente` | Queda en `mal_uso` |
+| Migración: filas con las otras cuatro claves | No se tocan |
+
+El módulo va en 153 tests; estos suman sobre esa base.
+
+### 14.2 A mano, después de desplegar
+
+1. Abrir una orden: el bloque de recepción se ve **sin entrar a ninguna pestaña**.
+2. Escribir «prof» en Síntomas → filtra a *No mantiene profundidad*.
+3. Filtro **«Sin síntoma registrado»** en la lista de órdenes: devuelve las órdenes viejas.
+4. En Trabajos realizados, abrir el desplegable de Origen → **las seis opciones se leen
+   completas, con su paréntesis**. Es lo que decidió que la aclaración fuera a la etiqueta
+   (§ 4.1).
+5. `SELECT origen, count(*) FROM mc_rov_linea_falla GROUP BY origen;` contra los números de
+   la auditoría previa (§ 11).
+
+---
+
+## 15. Correcciones durante el diseño
 
 Se registran igual que en [`revision-tecnica.md`](revision-tecnica.md) § 1.1–1.4, porque el
-razonamiento descartado vale tanto como el aceptado.
+razonamiento descartado vale tanto como el aceptado — y porque sin el motivo escrito, la
+misma propuesta vuelve dentro de seis meses y hay que rehacer la discusión entera.
 
 | Se propuso | Por qué se descartó |
 |---|---|
