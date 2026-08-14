@@ -62,6 +62,22 @@ de la vista. Los dos se habían deducido de una captura, sin poder leer el arch 
   cilindro fuente: *si el equipo declarara lo que tiene, la revisión no preguntaría de más*.
   Conviene diseñarlos juntos.
 
+## Diseño acordado, sin implementar
+
+- [ ] **Diagnóstico de fallas** (`19.0.13.0.0`) — diseño completo y acordado en
+  [`designs/diagnostico-de-fallas.md`](designs/diagnostico-de-fallas.md).
+
+  Marine Connection no ve fallar los equipos: llegan ya rotos y hay que reconstruir la
+  historia hacia atrás. El diseño separa **lo que alguien dice** de **lo que el taller
+  comprueba**, que es lo que hoy falta.
+
+  Tres campos nuevos en la orden (síntomas, componente que el cliente señala, cuándo ocurre),
+  `causa_raiz` partido en **origen** —el único campo obligatorio, y el que decide la
+  garantía— y dos catálogos nuevos, uno de los cuales nace vacío a propósito.
+
+  Lleva migración: dos filas se mueven y hay una revisión a mano que el script no puede hacer
+  (§ 11 del diseño).
+
 Lo que sigue del plan original, en orden:
 
 - [ ] **Reporte PDF de las dos fichas** (`19.0.9.0.0` del plan, ahora la siguiente versión
