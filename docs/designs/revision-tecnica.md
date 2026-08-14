@@ -62,6 +62,48 @@ estandarizada y periódica sobre un vehículo, cuyo resultado es aprobado / apro
 observaciones / rechazado, que deja un documento y un historial por unidad. Coincide hasta
 en los tres resultados, que ya estaban implementados con esos nombres.
 
+### 1.3 Corrección de alcance: una revisión por visita, no dos
+
+El diseño original partía cada visita en **dos** revisiones, una de *recepción* y una de
+*entrega*, con el argumento de que comparar ambas era la evidencia de que el trabajo sirvió.
+Se retiró en `19.0.12.0.0`: `tipo` pasó a **fabricación / reparación / terreno**.
+
+El argumento era correcto y aun así la decisión estaba mal, porque **suponía que las dos
+fichas se iban a llenar**. La hoja de papel que esto reemplaza es *una* por equipo reparado.
+Pedir dos no produce dos fichas: produce una llena y otra vacía, y no hay forma de saber
+cuál de las dos quedó vacía en cada visita. Una comparación entre un registro real y uno en
+blanco no es una comparación.
+
+**Lo que se pierde, dicho explícitamente:** ya no queda registrado dentro de una misma orden
+el estado *antes* y *después* del trabajo. Lo reemplazan dos cosas:
+
+1. **La comparación entre visitas.** La revisión de esta visita contra la de la anterior —
+   que además es el intervalo que le interesa al análisis de fallas, porque entre medio el
+   equipo voló.
+2. **El botón «Nueva revisión»**, para el caso que sí ocurre: se prueba, se arregla, se
+   vuelve a probar. Ahí las dos revisiones existen porque alguien tuvo una razón para
+   crearlas, no porque el sistema las exigiera. `numero_en_visita` distingue cuál es cuál.
+
+**Consecuencia que hay que vigilar:** el estado de los sellos ahora se registra en la única
+revisión de la visita, y debe ser siempre **el estado con que llegó el equipo**. Antes lo
+garantizaba el tipo del registro; ahora lo garantizan la etiqueta del campo («Estado del
+sello al recibir») y el aviso de la pestaña. Si alguien anota ahí un sello que rompió el
+propio taller durante el trabajo, `manipulacion_externa` cuenta trabajo propio como
+intervención de terceros — es el único dato del modelo que se puede dar vuelta por llenarlo
+en el momento equivocado.
+
+### 1.4 «No lo tiene» pasa a «No aplica»
+
+La etiqueta de `no_lo_tiene` —en chequeos y en sellos— se cambió a **«No aplica»** en
+`19.0.12.0.0`. La clave técnica no cambió, así que no hubo migración de datos.
+
+Este documento defendía lo contrario: que «No aplica» no distingue *el equipo no lo tiene*
+de *no lo revisamos*, y que perder esa distinción arruina el denominador de cualquier
+estadística. El argumento se cayó por donde no se había mirado: **«no lo revisamos» no es un
+valor, es el campo vacío**, y un chequeo vacío impide confirmar la revisión. La distinción
+estaba garantizada por otra vía desde el principio; lo único que hacía la etiqueta larga era
+nombrar mal el caso de un componente que existe pero no corresponde revisar.
+
 ---
 
 ## 2. Las dos fichas
@@ -297,38 +339,41 @@ evidencia. Es la materia prima de cualquier análisis de confiabilidad.
 ```
 name                Char       required
 sequence            Integer
-seccion             Selection  inspeccion_fisica | presion | leak | navegacion | video | otro
+seccion             Selection  inspeccion_fisica | presion | leak | navegacion | video
+                               | luces | otro
 por_componente      Boolean    si la línea debe indicar sobre qué componente se hizo
 aplica_fabricacion  Boolean
-aplica_recepcion    Boolean    default True
-aplica_entrega      Boolean
+aplica_reparacion   Boolean    default True
 aplica_terreno      Boolean
 active              Boolean    default True
 ```
 
 ### 5.3.1 Fabricación y reparación no corren la misma batería
 
-Los cuatro booleanos separan qué chequeos aparecen en cada tipo de revisión, y la
-generación automática de líneas (§ 5.4) filtra por el `tipo` de la revisión.
+Los tres booleanos separan qué chequeos aparecen en cada tipo de revisión, y la generación
+automática de líneas (§ 5.4) filtra por el `tipo` de la revisión.
 
-**El caso que lo justifica es la inspección física.** Existe para detectar si alguien más
-intervino el equipo — marcas de plumón, sellos ajenos, tornillería cambiada. En un ROV
-**recién fabricado eso no significa nada**: nadie busca huellas de terceros en algo que armó
-uno mismo la semana pasada. Sin el filtro, la revisión de fabricación generaría quince
-líneas de inspección que alguien tendría que responder para poder confirmar, y que no
-dirían nada.
+**El caso que lo justificaba era la inspección física** — marcas de plumón, sellos ajenos,
+tornillería cambiada: nadie busca huellas de terceros en un equipo que armó uno mismo la
+semana pasada. Ese caso desapareció en `19.0.12.0.0` junto con el chequeo de marcas de
+plumón (§ 7), y **hoy el catálogo semilla corre entero en los tres tipos**:
 
-Semilla propuesta:
+| Chequeos | fabricación | reparación | terreno |
+|---|:---:|:---:|:---:|
+| Presión, leak, navegación, video | sí | sí | sí |
 
-| Chequeos | fabricación | recepción | entrega | terreno |
-|---|:---:|:---:|:---:|:---:|
-| Inspección física (plumón, sellos) | — | **sí** | — | — |
-| Presión, leak, navegación, video | sí | sí | sí | sí |
-| Sistema, luces | sí | sí | sí | sí |
+Lo que separa a fabricación no son los chequeos sino la **inspección de sellos**, que se
+genera solo en las revisiones de reparación (`TIPOS_CON_INSPECCION`).
 
-Son cuatro booleanos y no un modelo de tipos porque `tipo` es un `Selection` estable: los
-tipos de revisión son la estructura del proceso, no un catálogo operativo. Es la misma
-distinción que se hizo con `seccion`.
+**El mecanismo se conserva aunque no lo use nadie**, y eso es deliberado: es lo que permite
+agregar un chequeo de terreno —profundidad máxima alcanzada, comportamiento con corriente—
+sin que aparezca en toda ficha de taller. Los tests lo cubren con un chequeo creado en el
+propio test, no con registros del catálogo, justamente porque el catálogo cambia sin
+desplegar.
+
+Son booleanos y no un modelo de tipos porque `tipo` es un `Selection` estable: los tipos de
+revisión son la estructura del proceso, no un catálogo operativo. Es la misma distinción que
+se hizo con `seccion`.
 
 El mismo criterio ordena la navegación: el menú de revisiones se filtra por tipo, para que
 el taller no tenga que mirar los de fabricación ni manufactura los de reparación.
@@ -358,35 +403,56 @@ principalmente *qué se testeó* y no *qué resultó*:
 | Valor | Significa |
 |---|---|
 | *(vacío)* | todavía sin responder — impide confirmar |
-| **No lo tiene** | el equipo no lleva ese componente o no puede hacer eso |
+| **No aplica** | el equipo no lleva ese componente o no puede hacer eso |
 | OK / No OK | se revisó, con resultado |
 
-**El tercer valor se llama «No lo tiene» y no «No aplica» a propósito.** La inspección
-física no siempre recorre los cinco componentes: no todos los ROV llevan joystick, y el
-«cilindro fuente» solo existe en los que tienen **dos e-pods en vez de uno**.
-
-«No aplica» dejaría el registro diciendo dos cosas a la vez —*el equipo no lo tiene* y *no
-lo revisamos*— y con eso se pierde el denominador de cualquier estadística: *de los equipos
-que sí tienen joystick, ¿cuántos llegaron con marcas de plumón?* deja de ser calculable. Es
-la misma ambigüedad que se rechazó al retirar «Desconocido», en otro disfraz. El nombre
-nuevo afirma algo sobre **el equipo**, no sobre lo que hizo el técnico.
+**«No aplica» afirma algo sobre el equipo, no sobre lo que hizo el técnico** — no todos los
+ROV llevan joystick, y el «cilindro fuente» solo existe en los que tienen **dos e-pods en
+vez de uno**. *No lo revisamos* no compite con este valor porque no es un valor: es el campo
+vacío, que impide confirmar. Por eso el denominador de las estadísticas queda intacto: *de
+los equipos que sí tienen joystick, ¿cuántos llegaron con corrosión?* sigue siendo
+calculable. Ver § 1.4 para por qué este documento defendía antes lo contrario.
 
 > **Refinamiento posible más adelante, no ahora:** si la ficha de fabricación registrara
 > cuántos e-pods lleva el equipo y si tiene joystick, la revisión podría generar solo las
-> líneas que corresponden, en vez de generarlas todas y hacer que alguien marque «No lo
-> tiene» cada vez. Es mejor a la larga —el dato se declara una vez y no en cada visita— pero
-> exige campos nuevos en la ficha de fabricación y que estén bien llenos. Con «No lo tiene»
-> el análisis ya es correcto; esto solo ahorraría clics.
+> líneas que corresponden, en vez de generarlas todas y hacer que alguien marque «No aplica»
+> cada vez. Es mejor a la larga —el dato se declara una vez y no en cada visita— pero exige
+> campos nuevos en la ficha de fabricación y que estén bien llenos. Con «No aplica» el
+> análisis ya es correcto; esto solo ahorraría clics.
 
-Las líneas se generan solas al crear la revisión, con todos los chequeos activos. **La
-inspección física es un checklist, no una lista de excepciones:** se pasa por los cinco
-componentes siempre, aunque en algunos equipos la respuesta sea *No lo tiene*. Si solo se
-anotaran los hallazgos, *el joystick estaba limpio* sería indistinguible de *nadie miró el
-joystick* y de *este equipo no tiene joystick* — tres cosas distintas colapsadas en la
-ausencia de una fila.
+Las líneas se generan solas al crear la revisión, con todos los chequeos activos, y **el
+técnico no las puede crear ni borrar**: se responden. Si pudiera agregar filas, la ausencia
+de una fila dejaría de significar algo, que es todo lo que un checklist viene a garantizar —
+*la cámara estaba bien* tiene que ser distinguible de *nadie miró la cámara*. El catálogo se
+administra por fuera, en `Reparaciones → Configuración → Catálogos ROV → Pasos de testeo`.
 
 `resultado` no es `required` en el campo — lo valida el paso a `confirmado`, para poder
 guardar a medio llenar sin poder cerrar incompleto.
+
+### 5.4.1 La pantalla se arma por secciones
+
+`mc.rov.revision` expone **siete one2many hacia esta misma tabla**, uno por valor de
+`seccion`, diferenciados solo por el dominio. No agregan columnas: son vistas de
+`chequeo_ids`.
+
+Existen porque la hoja de papel viene en bloques con título —*Prueba de video* con cámara y
+tilt, *Prueba de navegación* con hélices y los dos movimientos— y se llena de arriba abajo.
+La alternativa era una sola lista agrupada por sección, descartada porque un grupo hay que
+desplegarlo antes de escribir dentro, y un checklist que exige clics previos se llena a
+medias.
+
+Cada bloque se esconde cuando su sección no trae chequeos para ese tipo de revisión: un
+título con una lista vacía debajo se lee como algo roto.
+
+**La sección `luces` es el caso especial:** no lleva chequeos de OK / No OK porque la prueba
+de luces es un conteo —cuántas encienden—, y eso ya son `luces_internas`, `luces_externas` y
+el total, que se compara solo contra la ficha del equipo. La sección existe para que el
+bloque tenga título como los demás, y para dejar el catálogo abierto por si aparece algo que
+un número no conteste.
+
+Un test verifica que la unión de los siete campos sea exactamente `chequeo_ids`: una línea
+que no caiga en ninguna sección es un chequeo que el técnico no ve nunca y que sin embargo
+le impide confirmar.
 
 ### 5.5 `mc.rov.hallazgo` — catálogo de hallazgos
 
@@ -475,9 +541,6 @@ Si se deja una caja de texto grande donde la costumbre pone los hallazgos, ahí 
 
 | Sección | Chequeo | Por componente |
 |---|---|---|
-| Inspección física | Marcas de plumón | sí |
-| Inspección física | Sellos antiguos | sí |
-| Inspección física | Sellos nuevos | sí |
 | Presión | Estanqueidad bajo presión | no |
 | Leak | El sensor de leak responde | no |
 | Navegación | Hélices en posición correcta | no |
@@ -485,6 +548,21 @@ Si se deja una caja de texto grande donde la costumbre pone los hallazgos, ahí 
 | Navegación | Movimiento horizontal | no |
 | Video | Imagen de cámara | no |
 | Video | Tilt | no |
+
+**Ninguno se hace por componente, y la sección «Inspección física» quedó vacía.** Las tres
+entradas que tenía —marcas de plumón, sellos antiguos, sellos nuevos— se fueron por dos
+caminos distintos:
+
+- **Los dos de sellos** se reemplazaron por `mc.rov.revision.inspeccion` (§ 5.8): el sello
+  tiene continuidad y estados, y eso necesita un modelo, no dos casillas.
+- **Las marcas de plumón salieron de la batería en `19.0.12.0.0`.** Preguntarlas en los cinco
+  componentes de toda revisión costaba cinco respuestas obligatorias por ficha y casi nunca
+  decía nada. Ver una marca sigue siendo registrable como **hallazgo** —el catálogo lo
+  conserva— que es lo que corresponde a algo que ocurre a veces.
+
+La sección se queda en `SECCIONES` porque el bloque de la pantalla es lo que se llena
+primero cuando el taller quiera volver a poner algo ahí, y porque el mecanismo
+`por_componente` sigue existiendo para ese caso.
 
 ### Componentes que se agregan
 
@@ -517,11 +595,16 @@ hallazgo real no querría decir nada.
 
 | Dónde | Qué |
 |---|---|
-| `Reparaciones → Revisiones de prueba` | Lista y formulario |
-| `Reparaciones → Configuración` | Chequeos ROV, Hallazgos ROV, junto a Componentes y Acciones |
+| `Reparaciones → Revisiones técnicas` | Lista y formulario (sin las de fabricación) |
+| `Reparaciones → Configuración → Catálogos ROV` | Componentes, Acciones, Tipos de intervención, Pasos de testeo, Hallazgos |
+| `Inventario → Configuración → Catálogos ROV` | Software de superficie y Controladores de vuelo — vocabulario de la ficha de **fabricación**, que vive en el número de serie |
 | Botón inteligente en `stock.lot` | "Revisiones" con contador → el historial del equipo. **Único cambio en el lote, y es de solo lectura** |
-| Página en `repair.order` | Las revisiones de esa visita |
+| Página en `repair.order` | Las revisiones de esa visita, con `open_form_view` para poder abrirlas y seguir llenándolas |
 | Reporte QWeb sobre `mc.rov.revision` | La versión digital de la hoja de papel, imprimible y adjuntable |
+
+**Los dos «Catálogos ROV» son deliberadamente dos.** Los de reparación cuelgan de
+Reparaciones y los de fabricación de Inventario, porque colgarlos todos del mismo menú
+obligaba a manufactura a entrar al módulo de reparaciones para agregar un software.
 
 El reporte también tapa un hueco actual: el técnico llena trabajos, causa raíz y
 observaciones, y **nada de eso sale en un PDF** — el único documento imprimible es el
@@ -538,7 +621,10 @@ Poco, y nada de lo que se usa a diario cambia de significado.
 | Se eliminan `item_2` … `item_5` | 0 de 10 órdenes los usaron; la etiqueta original ya era "Ítem 2" |
 | Nuevo `mc_items_recibidos_ids` (M2m a `stock.lot`) | Reemplaza la necesidad real: los equipos que llegan junto al ROV. Sin tope, y **trazable** — el E-pod tiene serie propia |
 | `causa_raiz` baja a `mc.rov.linea.falla` | Una orden puede tener tres causas distintas; hoy hay que elegir una |
-| Nueva pestaña con las revisiones de la visita | — |
+| Nueva pestaña con las revisiones de la visita | La primera se abre sola al salir la orden de borrador; el botón es para el segundo pase |
+| `tag_ids` (etiquetas nativas de `repair`) se esconde | `tipo_intervencion_ids` ya clasifica la orden y es lo que leen los reportes. Dos campos de tags idénticos uno al lado del otro solo consiguen que se llene el equivocado |
+| La pestaña `parts` pasa a llamarse **«Repuestos»** | "Piezas" no dice de qué; la pestaña admite tanto lo que se le pone al equipo como lo que se le retira |
+| `mc_propietario_lot_id` y `mc_items_recibidos_ids` se anclan antes de `under_warranty` | En el arch base `lot_id` va dentro de un `div`, así que un `position="after"` sobre el campo los metía adentro del mismo div: salían en línea, sin etiqueta y pegados al número de serie, donde se leían como una repetición de él |
 
 ---
 

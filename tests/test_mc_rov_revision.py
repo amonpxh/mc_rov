@@ -63,6 +63,26 @@ class RevisionCommon(TransactionCase):
     def _responder_sellos(self, revision, estado="intacto"):
         revision.inspeccion_ids.write({"estado_sello": estado})
 
+    def _chequeo_catalogo(self, **vals):
+        """Un paso de testeo creado para el test.
+
+        Desde 19.0.12.0.0 el catálogo de datos corre entero en los tres tipos de revisión,
+        así que el filtro por tipo y la generación por componente ya no se pueden observar
+        sobre los registros de `mc_rov_revision_data.xml`. Se prueban contra un chequeo
+        propio: es el mecanismo lo que hay que cubrir, no el contenido del catálogo, que
+        cambia sin desplegar.
+        """
+        return self.env["mc.rov.chequeo"].create(
+            {
+                "name": "Chequeo de prueba",
+                "seccion": "otro",
+                "aplica_fabricacion": False,
+                "aplica_reparacion": False,
+                "aplica_terreno": False,
+                **vals,
+            }
+        )
+
 
 @tagged("post_install", "-at_install")
 class TestMcRovRevision(RevisionCommon):
@@ -79,55 +99,99 @@ class TestMcRovRevision(RevisionCommon):
         self.assertEqual(revision.propietario_id, self.lot.mc_propietario_id)
         self.assertFalse(revision.partner_id)
 
-    def test_un_revision_de_recepcion_trae_su_checklist_generado(self):
+    def test_una_revision_trae_su_checklist_generado(self):
         """Las líneas las pone el sistema: si las eligiera el técnico, no habría forma de
         distinguir "revisado y limpio" de "no se me ocurrió mirarlo"."""
-        revision = self._revision(tipo="recepcion")
+        revision = self._revision()
 
         self.assertTrue(revision.chequeo_ids)
 
-    def test_fabricacion_no_trae_la_inspeccion_fisica(self):
-        """La inspección física busca huellas de terceros. En un equipo recién armado por
-        ellos mismos eso no significa nada, y generar quince líneas que hay que responder
-        para poder confirmar sería puro ruido."""
-        fabricacion = self._revision(tipo="fabricacion")
-        recepcion = self._revision(tipo="recepcion")
+    def test_un_chequeo_que_no_aplica_al_tipo_no_se_genera(self):
+        """Sin este filtro, un chequeo pensado para terreno aparecería en toda ficha de
+        taller y habría que responderlo para poder confirmar."""
+        solo_terreno = self._chequeo_catalogo(aplica_terreno=True)
 
-        secciones_fab = set(fabricacion.chequeo_ids.mapped("seccion"))
-        secciones_rec = set(recepcion.chequeo_ids.mapped("seccion"))
+        reparacion = self._revision(tipo="reparacion")
+        terreno = self._revision(tipo="terreno")
 
-        self.assertNotIn("inspeccion_fisica", secciones_fab)
-        self.assertIn("inspeccion_fisica", secciones_rec)
+        self.assertNotIn(solo_terreno, reparacion.chequeo_ids.mapped("chequeo_id"))
+        self.assertIn(solo_terreno, terreno.chequeo_ids.mapped("chequeo_id"))
 
-    def test_la_inspeccion_fisica_solo_recorre_los_componentes_marcados(self):
-        """Sin es_inspeccionable, un chequeo por componente generaría una línea por cada
-        entrada del catálogo — umbilical y sensor incluidos, que nadie revisa buscando
-        sellos ajenos."""
-        revision = self._revision(tipo="recepcion")
+    def test_un_chequeo_por_componente_genera_una_linea_por_componente(self):
+        """Y solo por los inspeccionables: sin ese filtro saldría una línea por cada entrada
+        del catálogo, umbilical y sensor incluidos."""
+        por_componente = self._chequeo_catalogo(aplica_reparacion=True, por_componente=True)
 
-        inspeccion = revision.chequeo_ids.filtered(
-            lambda linea: linea.seccion == "inspeccion_fisica"
-        )
-        componentes = inspeccion.mapped("componente_id")
+        revision = self._revision(tipo="reparacion")
 
+        lineas = revision.chequeo_ids.filtered(lambda linea: linea.chequeo_id == por_componente)
+        componentes = lineas.mapped("componente_id")
         self.assertTrue(componentes)
         self.assertTrue(all(componentes.mapped("es_inspeccionable")))
 
+    def test_ningun_chequeo_del_catalogo_se_hace_por_componente(self):
+        """Las marcas de plumón eran el único, y salieron de la batería en 19.0.12.0.0.
+
+        Si vuelve a aparecer uno sin querer, cada ficha crece en cinco filas por chequeo y
+        el técnico las tiene que responder todas para confirmar.
+        """
+        revision = self._revision(tipo="reparacion")
+
+        self.assertFalse(revision.chequeo_ids.mapped("componente_id"))
+
     def test_cambiar_el_tipo_ajusta_el_checklist_sin_borrar_respuestas(self):
-        """Cambiar de recepción a fabricación quita las líneas que ya no corresponden, pero
-        nunca las que alguien contestó: el dato ya se levantó."""
-        revision = self._revision(tipo="recepcion")
-        inspeccion = revision.chequeo_ids.filtered(
-            lambda linea: linea.seccion == "inspeccion_fisica"
-        )
-        respondida = inspeccion[0]
+        """Cambiar de tipo quita las líneas que ya no corresponden, pero nunca las que
+        alguien contestó: el dato ya se levantó."""
+        solo_reparacion = self._chequeo_catalogo(aplica_reparacion=True)
+        revision = self._revision(tipo="reparacion")
+
+        propias = revision.chequeo_ids.filtered(lambda linea: linea.chequeo_id == solo_reparacion)
+        respondida = propias[0]
         respondida.resultado = "ok"
 
         revision.tipo = "fabricacion"
 
         self.assertIn(respondida, revision.chequeo_ids)
-        sin_responder = inspeccion - respondida
-        self.assertFalse(sin_responder.exists())
+
+    def test_cambiar_el_tipo_borra_lo_que_quedo_sin_responder(self):
+        solo_reparacion = self._chequeo_catalogo(aplica_reparacion=True)
+        revision = self._revision(tipo="reparacion")
+        propias = revision.chequeo_ids.filtered(lambda linea: linea.chequeo_id == solo_reparacion)
+
+        revision.tipo = "fabricacion"
+
+        self.assertFalse(propias.exists())
+
+    def test_las_secciones_reparten_el_checklist_sin_perder_ni_repetir(self):
+        """Los siete campos por sección son vistas de las mismas líneas, y la pantalla se
+        arma con ellos: una línea que no caiga en ninguno es un chequeo que el técnico no
+        va a ver nunca y que sin embargo le va a impedir confirmar."""
+        revision = self._revision(tipo="reparacion")
+
+        por_seccion = (
+            revision.chequeo_inspeccion_fisica_ids
+            | revision.chequeo_presion_ids
+            | revision.chequeo_leak_ids
+            | revision.chequeo_navegacion_ids
+            | revision.chequeo_video_ids
+            | revision.chequeo_luces_ids
+            | revision.chequeo_otro_ids
+        )
+
+        self.assertEqual(por_seccion, revision.chequeo_ids)
+        suma = sum(
+            len(campo)
+            for campo in (
+                revision.chequeo_inspeccion_fisica_ids,
+                revision.chequeo_presion_ids,
+                revision.chequeo_leak_ids,
+                revision.chequeo_navegacion_ids,
+                revision.chequeo_video_ids,
+                revision.chequeo_luces_ids,
+                revision.chequeo_otro_ids,
+            )
+        )
+        self.assertEqual(suma, len(revision.chequeo_ids))
 
 
 @tagged("post_install", "-at_install")
@@ -187,7 +251,7 @@ class TestMcRovRevisionResultado(RevisionCommon):
 
         self.assertEqual(revision.resultado, "rechazado")
 
-    def test_no_lo_tiene_no_es_una_falla(self):
+    def test_no_aplica_no_es_una_falla(self):
         """Un equipo sin joystick no está reprobado por no tenerlo."""
         revision = self._revision()
         self._corrida_completa(revision)
@@ -346,8 +410,8 @@ class TestMcRovRevisionTrazabilidad(RevisionCommon):
     def test_el_equipo_acumula_su_historial_de_revisiones(self):
         """Dos revisiones del mismo equipo son la serie de tiempo: es lo que deja ver que
         el ancho de banda cayó entre una visita y la siguiente."""
-        self._revision(tipo="recepcion", fecha=fields.Date.to_date("2026-01-15"))
-        self._revision(tipo="entrega", fecha=fields.Date.to_date("2026-01-20"))
+        self._revision(tipo="reparacion", fecha=fields.Date.to_date("2026-01-15"))
+        self._revision(tipo="reparacion", fecha=fields.Date.to_date("2026-06-20"))
 
         self.assertEqual(len(self.lot.revision_ids), 2)
         self.assertEqual(self.lot.mc_revision_count, 2)
@@ -357,8 +421,8 @@ class TestMcRovRevisionTrazabilidad(RevisionCommon):
 class TestMcRovRevisionSellos(RevisionCommon):
     """Tests de la inspección de sellos, que reemplazó a tres casillas independientes."""
 
-    def test_la_recepcion_trae_una_fila_por_componente_sellado(self):
-        revision = self._revision(tipo="recepcion")
+    def test_la_reparacion_trae_una_fila_por_componente_sellado(self):
+        revision = self._revision(tipo="reparacion")
 
         self.assertTrue(revision.inspeccion_ids)
         componentes = revision.inspeccion_ids.mapped("componente_id")
@@ -368,27 +432,41 @@ class TestMcRovRevisionSellos(RevisionCommon):
         """En un equipo recién armado no hay sello previo que mirar."""
         self.assertFalse(self._revision(tipo="fabricacion").inspeccion_ids)
 
-    def test_un_sello_roto_en_recepcion_es_manipulacion_externa(self):
+    def test_terreno_tampoco_lleva_inspeccion_de_sellos(self):
+        """Una prueba en terreno no es una entrada al taller: el equipo no cambió de manos
+        y nadie está evaluando cómo llegó."""
+        self.assertFalse(self._revision(tipo="terreno").inspeccion_ids)
+
+    def test_un_sello_roto_al_recibir_es_manipulacion_externa(self):
         """El taller nunca rompe un sello sin registrarlo, y sus roturas ocurren durante el
-        trabajo — después de la recepción. Así que roto al recibir no tiene ambigüedad."""
-        revision = self._revision(tipo="recepcion")
+        trabajo — después de recibir. Así que roto al recibir no tiene ambigüedad."""
+        revision = self._revision(tipo="reparacion")
         linea = revision.inspeccion_ids[0]
 
         linea.estado_sello = "roto"
 
         self.assertTrue(linea.manipulacion_externa)
 
-    def test_un_sello_roto_en_entrega_no_lo_es(self):
-        """En entrega los sellos los pone el propio taller."""
-        revision = self._revision(tipo="entrega")
+    def test_un_sello_ausente_al_recibir_tambien_lo_es(self):
+        """Que no esté es tan informativo como que esté roto: alguien lo sacó."""
+        revision = self._revision(tipo="reparacion")
         linea = revision.inspeccion_ids[0]
 
-        linea.estado_sello = "roto"
+        linea.estado_sello = "ausente"
+
+        self.assertTrue(linea.manipulacion_externa)
+
+    def test_un_equipo_sin_sello_previo_no_es_manipulacion(self):
+        """Primera visita de un equipo que nunca vino: no hay nada que hayan roto."""
+        revision = self._revision(tipo="reparacion")
+        linea = revision.inspeccion_ids[0]
+
+        linea.estado_sello = "sin_sello_previo"
 
         self.assertFalse(linea.manipulacion_externa)
 
     def test_un_sello_intacto_no_es_manipulacion(self):
-        revision = self._revision(tipo="recepcion")
+        revision = self._revision(tipo="reparacion")
         linea = revision.inspeccion_ids[0]
 
         linea.estado_sello = "intacto"
@@ -396,7 +474,7 @@ class TestMcRovRevisionSellos(RevisionCommon):
         self.assertFalse(linea.manipulacion_externa)
 
     def test_no_deja_confirmar_con_sellos_sin_revisar(self):
-        revision = self._revision(tipo="recepcion")
+        revision = self._revision(tipo="reparacion")
         self._corrida_completa(revision)
         self._responder_todo(revision)
 
@@ -404,7 +482,7 @@ class TestMcRovRevisionSellos(RevisionCommon):
             revision.action_confirmar()
 
     def test_confirma_cuando_los_sellos_estan_revisados(self):
-        revision = self._revision(tipo="recepcion")
+        revision = self._revision(tipo="reparacion")
         self._corrida_completa(revision)
         self._responder_todo(revision)
         revision.inspeccion_ids.write({"estado_sello": "intacto"})
@@ -416,29 +494,29 @@ class TestMcRovRevisionSellos(RevisionCommon):
 
 @tagged("post_install", "-at_install")
 class TestMcRovRevisionAutomatica(RevisionCommon):
-    """Tests de la revisión de recepción que se abre sola al entrar el equipo al taller."""
+    """Tests de la revisión que se abre sola al entrar el equipo al taller."""
 
     def _orden(self, **vals):
         return self.env["repair.order"].create(
             {"product_id": self.product.id, "lot_id": self.lot.id, **vals}
         )
 
-    def _recepciones(self, orden):
-        return self.env["mc.rov.revision"].search(
-            [("repair_id", "=", orden.id), ("tipo", "=", "recepcion")]
-        )
+    def _revisiones(self, orden):
+        return self.env["mc.rov.revision"].search([("repair_id", "=", orden.id)])
 
     def test_una_orden_en_borrador_no_abre_revision(self):
         """Un borrador es una cotización: el equipo puede no haber llegado."""
-        self.assertFalse(self._recepciones(self._orden()))
+        self.assertFalse(self._revisiones(self._orden()))
 
-    def test_confirmar_la_orden_abre_la_revision_de_recepcion(self):
+    def test_confirmar_la_orden_abre_la_revision(self):
         """Siempre ocurre, así que no puede depender de que alguien apriete un botón."""
         orden = self._orden()
 
         orden.state = "confirmed"
 
-        self.assertEqual(len(self._recepciones(orden)), 1)
+        revisiones = self._revisiones(orden)
+        self.assertEqual(len(revisiones), 1)
+        self.assertEqual(revisiones.tipo, "reparacion")
 
     def test_no_se_duplica_al_avanzar_de_estado(self):
         orden = self._orden()
@@ -446,14 +524,14 @@ class TestMcRovRevisionAutomatica(RevisionCommon):
         orden.state = "confirmed"
         orden.state = "under_repair"
 
-        self.assertEqual(len(self._recepciones(orden)), 1)
+        self.assertEqual(len(self._revisiones(orden)), 1)
 
     def test_cancelar_no_abre_revision(self):
         orden = self._orden()
 
         orden.state = "cancel"
 
-        self.assertFalse(self._recepciones(orden))
+        self.assertFalse(self._revisiones(orden))
 
     def test_una_orden_sin_rov_no_abre_revision(self):
         """Una reparación de componente no lleva revisión técnica."""
@@ -469,4 +547,16 @@ class TestMcRovRevisionAutomatica(RevisionCommon):
 
         orden.state = "confirmed"
 
-        self.assertFalse(self._recepciones(orden))
+        self.assertFalse(self._revisiones(orden))
+
+    def test_el_boton_abre_una_segunda_revision_de_la_misma_visita(self):
+        """El segundo pase —se prueba, se arregla, se vuelve a probar— sí se pide a mano.
+        `numero_en_visita` es lo que después distingue con qué llegó de cómo quedó."""
+        orden = self._orden()
+        orden.state = "confirmed"
+
+        orden.action_nueva_revision()
+
+        revisiones = self._revisiones(orden)
+        self.assertEqual(len(revisiones), 2)
+        self.assertEqual(sorted(revisiones.mapped("numero_en_visita")), [1, 2])

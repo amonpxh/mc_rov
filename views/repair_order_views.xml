@@ -11,12 +11,31 @@
                 <field name="tipo_intervencion_ids" widget="many2many_tags"/>
             </field>
 
-            <!-- Ítems adicionales después del número de serie -->
-            <field name="lot_id" position="after">
+            <!-- El propietario y lo que llegó junto al equipo, anclados ANTES de "Bajo
+                 garantía" y no después del número de serie. En el arch base lot_id va
+                 dentro de un div, así que un position="after" sobre el campo metía estos
+                 dos adentro del mismo div: salían en línea, sin etiqueta y pegados al
+                 número de serie, donde se leían como una repetición de él. Anclar en un
+                 campo que sí es hijo directo del group les devuelve su propia fila. -->
+            <field name="under_warranty" position="before">
                 <field name="mc_propietario_lot_id" readonly="1" invisible="not lot_id"/>
                 <field name="mc_propietario_difiere" invisible="1"/>
                 <field name="mc_items_recibidos_ids" widget="many2many_tags"/>
             </field>
+
+            <!-- Las etiquetas nativas de repair se esconden: tipo_intervencion_ids ya
+                 clasifica la orden y es lo que leen los reportes. Dos campos de tags
+                 idénticos uno al lado del otro solo consiguen que se llene el equivocado,
+                 y lo que caiga en este no lo mira nadie. -->
+            <field name="tag_ids" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </field>
+
+            <!-- "Piezas" no dice de qué: la pestaña admite tanto lo que se le pone al
+                 equipo como lo que se le retira. -->
+            <xpath expr="//page[@name='parts']" position="attributes">
+                <attribute name="string">Repuestos</attribute>
+            </xpath>
 
             <!-- Aviso de reventa. Nadie nos avisa cuando un cliente revende su ROV; el
                  síntoma es que el equipo vuelve al taller a nombre de otro contacto. -->
@@ -64,31 +83,34 @@
                     </field>
                 </page>
                 <page string="Revisiones" name="revisiones">
-                    <!-- Los de esta visita: típicamente uno de recepción y uno de entrega.
-                         La comparación entre ambos es la evidencia de que el trabajo
-                         sirvió.
+                    <!-- La revisión de esta visita. Normalmente una sola, y se abre sola al
+                         confirmar la orden; el botón es para el segundo pase, cuando el
+                         equipo se prueba, se arregla y se vuelve a probar.
 
-                         Los botones van en su propio div y no dentro de un group: un group
-                         es una tabla de pares etiqueta/campo, y un botón ocupa una celda
+                         El botón va en su propio div y no dentro de un group: un group es
+                         una tabla de pares etiqueta/campo, y un botón ocupa una celda
                          suelta que desincroniza todo lo que venga después (ver PR #10). -->
-                    <!-- Sin número de serie no hay a qué equipo asociarle la revisión, y
-                         los botones se esconden. Sin este aviso la pestaña se ve vacía y
-                         parece rota. -->
+                    <!-- Sin número de serie no hay a qué equipo asociarle la revisión, y el
+                         botón se esconde. Sin este aviso la pestaña se ve vacía y parece
+                         rota. -->
                     <div class="alert alert-info" role="alert" invisible="lot_id">
                         Elija el producto y el número de serie para poder crear una revisión.
                     </div>
                     <div class="mb-3">
-                        <button name="action_nueva_revision_recepcion" type="object"
-                                string="Nueva revisión de recepción" class="btn-primary"
-                                invisible="not lot_id"/>
-                        <button name="action_nueva_revision_entrega" type="object"
-                                string="Nueva revisión de entrega" class="btn-secondary"
+                        <button name="action_nueva_revision" type="object"
+                                string="Nueva revisión" class="btn-primary"
                                 invisible="not lot_id"/>
                     </div>
+                    <!-- El campo queda readonly para que no se creen ni borren revisiones
+                         desde aquí, pero open_form_view agrega el link que abre cada una en
+                         su propio formulario, con su cabecera y su chatter. Sin él, hacer
+                         clic en una fila abría un diálogo de solo lectura: la revisión se
+                         podía llenar al crearla y nunca más. -->
                     <field name="revision_ids" readonly="1">
-                        <list>
+                        <list open_form_view="1">
                             <field name="name"/>
                             <field name="tipo"/>
+                            <field name="numero_en_visita" optional="show"/>
                             <field name="fecha"/>
                             <field name="responsable_id"/>
                             <field name="resultado"

@@ -182,16 +182,27 @@ building towards. One record per test session on one unit.
 > "Protocolo" means *procedure*, and the record is the result of running one — the procedure
 > is the check catalogue.
 
+> **Breaking change in 19.0.12.0.0: `tipo` lost two of its four values.** `recepcion` and
+> `entrega` collapsed into a single `reparacion`; the migration rewrote every existing row.
+> A query filtering on the old keys returns nothing — it does **not** error out, which makes
+> this the more dangerous kind of break.
+>
+> The split assumed both sheets would be filled. In practice a visit is one paper sheet, so
+> asking for two produced one filled and one blank, with no way to tell which. Before/after
+> comparison now happens **between visits**, which is the interval the failure analysis
+> wanted anyway.
+
 - `mc.rov.revision`: `lot_id`, `repair_id` (nullable — manufacturing revisions have no
-  order), `tipo` (`fabricacion` | `recepcion` | `entrega` | `terreno`), `fecha`,
+  order), `tipo` (`fabricacion` | `reparacion` | `terreno`), `fecha`,
   `responsable_id` (`hr.employee`), `estado`, `horas_operacion`, `resultado`,
   `numero_en_visita`, plus the light counts and field-test fields.
 
-  **`numero_en_visita` is not decoration — read it before aggregating.** A visit may hold
-  several revisions (test, fix, retest). **The unit of analysis is the visit, not the
-  revision**: counting findings per revision drops a rate to a third if one visit had three
-  of them. Use `numero_en_visita = 1` for *what the unit arrived with*, and the maximum per
-  `repair_id` for *how it left*.
+  **`numero_en_visita` is not decoration — read it before aggregating.** A visit usually
+  holds one revision, created automatically when the order leaves draft, but may hold
+  several (test, fix, retest). **The unit of analysis is the visit, not the revision**:
+  counting findings per revision drops a rate to a third if one visit had three of them. Use
+  `numero_en_visita = 1` for *what the unit arrived with*, and the maximum per `repair_id`
+  for *how it left*.
 
   `resultado` is derived and stored: `rechazado` if any check is `no_ok`, any run's stress
   test has problems, or any finding is `impide_operar`; `aprobado_con_observaciones` if
@@ -207,10 +218,15 @@ building towards. One record per test session on one unit.
   `esfuerzo_resultado`, `subida`, `bajada`. Two rows when the standard test cable is used
   as a **control sample**; comparing them isolates the cable as a fault source.
 
-- `mc.rov.revision.chequeo`: `chequeo_id`, `componente_id`, `resultado`
-  (`ok` | `no_ok` | `no_lo_tiene`), `detalle`. **`no_lo_tiene` means the unit lacks that
-  component** — not that it went unchecked. Empty means unanswered, which blocks
-  confirmation.
+- `mc.rov.revision.chequeo`: `chequeo_id`, `componente_id`, `seccion` (stored related),
+  `resultado` (`ok` | `no_ok` | `no_lo_tiene`), `detalle`. **`no_lo_tiene` means the unit
+  lacks that component** — not that it went unchecked. Empty means unanswered, which blocks
+  confirmation. Its **label** became "No aplica" in 19.0.12.0.0; the stored key did not
+  change, so queries are unaffected.
+
+  Since 19.0.12.0.0 the technician can neither add nor delete lines: the battery is
+  generated from the catalogue. That makes the absence of a line meaningful — it means the
+  step is not in the battery for that revision type, never that someone skipped it.
 
 - `mc.rov.revision.hallazgo`: `componente_id`, `subtipo_id`, `hallazgo_id`, `severidad`,
   `chequeo_origen_id`, `detalle`, `lot_id` (stored). Reuses the same component and subtype
@@ -222,13 +238,23 @@ building towards. One record per test session on one unit.
 
 - `mc.rov.revision.inspeccion`: `componente_id`, `estado_sello`, `observacion`,
   `manipulacion_externa` (stored, derived). **One row per sealed component**, replacing what
-  had been three independent checkboxes. `manipulacion_externa` fires when a seal arrived
-  broken or absent **at intake** — unambiguous, because the workshop never breaks a seal
-  without recording it and its own breakages happen during the work.
+  had been three independent checkboxes. Generated only on `reparacion` revisions.
+  `manipulacion_externa` fires when a seal arrived broken or absent **at intake** —
+  unambiguous, because the workshop never breaks a seal without recording it and its own
+  breakages happen during the work.
 
-- `mc.rov.chequeo` (catalogue): `name`, `seccion`, `por_componente`, and four booleans
-  declaring which revision types it applies to. `mc.rov.hallazgo` (catalogue): `name`,
-  `familia`.
+  **Since 19.0.12.0.0 that "at intake" is a data-entry convention, not a structural
+  guarantee.** It used to be enforced by the record's type (an intake revision was filled on
+  arrival); with one revision per visit it rests on the field label and a banner. Treat a
+  sudden rise in `manipulacion_externa` as possibly procedural before treating it as a rise
+  in third-party tampering.
+
+- `mc.rov.chequeo` (catalogue): `name`, `seccion` (`inspeccion_fisica` | `presion` | `leak` |
+  `navegacion` | `video` | `luces` | `otro`), `por_componente`, and three booleans declaring
+  which revision types it applies to — `aplica_fabricacion`, `aplica_reparacion`,
+  `aplica_terreno`. **`aplica_recepcion` and `aplica_entrega` were merged into
+  `aplica_reparacion` in 19.0.12.0.0 and the columns dropped.** `mc.rov.hallazgo`
+  (catalogue): `name`, `familia`.
 
 ### `mc.rov.componente` and related
 

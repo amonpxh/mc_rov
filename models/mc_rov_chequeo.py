@@ -10,6 +10,7 @@ SECCIONES = [
     ("leak", "Prueba de leak"),
     ("navegacion", "Prueba de navegación"),
     ("video", "Prueba de video"),
+    ("luces", "Prueba de luces"),
     ("otro", "Otro"),
 ]
 
@@ -31,9 +32,12 @@ class McRovChequeo(models.Model):
     sequence = fields.Integer(default=10)
     seccion = fields.Selection(SECCIONES, string="Sección", required=True, default="otro")
 
-    # Cuando está encendido, la línea de la revisión debe decir sobre qué componente se hizo
-    # el chequeo. Es lo que convierte "marcas de plumón" en cinco filas —una por E-pod,
-    # cilindro fuente, motores, consola y joystick— en vez de una sola respuesta global.
+    # Cuando está encendido, la revisión genera una línea por componente inspeccionable
+    # —E-pod, cilindro fuente, motores, consola, joystick— en vez de una sola respuesta
+    # global. Desde 19.0.12.0.0 ningún chequeo del catálogo lo usa: el único que lo hacía
+    # eran las marcas de plumón, que salieron de la batería. El mecanismo se conserva
+    # porque la pregunta "esto hay que responderlo componente por componente" vuelve sola
+    # cada vez que se agrega algo a la inspección física.
     por_componente = fields.Boolean(
         string="Por componente",
         help="Marque los chequeos que se hacen componente por componente. La revisión "
@@ -45,9 +49,11 @@ class McRovChequeo(models.Model):
     # ROV recién fabricado eso no significa nada. Sin este filtro, la revisión de
     # fabricación generaría quince líneas que alguien tendría que responder para poder
     # confirmar y que no dirían nada.
+    #
+    # `aplica_reparacion` reemplaza en 19.0.12.0.0 al par recepción/entrega, que dejó de
+    # existir cuando la visita pasó a llevar una sola revisión.
     aplica_fabricacion = fields.Boolean(string="En fabricación")
-    aplica_recepcion = fields.Boolean(string="En recepción", default=True)
-    aplica_entrega = fields.Boolean(string="En entrega")
+    aplica_reparacion = fields.Boolean(string="En reparación", default=True)
     aplica_terreno = fields.Boolean(string="En terreno")
 
     active = fields.Boolean(default=True)

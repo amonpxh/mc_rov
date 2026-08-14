@@ -4,6 +4,99 @@ All notable changes to the `mc_rov` Odoo module are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this module adheres to [semantic versioning](https://semver.org/) within the constraints of Odoo's version scheme: `19.0.X.Y.Z` where `19.0` is the Odoo major, `X` is breaking-change/migration, `Y` is feature, `Z` is bugfix.
 
+## [19.0.12.0.0] — 2026-08-14
+
+### Changed — breaking
+
+- **One revision per visit, not two.** `mc.rov.revision.tipo` lost `recepcion` and
+  `entrega`, which collapsed into a single `reparacion`. The type is now
+  `fabricacion` | `reparacion` | `terreno`.
+
+  The split assumed both sheets would be filled. The paper sheet it replaces is *one* per
+  repaired unit, so asking for two does not produce two records: it produces one filled and
+  one blank, with no way to tell which visit left which blank. Before/after comparison moves
+  to **between visits** — the interval the failure analysis wanted anyway, because that is
+  the one the unit spent flying. The "test, fix, retest" case is still supported, now
+  through the **Nueva revisión** button rather than by system-wide obligation, with
+  `numero_en_visita` telling the two apart.
+
+  **What to watch:** seal state must now be recorded as *how the unit arrived*, guaranteed
+  by the field label ("Estado del sello al recibir") and a banner rather than by the record
+  type. A seal the workshop itself broke during the work, entered here, would count as
+  third-party tampering.
+
+- **`mc.rov.chequeo.aplica_recepcion` and `aplica_entrega` merged into `aplica_reparacion`**;
+  both columns dropped. Existing rows migrate as `recepcion OR entrega`, because losing a
+  check from the battery is worse than running one too many.
+
+- **Pipeline contract breaks on both counts** — see `docs/integrations/pipeline.md`. A query
+  filtering the old `tipo` keys returns nothing rather than erroring, which is the more
+  dangerous kind of break.
+
+### Changed
+
+- **The checks tab is now laid out like the paper sheet.** Seven one2many views of the same
+  lines, one per section, each rendered as a titled block — *Prueba de video* with camera and
+  tilt, *Prueba de navegación* with the propellers and both movements. A single list grouped
+  by section was rejected: a group has to be expanded before you can type in it, and a
+  checklist that demands clicks up front gets filled halfway. Empty sections hide themselves.
+
+- **The technician can no longer add or delete check lines**, only answer them. This reverses
+  an earlier call ("an extra check is still information"): if rows can be added, the absence
+  of a row stops meaning anything, and telling *checked and clean* from *never occurred to me
+  to look* is the entire point of a checklist. The catalogue is administered from
+  `Reparaciones → Configuración → Catálogos ROV → Pasos de testeo ROV`.
+
+- **The light counts moved into the checks tab**, under a *Prueba de luces* heading, together
+  with the mismatch warning against the unit's spec sheet. They were in a separate
+  *Mediciones* tab, away from the rest of the battery, and got lost. That tab is now
+  *Condiciones* and holds temperatures and the field-test fields.
+
+- **«No lo tiene» is now labelled «No aplica»**, in both checks and seals. The stored key did
+  not change, so there is no data migration and no query breaks. The old label existed to
+  keep *the unit lacks it* apart from *we did not check it* — but the latter was never a
+  value, it is the empty field, which blocks confirmation. The distinction was guaranteed
+  elsewhere all along.
+
+- **Repair order form:** the owner and received-equipment fields moved out of the `div` that
+  wraps `lot_id` in the base arch, where they rendered inline and unlabelled and read as a
+  duplicate of the serial number. The native `tag_ids` field is hidden — `tipo_intervencion_ids`
+  already classifies the order and two identical tag widgets side by side only get the wrong
+  one filled. The `parts` tab is now **Repuestos**.
+
+- **Revisions can be opened from the repair order again.** The one2many is read-only, so
+  clicking a row used to open a read-only dialog: a revision could be filled when created and
+  never again. `open_form_view` adds the link to its real form.
+
+- **`Inventario → Configuración → Catálogos ROV`** now groups the surface-software and
+  flight-controller catalogues, mirroring the Repair-side menu instead of leaving them loose
+  among Odoo's own settings.
+
+### Removed
+
+- **The "Marcas de plumón" check.** Asking it across five components on every revision cost
+  five mandatory answers per sheet and almost never said anything. Seeing a felt-tip mark
+  remains recordable as a **finding** — the catalogue entry stays — which is the right shape
+  for something that happens sometimes. Its check lines are deleted by the migration, since
+  `chequeo_id` is `ondelete="restrict"` and Odoo's obsolete-data cleanup would have given up
+  silently.
+
+  Nothing in the seed catalogue uses `por_componente` any more. The mechanism is kept: it is
+  what makes "this has to be answered component by component" possible without a deploy.
+
+### Migration
+
+`19.0.12.0.0` — `pre-migrate.py` does all three data jobs, deliberately: data files load
+between pre and post, so what runs first is what the XML finds, and the values declared in
+XML win. `post-migrate.py` recomputes `manipulacion_externa`, whose rule changed and whose
+column already exists with data.
+
+### Tests
+
+150 (was 144). The type filter and the per-component generation are now covered with a check
+created inside the test rather than with catalogue records, because the seed catalogue runs
+in all three types and the catalogue changes without a deploy.
+
 ## [19.0.11.1.0] — 2026-08-13
 
 ### Added

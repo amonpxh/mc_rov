@@ -66,15 +66,18 @@
                         </page>
 
                         <page string="Sellos" name="page_sellos"
-                              invisible="tipo not in ['recepcion', 'entrega']">
-                            <!-- Una fila por componente sellado. El tipo de la revisión da
-                                 el contexto: en recepción el estado es cómo llegó el
-                                 equipo, en entrega es cómo se dejó. -->
-                            <div class="alert alert-info" role="alert" invisible="tipo != 'recepcion'">
-                                Un sello <strong>roto o ausente</strong> al recibir significa
-                                que alguien más abrió el equipo: el taller nunca rompe uno sin
-                                registrarlo, y sus propias roturas ocurren después, durante el
-                                trabajo.
+                              invisible="tipo != 'reparacion'">
+                            <!-- Una fila por componente sellado, y siempre el estado con
+                                 que LLEGÓ el equipo. Antes eso lo garantizaba tener una
+                                 revisión de recepción aparte; ahora que la visita lleva una
+                                 sola ficha, lo garantizan el nombre del campo y este aviso.
+                                 Es la diferencia entre registrar manipulación de terceros y
+                                 registrar el trabajo propio como si lo fuera. -->
+                            <div class="alert alert-info" role="alert">
+                                Anote el estado en que <strong>llegó</strong> cada sello, antes
+                                de tocar el equipo. Un sello roto o ausente al recibir
+                                significa que alguien más lo abrió: los sellos que rompe el
+                                taller se rompen después, durante el trabajo, y no van aquí.
                             </div>
                             <field name="inspeccion_ids" readonly="estado == 'confirmado'">
                                 <list editable="bottom" create="0" delete="0">
@@ -87,23 +90,129 @@
                             </field>
                         </page>
 
-                        <page string="Chequeos" name="page_chequeos">
-                            <!-- Las líneas las genera el sistema. Se puede agregar una —un
-                                 chequeo extra sigue siendo información— pero no borrar:
-                                 borrar una fila esconde que algo no se revisó, que es
-                                 exactamente lo que el checklist viene a evitar. -->
-                            <field name="chequeo_ids" readonly="estado == 'confirmado'">
-                                <list editable="bottom" delete="0"
-                                      default_group_by="seccion">
-                                    <field name="sequence" widget="handle"/>
-                                    <field name="seccion" optional="hide"/>
-                                    <field name="chequeo_id"/>
-                                    <field name="componente_id"/>
-                                    <field name="resultado" widget="radio"
-                                           options="{&quot;horizontal&quot;: true}"/>
-                                    <field name="detalle"/>
-                                </list>
-                            </field>
+                        <page string="Pruebas" name="page_chequeos">
+                            <!-- Un bloque por sección, como la hoja de papel: "Prueba de
+                                 video" con cámara y tilt, "Prueba de navegación" con las
+                                 hélices y los dos movimientos. Son siete vistas de las
+                                 mismas líneas de chequeo_ids, separadas por dominio.
+
+                                 Ni crear ni borrar: la batería la genera el sistema. Si el
+                                 técnico pudiera agregar filas, la ausencia de una fila
+                                 dejaría de significar algo, y distinguir "revisado y
+                                 limpio" de "no se me ocurrió mirarlo" es todo el punto de
+                                 un checklist. Los pasos se administran en Reparaciones →
+                                 Configuración → Catálogos ROV → Pasos de testeo ROV.
+
+                                 Cada bloque se esconde cuando su sección no trae chequeos
+                                 para este tipo de revisión: un título con una lista vacía
+                                 debajo se lee como algo roto. -->
+                            <group string="Inspección física"
+                                   invisible="not chequeo_inspeccion_fisica_ids">
+                                <field name="chequeo_inspeccion_fisica_ids" nolabel="1"
+                                       readonly="estado == 'confirmado'">
+                                    <list editable="bottom" create="0" delete="0">
+                                        <field name="chequeo_id" readonly="1"/>
+                                        <field name="componente_id" readonly="1"
+                                               optional="show"/>
+                                        <field name="resultado" widget="radio"
+                                               options="{&quot;horizontal&quot;: true}"/>
+                                        <field name="detalle"/>
+                                    </list>
+                                </field>
+                            </group>
+
+                            <group string="Prueba de presión" invisible="not chequeo_presion_ids">
+                                <field name="chequeo_presion_ids" nolabel="1"
+                                       readonly="estado == 'confirmado'">
+                                    <list editable="bottom" create="0" delete="0">
+                                        <field name="chequeo_id" readonly="1"/>
+                                        <field name="resultado" widget="radio"
+                                               options="{&quot;horizontal&quot;: true}"/>
+                                        <field name="detalle"/>
+                                    </list>
+                                </field>
+                            </group>
+
+                            <group string="Prueba de leak" invisible="not chequeo_leak_ids">
+                                <field name="chequeo_leak_ids" nolabel="1"
+                                       readonly="estado == 'confirmado'">
+                                    <list editable="bottom" create="0" delete="0">
+                                        <field name="chequeo_id" readonly="1"/>
+                                        <field name="resultado" widget="radio"
+                                               options="{&quot;horizontal&quot;: true}"/>
+                                        <field name="detalle"/>
+                                    </list>
+                                </field>
+                            </group>
+
+                            <group string="Prueba de navegación"
+                                   invisible="not chequeo_navegacion_ids">
+                                <field name="chequeo_navegacion_ids" nolabel="1"
+                                       readonly="estado == 'confirmado'">
+                                    <list editable="bottom" create="0" delete="0">
+                                        <field name="chequeo_id" readonly="1"/>
+                                        <field name="resultado" widget="radio"
+                                               options="{&quot;horizontal&quot;: true}"/>
+                                        <field name="detalle"/>
+                                    </list>
+                                </field>
+                            </group>
+
+                            <group string="Prueba de video" invisible="not chequeo_video_ids">
+                                <field name="chequeo_video_ids" nolabel="1"
+                                       readonly="estado == 'confirmado'">
+                                    <list editable="bottom" create="0" delete="0">
+                                        <field name="chequeo_id" readonly="1"/>
+                                        <field name="resultado" widget="radio"
+                                               options="{&quot;horizontal&quot;: true}"/>
+                                        <field name="detalle"/>
+                                    </list>
+                                </field>
+                            </group>
+
+                            <!-- La prueba de luces es un conteo y no un OK / No OK: se
+                                 cuentan las que encienden. El total sale solo y se compara
+                                 contra la ficha del equipo. -->
+                            <group string="Prueba de luces">
+                                <group>
+                                    <field name="luces_internas" readonly="estado == 'confirmado'"/>
+                                    <field name="luces_externas" readonly="estado == 'confirmado'"/>
+                                </group>
+                                <group>
+                                    <field name="luces_total"/>
+                                    <field name="luces_ficha"/>
+                                    <field name="luces_difieren" invisible="1"/>
+                                </group>
+                                <field name="chequeo_luces_ids" nolabel="1" colspan="2"
+                                       invisible="not chequeo_luces_ids"
+                                       readonly="estado == 'confirmado'">
+                                    <list editable="bottom" create="0" delete="0">
+                                        <field name="chequeo_id" readonly="1"/>
+                                        <field name="resultado" widget="radio"
+                                               options="{&quot;horizontal&quot;: true}"/>
+                                        <field name="detalle"/>
+                                    </list>
+                                </field>
+                            </group>
+                            <div class="alert alert-warning" role="alert"
+                                 invisible="not luces_difieren">
+                                El conteo de luces de la prueba no coincide con la ficha del
+                                equipo. O el equipo perdió luces, o la ficha está mal.
+                            </div>
+
+                            <group string="Otras pruebas" invisible="not chequeo_otro_ids">
+                                <field name="chequeo_otro_ids" nolabel="1"
+                                       readonly="estado == 'confirmado'">
+                                    <list editable="bottom" create="0" delete="0">
+                                        <field name="chequeo_id" readonly="1"/>
+                                        <field name="componente_id" readonly="1"
+                                               optional="hide"/>
+                                        <field name="resultado" widget="radio"
+                                               options="{&quot;horizontal&quot;: true}"/>
+                                        <field name="detalle"/>
+                                    </list>
+                                </field>
+                            </group>
                         </page>
 
                         <page string="Hallazgos" name="page_hallazgos">
@@ -123,25 +232,16 @@
                             </field>
                         </page>
 
-                        <page string="Mediciones" name="page_mediciones">
+                        <!-- Las condiciones en que se corrió la batería, no sus resultados.
+                             El conteo de luces se fue a Pruebas, con el resto de la hoja. -->
+                        <page string="Condiciones" name="page_mediciones">
                             <group>
-                                <group string="Luces">
-                                    <field name="luces_internas" readonly="estado == 'confirmado'"/>
-                                    <field name="luces_externas" readonly="estado == 'confirmado'"/>
-                                    <field name="luces_total"/>
-                                    <field name="luces_ficha"/>
-                                    <field name="luces_difieren" invisible="1"/>
-                                </group>
-                                <group string="Condiciones">
+                                <group string="Temperatura">
                                     <field name="temperatura_interior" readonly="estado == 'confirmado'"/>
                                     <field name="temperatura_exterior" readonly="estado == 'confirmado'"/>
                                 </group>
+                                <group/>
                             </group>
-                            <div class="alert alert-warning" role="alert"
-                                 invisible="not luces_difieren">
-                                El conteo de luces de la prueba no coincide con la ficha del
-                                equipo. O el equipo perdió luces, o la ficha está mal.
-                            </div>
                             <group string="Prueba en terreno" invisible="tipo != 'terreno'">
                                 <group>
                                     <field name="lugar" readonly="estado == 'confirmado'"/>
@@ -194,10 +294,10 @@
                 <filter name="filtro_rechazados" string="Rechazados"
                         domain="[('resultado', '=', 'rechazado')]"/>
                 <separator/>
-                <filter name="filtro_recepcion" string="Recepción"
-                        domain="[('tipo', '=', 'recepcion')]"/>
-                <filter name="filtro_entrega" string="Entrega"
-                        domain="[('tipo', '=', 'entrega')]"/>
+                <filter name="filtro_reparacion" string="Reparación"
+                        domain="[('tipo', '=', 'reparacion')]"/>
+                <filter name="filtro_terreno" string="Prueba en terreno"
+                        domain="[('tipo', '=', 'terreno')]"/>
                 <filter name="filtro_fabricacion" string="Fabricación"
                         domain="[('tipo', '=', 'fabricacion')]"/>
                 <!-- El group va pelado: el schema de vistas de búsqueda de Odoo 19 rechaza
@@ -225,7 +325,7 @@
         <field name="res_model">mc.rov.revision</field>
         <field name="view_mode">list,form</field>
         <field name="domain">[('tipo', '!=', 'fabricacion')]</field>
-        <field name="context">{'default_tipo': 'recepcion'}</field>
+        <field name="context">{'default_tipo': 'reparacion'}</field>
     </record>
 
     <record id="action_mc_rov_revision_fabricacion" model="ir.actions.act_window">
@@ -246,10 +346,9 @@
                 <field name="sequence" widget="handle"/>
                 <field name="seccion"/>
                 <field name="name"/>
-                <field name="por_componente"/>
+                <field name="por_componente" optional="hide"/>
                 <field name="aplica_fabricacion"/>
-                <field name="aplica_recepcion"/>
-                <field name="aplica_entrega"/>
+                <field name="aplica_reparacion"/>
                 <field name="aplica_terreno"/>
                 <field name="active" optional="hide"/>
             </list>

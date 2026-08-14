@@ -11,7 +11,7 @@
 
     <!-- Componentes que entran en la inspección física.
          El "cilindro fuente" solo existe en los equipos con dos e-pods, y no todos los ROV
-         llevan joystick: por eso la línea correspondiente se responde "No lo tiene" en vez
+         llevan joystick: por eso la línea correspondiente se responde "No aplica" en vez
          de no generarse. La ausencia de una fila no distinguiría "no lo tiene" de "nadie
          lo miró". -->
     <record id="comp_epod" model="mc.rov.componente">
@@ -36,31 +36,19 @@
     </record>
 
     <!-- ================= Pasos de testeo estándar =================
-         La inspección física solo aplica a recepción: existe para detectar si alguien más
-         intervino el equipo, y en un ROV recién fabricado eso no significa nada. -->
-
-    <!-- Las marcas de plumón se quedan en el catálogo y no en el modelo de inspección:
-         puede que dejen de usarse y pasen a solo sellos. Como chequeo se retiran
-         desmarcando `active`; como campo del modelo exigirían un despliegue. Es la
-         distinción que ordena las dos cosas: lo que tiene continuidad y estados necesita
-         modelo, lo que es un sí/no que puede desaparecer vive en el catálogo. -->
-    <record id="chequeo_plumon" model="mc.rov.chequeo">
-        <field name="name">Marcas de plumón</field>
-        <field name="seccion">inspeccion_fisica</field>
-        <field name="sequence">10</field>
-        <field name="por_componente" eval="True"/>
-        <field name="aplica_recepcion" eval="True"/>
-    </record>
-
-    <!-- El resto de la batería se corre en los cuatro tipos de revision -->
+         Los nombres y el agrupamiento por sección salen de la hoja de papel del taller, que
+         es el documento que la gente ya sabe llenar. La sección "Inspección física" queda
+         sin chequeos: lo que había ahí eran las marcas de plumón, que salieron de la
+         batería en 19.0.12.0.0 —preguntarlas en cinco componentes de toda revisión costaba
+         cinco respuestas por ficha y casi nunca decía nada—. Ver una marca sigue siendo un
+         hallazgo registrable, y para eso está `hallazgo_marca_plumon` más abajo. -->
 
     <record id="chequeo_estanqueidad" model="mc.rov.chequeo">
         <field name="name">Estanqueidad bajo presión</field>
         <field name="seccion">presion</field>
         <field name="sequence">40</field>
         <field name="aplica_fabricacion" eval="True"/>
-        <field name="aplica_recepcion" eval="True"/>
-        <field name="aplica_entrega" eval="True"/>
+        <field name="aplica_reparacion" eval="True"/>
         <field name="aplica_terreno" eval="True"/>
     </record>
 
@@ -69,8 +57,7 @@
         <field name="seccion">leak</field>
         <field name="sequence">50</field>
         <field name="aplica_fabricacion" eval="True"/>
-        <field name="aplica_recepcion" eval="True"/>
-        <field name="aplica_entrega" eval="True"/>
+        <field name="aplica_reparacion" eval="True"/>
         <field name="aplica_terreno" eval="True"/>
     </record>
 
@@ -79,8 +66,7 @@
         <field name="seccion">navegacion</field>
         <field name="sequence">60</field>
         <field name="aplica_fabricacion" eval="True"/>
-        <field name="aplica_recepcion" eval="True"/>
-        <field name="aplica_entrega" eval="True"/>
+        <field name="aplica_reparacion" eval="True"/>
         <field name="aplica_terreno" eval="True"/>
     </record>
     <record id="chequeo_mov_vertical" model="mc.rov.chequeo">
@@ -88,8 +74,7 @@
         <field name="seccion">navegacion</field>
         <field name="sequence">70</field>
         <field name="aplica_fabricacion" eval="True"/>
-        <field name="aplica_recepcion" eval="True"/>
-        <field name="aplica_entrega" eval="True"/>
+        <field name="aplica_reparacion" eval="True"/>
         <field name="aplica_terreno" eval="True"/>
     </record>
     <record id="chequeo_mov_horizontal" model="mc.rov.chequeo">
@@ -97,8 +82,7 @@
         <field name="seccion">navegacion</field>
         <field name="sequence">80</field>
         <field name="aplica_fabricacion" eval="True"/>
-        <field name="aplica_recepcion" eval="True"/>
-        <field name="aplica_entrega" eval="True"/>
+        <field name="aplica_reparacion" eval="True"/>
         <field name="aplica_terreno" eval="True"/>
     </record>
 
@@ -107,8 +91,7 @@
         <field name="seccion">video</field>
         <field name="sequence">90</field>
         <field name="aplica_fabricacion" eval="True"/>
-        <field name="aplica_recepcion" eval="True"/>
-        <field name="aplica_entrega" eval="True"/>
+        <field name="aplica_reparacion" eval="True"/>
         <field name="aplica_terreno" eval="True"/>
     </record>
     <record id="chequeo_tilt" model="mc.rov.chequeo">
@@ -116,10 +99,17 @@
         <field name="seccion">video</field>
         <field name="sequence">100</field>
         <field name="aplica_fabricacion" eval="True"/>
-        <field name="aplica_recepcion" eval="True"/>
-        <field name="aplica_entrega" eval="True"/>
+        <field name="aplica_reparacion" eval="True"/>
         <field name="aplica_terreno" eval="True"/>
     </record>
+
+    <!-- La sección "luces" no lleva chequeos de OK / No OK: la prueba de luces es contar
+         cuántas encienden, y eso ya son los tres campos de la revisión —internas, externas
+         y el total, que se compara solo contra la ficha del equipo—. Un chequeo
+         "¿encienden?" al lado de un conteo sería la misma respuesta pedida dos veces.
+         La sección existe igual porque en pantalla es un bloque con título, como en la
+         hoja de papel, y porque el catálogo queda abierto por si mañana se agrega algo
+         que un número no contesta. -->
 
     <!-- ================= Catálogo de hallazgos =================
          No hay un hallazgo "Sin hallazgos": una revisión sin líneas ya lo dice, y los
