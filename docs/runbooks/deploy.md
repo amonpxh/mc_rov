@@ -140,9 +140,12 @@ git pull
 git revert <bad-commit-sha>
 git push origin main
 
-# 2. Re-deploy the reverted state (on the VPS)
-cd /opt/odoo/custom-addons/mc_rov
-git pull origin main
+# 2. Re-deploy the reverted state (on the VPS).
+#    Same rule as the deploy: git as odoo, never as root. This block used to say
+#    `cd … && git pull`, which fails with Permission denied (publickey) — the one
+#    failure you least want to discover during a rollback.
+sudo -H -u odoo git -C /opt/odoo/custom-addons/mc_rov fetch origin
+sudo -H -u odoo git -C /opt/odoo/custom-addons/mc_rov merge --ff-only origin/main
 sudo -u odoo odoo -u mc_rov --stop-after-init --no-http --config /etc/odoo/odoo.conf
 sudo systemctl restart odoo
 ```
