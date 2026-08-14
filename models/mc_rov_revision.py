@@ -393,6 +393,40 @@ class McRovRevision(models.Model):
         )
         sobrantes.unlink()
 
+    def action_actualizar_checklist(self):
+        """Trae los pasos que se agregaron al catálogo después de que nació esta ficha.
+
+        Las líneas se copian del catálogo cuando la revisión se crea, y la revisión se crea
+        al confirmar la orden — o sea, apenas el equipo entra al taller. El efecto es que un
+        chequeo agregado al catálogo un martes no le llega a ninguno de los equipos que ya
+        están en el taller, solo a los que entren después, y quien lo agregó no tiene forma
+        de darse cuenta.
+
+        No se actualiza solo, a propósito: una ficha a medio llenar que cambia de contenido
+        sin que nadie la toque es peor que una desactualizada, porque el técnico ya la
+        recorrió y no la vuelve a leer entera. Que lo pida una persona fija el momento.
+
+        Solo agrega — `_generar_chequeos` nunca borra respuestas — así que apretarlo de más
+        no cuesta nada. Queda en el chatter porque explica por qué la ficha creció entre
+        que se abrió y que se llenó.
+        """
+        self.ensure_one()
+        if self.estado != "borrador":
+            raise UserError(
+                "Una revisión confirmada ya no cambia de checklist. Vuélvala a borrador "
+                "si de verdad falta un paso."
+            )
+
+        antes = len(self.chequeo_ids) + len(self.inspeccion_ids)
+        self._generar_chequeos(self)
+        self._generar_inspeccion(self)
+        nuevas = len(self.chequeo_ids) + len(self.inspeccion_ids) - antes
+
+        if nuevas:
+            self.message_post(
+                body=f"Se agregaron {nuevas} líneas nuevas desde el catálogo de chequeos."
+            )
+
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:

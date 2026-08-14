@@ -4,6 +4,36 @@ All notable changes to the `mc_rov` Odoo module are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this module adheres to [semantic versioning](https://semver.org/) within the constraints of Odoo's version scheme: `19.0.X.Y.Z` where `19.0` is the Odoo major, `X` is breaking-change/migration, `Y` is feature, `Z` is bugfix.
 
+## [19.0.12.1.0] — 2026-08-14
+
+### Added
+
+- **«Actualizar checklist» button** on a draft revision. The checklist is copied from the
+  catalog when the revision is created, and the revision is created when the repair order
+  leaves draft — that is, the moment the unit enters the workshop. So every unit already in
+  the workshop has its sheet, and a check added to the catalog on a Tuesday reaches none of
+  them: only units arriving afterwards. The button pulls in the missing lines on demand.
+
+  It is a button and not automatic on purpose. A half-filled sheet that changes content
+  without anyone touching it is worse than a stale one, because the technician already read
+  it end to end and will not read it again. Asking for it fixes the moment.
+
+  It only adds — `_generar_chequeos` never deletes answers — so pressing it twice costs
+  nothing, and a confirmed revision refuses: a closed sheet that grows stops being the
+  record of what was checked that day.
+
+### Fixed
+
+- **The test blocks used half the width of the page.** Each section of the *Pruebas* tab is a
+  `<group>`, which Odoo renders as a two-column table, so a list placed in it without
+  `colspan="2"` gets one of those two columns. The visible symptom was the check name cut
+  short — `Estanqueid…` for "Estanqueidad bajo presión" — with a different width per section,
+  because each list sized its own columns. The luces block already carried the `colspan`; the
+  other six did not.
+
+  The empty rows below each block are not this bug and are not fixable from the view: Odoo
+  pads every editable list to a minimum of four rows.
+
 ## [19.0.12.0.0] — 2026-08-14
 
 ### Changed — breaking

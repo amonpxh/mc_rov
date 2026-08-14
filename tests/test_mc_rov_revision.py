@@ -162,6 +162,49 @@ class TestMcRovRevision(RevisionCommon):
 
         self.assertFalse(propias.exists())
 
+    def test_el_boton_trae_los_chequeos_agregados_despues_de_abrir_la_ficha(self):
+        """La revisión nace al confirmar la orden, o sea apenas el equipo entra al taller.
+
+        Sin este botón, un chequeo agregado al catálogo mientras hay equipos en el taller no
+        alcanza a ninguno de ellos: solo a los que lleguen después.
+        """
+        revision = self._revision(tipo="reparacion")
+
+        tardio = self._chequeo_catalogo(aplica_reparacion=True, name="Chequeo tardío")
+        self.assertNotIn(tardio, revision.chequeo_ids.mapped("chequeo_id"))
+
+        revision.action_actualizar_checklist()
+
+        self.assertIn(tardio, revision.chequeo_ids.mapped("chequeo_id"))
+
+    def test_actualizar_el_checklist_no_toca_lo_ya_respondido(self):
+        """El botón solo agrega. Si pudiera pisar una respuesta, apretarlo sería un riesgo y
+        nadie lo apretaría."""
+        primero = self._chequeo_catalogo(aplica_reparacion=True, name="Chequeo temprano")
+        revision = self._revision(tipo="reparacion")
+        respondida = revision.chequeo_ids.filtered(lambda linea: linea.chequeo_id == primero)
+        respondida.resultado = "no_ok"
+        respondida.detalle = "El sello llegó roto."
+
+        self._chequeo_catalogo(aplica_reparacion=True, name="Chequeo tardío")
+        revision.action_actualizar_checklist()
+
+        self.assertEqual(respondida.resultado, "no_ok")
+        self.assertEqual(respondida.detalle, "El sello llegó roto.")
+
+    def test_una_revision_confirmada_no_cambia_de_checklist(self):
+        """Una ficha cerrada que crece deja de ser el registro de lo que se revisó ese día."""
+        revision = self._revision()
+        self._corrida_completa(revision)
+        self._responder_todo(revision)
+        self._responder_sellos(revision)
+        revision.action_confirmar()
+
+        self._chequeo_catalogo(aplica_reparacion=True, name="Chequeo tardío")
+
+        with self.assertRaises(UserError):
+            revision.action_actualizar_checklist()
+
     def test_las_secciones_reparten_el_checklist_sin_perder_ni_repetir(self):
         """Los siete campos por sección son vistas de las mismas líneas, y la pantalla se
         arma con ellos: una línea que no caiga en ninguno es un chequeo que el técnico no

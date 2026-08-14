@@ -2,7 +2,7 @@
 
 **Audience:** anyone validating changes before merging or deploying.
 
-**Time:** ~1-2 minutes for the full test suite (150 tests).
+**Time:** ~1-2 minutes for the full test suite (153 tests).
 
 ---
 
@@ -13,7 +13,7 @@
 | Test database | `odoo_test` |
 | Config | `/etc/odoo/odoo.conf` |
 | Test runner | Odoo's native test framework |
-| Total tests | 150 (73 `stock.lot` + 16 `repair.order` + 18 `mc.rov.componente` + 43 `mc.rov.revision`) |
+| Total tests | 153 (73 `stock.lot` + 16 `repair.order` + 18 `mc.rov.componente` + 46 `mc.rov.revision`) |
 
 ## Running all tests
 
@@ -79,7 +79,7 @@ written for units with `es_un_rov` on).
 
 ## Expected output
 
-All 150 tests should pass. Look for `0 failed, 0 error(s) of 150 tests` in the output (exact format depends on Odoo verbosity).
+All 153 tests should pass. Look for `0 failed, 0 error(s) of 153 tests` in the output (exact format depends on Odoo verbosity).
 
 ## When tests fail
 
