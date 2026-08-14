@@ -12,6 +12,13 @@
                     <button name="action_volver_a_borrador" type="object"
                             string="Volver a borrador"
                             invisible="estado != 'confirmado'"/>
+                    <!-- Para las fichas que se abrieron antes de que el catálogo cambiara:
+                         el checklist se copia al crear la revisión, y la revisión se crea
+                         cuando el equipo entra al taller. Sin este botón, un chequeo nuevo
+                         solo alcanza a los equipos que lleguen después. -->
+                    <button name="action_actualizar_checklist" type="object"
+                            string="Actualizar checklist"
+                            invisible="estado != 'borrador'"/>
                     <field name="estado" widget="statusbar" statusbar_visible="borrador,confirmado"/>
                 </header>
                 <sheet>

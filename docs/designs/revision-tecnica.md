@@ -429,6 +429,20 @@ administra por fuera, en `Reparaciones → Configuración → Catálogos ROV →
 `resultado` no es `required` en el campo — lo valida el paso a `confirmado`, para poder
 guardar a medio llenar sin poder cerrar incompleto.
 
+**Las líneas se copian del catálogo una sola vez, cuando la revisión nace.** Eso deja un
+hueco que no es obvio: la revisión nace al salir la orden de borrador, o sea apenas el
+equipo entra al taller, así que **todo equipo que hoy esté en el taller ya tiene su ficha**.
+Un chequeo agregado al catálogo un martes no le llega a ninguno de ellos — solo a los que
+entren después — y quien lo agregó no tiene cómo enterarse. Para eso está el botón
+**«Actualizar checklist»** en la revisión en borrador, que trae las líneas que falten.
+
+No se actualiza solo, a propósito. Una ficha a medio llenar que cambia de contenido sin que
+nadie la toque es peor que una desactualizada: el técnico ya la recorrió entera y no la
+vuelve a leer, así que la línea nueva es justo la que no va a ver. Que lo pida una persona
+fija el momento en que la ficha cambia, y queda anotado en el chatter. El botón solo agrega
+—`_generar_chequeos` nunca borra respuestas— y una revisión confirmada lo rechaza: una ficha
+cerrada que crece deja de ser el registro de lo que se revisó ese día.
+
 ### 5.4.1 La pantalla se arma por secciones
 
 `mc.rov.revision` expone **siete one2many hacia esta misma tabla**, uno por valor de
