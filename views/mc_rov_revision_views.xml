@@ -105,11 +105,17 @@
 
                                  Cada bloque se esconde cuando su sección no trae chequeos
                                  para este tipo de revisión: un título con una lista vacía
-                                 debajo se lee como algo roto. -->
+                                 debajo se lee como algo roto.
+
+                                 El colspan="2" no es decorativo: un group es una tabla de
+                                 dos columnas, así que sin él la lista ocupa media página y
+                                 el nombre del chequeo sale cortado ("Estanqueid..."), con
+                                 un ancho distinto en cada sección porque cada tabla se
+                                 dimensiona sola. -->
                             <group string="Inspección física"
                                    invisible="not chequeo_inspeccion_fisica_ids">
                                 <field name="chequeo_inspeccion_fisica_ids" nolabel="1"
-                                       readonly="estado == 'confirmado'">
+                                       colspan="2" readonly="estado == 'confirmado'">
                                     <list editable="bottom" create="0" delete="0">
                                         <field name="chequeo_id" readonly="1"/>
                                         <field name="componente_id" readonly="1"
@@ -123,7 +129,7 @@
 
                             <group string="Prueba de presión" invisible="not chequeo_presion_ids">
                                 <field name="chequeo_presion_ids" nolabel="1"
-                                       readonly="estado == 'confirmado'">
+                                       colspan="2" readonly="estado == 'confirmado'">
                                     <list editable="bottom" create="0" delete="0">
                                         <field name="chequeo_id" readonly="1"/>
                                         <field name="resultado" widget="radio"
@@ -135,7 +141,7 @@
 
                             <group string="Prueba de leak" invisible="not chequeo_leak_ids">
                                 <field name="chequeo_leak_ids" nolabel="1"
-                                       readonly="estado == 'confirmado'">
+                                       colspan="2" readonly="estado == 'confirmado'">
                                     <list editable="bottom" create="0" delete="0">
                                         <field name="chequeo_id" readonly="1"/>
                                         <field name="resultado" widget="radio"
@@ -148,7 +154,7 @@
                             <group string="Prueba de navegación"
                                    invisible="not chequeo_navegacion_ids">
                                 <field name="chequeo_navegacion_ids" nolabel="1"
-                                       readonly="estado == 'confirmado'">
+                                       colspan="2" readonly="estado == 'confirmado'">
                                     <list editable="bottom" create="0" delete="0">
                                         <field name="chequeo_id" readonly="1"/>
                                         <field name="resultado" widget="radio"
@@ -160,7 +166,7 @@
 
                             <group string="Prueba de video" invisible="not chequeo_video_ids">
                                 <field name="chequeo_video_ids" nolabel="1"
-                                       readonly="estado == 'confirmado'">
+                                       colspan="2" readonly="estado == 'confirmado'">
                                     <list editable="bottom" create="0" delete="0">
                                         <field name="chequeo_id" readonly="1"/>
                                         <field name="resultado" widget="radio"
@@ -202,7 +208,7 @@
 
                             <group string="Otras pruebas" invisible="not chequeo_otro_ids">
                                 <field name="chequeo_otro_ids" nolabel="1"
-                                       readonly="estado == 'confirmado'">
+                                       colspan="2" readonly="estado == 'confirmado'">
                                     <list editable="bottom" create="0" delete="0">
                                         <field name="chequeo_id" readonly="1"/>
                                         <field name="componente_id" readonly="1"
