@@ -2,12 +2,24 @@
 
 > Actualizar esta sección al cerrar cada sesión de trabajo.
 
-## Estado al 2026-08-13
+## Estado al 2026-08-14
 
-La **revisión técnica** está implementada y desplegada (`19.0.11.0.1`): seis modelos, los
-catálogos de chequeos y hallazgos, la inspección de sellos, y la revisión de recepción que
-se abre sola al confirmar una orden. Diseño en
+La **revisión técnica** está implementada (`19.0.12.0.0`): seis modelos, los catálogos de
+chequeos y hallazgos, la inspección de sellos, y **una** revisión por visita que se abre sola
+al confirmar la orden. Diseño en
 [`designs/revision-tecnica.md`](designs/revision-tecnica.md).
+
+`19.0.12.0.0` salió de probar el módulo en pantalla, que es de donde salió todo lo que
+importaba: el par recepción/entrega se retiró, la pestaña de pruebas se rehízo por secciones
+como la hoja de papel, y el catálogo salió del alcance de quien llena la ficha. Las
+correcciones de alcance quedan registradas en § 1.3 y § 1.4 del diseño.
+
+**Pendiente de validar en producción** (el deploy es lo único que lo puede confirmar):
+
+- Que `open_form_view` rinda en el one2many embebido de Odoo 19. Si no, el reemplazo es
+  quitar el `readonly` del campo y poner `create="0" delete="0"` en la lista.
+- Que esconder `tag_ids` con `position="attributes"` no choque con el arch base — el nombre
+  del campo se dedujo de la pantalla, no se leyó del código de `repair`.
 
 Lo que sigue del plan original, en orden:
 

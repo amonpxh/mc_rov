@@ -45,19 +45,29 @@
 
     <!-- Estos dos son vocabulario de la ficha de FABRICACIÓN, que vive en el número de
          serie. Colgarlos de Reparaciones obligaba a manufactura a entrar al módulo
-         equivocado para agregar un software. -->
+         equivocado para agregar un software.
+
+         Van bajo su propio "Catálogos ROV", igual que los de Reparaciones: sueltos entre
+         las opciones de Inventario se leían como configuración de Odoo y no como listas
+         nuestras. -->
+    <menuitem
+        id="menu_mc_rov_catalogos_stock"
+        name="Catálogos ROV"
+        parent="stock.menu_stock_config_settings"
+        sequence="25"/>
+
     <menuitem
         id="menu_mc_rov_software_superficie"
         name="Software de superficie ROV"
-        parent="stock.menu_stock_config_settings"
+        parent="menu_mc_rov_catalogos_stock"
         action="action_mc_rov_software_superficie"
-        sequence="25"/>
+        sequence="10"/>
     <menuitem
         id="menu_mc_rov_controlador_vuelo"
         name="Controladores de vuelo ROV"
-        parent="stock.menu_stock_config_settings"
+        parent="menu_mc_rov_catalogos_stock"
         action="action_mc_rov_controlador_vuelo"
-        sequence="26"/>
+        sequence="20"/>
 
     <!-- Las revisiones van al menú principal de Reparaciones y no a Configuración: son
          registros de trabajo diario, no catálogo. Entre Órdenes y Reporting, que ocupa la

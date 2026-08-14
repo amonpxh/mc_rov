@@ -41,28 +41,29 @@ class RepairOrder(models.Model):
     # Descripción literal de la falla según el cliente, sin interpretación técnica
     falla_reportada = fields.Text(string="Falla reportada por cliente")
 
-    # Las revisiones de esta visita: típicamente una de recepción y una de entrega, y la
-    # comparación entre ambos es la evidencia de que el trabajo sirvió.
+    # Las revisiones de esta visita. Normalmente una sola —la que se abre sola al confirmar
+    # la orden—; una segunda aparece cuando el equipo se prueba, se arregla y se vuelve a
+    # probar, y ahí `numero_en_visita` es lo que distingue con qué llegó de cómo quedó.
     revision_ids = fields.One2many(
         "mc.rov.revision",
         "repair_id",
         string="Revisiones técnicas",
     )
 
-    def _abrir_revision(self, tipo):
-        """Crea una revisión de esta visita y lo abre para llenarlo.
+    def action_nueva_revision(self):
+        """Crea una revisión de esta visita y la abre para llenarla.
 
-        Existe para que la revisión sea un paso del flujo y no un trámite aparte. Antes
-        había que salir al menú, buscar el número de serie y volver — con eso la revisión
-        de recepción, que es el primer paso real del proceso, quedaba escondido detrás de
-        una navegación que nadie iba a hacer.
+        Existe para el segundo pase: la primera revisión la abre sola `_crear_revision` al
+        confirmar la orden. Sin este botón, volver a probar un equipo después de arreglarlo
+        obligaría a salir al menú, buscar el número de serie y volver — una navegación que
+        nadie iba a hacer, y el resultado sería que la segunda prueba no queda registrada.
         """
         self.ensure_one()
         revision = self.env["mc.rov.revision"].create(
             {
                 "lot_id": self.lot_id.id,
                 "repair_id": self.id,
-                "tipo": tipo,
+                "tipo": "reparacion",
             }
         )
         return {
@@ -73,12 +74,6 @@ class RepairOrder(models.Model):
             "view_mode": "form",
             "target": "current",
         }
-
-    def action_nueva_revision_recepcion(self):
-        return self._abrir_revision("recepcion")
-
-    def action_nueva_revision_entrega(self):
-        return self._abrir_revision("entrega")
 
     # Detalle técnico de los trabajos ejecutados (ver mc.rov.linea.falla)
     linea_falla_ids = fields.One2many(
@@ -189,13 +184,13 @@ class RepairOrder(models.Model):
             "reinicia el ciclo de mantención del equipo ni aparece en su historial."
         )
 
-    def _crear_revision_recepcion(self, order):
-        """Abre la revisión de recepción de una orden que acaba de entrar al taller.
+    def _crear_revision(self, order):
+        """Abre la revisión técnica de una orden que acaba de entrar al taller.
 
-        Se crea sola y no con un botón porque **siempre ocurre**: toda visita empieza
-        revisando cómo llegó el equipo. Depender de que alguien se acuerde de apretar algo
-        es lo que hace que un paso obligatorio se salte en silencio, y meses después nadie
-        entienda por qué no hay datos.
+        Se crea sola y no con un botón porque **siempre ocurre**: toda visita se registra
+        en una ficha. Depender de que alguien se acuerde de apretar algo es lo que hace que
+        un paso obligatorio se salte en silencio, y meses después nadie entienda por qué no
+        hay datos.
 
         Es el criterio inverso al de la revisión de fabricación, que sí es un botón: esa a
         veces ocurre y a veces no.
@@ -207,19 +202,21 @@ class RepairOrder(models.Model):
           mc_estado_operativo y los contadores.
         - **Solo ROVs.** Una reparación de componente no lleva revisión.
         - **Solo si no hay una.** Un ida y vuelta entre estados no debe generar duplicados.
+          Solo cubre la primera: una segunda revisión se pide a mano con el botón, y esa es
+          precisamente la que no debe crearse sola.
         """
         if not order.lot_id or not order.lot_id.es_un_rov:
             return
 
         Revision = self.env["mc.rov.revision"]
-        if Revision.search_count([("repair_id", "=", order.id), ("tipo", "=", "recepcion")]):
+        if Revision.search_count([("repair_id", "=", order.id), ("tipo", "=", "reparacion")]):
             return
 
-        Revision.create({"lot_id": order.lot_id.id, "repair_id": order.id, "tipo": "recepcion"})
-        order.message_post(body="Se abrió la revisión de recepción de esta visita.")
+        Revision.create({"lot_id": order.lot_id.id, "repair_id": order.id, "tipo": "reparacion"})
+        order.message_post(body="Se abrió la revisión técnica de esta visita.")
 
     def write(self, vals):
-        """Abre la revisión de recepción, valida el cierre y sella la fecha de entrega.
+        """Abre la revisión técnica, valida el cierre y sella la fecha de entrega.
 
         La validación va **antes** del super() para que el estado no llegue a
         escribirse. Y cubre solo la transición a done, no un @api.constrains, para no
@@ -250,7 +247,7 @@ class RepairOrder(models.Model):
         res = super().write(vals)
 
         for order in entran_al_taller:
-            self._crear_revision_recepcion(order)
+            self._crear_revision(order)
 
         if vals.get("state") == "done":
             sin_fecha = self.filtered(lambda order: not order.fecha_entrega_real)

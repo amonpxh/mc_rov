@@ -1,10 +1,14 @@
 from odoo import models, fields, api
 from odoo.exceptions import UserError
 
+# Una visita al taller genera UNA revisión, no dos. El par recepción/entrega venía de la
+# idea de comparar el antes y el después dentro de la misma orden, pero la hoja de papel que
+# esto reemplaza es una ficha por equipo reparado, y nadie llena dos fichas por visita. La
+# comparación no se pierde: se hace contra la revisión de la visita ANTERIOR, que es además
+# el intervalo que le interesa al análisis de fallas.
 TIPOS = [
     ("fabricacion", "Fabricación"),
-    ("recepcion", "Recepción"),
-    ("entrega", "Entrega"),
+    ("reparacion", "Reparación"),
     ("terreno", "Prueba en terreno"),
 ]
 
@@ -13,20 +17,18 @@ TIPOS = [
 # repartidos por el archivo.
 CAMPO_APLICA = {
     "fabricacion": "aplica_fabricacion",
-    "recepcion": "aplica_recepcion",
-    "entrega": "aplica_entrega",
+    "reparacion": "aplica_reparacion",
     "terreno": "aplica_terreno",
 }
 
 RESULTADOS_CHEQUEO = [
     ("ok", "OK"),
     ("no_ok", "No OK"),
-    # "No lo tiene" y no "No aplica": afirma algo sobre el equipo, no sobre lo que hizo el
-    # técnico. La inspección física no siempre recorre los cinco componentes —no todos los
-    # ROV llevan joystick, y el cilindro fuente solo existe en los que tienen dos e-pods— y
-    # "No aplica" dejaría el registro diciendo a la vez "el equipo no lo tiene" y "no lo
-    # revisamos". Con eso se pierde el denominador de cualquier estadística.
-    ("no_lo_tiene", "No lo tiene"),
+    # "No aplica" afirma algo sobre el equipo: no lo tiene, o no corresponde revisarlo. No
+    # se confunde con "no lo revisamos" porque eso no es un valor, es el campo vacío — y un
+    # chequeo vacío impide confirmar la revisión. El denominador de las estadísticas queda
+    # intacto y la palabra es la que usa el taller.
+    ("no_lo_tiene", "No aplica"),
 ]
 
 # El estado en que se encontró el sello de un componente. Es una sola dimensión y no tres
@@ -34,19 +36,21 @@ RESULTADOS_CHEQUEO = [
 # continuidad: el que se pone hoy es el que se inspecciona en la próxima visita, y lo que
 # interesa saber es en qué estado llegó.
 #
-# En una revisión de RECEPCIÓN, "roto" o "ausente" significan manipulación de terceros sin
-# ambigüedad: el taller nunca rompe un sello sin registrarlo, y sus propias roturas ocurren
-# durante el trabajo, después de la recepción.
-# La inspección de sellos solo tiene sentido cuando hay un sello previo que mirar o uno
-# nuevo que dejar puesto. En un equipo recién fabricado no hay nada que inspeccionar.
-TIPOS_CON_INSPECCION = ("recepcion", "entrega")
+# **El estado que se registra es siempre el de la llegada.** Antes eso lo garantizaba el
+# tipo de la revisión —una de recepción se llenaba al recibir—; con una sola revisión por
+# visita lo garantiza la etiqueta del campo y el aviso de la pestaña. Importa: el taller
+# rompe sellos durante el trabajo, y anotar ese estado en vez del de llegada convierte
+# trabajo propio en evidencia de manipulación de terceros.
+#
+# En fabricación no hay nada que inspeccionar: no existe sello previo ni visita anterior.
+TIPOS_CON_INSPECCION = ("reparacion",)
 
 ESTADOS_SELLO = [
     ("intacto", "Intacto"),
     ("roto", "Roto"),
     ("ausente", "Ausente"),
     ("sin_sello_previo", "Sin sello previo"),
-    ("no_lo_tiene", "No lo tiene"),
+    ("no_lo_tiene", "No aplica"),
 ]
 
 SEVERIDADES = [
@@ -93,7 +97,7 @@ class McRovRevision(models.Model):
         "ocurren antes de que exista ninguna orden.",
     )
 
-    tipo = fields.Selection(TIPOS, string="Tipo", required=True, default="recepcion")
+    tipo = fields.Selection(TIPOS, string="Tipo", required=True, default="reparacion")
 
     fecha = fields.Date(string="Fecha", required=True, default=fields.Date.context_today)
 
@@ -168,6 +172,61 @@ class McRovRevision(models.Model):
     hallazgo_ids = fields.One2many("mc.rov.revision.hallazgo", "revision_id", string="Hallazgos")
     inspeccion_ids = fields.One2many(
         "mc.rov.revision.inspeccion", "revision_id", string="Inspección de sellos"
+    )
+
+    # Las mismas líneas de chequeo_ids, repartidas por sección. No hay columnas nuevas: los
+    # siete campos comparten tabla e inverso y solo se diferencian por el dominio.
+    #
+    # Existen para que la pantalla se parezca a la hoja de papel, donde las pruebas vienen
+    # en bloques con título —"Prueba de video", "Prueba de navegación"— y se llenan de
+    # arriba abajo. La alternativa era una sola lista agrupada por sección, pero un grupo
+    # hay que desplegarlo antes de escribir dentro, y un checklist que exige clics previos
+    # es un checklist que se llena a medias.
+    #
+    # Se escribe solo `resultado` y `detalle` a través de estos campos: las líneas las crea
+    # `_generar_chequeos` y las vistas van con create="0" delete="0", así que dos secciones
+    # sucias en el mismo guardado solo emiten actualizaciones y nunca comandos en conflicto.
+    chequeo_inspeccion_fisica_ids = fields.One2many(
+        "mc.rov.revision.chequeo",
+        "revision_id",
+        domain=[("seccion", "=", "inspeccion_fisica")],
+        string="Inspección física",
+    )
+    chequeo_presion_ids = fields.One2many(
+        "mc.rov.revision.chequeo",
+        "revision_id",
+        domain=[("seccion", "=", "presion")],
+        string="Prueba de presión",
+    )
+    chequeo_leak_ids = fields.One2many(
+        "mc.rov.revision.chequeo",
+        "revision_id",
+        domain=[("seccion", "=", "leak")],
+        string="Prueba de leak",
+    )
+    chequeo_navegacion_ids = fields.One2many(
+        "mc.rov.revision.chequeo",
+        "revision_id",
+        domain=[("seccion", "=", "navegacion")],
+        string="Prueba de navegación",
+    )
+    chequeo_video_ids = fields.One2many(
+        "mc.rov.revision.chequeo",
+        "revision_id",
+        domain=[("seccion", "=", "video")],
+        string="Prueba de video",
+    )
+    chequeo_luces_ids = fields.One2many(
+        "mc.rov.revision.chequeo",
+        "revision_id",
+        domain=[("seccion", "=", "luces")],
+        string="Prueba de luces",
+    )
+    chequeo_otro_ids = fields.One2many(
+        "mc.rov.revision.chequeo",
+        "revision_id",
+        domain=[("seccion", "=", "otro")],
+        string="Otras pruebas",
     )
 
     # Varias revisiones en una misma visita son legítimas —se prueba, se arregla, se
@@ -477,7 +536,7 @@ class McRovRevisionChequeo(models.Model):
 
     El campo `resultado` cubre dos dimensiones con un solo valor, porque la ficha de papel
     registra principalmente *qué se testeó* y no *qué resultó*. Vacío significa que todavía
-    no se responde —y eso impide confirmar—, mientras que «No lo tiene» es una respuesta
+    no se responde —y eso impide confirmar—, mientras que «No aplica» es una respuesta
     válida y de uso corriente.
     """
 
@@ -579,25 +638,27 @@ class McRovRevisionInspeccion(models.Model):
         "mc.rov.componente", string="Componente", required=True, ondelete="restrict"
     )
 
-    estado_sello = fields.Selection(ESTADOS_SELLO, string="Estado del sello")
+    # "al recibir" en el nombre y no solo en la ayuda: es la única cosa que impide que el
+    # técnico anote aquí un sello que él mismo rompió al abrir el equipo.
+    estado_sello = fields.Selection(ESTADOS_SELLO, string="Estado del sello al recibir")
     observacion = fields.Char(string="Observación")
 
     tipo = fields.Selection(related="revision_id.tipo", store=True)
     lot_id = fields.Many2one(related="revision_id.lot_id", string="Equipo", store=True)
 
     # Almacenado para poder contar manipulaciones sin recorrer revisiones en cada consulta.
-    # Solo cuenta en recepción: en entrega los sellos los pone el propio taller.
+    # Solo en las revisiones de reparación: en fabricación no hay sello previo que romper.
     manipulacion_externa = fields.Boolean(
         string="Evidencia de manipulación",
         compute="_compute_manipulacion_externa",
         store=True,
-        help="Se enciende cuando el sello llegó roto o ausente en una recepción.",
+        help="Se enciende cuando el equipo llegó al taller con el sello roto o ausente.",
     )
 
     @api.depends("estado_sello", "tipo")
     def _compute_manipulacion_externa(self):
         for linea in self:
-            linea.manipulacion_externa = linea.tipo == "recepcion" and linea.estado_sello in (
+            linea.manipulacion_externa = linea.tipo == "reparacion" and linea.estado_sello in (
                 "roto",
                 "ausente",
             )

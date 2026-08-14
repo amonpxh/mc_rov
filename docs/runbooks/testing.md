@@ -2,7 +2,7 @@
 
 **Audience:** anyone validating changes before merging or deploying.
 
-**Time:** ~1-2 minutes for the full test suite (144 tests).
+**Time:** ~1-2 minutes for the full test suite (150 tests).
 
 ---
 
@@ -13,7 +13,7 @@
 | Test database | `odoo_test` |
 | Config | `/etc/odoo/odoo.conf` |
 | Test runner | Odoo's native test framework |
-| Total tests | 144 (73 `stock.lot` + 16 `repair.order` + 18 `mc.rov.componente` + 37 `mc.rov.revision`) |
+| Total tests | 150 (73 `stock.lot` + 16 `repair.order` + 18 `mc.rov.componente` + 43 `mc.rov.revision`) |
 
 ## Running all tests
 
@@ -44,7 +44,7 @@ sudo -u odoo odoo \
   --config /etc/odoo/odoo.conf
 ```
 
-Available test classes (as of v19.0.11.1.0):
+Available test classes (as of v19.0.12.0.0):
 
 | Class | Tests | Coverage |
 |---|---|---|
@@ -59,12 +59,12 @@ Available test classes (as of v19.0.11.1.0):
 | `TestStockLotFichaCompleta` | 11 | `mc_ficha_completa`, `mc_ficha_faltantes` y el cero de los numéricos |
 | `TestMcRovBajaWizard` | 5 | the decommission dialog, including the required reason |
 | `TestRepairOrder` | 16 | defaults, `tipo_intervencion_ids`, `fecha_entrega_real`, `linea_falla_ids`, `mc_total_horas`, the close-without-type block |
-| `TestMcRovRevision` | 6 | secuencia, derivados, generación del checklist y el filtro por tipo |
+| `TestMcRovRevision` | 9 | secuencia, derivados, el filtro por tipo y el reparto por sección |
 | `TestMcRovRevisionResultado` | 6 | `resultado` derivado: hallazgos, chequeos fallados y esfuerzo |
 | `TestMcRovRevisionConfirmacion` | 7 | qué se exige para confirmar |
 | `TestMcRovRevisionLuces` | 3 | la comparación contra la ficha técnica |
-| `TestMcRovRevisionSellos` | 7 | la inspección de sellos y la evidencia de manipulación |
-| `TestMcRovRevisionAutomatica` | 5 | la revisión de recepción que se abre sola |
+| `TestMcRovRevisionSellos` | 9 | la inspección de sellos y la evidencia de manipulación |
+| `TestMcRovRevisionAutomatica` | 6 | la revisión que se abre sola, y el botón del segundo pase |
 | `TestMcRovRevisionTrazabilidad` | 3 | el circuito hallazgo → trabajo |
 | `TestMcRovComponente` | 18 | all four custom models (`componente`, `subtipo`, `accion`, `linea.falla`) |
 
@@ -79,7 +79,7 @@ written for units with `es_un_rov` on).
 
 ## Expected output
 
-All 144 tests should pass. Look for `0 failed, 0 error(s) of 144 tests` in the output (exact format depends on Odoo verbosity).
+All 150 tests should pass. Look for `0 failed, 0 error(s) of 150 tests` in the output (exact format depends on Odoo verbosity).
 
 ## When tests fail
 
