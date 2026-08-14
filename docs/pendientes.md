@@ -14,12 +14,58 @@ importaba: el par recepción/entrega se retiró, la pestaña de pruebas se rehí
 como la hoja de papel, y el catálogo salió del alcance de quien llena la ficha. Las
 correcciones de alcance quedan registradas en § 1.3 y § 1.4 del diseño.
 
-**Pendiente de validar en producción** (el deploy es lo único que lo puede confirmar):
+`19.0.12.1.0` corrigió el ancho de la pestaña de pruebas —cada sección es un `<group>`, que
+sin `colspan="2"` deja la lista en media página con el nombre del chequeo cortado— y agregó
+el botón **Actualizar checklist**.
 
-- Que `open_form_view` rinda en el one2many embebido de Odoo 19. Si no, el reemplazo es
-  quitar el `readonly` del campo y poner `create="0" delete="0"` en la lista.
-- Que esconder `tag_ids` con `position="attributes"` no choque con el arch base — el nombre
-  del campo se dedujo de la pantalla, no se leyó del código de `repair`.
+**Validado en producción:** `open_form_view` rinde en el one2many embebido de Odoo 19; la
+revisión se abre desde la orden en su propio formulario y se edita.
+
+**Pendiente de confirmar en pantalla:** que esconder `tag_ids` con `position="attributes"`
+haya dejado «Etiquetas» efectivamente fuera de la vista. El nombre del campo se dedujo de una
+captura, no se leyó del código de `repair`; que el módulo cargue solo prueba que el xpath
+resolvió.
+
+## Salido de probar `19.0.12.1.0` en pantalla
+
+- [ ] **La batería es uniforme y los equipos no.** Las luces varían entre modelos, y los
+  pedidos custom agregan cámaras laterales o traseras y luces extra —para las cámaras o
+  simplemente para alumbrar más.
+
+  Hoy eso no se puede registrar. Las luces son dos enteros (`luces_internas`,
+  `luces_externas`) y la cámara es **un solo chequeo** para todo el equipo. Dos consecuencias:
+
+  1. **El conteo dice cuántas encienden, nunca cuál está apagada.** Cuando el mismo equipo
+     vuelva en seis meses no hay forma de saber si falla siempre la misma.
+  2. **El `0` de un entero es ambiguo:** no distingue *no encendió ninguna* de *este modelo
+     no lleva luces internas*. Es exactamente la ambigüedad que se sacó de los chequeos con
+     «No aplica», y sobrevivió en las luces porque son enteros y un entero no tiene vacío.
+
+  **No se arregla agregando campos.** Cuatro enteros en vez de dos aguantan hasta el próximo
+  custom, y entonces son un `X` bump con migración. Es el mismo argumento por el que los
+  pasos de testeo son catálogo y no columnas.
+
+  **Forma propuesta, a diseñar:** que la ficha del equipo declare qué trae —N luces internas,
+  N externas, cámara frontal, cámara lateral izquierda…— y que la revisión genere una línea
+  por elemento. El mecanismo hermano ya existe y está probado: `por_componente` genera una
+  línea por componente inspeccionable.
+
+  **El riesgo que el diseño tiene que resolver antes de escribir código:** si la ficha del
+  equipo está vacía —y hoy lo está en todos los equipos anteriores a Odoo— la revisión
+  generaría cero líneas y el checklist desaparecería en silencio. Es un modo de falla peor
+  que el que viene a arreglar. Necesita un respaldo: los chequeos genéricos de hoy cuando el
+  equipo no declara nada.
+
+  Es la misma familia de problema que el refinamiento anotado en
+  [`designs/revision-tecnica.md`](designs/revision-tecnica.md) § 5.4 sobre el joystick y el
+  cilindro fuente: *si el equipo declarara lo que tiene, la revisión no preguntaría de más*.
+  Conviene diseñarlos juntos.
+
+- [ ] **Las filas vacías de las listas de chequeos.** Odoo rellena toda lista editable hasta
+  un mínimo de cuatro filas, así que una sección con un chequeo muestra tres vacías. No sale
+  del arch y no se arregla sacando `editable` —eso obligaría a abrir un diálogo por chequeo—.
+  La salida es una regla CSS en `web.assets_backend` contra la clase que Odoo les pone. Falta
+  leer esa clase del código del servidor.
 
 Lo que sigue del plan original, en orden:
 
