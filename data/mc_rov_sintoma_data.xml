@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ================= Catálogo de síntomas =================
+         Lo que el cliente DICE que le pasa al equipo, que es la mitad de la cadena que el
+         módulo no tenía: los hallazgos registran lo que el taller comprueba, y hasta ahora
+         lo reportado entraba como párrafo y no se podía contar.
+
+         El criterio con el que se armó esta lista, y el que hay que usar para agregarle
+         entradas: **si dos síntomas mandan a mirar lugares distintos, son síntomas
+         distintos**. Y al revés, lo que NO hay que agregar es una opción para los casos
+         dudosos —se propuso "Pierde señal" y se descartó— porque una opción que existe para
+         lo dudoso termina absorbiendo todo lo dudoso y vaciando a las demás.
+
+         El largo no es problema: el campo va con etiquetas y buscador, así que escribir
+         "prof" filtra la lista sola. Lo que sí sería problema es que dos entradas
+         significaran lo mismo. -->
+
+    <!-- ===== Energía ===== -->
+    <record id="sintoma_no_enciende" model="mc.rov.sintoma">
+        <field name="name">No enciende</field>
+        <field name="familia">energia</field>
+        <field name="sequence">10</field>
+    </record>
+    <record id="sintoma_se_apaga_solo" model="mc.rov.sintoma">
+        <field name="name">Se apaga solo</field>
+        <field name="familia">energia</field>
+        <field name="sequence">20</field>
+    </record>
+    <record id="sintoma_se_calienta" model="mc.rov.sintoma">
+        <field name="name">Se calienta</field>
+        <field name="familia">energia</field>
+        <field name="sequence">30</field>
+    </record>
+
+    <!-- ===== Movimiento =====
+         Los modos de vuelo van separados y no en un genérico "se va de lado" porque los tres
+         apuntan a lugares distintos: en manual el problema es de empuje —un motor, una
+         hélice, la posición de un thruster—, depth hold apunta al sensor de presión y
+         stabilize al IMU o al compás.
+
+         Y hay una deducción que solo existe teniéndolos separados: si depth hold falla pero
+         stabilize funciona, el problema es el sensor de profundidad y no el IMU, porque uno
+         depende del otro. -->
+    <record id="sintoma_pierde_fuerza" model="mc.rov.sintoma">
+        <field name="name">Pierde fuerza o no avanza</field>
+        <field name="familia">movimiento</field>
+        <field name="sequence">40</field>
+    </record>
+    <record id="sintoma_motor_no_gira" model="mc.rov.sintoma">
+        <field name="name">Un motor no gira</field>
+        <field name="familia">movimiento</field>
+        <field name="sequence">50</field>
+    </record>
+    <record id="sintoma_se_va_de_lado" model="mc.rov.sintoma">
+        <field name="name">Se va de lado o gira solo (en manual)</field>
+        <field name="familia">movimiento</field>
+        <field name="sequence">60</field>
+    </record>
+    <record id="sintoma_no_sube" model="mc.rov.sintoma">
+        <field name="name">No sube o se queda en el fondo</field>
+        <field name="familia">movimiento</field>
+        <field name="sequence">70</field>
+    </record>
+    <!-- El paréntesis es parte del nombre a propósito: "depth hold" y "stabilize" son las
+         palabras que usa el piloto, y buscarlas tiene que encontrar la entrada. -->
+    <record id="sintoma_no_mantiene_profundidad" model="mc.rov.sintoma">
+        <field name="name">No mantiene profundidad (depth hold)</field>
+        <field name="familia">movimiento</field>
+        <field name="sequence">80</field>
+    </record>
+    <record id="sintoma_no_se_estabiliza" model="mc.rov.sintoma">
+        <field name="name">No se estabiliza (stabilize)</field>
+        <field name="familia">movimiento</field>
+        <field name="sequence">90</field>
+    </record>
+
+    <!-- ===== Video ===== -->
+    <record id="sintoma_sin_imagen" model="mc.rov.sintoma">
+        <field name="name">Sin imagen</field>
+        <field name="familia">video</field>
+        <field name="sequence">100</field>
+    </record>
+    <record id="sintoma_imagen_con_ruido" model="mc.rov.sintoma">
+        <field name="name">Imagen con ruido o intermitente</field>
+        <field name="familia">video</field>
+        <field name="sequence">110</field>
+    </record>
+    <record id="sintoma_tilt_no_responde" model="mc.rov.sintoma">
+        <field name="name">El tilt de la cámara no responde</field>
+        <field name="familia">video</field>
+        <field name="sequence">120</field>
+    </record>
+
+    <!-- ===== Comunicación ===== -->
+    <record id="sintoma_pierde_conexion" model="mc.rov.sintoma">
+        <field name="name">Pierde conexión con superficie</field>
+        <field name="familia">comunicacion</field>
+        <field name="sequence">130</field>
+    </record>
+    <record id="sintoma_conectado_no_responde" model="mc.rov.sintoma">
+        <field name="name">Conectado pero no responde</field>
+        <field name="familia">comunicacion</field>
+        <field name="sequence">140</field>
+    </record>
+    <record id="sintoma_software_falla" model="mc.rov.sintoma">
+        <field name="name">El software de superficie falla</field>
+        <field name="familia">comunicacion</field>
+        <field name="sequence">150</field>
+    </record>
+
+    <!-- ===== Sensores ===== -->
+    <record id="sintoma_sensor_marca_mal" model="mc.rov.sintoma">
+        <field name="name">Un sensor marca mal o no marca</field>
+        <field name="familia">sensores</field>
+        <field name="sequence">160</field>
+    </record>
+
+    <!-- ===== Accesorios =====
+         Van separados y no en un "no responde un accesorio" porque el cliente VIO cuál falla:
+         es un síntoma, no una sospecha. Metidos en una entrada genérica, el componente
+         tendría que irse al campo de sospechas, donde se mezclaría una observación con una
+         adivinanza — y el análisis de cuánto le achunta el cliente solo tiene sentido sobre
+         las adivinanzas. -->
+    <record id="sintoma_luces_no_encienden" model="mc.rov.sintoma">
+        <field name="name">Luces no encienden</field>
+        <field name="familia">accesorios</field>
+        <field name="sequence">170</field>
+    </record>
+    <record id="sintoma_manipulador_no_responde" model="mc.rov.sintoma">
+        <field name="name">Manipulador no responde</field>
+        <field name="familia">accesorios</field>
+        <field name="sequence">180</field>
+    </record>
+    <record id="sintoma_sonar_no_funciona" model="mc.rov.sintoma">
+        <field name="name">Sonar no funciona</field>
+        <field name="familia">accesorios</field>
+        <field name="sequence">190</field>
+    </record>
+
+    <!-- ===== Físico ===== -->
+    <record id="sintoma_entro_agua" model="mc.rov.sintoma">
+        <field name="name">Entró agua</field>
+        <field name="familia">fisico</field>
+        <field name="sequence">200</field>
+    </record>
+    <record id="sintoma_fuga_aceite" model="mc.rov.sintoma">
+        <field name="name">Fuga de aceite</field>
+        <field name="familia">fisico</field>
+        <field name="sequence">210</field>
+    </record>
+    <record id="sintoma_ruido_vibracion" model="mc.rov.sintoma">
+        <field name="name">Hace ruido o vibra raro</field>
+        <field name="familia">fisico</field>
+        <field name="sequence">220</field>
+    </record>
+    <record id="sintoma_dano_visible" model="mc.rov.sintoma">
+        <field name="name">Daño físico visible</field>
+        <field name="familia">fisico</field>
+        <field name="sequence">230</field>
+    </record>
+
+    <!-- ===== Cuándo ocurre =====
+         Esta familia reemplaza al campo `momento_falla` que el diseño llegó a tener. Que la
+         falla vaya y venga es algo que el cliente VIO, así que pasa el mismo test que
+         cualquier otro síntoma; y como campo aparte traía un valor "No se sabe" por defecto
+         que volvía imposible distinguir "no sabe" de "nadie preguntó".
+
+         No hay un "Siempre, desde que ocurrió": es el supuesto por defecto y marcarlo no
+         agrega nada. -->
+    <record id="sintoma_intermitente" model="mc.rov.sintoma">
+        <field name="name">Falla intermitente (va y viene)</field>
+        <field name="familia">temporalidad</field>
+        <field name="sequence">240</field>
+    </record>
+    <record id="sintoma_tras_uso" model="mc.rov.sintoma">
+        <field name="name">Falla después de un rato de uso</field>
+        <field name="familia">temporalidad</field>
+        <field name="sequence">250</field>
+    </record>
+    <record id="sintoma_una_vez" model="mc.rov.sintoma">
+        <field name="name">Pasó una sola vez</field>
+        <field name="familia">temporalidad</field>
+        <field name="sequence">260</field>
+    </record>
+
+    <!-- ===== Otro =====
+         Se queda aunque parezca redundante con el texto libre de "falla reportada". Marcarlo
+         dice "preguntamos y no estaba en la lista", que es distinto de que nadie clasificó.
+         Si empieza a aparecer seguido, es la señal de que a la lista le falta una entrada. -->
+    <record id="sintoma_otro" model="mc.rov.sintoma">
+        <field name="name">Otro</field>
+        <field name="familia">otro</field>
+        <field name="sequence">270</field>
+    </record>
+
+</odoo>

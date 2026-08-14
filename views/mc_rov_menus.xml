@@ -1,11 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <!-- Una sola entrada en Configuración en vez de cinco sueltas. Para el uso diario no
-         hace falta entrar aquí: si el técnico necesita un hallazgo que no existe, escribe
-         el nombre en el campo y Odoo le ofrece crearlo ahí mismo. Este menú es para
-         mantener el catálogo —reordenar, desactivar ROVControl cuando llegue Crabby— no
-         para usarlo. -->
+    <!-- Una sola entrada en Configuración en vez de cinco sueltas. Este menú es para
+         mantener los catálogos: reordenar, desactivar ROVControl cuando llegue Crabby,
+         agregar una entrada que faltaba.
+
+         **No todos los catálogos se comportan igual, y conviene saber cuál es cuál.** En
+         hallazgos y componentes el técnico todavía puede crear una entrada escribiendo el
+         nombre en el campo; en síntomas y en la sospecha del cliente no, porque esos se
+         llenan en el mesón con el cliente esperando y ahí es donde aparecen cuatro formas de
+         escribir "no enciende". Cerrar los otros dos es una decisión aparte, todavía no
+         tomada (ver `docs/designs/diagnostico-de-fallas.md` § 7.4). -->
     <menuitem
         id="menu_mc_rov_catalogos"
         name="Catálogos ROV"
@@ -42,6 +47,16 @@
         parent="menu_mc_rov_catalogos"
         action="action_mc_rov_hallazgo"
         sequence="24"/>
+    <!-- Los síntomas van al lado de los hallazgos porque son su contraparte: lo que el
+         cliente dice contra lo que el taller comprueba. A diferencia de los hallazgos, este
+         catálogo SÍ hay que mantenerlo desde acá — el campo de la orden va con `no_create`,
+         para que en el mesón nadie invente una cuarta forma de escribir "no enciende". -->
+    <menuitem
+        id="menu_mc_rov_sintomas"
+        name="Síntomas ROV"
+        parent="menu_mc_rov_catalogos"
+        action="action_mc_rov_sintoma"
+        sequence="25"/>
 
     <!-- Estos dos son vocabulario de la ficha de FABRICACIÓN, que vive en el número de
          serie. Colgarlos de Reparaciones obligaba a manufactura a entrar al módulo

@@ -81,6 +81,26 @@
         <field name="name">Otro</field>
     </record>
 
+    <!-- Entran en 19.0.13.0.0 porque el catálogo de síntomas los nombra y este catálogo no
+         los tenía: el cliente veía "las luces no prenden" y no tenía de qué sospechar, con
+         lo que el cruce entre lo reportado y lo encontrado se caía justo ahí.
+
+         No se agrega "Software de superficie": `comp_electronica` ya se llama "Electrónica /
+         Software" y dos entradas que significan lo mismo rompen el conteo, que es lo único
+         que un catálogo tiene que proteger.
+
+         Ninguno es inspeccionable — no se revisan buscando sellos de terceros — así que no
+         agregan filas a la inspección física de cada revisión. -->
+    <record id="comp_luces" model="mc.rov.componente">
+        <field name="name">Luces</field>
+    </record>
+    <record id="comp_manipulador" model="mc.rov.componente">
+        <field name="name">Manipulador</field>
+    </record>
+    <record id="comp_sonar" model="mc.rov.componente">
+        <field name="name">Sonar</field>
+    </record>
+
     <!-- Subtipos Motor -->
     <record id="sub_motor_rotor" model="mc.rov.subtipo">
         <field name="name">Rotor</field>

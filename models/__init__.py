@@ -4,6 +4,7 @@ from . import mc_rov_hallazgo
 from . import mc_rov_propietario_historial
 from . import mc_rov_software
 from . import mc_rov_revision
+from . import mc_rov_sintoma
 from . import mc_rov_tipo_intervencion
 from . import product_category
 from . import repair_order

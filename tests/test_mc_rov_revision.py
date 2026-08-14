@@ -428,13 +428,17 @@ class TestMcRovRevisionTrazabilidad(RevisionCommon):
                 "accion_id": self.env.ref("mc_rov.accion_reparacion").id,
                 "hallazgo_origen_id": hallazgo.id,
                 "responsable_id": self.empleado.id,
-                "causa_raiz": "corrosion",
+                # Era `causa_raiz: "corrosion"` hasta 19.0.13.0.0. La corrosión no era una
+                # causa raíz sino un mecanismo —de hecho es una entrada del catálogo de
+                # hallazgos, la que usa este mismo test— y por eso el campo se partió: el
+                # hallazgo dice QUÉ pasó y el origen, de quién es el problema.
+                "origen": "desgaste",
             }
         )
 
         self.assertEqual(linea.hallazgo_origen_id, hallazgo)
         self.assertEqual(linea.responsable_id, self.empleado)
-        self.assertEqual(linea.causa_raiz, "corrosion")
+        self.assertEqual(linea.origen, "desgaste")
 
     def test_el_hallazgo_sabe_de_que_equipo_es(self):
         """lot_id almacenado en la línea es lo que permite agregar hallazgos por equipo sin

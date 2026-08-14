@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_mc_rov_sintoma_list" model="ir.ui.view">
+        <field name="name">mc.rov.sintoma.list</field>
+        <field name="model">mc.rov.sintoma</field>
+        <field name="arch" type="xml">
+            <!-- Editable porque este catálogo se mantiene escribiendo renglones, no
+                 abriendo un formulario por entrada: agregar un síntoma es una línea. -->
+            <list string="Síntomas ROV" editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="familia"/>
+                <field name="name"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_mc_rov_sintoma_search" model="ir.ui.view">
+        <field name="name">mc.rov.sintoma.search</field>
+        <field name="model">mc.rov.sintoma</field>
+        <field name="arch" type="xml">
+            <search string="Síntomas ROV">
+                <field name="name"/>
+                <filter name="agrupar_familia" string="Familia" context="{'group_by': 'familia'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_mc_rov_sintoma" model="ir.actions.act_window">
+        <field name="name">Síntomas ROV</field>
+        <field name="res_model">mc.rov.sintoma</field>
+        <field name="view_mode">list</field>
+        <field name="context">{'search_default_agrupar_familia': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Registre un síntoma</p>
+            <p>
+                Lo que el cliente <b>dice</b> que le pasa al equipo, no lo que el taller
+                encuentra. Si dos síntomas mandan a mirar lugares distintos, son síntomas
+                distintos; si uno existe para los casos dudosos, va a absorber todos los
+                casos dudosos.
+            </p>
+        </field>
+    </record>
+
+</odoo>

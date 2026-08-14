@@ -139,11 +139,22 @@ Custom mc_rov fields:
   `es_mantencion` to identify maintenance visits — do not match on the label text.
 - `falla_reportada`
 - `linea_falla_ids` (one2many)
-- `causa_raiz` — **moved to `mc.rov.linea.falla` in 19.0.8.0.0.** It was one value per
-  order, which forced a choice when a visit had several: an umbilical cut by accident and a
-  motor worn by use are two different root causes. Migration copied each order's value down
-  to its work lines; orders that had a root cause and **no** work lines lost it, and the
-  migration logs how many.
+- `causa_raiz` — **moved to `mc.rov.linea.falla` in 19.0.8.0.0, then replaced by `origen` in
+  19.0.13.0.0 (see that model below).** It was one value per order, which forced a choice
+  when a visit had several: an umbilical cut by accident and a motor worn by use are two
+  different root causes. Migration copied each order's value down to its work lines; orders
+  that had a root cause and **no** work lines lost it, and the migration logs how many.
+- `sintoma_ids` — **new in 19.0.13.0.0.** Many2many to `mc.rov.sintoma`: what the customer
+  **reports**, as opposed to what the workshop finds. Optional by design, so an empty value
+  means "nobody was asked", never "no symptoms". Do not treat it as a denominator without
+  first measuring how often it is filled.
+- `componente_sospechado_ids` — **new in 19.0.13.0.0.** Many2many to `mc.rov.componente`:
+  which component the customer *suspects*, as opposed to saw. It deliberately reuses the same
+  catalogue as findings and work lines, which is what makes **reported-vs-real** a join and
+  not a text comparison: suspicion (order) against `mc.rov.revision.hallazgo.componente_id`.
+  There is **no link between an individual symptom and an individual suspicion** — if a
+  customer reports two of each, which goes with which is not recorded. That is a deliberate
+  trade, not missing data.
 - `fecha_entrega_real`
 - `observaciones_salida`
 - `mc_total_horas` — **stored since 19.0.5.2.0.** It was an unstored computed field, which
@@ -256,6 +267,16 @@ building towards. One record per test session on one unit.
   `aplica_reparacion` in 19.0.12.0.0 and the columns dropped.** `mc.rov.hallazgo`
   (catalogue): `name`, `familia`.
 
+- `mc.rov.sintoma` (catalogue, **new in 19.0.13.0.0**): `name`, `familia` (`energia` |
+  `movimiento` | `video` | `comunicacion` | `sensores` | `accesorios` | `fisico` |
+  `temporalidad` | `otro`), `sequence`, `active`. This is the **reported** side of the
+  chain — the counterpart to `mc.rov.hallazgo`, which is the **observed** side. Retirement is
+  a flag, so an order that referenced a retired symptom still resolves it.
+
+  The `temporalidad` family carries what a `momento_falla` Selection would have held; that
+  field was designed and cut before implementation, so **it never existed in any released
+  version** and no data was ever stored under it.
+
 ### `mc.rov.componente` and related
 
 - `mc.rov.componente`: `id`, `name`, `active`
@@ -270,6 +291,40 @@ building towards. One record per test session on one unit.
     link that closes the circuit), `responsable_id` (`hr.employee`), and `causa_raiz`,
     which moved down from `repair.order`.
   - `mc.rov.componente` gained `es_inspeccionable`, which drives the seal inspection rows.
+
+  > **Breaking change in 19.0.13.0.0: `causa_raiz` was dropped and replaced by `origen`.** The
+  > column no longer exists — a query naming it errors out, which is the safer kind of break.
+  >
+  > The old field mixed *what physically happened* with *whose problem it is*; `origen`
+  > answers only the second. New keys: `diseno` · `falla_fabricacion` · `pieza_proveedor` ·
+  > `mal_uso` · `desgaste` · `desconocida`. Four are the old keys unchanged, so **their
+  > meaning is stable across the boundary**. Two are not: `corrosion` became `desconocida`
+  > (it was a mechanism, and `mc.rov.hallazgo` already has a "Corrosión" entry — the old value
+  > is appended to `detalle`), and `accidente` became `mal_uso`, whose label now reads "Uso
+  > del cliente (mal uso o accidente)".
+  >
+  > **Rows that had no `causa_raiz` at all are now `desconocida`.** The old field was never
+  > required. Do not read a pre-19.0.13.0.0 `desconocida` as "the workshop investigated and
+  > could not tell" — a share of them mean "nobody filled it in". The distinction is not
+  > recoverable; the migration logs the counts.
+  >
+  > **`origen` is enforced at order close, not by the model.** Lines can exist without it
+  > while the order is open, and lines on orders closed before this version keep whatever the
+  > migration gave them. Treat the field as reliably populated only on orders closed from
+  > 19.0.13.0.0 onward.
+
+  - **New in 19.0.13.0.0**: `analisis_causa`, free text — the reasoning behind the chosen
+    origin. Never required and expected to be sparse, so it is a field to *read*, not to
+    aggregate.
+
+  **On joining findings to origins.** The design's unit of analysis is the work line, but the
+  line has no finding of its own — only `hallazgo_origen_id`, which is **optional** and
+  requires that someone recorded the finding on the revision. So "why it happened" without
+  "what was found" on the same row is expected, especially early. Primary join is
+  `linea.hallazgo_origen_id → hallazgo_id`; when it is null, fall back to the line's own
+  `componente_id` + `accion_id`, which are required but say where work happened, not what was
+  found. **Measure the fill rate of that pointer before trusting any analysis built on it** —
+  a crossing over 20% of the lines is a bias, and it looks exactly like a result.
 
 ## Contract stability rules
 
