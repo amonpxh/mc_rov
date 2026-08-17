@@ -23,12 +23,18 @@
         <field name="sequence">40</field>
     </record>
 
-    <!-- Acciones -->
+    <!-- Acciones.
+         `consume_repuesto` solo en las dos de cambio: son las únicas que necesariamente
+         gastan una pieza del inventario. Reparar, soldar o calibrar arreglan lo que ya está,
+         y una mantención preventiva puede o no llevar repuesto — marcarla obligaría a
+         registrar uno inventado en las que no lo llevan, que es peor que no exigir nada. -->
     <record id="accion_cambio_completo" model="mc.rov.accion">
         <field name="name">Cambio completo</field>
+        <field name="consume_repuesto" eval="True"/>
     </record>
     <record id="accion_cambio_componente" model="mc.rov.accion">
         <field name="name">Cambio de componente</field>
+        <field name="consume_repuesto" eval="True"/>
     </record>
     <record id="accion_reparacion" model="mc.rov.accion">
         <field name="name">Reparación</field>

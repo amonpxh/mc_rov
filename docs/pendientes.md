@@ -2,6 +2,16 @@
 
 > Actualizar esta sección al cerrar cada sesión de trabajo.
 
+## Estado al 2026-08-17
+
+`19.0.14.0.0` ordenó el flujo en pantalla: **las pestañas pasaron a ser los momentos del
+proceso**, leídos de izquierda a derecha. En la orden, *Recepción · Diagnóstico · Reparación ·
+Repuestos · Cierre · Notas*; en la revisión, de cinco pestañas a tres — *Sellos · Pruebas ·
+Hallazgos*—. Además la temperatura bajó a la corrida (se mide una por corrida y sí depende del
+cable), el cierre exige el repuesto cuando la acción lo consume, y la revisión sin confirmar se
+muestra con un filtro en vez de bloquear. Razones en
+[`designs/revision-tecnica.md`](designs/revision-tecnica.md) §§ 8.1–8.4.
+
 ## Estado al 2026-08-14
 
 El **diagnóstico de fallas** está implementado (`19.0.13.0.0`): el catálogo de síntomas, los
@@ -70,15 +80,14 @@ de la vista. Los dos se habían deducido de una captura, sin poder leer el arch 
 
 ## Salido de implementar `19.0.13.0.0`
 
-- [ ] **Revisión a mano después de desplegar, que el script de migración no puede hacer.**
-  Las filas de `mc_rov_linea_falla` que hoy dicen `falla_fabricacion` — ¿se referían a
-  *nosotros* o a *el proveedor*? Con el volumen actual se miran una por una y se corrigen a
-  `pieza_proveedor` las que correspondan. La auditoría previa y el conteo posterior están en
-  §§ 11 y 14.2 de [`designs/diagnostico-de-fallas.md`](designs/diagnostico-de-fallas.md).
+- [x] ~~Revisión a mano de las filas `falla_fabricacion`~~ — **no aplica.** La auditoría
+  previa al desplegar `19.0.13.0.0` mostró que `odoo_prod` tenía **2 líneas de trabajo, ambas
+  sin causa**: cero `corrosion`, cero `accidente`, cero `falla_fabricacion`. Las dos quedaron
+  en `desconocida`.
 
-  **Y no confundir el `desconocida` de antes con el de ahora**: las líneas que nunca tuvieron
-  causa quedaron ahí, así que un `desconocida` anterior al despliegue puede significar «no se
-  pudo determinar» o «nadie lo llenó», y eso ya no se distingue.
+  **Lo que sí queda vivo:** no confundir el `desconocida` de antes con el de ahora. Las líneas
+  que nunca tuvieron causa quedaron ahí, así que un `desconocida` anterior a `19.0.13.0.0`
+  puede significar «no se pudo determinar» o «nadie lo llenó», y eso ya no se distingue.
 
 - [ ] **`comp_electronica` se llama «Electrónica / Software» y mezcla dos cosas en una
   etiqueta.** Apareció al agregar los componentes que faltaban: fue la razón por la que
@@ -104,6 +113,13 @@ Lo que sigue del plan original, en orden:
   **La revisión existe, entre otras cosas, para entregársela al cliente**, así que esto no
   es un extra. Obliga a decidir campo por campo qué es interno y qué va impreso — ver
   [`designs/revision-tecnica.md`](designs/revision-tecnica.md) § 12.1.
+
+  **Ya hay un caso concreto que decide, y no es hipotético:** la **temperatura** de cada
+  corrida vuelve a medirse como dato **interno** y **no debe salir impresa**. Antes se le
+  entregaba al cliente y el cliente la usó en contra. Es el primer campo con una razón
+  comercial —no estética— para quedarse adentro, y conviene arrancar el diseño del reporte
+  por ahí: si un campo puede volverse en contra, la pregunta no es «¿se ve bien?» sino «¿qué
+  hace el cliente con esto?».
 
 - [ ] **Fotos de los hallazgos**, con `fields.Image(max_width=1920, max_height=1920)` y no
   `fields.Binary`. Decidido dejarlo para el final. El disco no es problema: 50 GB libres y
@@ -170,14 +186,13 @@ Lo que sigue del plan original, en orden:
 
   **Para asignar grupos a usuarios:** `Ajustes → Usuarios → [usuario]` (sin tocar código). Cambiar qué puede hacer un grupo requiere modificar el módulo.
 
-- [ ] **Validación de línea de producto en cierre de orden**: hoy una orden se puede cerrar con líneas de falla de tipo "cambio" sin haber registrado el repuesto como línea de producto.
+- [x] ~~Validación de línea de producto en cierre de orden~~ — **hecha en `19.0.14.0.0`.**
+  `mc.rov.accion.consume_repuesto`, marcado en las dos acciones de cambio, y
+  `_validar_repuestos` en la transición a `done`.
 
-  **Desde `19.0.5.2.0` ya hay dónde ponerla**: el override de `write` en `repair_order.py` valida la transición a `done` antes del `super()` para exigir el tipo de intervención. La misma validación cubre este caso sin infraestructura nueva. Cuando eso pasa se pierde el vínculo con el lote y se corta el análisis de fallas. Diseño acordado:
-
-  1. `mc.rov.accion` — agregar booleano `consume_repuesto`. Marcarlo en "Cambio completo" y "Cambio de componente"; el resto de las acciones (limpieza, calibración, configuración, soldadura) queda en `False`.
-  2. `repair.order` — constraint o `write` override: si alguna línea de `linea_falla_ids` tiene `accion_id.consume_repuesto = True`, la orden no puede pasar a `done` sin al menos una línea de producto.
-  3. `data/mc_rov_data.xml` — setear el booleano en las 10 acciones existentes.
-
-  **No hardcodear a los dos nombres de acción.** El catálogo es configurable desde el menú: si mañana agregan "Reemplazo de sello", tienen que poder marcar la casilla sin tocar código.
+  **Su alcance está declarado y conviene recordarlo:** exige *al menos una* línea de producto,
+  no una por cada cambio. Una orden con tres cambios y un repuesto registrado pasa. Subir a la
+  correspondencia uno a uno obliga a decir qué repuesto va con qué trabajo, que es un campo
+  nuevo en la línea y otra decisión.
 
 - [ ] **Pipeline integration touchpoints** (Phase 1 del pipeline — requiere Phase -1 completada primero): agregar `controllers/api.py`, usuario `pipeline@marine-connection` con API key, y grupo `Pipeline API (Read-Only)`. Checklist en `rov-pipeline-roadmap.md` Phase 1 "Odoo access layer". Contrato en [`integrations/pipeline.md`](integrations/pipeline.md).

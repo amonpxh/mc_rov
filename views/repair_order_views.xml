@@ -20,7 +20,6 @@
             <field name="under_warranty" position="before">
                 <field name="mc_propietario_lot_id" readonly="1" invisible="not lot_id"/>
                 <field name="mc_propietario_difiere" invisible="1"/>
-                <field name="mc_items_recibidos_ids" widget="many2many_tags"/>
             </field>
 
             <!-- Las etiquetas nativas de repair se esconden: tipo_intervencion_ids ya
@@ -52,30 +51,37 @@
                 </div>
             </notebook>
 
-            <!-- El bloque de recepción, después de la fecha programada y NO en una pestaña.
-                 Es lo primero que se ve al abrir la orden, que es cuando el cliente está
-                 delante — y es la única ventana en que hay a quién preguntarle: se va y no
-                 vuelve.
-
-                 Los dos catálogos van con no_create: en el mesón, con el cliente esperando,
-                 es donde aparecen cuatro maneras de escribir "no enciende" y el conteo se
-                 muere. Si falta una entrada se agrega desde Configuración, que es una
-                 decisión y no un descuido de apuro. -->
-            <field name="schedule_date" position="after">
-                <field name="falla_reportada"/>
-                <field name="sintoma_ids"
-                       widget="many2many_tags"
-                       options="{'no_create': True}"
-                       placeholder="Lo que el cliente vio: no enciende, sin imagen, se apaga solo…"/>
-                <field name="componente_sospechado_ids"
-                       widget="many2many_tags"
-                       options="{'no_create': True}"
-                       placeholder="De qué sospecha, aunque no lo haya visto"/>
-            </field>
-
-            <!-- Pestaña nueva de trabajos realizados -->
+            <!-- Las pestañas son los cuatro momentos del trabajo, en orden, y se leen de
+                 izquierda a derecha: Recepción · Diagnóstico · Reparación · Repuestos ·
+                 Cierre. Antes tres de los cuatro eran pestañas y el primero vivía suelto en
+                 la cabecera, repartido entre las dos columnas y mezclado con los campos
+                 nativos de Odoo — así que la barra de pestañas no contaba el proceso. -->
             <notebook position="inside">
-                <page string="Trabajos realizados" name="trabajos_realizados">
+                <page string="Recepción" name="recepcion">
+                    <!-- Es la única ventana en que hay a quién preguntarle: el cliente se va
+                         y no vuelve. Los dos catálogos van con no_create porque en el mesón,
+                         con el cliente esperando, es donde aparecen cuatro maneras de
+                         escribir "no enciende" y el conteo se muere. Si falta una entrada se
+                         agrega desde Configuración, que es una decisión y no un apuro. -->
+                    <group>
+                        <group string="Lo que dice el cliente">
+                            <field name="falla_reportada"
+                                   placeholder="Sus palabras, tal como las dijo."/>
+                            <field name="sintoma_ids"
+                                   widget="many2many_tags"
+                                   options="{'no_create': True}"
+                                   placeholder="Lo que vio: no enciende, sin imagen, se apaga solo…"/>
+                            <field name="componente_sospechado_ids"
+                                   widget="many2many_tags"
+                                   options="{'no_create': True}"
+                                   placeholder="De qué sospecha, aunque no lo haya visto"/>
+                        </group>
+                        <group string="Lo que llegó">
+                            <field name="mc_items_recibidos_ids" widget="many2many_tags"/>
+                        </group>
+                    </group>
+                </page>
+                <page string="Reparación" name="trabajos_realizados">
                     <!-- causa_raiz y responsable bajaron de la orden a la línea: una visita
                          puede tener tres causas distintas —umbilical cortado por accidente
                          y motor gastado por uso— y dos técnicos pueden trabajar la misma
@@ -98,7 +104,7 @@
                         </list>
                     </field>
                 </page>
-                <page string="Revisiones" name="revisiones">
+                <page string="Diagnóstico" name="revisiones">
                     <!-- La revisión de esta visita. Normalmente una sola, y se abre sola al
                          confirmar la orden; el botón es para el segundo pase, cuando el
                          equipo se prueba, se arregla y se vuelve a probar.
@@ -137,7 +143,7 @@
                         </list>
                     </field>
                 </page>
-                <page string="Resultado" name="resultado">
+                <page string="Cierre" name="resultado">
                     <group>
                         <group>
                             <field name="fecha_entrega_real"/>
@@ -197,11 +203,16 @@
                 <xpath expr="//page[@name='trabajos_realizados']" position="move"/>
             </xpath>
 
-            <!-- Revisiones queda primero porque es el paso 1 de verdad: llega el equipo,
-                 se prueba, se encuentra. Estaba al final por comodidad al agregarlo, que
-                 contradecía el propio criterio con el que se ordenaron las demás. -->
             <xpath expr="//page[@name='trabajos_realizados']" position="before">
                 <xpath expr="//page[@name='revisiones']" position="move"/>
+            </xpath>
+
+            <!-- Y Recepción antes que Diagnóstico, que es el orden real: primero llega el
+                 equipo y se registra lo que el cliente cuenta, después se abre y se prueba.
+                 Hasta 19.0.14.0.0 el paso 1 no era una pestaña, así que la barra empezaba
+                 por el 2 y el proceso no se leía. -->
+            <xpath expr="//page[@name='revisiones']" position="before">
+                <xpath expr="//page[@name='recepcion']" position="move"/>
             </xpath>
 
             <xpath expr="//page[@name='resultado']" position="after">
@@ -261,6 +272,14 @@
                         string="Sin síntoma registrado"
                         domain="[('sintoma_ids', '=', False), ('state', 'not in', ['done', 'cancel'])]"
                         help="Órdenes todavía abiertas en las que no se registró qué dijo el cliente."/>
+                <!-- La revisión a medio llenar se muestra en vez de bloquear el cierre. A
+                     diferencia del filtro de arriba, este SÍ puede llegar a cero: la revisión
+                     se confirma cualquier día, el equipo no se fue a ninguna parte. Si con el
+                     tiempo acumula una pila, esa es la evidencia para pasar a bloquear. -->
+                <filter name="filtro_revision_pendiente"
+                        string="Revisión sin confirmar"
+                        domain="[('mc_revision_pendiente', '=', True)]"
+                        help="Visitas con alguna revisión técnica todavía en borrador."/>
 
                 <!-- No hay "agrupar por origen", aunque estaba anotado como pendiente: desde
                      19.0.8.0.0 el origen vive en la línea de trabajo y no en la orden. Una

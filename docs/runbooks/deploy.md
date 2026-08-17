@@ -90,6 +90,23 @@ and went unnoticed for four days.
 **In step 5, read the `Active: ... since` line.** It must show the current time. If it
 shows a time before step 3, the restart did not happen and the form is still broken.
 
+### And then there is the browser, which lies in the same way
+
+Odoo's web client caches view definitions for as long as the page stays loaded. A tab that
+was open before the deploy keeps serving the **old** form while you navigate inside it — new
+fields simply are not there, and everything else looks perfectly healthy.
+
+**Hard-refresh the tab (`Ctrl+Shift+R`) before believing anything you see.** A plain `F5` may
+not be enough; if it still looks wrong, log out and back in.
+
+This cost fifteen minutes on 2026-08-14: the server was verified correct down to the combined
+view arch, and the fields still were not on screen. The tab had been open since before the
+restart.
+
+**Corollary for verification:** if a deploy adds or moves fields, hard-refresh *first*. Every
+on-screen check you run against a cached view is worthless, and worse, it looks like a
+finding.
+
 ## Why not root
 
 The remote is SSH (`git@github.com:amonpxh/mc_rov.git`). The deploy key belongs to the

@@ -86,6 +86,28 @@ class RepairOrder(models.Model):
         string="Revisiones técnicas",
     )
 
+    # Almacenado porque es criterio de un filtro de la lista de órdenes, y un campo sin store
+    # no se puede filtrar. Se enciende cuando la visita tiene alguna revisión a medio llenar.
+    #
+    # Es una señal y no un bloqueo, a propósito. Exigir la revisión confirmada para cerrar la
+    # orden obligaría a recorrer los veinte chequeos aunque el equipo haya entrado a cambiar
+    # un conector — y cuando responder cuesta, se marca "No aplica" en cadena para pasar el
+    # trámite, que envenena el dato mucho más que una revisión en borrador. Además el vacío
+    # acá no es ambiguo: el estado dice "Borrador", que es exactamente lo que pasa.
+    mc_revision_pendiente = fields.Boolean(
+        string="Revisión sin confirmar",
+        compute="_compute_mc_revision_pendiente",
+        store=True,
+        help="Se enciende cuando alguna revisión técnica de esta visita quedó en borrador.",
+    )
+
+    @api.depends("revision_ids.estado")
+    def _compute_mc_revision_pendiente(self):
+        for order in self:
+            order.mc_revision_pendiente = any(
+                revision.estado == "borrador" for revision in order.revision_ids
+            )
+
     def action_nueva_revision(self):
         """Crea una revisión de esta visita y la abre para llenarla.
 
@@ -264,6 +286,36 @@ class RepairOrder(models.Model):
             "pudo establecer, «No determinado» es una respuesta válida y deja cerrar."
         )
 
+    def _validar_repuestos(self):
+        """Impide cerrar una orden que cambió una pieza y no registró ninguna.
+
+        Una línea de trabajo con acción «Cambio completo» y cero líneas de producto significa
+        que se cambió algo y no quedó anotado. El costo no es administrativo: se pierde el
+        vínculo con el lote de la pieza, y con él la mitad del análisis de fallas por
+        componente — no se puede saber qué repuesto falla más ni cuánto dura.
+
+        Qué acciones lo exigen sale de la casilla `consume_repuesto` del catálogo, nunca de
+        comparar nombres: mañana aparece "Reemplazo de sello" y tiene que poder marcarse sin
+        desplegar código.
+
+        **Pide al menos un repuesto, no uno por cada cambio.** Una orden con tres cambios y
+        una sola pieza registrada pasa. Es un piso deliberado: la correspondencia uno a uno
+        exigiría decir qué repuesto va con qué trabajo, y ese es un campo que hoy no existe.
+        """
+        for order in self:
+            exigen = order.linea_falla_ids.filtered(lambda linea: linea.accion_id.consume_repuesto)
+            if not exigen or order.move_ids:
+                continue
+
+            detalle = "\n".join(f"· {linea.display_name}" for linea in exigen)
+            raise UserError(
+                f"Estos trabajos cambian una pieza y no hay ningún repuesto registrado en "
+                f"{order.display_name}:\n\n{detalle}\n\n"
+                "Agregue el repuesto en la pestaña Repuestos. Sin él se pierde el vínculo "
+                "con el número de serie de la pieza, y no se puede saber después qué "
+                "componente falla más seguido."
+            )
+
     def _crear_revision(self, order):
         """Abre la revisión técnica de una orden que acaba de entrar al taller.
 
@@ -317,6 +369,7 @@ class RepairOrder(models.Model):
         if vals.get("state") == "done":
             self._validar_tipo_intervencion()
             self._validar_origen()
+            self._validar_repuestos()
 
         # Se anota antes del super() quiénes estaban en borrador: después ya cambiaron.
         entran_al_taller = (
