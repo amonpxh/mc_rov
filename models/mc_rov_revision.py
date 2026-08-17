@@ -235,6 +235,12 @@ class McRovRevision(models.Model):
         domain=[("seccion", "=", "luces")],
         string="Prueba de luces",
     )
+    chequeo_accesorios_ids = fields.One2many(
+        "mc.rov.revision.chequeo",
+        "revision_id",
+        domain=[("seccion", "=", "accesorios")],
+        string="Prueba de accesorios",
+    )
     chequeo_otro_ids = fields.One2many(
         "mc.rov.revision.chequeo",
         "revision_id",

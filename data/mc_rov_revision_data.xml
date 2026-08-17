@@ -216,6 +216,73 @@
         <field name="aplica_terreno" eval="True"/>
     </record>
 
+    <!-- ========== Segunda pasada, 19.0.14.2.0 ==========
+         La primera ampliación cerró los huecos por familia de síntoma. Esta cierra los que
+         quedaron adentro de familias que ya tenían alguna prueba, que son los que no se ven
+         contando familias. -->
+
+    <!-- Movimiento. "Un motor no gira" es de los síntomas que más se reportan y no tenía
+         ninguna prueba: "Hélices en posición correcta" mira la posición, no que giren.
+
+         Y acro va aparte de stabilize por el mismo criterio que separó depth hold: acro
+         mantiene la velocidad angular con el giróscopo, stabilize nivela con acelerómetro y
+         compás. Si acro responde y stabilize no, el giro está sano y el problema es la parte
+         que nivela. No todos los equipos lo tienen, y para eso está "No aplica". -->
+    <record id="chequeo_thrusters" model="mc.rov.chequeo">
+        <field name="name">Todos los thrusters responden</field>
+        <field name="seccion">navegacion</field>
+        <field name="sequence">62</field>
+        <field name="aplica_fabricacion" eval="True"/>
+        <field name="aplica_reparacion" eval="True"/>
+        <field name="aplica_terreno" eval="True"/>
+    </record>
+    <record id="chequeo_acro" model="mc.rov.chequeo">
+        <field name="name">Responde en acro</field>
+        <field name="seccion">navegacion</field>
+        <field name="sequence">73</field>
+        <field name="aplica_fabricacion" eval="True"/>
+        <field name="aplica_reparacion" eval="True"/>
+        <field name="aplica_terreno" eval="True"/>
+    </record>
+    <!-- Se observa con el equipo andando, por eso va en navegación y no en la inspección. -->
+    <record id="chequeo_ruido_vibracion" model="mc.rov.chequeo">
+        <field name="name">Sin ruido ni vibración anormal</field>
+        <field name="seccion">navegacion</field>
+        <field name="sequence">79</field>
+        <field name="aplica_fabricacion" eval="True"/>
+        <field name="aplica_reparacion" eval="True"/>
+        <field name="aplica_terreno" eval="True"/>
+    </record>
+
+    <!-- El umbilical es el componente del que más se sospecha y la inspección no lo miraba:
+         se revisaban chasis, penetradores y hélices, o sea el vehículo, no el cable. -->
+    <record id="chequeo_umbilical_estado" model="mc.rov.chequeo">
+        <field name="name">Umbilical sin cortes ni aplastamientos</field>
+        <field name="seccion">inspeccion_fisica</field>
+        <field name="sequence">27</field>
+        <field name="aplica_fabricacion" eval="True"/>
+        <field name="aplica_reparacion" eval="True"/>
+        <field name="aplica_terreno" eval="True"/>
+    </record>
+
+    <!-- Accesorios -->
+    <record id="chequeo_manipulador" model="mc.rov.chequeo">
+        <field name="name">Manipulador responde</field>
+        <field name="seccion">accesorios</field>
+        <field name="sequence">110</field>
+        <field name="aplica_fabricacion" eval="True"/>
+        <field name="aplica_reparacion" eval="True"/>
+        <field name="aplica_terreno" eval="True"/>
+    </record>
+    <record id="chequeo_sonar" model="mc.rov.chequeo">
+        <field name="name">Sonar funciona</field>
+        <field name="seccion">accesorios</field>
+        <field name="sequence">115</field>
+        <field name="aplica_fabricacion" eval="True"/>
+        <field name="aplica_reparacion" eval="True"/>
+        <field name="aplica_terreno" eval="True"/>
+    </record>
+
     <!-- La sección "luces" no lleva chequeos de OK / No OK: la prueba de luces es contar
          cuántas encienden, y eso ya son los tres campos de la revisión —internas, externas
          y el total, que se compara solo contra la ficha del equipo—. Un chequeo

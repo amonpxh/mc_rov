@@ -291,7 +291,8 @@ building towards. One record per test session on one unit.
   in third-party tampering.
 
 - `mc.rov.chequeo` (catalogue): `name`, `seccion` (`inspeccion_fisica` | **`energia`** |
-  `presion` | `leak` | **`comunicacion`** | `navegacion` | `video` | `luces` | `otro`),
+  `presion` | `leak` | **`comunicacion`** | `navegacion` | `video` | `luces` |
+  **`accesorios`** | `otro`),
   `por_componente`, and three booleans declaring
   which revision types it applies to — `aplica_fabricacion`, `aplica_reparacion`,
   `aplica_terreno`. **`aplica_recepcion` and `aplica_entrega` were merged into

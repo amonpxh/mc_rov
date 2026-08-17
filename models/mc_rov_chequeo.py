@@ -21,6 +21,11 @@ SECCIONES = [
     ("navegacion", "Prueba de navegación"),
     ("video", "Prueba de video"),
     ("luces", "Prueba de luces"),
+    # `accesorios` entra en 19.0.14.2.0. Manipulador y sonar los lleva una minoría de los
+    # equipos, y eso no es razón para no preguntarlos: "No aplica" es una respuesta válida y
+    # afirma algo del equipo. Sin la sección, un accesorio que no responde es un síntoma que
+    # el cliente reporta y que la batería nunca verifica.
+    ("accesorios", "Prueba de accesorios"),
     ("otro", "Otro"),
 ]
 

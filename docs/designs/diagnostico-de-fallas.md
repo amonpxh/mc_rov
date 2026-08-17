@@ -458,14 +458,14 @@ de superficie falla
 
 **Accesorios** — Luces no encienden · Manipulador no responde · Sonar no funciona
 
-**Físico** — Entró agua · Fuga de aceite · Hace ruido o vibra raro · Daño físico visible
+**Físico** — Entró agua · Hace ruido o vibra raro · Daño físico visible
 
 **Cuándo ocurre** — Falla intermitente (va y viene) · Falla después de un rato de uso · Pasó
 una sola vez
 
 **Otro** — Otro
 
-Veintisiete entradas en nueve familias. Los paréntesis son parte del nombre: buscar «depth»
+Veintiséis entradas en nueve familias. Los paréntesis son parte del nombre: buscar «depth»
 o «stabilize» tiene que encontrar la entrada, porque son las palabras que el piloto usa.
 
 La familia **Cuándo ocurre** es la que absorbe al campo `momento_falla` retirado (§ 3.4). No

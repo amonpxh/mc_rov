@@ -279,6 +279,22 @@
                                 equipo. O el equipo perdió luces, o la ficha está mal.
                             </div>
 
+                            <!-- Manipulador y sonar los lleva una minoría de los equipos, y
+                                 por eso se preguntan igual: "No aplica" afirma que el equipo
+                                 no lo tiene, que es distinto de no haberlo mirado. -->
+                            <group string="Prueba de accesorios" invisible="not chequeo_accesorios_ids">
+                                <field name="chequeo_accesorios_ids" nolabel="1" class="mc_rov_pruebas"
+                                       colspan="2" readonly="estado == 'confirmado'">
+                                    <list editable="bottom" create="0" delete="0">
+                                        <field name="chequeo_id" readonly="1"/>
+                                        <field name="componente_id" readonly="1" optional="hide"/>
+                                        <field name="resultado" widget="radio"
+                                               options="{&quot;horizontal&quot;: true}"/>
+                                        <field name="detalle"/>
+                                    </list>
+                                </field>
+                            </group>
+
                             <group string="Otras pruebas" invisible="not chequeo_otro_ids">
                                 <field name="chequeo_otro_ids" nolabel="1" class="mc_rov_pruebas"
                                        colspan="2" readonly="estado == 'confirmado'">
