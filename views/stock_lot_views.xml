@@ -69,7 +69,17 @@
                      inventado. -->
                 <div class="alert alert-warning" role="alert"
                      invisible="not es_un_rov or mc_ficha_completa">
-                    <strong>Faltan datos de la ficha técnica: </strong>
+                    <!-- El conteo entra en 19.0.15.2.2. Sin él el aviso decía exactamente lo
+                         mismo con un campo vacío que con dieciséis, así que llenar quince de
+                         dieciséis se veía igual que no haber empezado: el mismo muro amarillo.
+                         Con el avance a la vista, completar la ficha por partes es progreso
+                         visible en vez de un aviso que no se mueve. -->
+                    <strong>Faltan
+                        <field name="mc_ficha_faltantes_n" nolabel="1" readonly="1" class="oe_inline"/>
+                        de
+                        <field name="mc_ficha_total_n" nolabel="1" readonly="1" class="oe_inline"/>
+                        datos de la ficha técnica:
+                    </strong>
                     <field name="mc_ficha_faltantes" nolabel="1" readonly="1" class="oe_inline"/>
                 </div>
                 <field name="mc_ficha_completa" invisible="1"/>

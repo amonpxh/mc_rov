@@ -4,6 +4,32 @@ All notable changes to the `mc_rov` Odoo module are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this module adheres to [semantic versioning](https://semver.org/) within the constraints of Odoo's version scheme: `19.0.X.Y.Z` where `19.0` is the Odoo major, `X` is breaking-change/migration, `Y` is feature, `Z` is bugfix.
 
+## [19.0.15.2.2] — 2026-08-17
+
+### Changed
+
+- **«Responde en acro» becomes «Responde en modo acrobático (acro)».** The two neighbouring
+  checks name the mode in Spanish and keep the technical term in parentheses — «Se estabiliza
+  (stabilize)», «Mantiene profundidad (depth hold)» — and this one broke the pattern by using
+  the technical term as if it were the description.
+
+- **The incomplete-ficha banner now shows progress: «Faltan 3 de 16 datos…».** Without a count
+  it said exactly the same thing with one field empty as with sixteen — one yellow bar — so
+  filling fifteen of sixteen looked identical to not having started. It matters since
+  `19.0.15.2.1`, when the view's `required` came out and the banner became the only signal:
+  filling the ficha in parts is now visible progress instead of a warning that never moves.
+
+  **The total is computed, not written into the view.** Adding a specification to
+  `CAMPOS_FICHA` is a one-line change, and a hardcoded «de 16» would go stale with nothing to
+  announce it. There is a test pinning the total to the tuple.
+
+- **The revision header goes to two titled blocks**, *Equipo y visita* and *Esta revisión*, and
+  `repair_id` moves to the left one. It read as four fields against seven, which looks like
+  carelessness. The real split is not by count but by what each column describes — which unit
+  and which visit, against what this particular revision is — and the repair order is the
+  visit, so it belongs beside the order's customer and evens the blocks to five and six. Same
+  treatment «Con qué se probó» / «Qué dio» got in `19.0.15.1.0`.
+
 ## [19.0.15.2.1] — 2026-08-17
 
 Screen fixes on the tests tab, from looking at `19.0.15.2.0` deployed. Carries a migration.

@@ -33,20 +33,31 @@
                         <h1><field name="name" readonly="1"/></h1>
                     </div>
 
+                    <!-- Dos bloques con título, y `repair_id` a la izquierda desde
+                         19.0.15.2.2. La cabecera quedaba en cuatro contra siete y se leía
+                         como descuido; el corte real no es por cantidad sino por qué
+                         describe cada columna —de qué equipo y de qué visita estamos
+                         hablando, contra qué es esta revisión en particular—. La orden de
+                         reparación es la visita, así que va junto al cliente de la orden y
+                         de paso empareja los bloques en cinco y seis.
+
+                         Mismo criterio que se aplicó a «Con qué se probó» / «Qué dio» en
+                         19.0.15.1.0: dos columnas desparejas se leen como una decisión
+                         cuando cada una dice qué contiene. -->
                     <group>
-                        <group>
+                        <group string="Equipo y visita">
                             <field name="lot_id" readonly="estado == 'confirmado'"/>
                             <field name="es_un_rov" invisible="1"/>
                             <field name="product_id"/>
                             <field name="propietario_id"/>
+                            <field name="repair_id" readonly="estado == 'confirmado'"/>
                             <field name="partner_id" invisible="not repair_id"/>
                         </group>
-                        <group>
+                        <group string="Esta revisión">
                             <field name="tipo" readonly="estado == 'confirmado'"/>
                             <field name="fecha" readonly="estado == 'confirmado'"/>
                             <field name="responsable_id" required="1"
                                    readonly="estado == 'confirmado'"/>
-                            <field name="repair_id" readonly="estado == 'confirmado'"/>
                             <!-- Solo cuando hay visita: en una revisión de fabricación no
                                  hay reparación que comprobar ni cable que comparar. La
                                  primera de la visita trae "primer diagnóstico" por defecto;
