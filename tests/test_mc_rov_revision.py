@@ -206,35 +206,34 @@ class TestMcRovRevision(RevisionCommon):
             revision.action_actualizar_checklist()
 
     def test_las_secciones_reparten_el_checklist_sin_perder_ni_repetir(self):
-        """Los siete campos por sección son vistas de las mismas líneas, y la pantalla se
-        arma con ellos: una línea que no caiga en ninguno es un chequeo que el técnico no
-        va a ver nunca y que sin embargo le va a impedir confirmar."""
+        """Los campos por sección son vistas de las mismas líneas, y la pantalla se arma con
+        ellos: una línea que no caiga en ninguno es un chequeo que el técnico no va a ver
+        nunca y que sin embargo le va a impedir confirmar.
+
+        Este test es el que hay que mirar al agregar una sección a `SECCIONES`: si se agrega
+        el valor y se olvida el campo, las líneas de esa sección quedan invisibles. Pasó al
+        agregar `energia` y `comunicacion` en 19.0.14.1.0, y lo agarró acá.
+        """
         revision = self._revision(tipo="reparacion")
 
-        por_seccion = (
-            revision.chequeo_inspeccion_fisica_ids
-            | revision.chequeo_presion_ids
-            | revision.chequeo_leak_ids
-            | revision.chequeo_navegacion_ids
-            | revision.chequeo_video_ids
-            | revision.chequeo_luces_ids
-            | revision.chequeo_otro_ids
+        campos = (
+            revision.chequeo_inspeccion_fisica_ids,
+            revision.chequeo_energia_ids,
+            revision.chequeo_presion_ids,
+            revision.chequeo_leak_ids,
+            revision.chequeo_comunicacion_ids,
+            revision.chequeo_navegacion_ids,
+            revision.chequeo_video_ids,
+            revision.chequeo_luces_ids,
+            revision.chequeo_otro_ids,
         )
 
+        por_seccion = self.env["mc.rov.revision.chequeo"].browse()
+        for campo in campos:
+            por_seccion |= campo
+
         self.assertEqual(por_seccion, revision.chequeo_ids)
-        suma = sum(
-            len(campo)
-            for campo in (
-                revision.chequeo_inspeccion_fisica_ids,
-                revision.chequeo_presion_ids,
-                revision.chequeo_leak_ids,
-                revision.chequeo_navegacion_ids,
-                revision.chequeo_video_ids,
-                revision.chequeo_luces_ids,
-                revision.chequeo_otro_ids,
-            )
-        )
-        self.assertEqual(suma, len(revision.chequeo_ids))
+        self.assertEqual(sum(len(campo) for campo in campos), len(revision.chequeo_ids))
 
 
 @tagged("post_install", "-at_install")
