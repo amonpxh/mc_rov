@@ -690,7 +690,10 @@ class McRovRevisionHallazgo(models.Model):
         help="Cuál de las pruebas de esta revisión destapó el hallazgo. Déjelo vacío si se "
         "encontró por fuera del checklist, mirando el equipo.\n\n"
         "De acá sale la pregunta más útil que estos datos permiten: un hallazgo que aparece "
-        "seguido y que ninguna prueba detecta es un chequeo que falta en la batería.",
+        "seguido y que ninguna prueba detecta es un chequeo que falta en la batería.\n\n"
+        "La inspección de sellos no entra acá y no hace falta que entre: ya registra su "
+        "propio resultado en cada fila. Lo que un sello dice es si alguien más abrió el "
+        "equipo, no qué está fallando.",
     )
 
     detalle = fields.Text(string="Detalle")
