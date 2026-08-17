@@ -859,6 +859,56 @@ Se pide **a partir de la segunda revisión de la visita** y se exige para confir
 primera no se pregunta: `numero_en_visita` ya dice que es la primera, y un campo que se
 contesta siempre igual deja de leerse.
 
+### 8.8 El software entra a la batería, y nada más que eso *(19.0.15.2.0)*
+
+Faltaban dos cosas distintas y las dos se resuelven con chequeos de catálogo.
+
+**La primera es un hueco de cobertura.** El catálogo de síntomas tiene «El software de
+superficie falla» y la batería no tenía ninguna prueba que lo verificara. Es el mismo conteo
+—síntomas contra pruebas— que en `19.0.14.1.0` hizo aparecer las secciones de energía y
+comunicación. Un síntoma sin prueba que lo cubra significa que el técnico lo va a encontrar
+mirando, y entonces el hallazgo queda sin `chequeo_origen_id`.
+
+**La segunda es una falla observada:** el equipo se autoformatea y vuelve al software instalado
+de fábrica. Normalmente ROVControl vuelve a QGroundControl, o QGroundControl baja a una versión
+más vieja; ArduSub podría revertir también pero no está confirmado. Se detecta comparando
+contra la ficha, que ya guarda las tres versiones con `tracking`.
+
+Los dos van en la sección `comunicacion` y no en una sección propia, porque el catálogo de
+síntomas ya clasificó esa falla ahí. Una sección nueva costaba un valor de `SECCIONES`, un
+one2many filtrado y un bloque de vista para dos preguntas.
+
+**Lo único que se agregó en código son cinco `related` de solo lectura** con lo que la ficha
+declara instalado, al lado del chequeo que los usa. No son modelo, son pantalla: un chequeo que
+para responderse obliga a abrir el número de serie y volver se responde «OK» sin mirar, y eso
+es un dato falso donde antes había un vacío honesto. Se esconden cuando la ficha no declara
+nada —hoy, todos los equipos anteriores a Odoo— porque cinco etiquetas vacías se leen como algo
+roto.
+
+#### Lo que se descartó, y con qué regla vuelve
+
+Un borrador anterior tenía un modelo `mc.rov.revision.software` con ranuras
+—superficie / vehículo / controlador / otro—, valor esperado derivado de la ficha, líneas
+generadas al abrir la revisión y un `difiere` con comparación normalizada.
+
+Se descartó porque **el instrumento salía más caro que lo que iba a medir**. Cuál software
+revierte y cada cuánto no se sabe todavía, y `detalle` acepta cualquier combinación sin
+inventarle casilleros. Estructurarlo ahora es adivinar la forma del dato antes de tener el
+dato — el mismo error que este documento evita en el ancho de banda (§ arriba: no se deriva
+porque nadie definió el umbral).
+
+**Vuelve a la mesa cuando el `detalle` de estos dos chequeos muestre un patrón**: qué ranura
+revierte, con qué frecuencia. Ahí la comparación automática se justifica con evidencia.
+
+Tampoco lleva un booleano `difieren` como el de las luces, y por una razón que no es de
+alcance: con el nombre del software escrito a mano, «QGround» y «QGroundControl» son la misma
+cosa y darían falso positivo. Un conteo de luces es un entero y no tiene ortografía; el nombre
+de un programa sí. Tres líneas lado a lado las compara el ojo sin equivocarse.
+
+**Solo `aplica_reparacion`.** Encender las otras dos por costumbre es exactamente la omisión
+que dejó la batería de fabricación sin definir: en fabricación el software lo instala uno
+mismo, así que compararlo contra la ficha no afirma lo mismo.
+
 ---
 
 ## 9. Qué cambia en `repair.order`

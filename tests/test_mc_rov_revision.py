@@ -144,6 +144,32 @@ class TestMcRovRevision(RevisionCommon):
 
         self.assertFalse(revision.chequeo_ids.mapped("componente_id"))
 
+    def test_los_chequeos_de_software_son_solo_de_reparacion(self):
+        """`19.0.15.2.0` los agrega **solo** a la batería de reparación, y eso es una decisión,
+        no un olvido.
+
+        En fabricación el software lo instala uno mismo, así que compararlo contra la ficha no
+        afirma lo mismo. Y encender las tres casillas por costumbre es exactamente la omisión
+        que dejó la batería de fabricación sin definir — ver `docs/pendientes.md`.
+
+        Este test existe porque el error se ve idéntico a un descuido: alguien "completa" los
+        dos registros del XML y nadie lo nota hasta que un ROV recién armado pide software que
+        acaba de instalar.
+        """
+        software = self.env.ref("mc_rov.chequeo_software_opera") | self.env.ref(
+            "mc_rov.chequeo_software_ficha"
+        )
+
+        self.assertTrue(all(software.mapped("aplica_reparacion")))
+        self.assertFalse(any(software.mapped("aplica_fabricacion")))
+        self.assertFalse(any(software.mapped("aplica_terreno")))
+
+        reparacion = self._revision(tipo="reparacion").chequeo_ids.mapped("chequeo_id")
+        fabricacion = self._revision(tipo="fabricacion").chequeo_ids.mapped("chequeo_id")
+
+        self.assertFalse(software - reparacion)
+        self.assertFalse(software & fabricacion)
+
     def test_cambiar_el_tipo_ajusta_el_checklist_sin_borrar_respuestas(self):
         """Cambiar de tipo quita las líneas que ya no corresponden, pero nunca las que
         alguien contestó: el dato ya se levantó."""
