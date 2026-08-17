@@ -144,11 +144,9 @@
         <field name="familia">fisico</field>
         <field name="sequence">200</field>
     </record>
-    <record id="sintoma_fuga_aceite" model="mc.rov.sintoma">
-        <field name="name">Fuga de aceite</field>
-        <field name="familia">fisico</field>
-        <field name="sequence">210</field>
-    </record>
+    <!-- «Fuga de aceite» se retiró en 19.0.14.2.0: los ROV de Marine Connection no usan
+         aceite. Estaba en la lista por analogía con equipos submarinos que sí lo llevan —un
+         síntoma que nadie podía reportar, ocupando lugar en el mesón. -->
     <record id="sintoma_ruido_vibracion" model="mc.rov.sintoma">
         <field name="name">Hace ruido o vibra raro</field>
         <field name="familia">fisico</field>

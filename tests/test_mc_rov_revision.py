@@ -225,6 +225,7 @@ class TestMcRovRevision(RevisionCommon):
             revision.chequeo_navegacion_ids,
             revision.chequeo_video_ids,
             revision.chequeo_luces_ids,
+            revision.chequeo_accesorios_ids,
             revision.chequeo_otro_ids,
         )
 

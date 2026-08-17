@@ -783,6 +783,27 @@ derivarse solo**, exactamente como ya lo hace `luces_difieren` contra `mc_cantid
 
 **No hay sección «Sensores»** porque el sensor de profundidad se verifica probando depth hold.
 
+**Segunda pasada, `19.0.14.2.0`.** La primera cerró los huecos **entre** familias de síntoma;
+contarlas no muestra los huecos **dentro** de una familia que ya tenía alguna prueba, y ahí
+estaban los dos más grandes:
+
+- **«Un motor no gira» no tenía chequeo.** Es de los síntomas que más se reportan, y «Hélices
+  en posición correcta» mira la posición, no que giren.
+- **La inspección física no miraba el umbilical.** Revisaba chasis, penetradores y hélices —o
+  sea el vehículo— y el cable es el componente del que más se sospecha.
+
+Entran también **acro** —que aísla el giróscopo de la parte que nivela, un escalón por debajo
+de la separación entre depth hold y stabilize—, «sin ruido ni vibración anormal», y una sección
+**Accesorios** con manipulador y sonar. La batería queda en 22.
+
+Que manipulador y sonar los lleve una minoría de los equipos **no es razón para no
+preguntarlos**: «No aplica» afirma que el equipo no lo tiene, que es distinto de que nadie lo
+haya mirado — la misma razón por la que las líneas del checklist se generan siempre.
+
+Y se retiró un síntoma: **«Fuga de aceite»**, porque estos ROV no usan aceite. Estaba por
+analogía con equipos submarinos que sí llevan, y era un síntoma que nadie podía reportar
+ocupando lugar en el mesón.
+
 ### 8.6 Los chequeos se contestan con el umbilical del equipo *(19.0.14.1.0)*
 
 Algunos chequeos dependen del cable —«responde a comandos» puede dar distinto con un umbilical

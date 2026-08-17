@@ -4,6 +4,35 @@ All notable changes to the `mc_rov` Odoo module are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this module adheres to [semantic versioning](https://semver.org/) within the constraints of Odoo's version scheme: `19.0.X.Y.Z` where `19.0` is the Odoo major, `X` is breaking-change/migration, `Y` is feature, `Z` is bugfix.
 
+## [19.0.14.2.0] — 2026-08-17
+
+Second pass over the battery. The first one closed the gaps **between** symptom families; this
+one closes the gaps **inside** families that already had some coverage — the ones counting
+families does not reveal.
+
+### Added
+
+- **Section `accesorios`**, plus six checks. The battery goes from 16 to 22.
+
+  | Section | Check | The gap it closes |
+  |---|---|---|
+  | Navegación | **Todos los thrusters responden** | *«Un motor no gira»* is one of the most reported symptoms and had **no** check — "Hélices en posición correcta" looks at position, not rotation |
+  | Navegación | **Responde en acro** | Acro holds angular rate on the **gyro**; stabilize levels using accelerometer and compass. Acro working while stabilize fails means the gyro is sound and the levelling half is not |
+  | Navegación | Sin ruido ni vibración anormal | Symptom with no check; observed under power, hence navigation and not the intake inspection |
+  | Inspección física | **Umbilical sin cortes ni aplastamientos** | The inspection covered chassis, penetrators and propellers — the vehicle, never the cable. And the umbilical is the single most suspected component |
+  | Accesorios | Manipulador responde | Symptom with no check |
+  | Accesorios | Sonar funciona | Symptom with no check |
+
+  Manipulator and sonar are carried by a minority of the units, and that is **not** a reason
+  to skip asking: "No aplica" asserts the unit does not have one, which is different from
+  nobody having looked.
+
+### Removed
+
+- **The symptom «Fuga de aceite».** Marine Connection's ROVs do not use oil. It was in the list
+  by analogy with subsea equipment that does — a symptom nobody could ever report, taking up
+  space at the counter. The symptom catalogue goes from 27 to 26.
+
 ## [19.0.14.1.0] — 2026-08-17
 
 The test battery grows to cover what customers actually report. Rationale in
