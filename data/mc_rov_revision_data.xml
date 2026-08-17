@@ -278,7 +278,7 @@
         <field name="aplica_terreno" eval="True"/>
     </record>
     <record id="chequeo_acro" model="mc.rov.chequeo">
-        <field name="name">Responde en acro</field>
+        <field name="name">Responde en modo acrobático (acro)</field>
         <field name="seccion">navegacion</field>
         <field name="sequence">73</field>
         <field name="aplica_fabricacion" eval="True"/>
