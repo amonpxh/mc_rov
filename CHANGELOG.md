@@ -29,6 +29,23 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
   field is for, which is the least obvious and most valuable thing about it: *a finding that
   recurs and that no test detects is a check missing from the battery*.
 
+### Documented
+
+- **The seal inspection is deliberately not reachable from that field, and findings of family
+  `terceros` will therefore sit there empty.** A seal answers *did somebody else open this
+  unit*, not *what is failing*, and it already records its own outcome per row (`estado_sello`,
+  `manipulacion_externa`). Checklist lines needed the pointer because on their own they only
+  say ok / no_ok and never what was found.
+
+  The consequence has to be respected when querying: marca de plumón, sello no original,
+  tornillería cambiada and componente no original come from the physical inspection, so they
+  carry a null here. **Counted naively they look like a gap in the battery, and there is
+  none** — the inspection did detect them. The "missing check" query must exclude that family.
+
+  No flag was added to the finding catalogue to mark this, because the answer already lives in
+  `familia` — duplicating it in a boolean is the pattern this module has had to undo several
+  times.
+
 ## [19.0.14.0.1] — 2026-08-17
 
 ### Fixed
