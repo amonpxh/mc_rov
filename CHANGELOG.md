@@ -4,6 +4,48 @@ All notable changes to the `mc_rov` Odoo module are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this module adheres to [semantic versioning](https://semver.org/) within the constraints of Odoo's version scheme: `19.0.X.Y.Z` where `19.0` is the Odoo major, `X` is breaking-change/migration, `Y` is feature, `Z` is bugfix.
 
+## [19.0.14.0.2] — 2026-08-17
+
+### Fixed
+
+- **Naming the records was not enough — they could not be *searched*.** 19.0.14.0.1 gave the
+  two link models a readable `display_name`, but typing in either dropdown still matched
+  nothing: Odoo searches on `_rec_name`, which neither model has. The only way through was
+  "Search more", which opened a dialog listing **the ID column and nothing else**, because a
+  model with no `name` field gets an auto-generated list view that has nothing to show.
+
+  So the fix shipped half the problem: you could read the options once they appeared, but not
+  find them. Both models now override `_search_display_name` (on the check name or the
+  component, and on the finding name or the component), and both get a real list view for the
+  "Search more" dialog.
+
+  The component only joins the search under positive operators — under `not ilike` an OR
+  returns too much, since one half failing to match is enough.
+
+### Changed
+
+- **«Detectado por» → «Prueba que lo detectó».** The old label read as if it were asking *who*
+  found it. The new one names the answer it expects. Its help text now also says what the
+  field is for, which is the least obvious and most valuable thing about it: *a finding that
+  recurs and that no test detects is a check missing from the battery*.
+
+### Documented
+
+- **The seal inspection is deliberately not reachable from that field, and findings of family
+  `terceros` will therefore sit there empty.** A seal answers *did somebody else open this
+  unit*, not *what is failing*, and it already records its own outcome per row (`estado_sello`,
+  `manipulacion_externa`). Checklist lines needed the pointer because on their own they only
+  say ok / no_ok and never what was found.
+
+  The consequence has to be respected when querying: marca de plumón, sello no original,
+  tornillería cambiada and componente no original come from the physical inspection, so they
+  carry a null here. **Counted naively they look like a gap in the battery, and there is
+  none** — the inspection did detect them. The "missing check" query must exclude that family.
+
+  No flag was added to the finding catalogue to mark this, because the answer already lives in
+  `familia` — duplicating it in a boolean is the pattern this module has had to undo several
+  times.
+
 ## [19.0.14.0.1] — 2026-08-17
 
 ### Fixed

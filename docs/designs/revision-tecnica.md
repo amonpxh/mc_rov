@@ -497,6 +497,22 @@ saber si un hallazgo lo reveló un chequeo de la revisión o si alguien lo vio d
 y esa diferencia es la que dice si a la revisión le falta un chequeo. Cuesta un campo ahora y
 es imposible de reconstruir después.
 
+**Apunta solo a las líneas del checklist, y la inspección de sellos queda deliberadamente
+afuera.** Un sello contesta *si alguien más abrió el equipo*, no *qué está fallando*, y además
+ya registra su propio resultado en cada fila (`estado_sello`, `manipulacion_externa`), o sea
+que es contable sin este puntero. Las líneas de chequeo son las que lo necesitan: por sí solas
+dicen OK / No OK y nunca qué se encontró.
+
+> **Consecuencia que hay que respetar al consultar:** los hallazgos de familia **`terceros`**
+> —marca de plumón, sello no original, tornillería cambiada, componente no original— salen de
+> la inspección física, así que van a tener este campo vacío casi siempre. Contados sin
+> filtrar parecen un hueco en la batería, y no lo hay: los detectó la inspección de sellos.
+> **La consulta de «chequeos que faltan» tiene que excluir esa familia.**
+>
+> No lleva una casilla propia en el catálogo de hallazgos para marcarlo: la respuesta ya vive
+> en `familia`, y agregar un booleano que dice lo mismo es el patrón que este módulo ya se
+> corrigió varias veces.
+
 Reusa `mc.rov.componente` y `mc.rov.subtipo`, los mismos catálogos de las líneas de trabajo.
 Eso es lo que permite correlacionar: *dónde* se encuentran los hallazgos y *dónde* se hacen
 los trabajos hablan el mismo idioma.

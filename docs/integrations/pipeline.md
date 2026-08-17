@@ -257,6 +257,17 @@ building towards. One record per test session on one unit.
   revealed the finding or someone spotted it otherwise. A frequent finding that no check
   detects is a check that is missing.
 
+  > **Exclude `mc.rov.hallazgo.familia = 'terceros'` from that analysis.** Marca de plumón,
+  > sello no original, tornillería cambiada and componente no original come from the **physical
+  > and seal inspection**, not from a test — and the field only points at checklist lines, so
+  > they sit there with a null. Counted naively they look like a gap in the battery, and there
+  > is none: the seal inspection did detect them, in its own rows.
+  >
+  > The seal inspection is deliberately **not** reachable from this field. It already records
+  > its own outcome per row (`estado_sello`, `manipulacion_externa`), and what a seal answers
+  > is *did somebody else open this unit*, not *what is failing*. Checklist lines needed the
+  > pointer because on their own they only say ok / no_ok, never what was found.
+
 - `mc.rov.revision.inspeccion`: `componente_id`, `estado_sello`, `observacion`,
   `manipulacion_externa` (stored, derived). **One row per sealed component**, replacing what
   had been three independent checkboxes. Generated only on `reparacion` revisions.

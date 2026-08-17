@@ -341,6 +341,46 @@ class TestMcRovRevisionConfirmacion(RevisionCommon):
         self.assertIn("Corrosión", hallazgo.display_name)
         self.assertNotIn("mc.rov.revision.hallazgo,", hallazgo.display_name)
 
+    def test_una_linea_de_chequeo_se_puede_buscar_escribiendo(self):
+        """Mostrar bien el nombre no alcanza: hay que poder filtrar escribiendo.
+
+        Odoo busca por `_rec_name` y este modelo no tiene ninguno, así que sin el override de
+        `_search_display_name` escribir en el desplegable no matchea nada y la única salida es
+        abrir «Buscar más» y recorrer veinte filas a ojo.
+        """
+        revision = self._revision(tipo="reparacion")
+        linea = revision.chequeo_ids[0]
+        palabra = linea.chequeo_id.name.split()[0]
+
+        encontradas = self.env["mc.rov.revision.chequeo"].search(
+            [("id", "in", revision.chequeo_ids.ids), ("display_name", "ilike", palabra)]
+        )
+
+        self.assertIn(linea, encontradas)
+
+    def test_un_hallazgo_se_puede_buscar_por_componente(self):
+        """El desplegable de «Resuelve el hallazgo» lista los del equipo, no los de una
+        revisión, así que desde la segunda visita la lista es larga y buscar es la única
+        forma razonable de elegir."""
+        revision = self._revision()
+        hallazgo = self.env["mc.rov.revision.hallazgo"].create(
+            {
+                "revision_id": revision.id,
+                "componente_id": self.env.ref("mc_rov.comp_umbilical").id,
+                "hallazgo_id": self.env.ref("mc_rov.hallazgo_corrosion").id,
+            }
+        )
+
+        por_componente = self.env["mc.rov.revision.hallazgo"].search(
+            [("display_name", "ilike", "Umbilical")]
+        )
+        por_hallazgo = self.env["mc.rov.revision.hallazgo"].search(
+            [("display_name", "ilike", "Corrosión")]
+        )
+
+        self.assertIn(hallazgo, por_componente)
+        self.assertIn(hallazgo, por_hallazgo)
+
     def test_la_temperatura_es_de_la_corrida_y_no_de_la_revision(self):
         """Se mide una por corrida, así que dos umbilicales dan dos lecturas comparables.
 

@@ -605,6 +605,23 @@ class McRovRevisionChequeo(models.Model):
     resultado = fields.Selection(RESULTADOS_CHEQUEO, string="Resultado")
     detalle = fields.Char(string="Detalle")
 
+    @api.model
+    def _search_display_name(self, operator, value):
+        """Deja escribir para filtrar, que sin esto no funciona en absoluto.
+
+        Odoo busca por `_rec_name`, y este modelo no tiene ninguno: sin este override,
+        escribir en el desplegable de «Prueba que lo detectó» no matchea nada y la única
+        salida es abrir «Buscar más» y elegir de una lista de veinte filas. Mostrar bien el
+        nombre no alcanzaba — hay que poder buscarlo.
+
+        El componente entra en la búsqueda solo con operadores positivos: en un `not ilike`
+        el OR devolvería de más, porque bastaría que una de las dos partes no coincidiera.
+        """
+        dominio = [("chequeo_id.name", operator, value)]
+        if operator in ("=", "like", "ilike", "=like", "=ilike"):
+            return ["|"] + dominio + [("componente_id.name", operator, value)]
+        return dominio
+
     @api.depends("chequeo_id.name", "componente_id.name")
     def _compute_display_name(self):
         """Nombra la línea por el chequeo que representa.
@@ -664,17 +681,37 @@ class McRovRevisionHallazgo(models.Model):
     # hallazgo lo reveló un chequeo de la revisión o si alguien lo vio de casualidad. De ahí
     # sale el resultado más útil de todos — un hallazgo frecuente que ningún chequeo detecta
     # es un chequeo que falta.
+    # "Detectado por" se leía como si preguntara por la persona. La etiqueta tiene que nombrar
+    # la respuesta que se espera, que es una prueba del checklist.
     chequeo_origen_id = fields.Many2one(
         "mc.rov.revision.chequeo",
-        string="Detectado por",
+        string="Prueba que lo detectó",
         ondelete="set null",
-        help="El chequeo que lo destapó, si fue uno. Vacío significa que se encontró por "
-        "fuera del checklist.",
+        help="Cuál de las pruebas de esta revisión destapó el hallazgo. Déjelo vacío si se "
+        "encontró por fuera del checklist, mirando el equipo.\n\n"
+        "De acá sale la pregunta más útil que estos datos permiten: un hallazgo que aparece "
+        "seguido y que ninguna prueba detecta es un chequeo que falta en la batería.\n\n"
+        "La inspección de sellos no entra acá y no hace falta que entre: ya registra su "
+        "propio resultado en cada fila. Lo que un sello dice es si alguien más abrió el "
+        "equipo, no qué está fallando.",
     )
 
     detalle = fields.Text(string="Detalle")
 
     lot_id = fields.Many2one(related="revision_id.lot_id", string="Equipo", store=True)
+
+    @api.model
+    def _search_display_name(self, operator, value):
+        """Mismo caso que la línea de chequeo: sin esto no se puede buscar escribiendo.
+
+        Acá pesa más todavía, porque el desplegable de «Resuelve el hallazgo» lista los
+        hallazgos de todo el equipo y no los de una revisión: la lista es larga desde la
+        segunda visita.
+        """
+        dominio = [("hallazgo_id.name", operator, value)]
+        if operator in ("=", "like", "ilike", "=like", "=ilike"):
+            return ["|"] + dominio + [("componente_id.name", operator, value)]
+        return dominio
 
     @api.depends("componente_id.name", "subtipo_id.name", "hallazgo_id.name")
     def _compute_display_name(self):

@@ -284,6 +284,39 @@
         </field>
     </record>
 
+    <!-- Estas dos listas existen solo para el diálogo «Buscar más» de los dos campos de
+         enlace: sin una lista declarada, Odoo genera una por defecto que en un modelo sin
+         campo `name` muestra únicamente la columna ID. La pantalla resultante era una lista
+         de números y nada más, o sea imposible de usar para lo único que sirve —elegir cuál
+         prueba destapó el hallazgo, o cuál hallazgo resuelve el trabajo—. -->
+    <record id="view_mc_rov_revision_chequeo_list" model="ir.ui.view">
+        <field name="name">mc.rov.revision.chequeo.list</field>
+        <field name="model">mc.rov.revision.chequeo</field>
+        <field name="arch" type="xml">
+            <list string="Pruebas de la revisión" create="0">
+                <field name="chequeo_id"/>
+                <field name="componente_id" optional="show"/>
+                <field name="seccion"/>
+                <field name="resultado"/>
+                <field name="detalle" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_mc_rov_revision_hallazgo_list" model="ir.ui.view">
+        <field name="name">mc.rov.revision.hallazgo.list</field>
+        <field name="model">mc.rov.revision.hallazgo</field>
+        <field name="arch" type="xml">
+            <list string="Hallazgos" create="0">
+                <field name="componente_id"/>
+                <field name="subtipo_id" optional="show"/>
+                <field name="hallazgo_id"/>
+                <field name="severidad"/>
+                <field name="revision_id" optional="show"/>
+            </list>
+        </field>
+    </record>
+
     <record id="view_mc_rov_revision_list" model="ir.ui.view">
         <field name="name">mc.rov.revision.list</field>
         <field name="model">mc.rov.revision</field>
