@@ -4,6 +4,64 @@ All notable changes to the `mc_rov` Odoo module are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this module adheres to [semantic versioning](https://semver.org/) within the constraints of Odoo's version scheme: `19.0.X.Y.Z` where `19.0` is the Odoo major, `X` is breaking-change/migration, `Y` is feature, `Z` is bugfix.
 
+## [19.0.15.0.0] — 2026-08-17
+
+One run per revision. Rationale in
+[`docs/designs/revision-tecnica.md`](docs/designs/revision-tecnica.md) §§ 8.6–8.7.
+
+### Removed
+
+- **`mc.rov.revision.corrida` is gone.** Its fields move up onto `mc.rov.revision` under the
+  same names: `umbilical`, `largo`, `alimentacion`, `tension_salida`, `esfuerzo_duracion`,
+  `esfuerzo_resultado`, `subida`, `bajada`, `temperatura_interior`, `temperatura_exterior`.
+
+  **The premise that split them turned out to be half false.** The design said "what does not
+  depend on the cable lives on the revision and is done once even when there are two runs".
+  But several checks *do* depend on the cable — responds to commands, bandwidth, probably
+  video — and the two runs shared **one set of check answers**:
+
+  > Any check that differed between one cable and the other was lost silently. The very
+  > comparison that justified the second run was visible in four numbers and nothing else.
+
+  Marine Connection confirmed the fact that settles it: **changing cables always means running
+  the full stress test again**, never a quick swap to read bandwidth. So a second pass with
+  another cable was always a whole test, and modelling it as a line inside the same record
+  described it as smaller than it is.
+
+  **This retires three things at once:** the convention that "checks belong to the first run",
+  the «batería corrida con» field proposed to record that convention, and the `por_corrida`
+  mechanism that was going to split three checks per cable. None are needed when a revision has
+  one cable.
+
+  **The price, stated plainly:** comparing two cables now costs answering the 22 checks twice.
+  That is the same price the post-repair retest already had, and it is what makes the
+  comparison complete — half a comparison is worth nothing.
+
+### Added
+
+- **`mc.rov.revision.motivo`** — `retest` | `comparacion_cable` | `otro`. Collapsing the run
+  costs something that has to be paid back: **two runs inside one revision could only ever mean
+  "cable comparison"** — the structure encoded the intent. Two revisions in a visit can be that
+  or a post-repair retest, and they look identical.
+
+  Mixing them destroys the question that justifies a second pass: *"how often does the later
+  revision still show the fault"* means nothing if half those second passes were cable
+  comparisons. Inferring it from the umbilical was considered and rejected — it lies when a
+  retest happens to use a different cable.
+
+  Asked **from the second revision of a visit onward** and required to confirm. Not asked on
+  the first: `numero_en_visita` already says it is the first, and a field that is always
+  answered the same way stops being read.
+
+### Migration
+
+`19.0.15.0.0/pre-migrate.py` lifts each revision's **first** run onto the header and drops the
+model, its table and its ORM metadata.
+
+**Runs beyond the first are discarded, and every one is dumped to the log in full first.** They
+could not become extra revisions: each would need its own 22 answers, and those answers never
+existed — precisely the defect this change fixes.
+
 ## [19.0.14.2.1] — 2026-08-17
 
 ### Fixed

@@ -804,37 +804,60 @@ Y se retiró un síntoma: **«Fuga de aceite»**, porque estos ROV no usan aceit
 analogía con equipos submarinos que sí llevan, y era un síntoma que nadie podía reportar
 ocupando lugar en el mesón.
 
-### 8.6 Los chequeos se contestan con el umbilical del equipo *(19.0.14.1.0)*
+### 8.6 Una corrida por revisión *(19.0.15.0.0)*
 
-Algunos chequeos dependen del cable —«responde a comandos» puede dar distinto con un umbilical
-que con otro— y el checklist se contesta una sola vez por revisión. La convención es que **se
-contesta con el umbilical del equipo**, y sobrevive a los tres escenarios posibles:
+`mc.rov.revision.corrida` era un modelo de línea: una revisión podía llevar varias corridas,
+una por umbilical, para comparar cables dentro de la misma ficha. **Desaparece.** Sus campos
+suben a la revisión y una revisión pasa a tener un solo cable.
 
-| Escenario | Con qué cable se contestó |
+**La premisa que lo separaba resultó ser falsa a medias.** El § 5.2 decía que «lo que no
+depende del cable —inspección física, presión, leak, luces, video— vive en la revisión y se
+hace una sola vez aunque haya dos corridas». Pero varios chequeos **sí** dependen del cable:
+responde a comandos, el ancho de banda, probablemente el video. Y las dos corridas compartían
+**un solo juego de respuestas**:
+
+> Cualquier chequeo que cambiara entre un cable y otro se perdía en silencio. La comparación
+> que justificaba la segunda corrida quedaba visible en cuatro números y en nada más.
+
+Ahora la regla es una sola y no necesita convenciones:
+
+| Qué cambia | Qué se hace |
 |---|---|
-| Una corrida, umbilical del equipo | Inequívoco |
-| Una corrida, umbilical del taller *(llegó sin el suyo)* | Inequívoco: no hay otro |
-| Dos corridas | La convención: el del equipo |
+| Solo los números —ancho de banda, esfuerzo, temperatura— | *(ya no existe: siempre se corre el esfuerzo completo, así que siempre es una revisión)* |
+| Cualquier cosa que se responda | **Una segunda revisión**, con su batería completa |
 
-El caso ambiguo es solo el tercero, y ahí la convención decide. Se evaluó un checklist por
-corrida y se descartó: es un modelo nuevo con migración para algo que ocurre en una minoría de
-las visitas, y si con el otro cable diera distinto esa diferencia ya la capturan los números de
-la corrida — que es justamente para lo que existe la segunda.
+Marine Connection confirmó el dato que lo decide: **al cambiar de cable siempre se corre el
+esfuerzo completo**, nunca se cambia solo para medir ancho de banda. O sea que una segunda
+pasada con otro cable siempre fue una prueba entera, y modelarla como una línea dentro de la
+misma ficha era describirla más chica de lo que es.
 
-Un campo «corrida de referencia» tampoco haría falta: nunca decidiría nada que la convención no
-decida ya.
+**Lo que esto retira, todo de una vez:** la convención de «los chequeos son de la primera
+corrida», el campo «batería corrida con» que se llegó a proponer para registrarla, y el
+`por_corrida` que iba a partir tres chequeos por cable. Ninguno hace falta cuando la revisión
+tiene un solo umbilical.
 
-> **La opción del umbilical se llamaba «De prueba (control)» y a veces mentía.** El cable del
-> taller se usa como muestra de control cuando hay dos corridas, pero también **porque el ROV
-> llegó sin el suyo** — raro, pero pasa. En ese caso no es control de nada: es el único cable.
-> Pasa a llamarse **«Del taller»**; la clave `prueba` no cambia, así que ninguna consulta se
-> rompe.
->
-> **Y una revisión con una sola corrida, esa corrida `prueba`, significa que el equipo llegó
-> sin umbilical propio.** Hay que excluir esos casos del análisis de fallas de umbilical: ese
-> ROV nunca va a tener un hallazgo de cable, no porque el cable estuviera bueno sino porque no
-> estaba. Sin esa exclusión, la estadística dice que los umbilicales fallan menos de lo que
-> fallan.
+**El precio, dicho de frente:** comparar dos cables ahora cuesta responder los 22 chequeos dos
+veces. Es el mismo precio que ya tenía el re-test tras reparación, y es lo que compra que la
+comparación sea completa — media comparación no sirve.
+
+### 8.7 Por qué existe la segunda revisión *(19.0.15.0.0)*
+
+Colapsar la corrida tiene una consecuencia que hay que pagar: **antes, dos corridas dentro de
+una revisión solo podían significar «comparación de cables»** — la estructura codificaba la
+intención. Ahora dos revisiones en la misma visita pueden ser eso o un re-test tras reparación,
+y son indistinguibles.
+
+Mezclarlas corrompe la pregunta que justifica el segundo pase: *«¿cuántas veces la revisión
+posterior todavía muestra la falla?»* no significa nada si la mitad de esos segundos pases eran
+comparaciones de cable.
+
+Se evaluó inferirlo del umbilical —si difiere, es comparación— y se descartó: miente cuando un
+re-test usa otro cable por casualidad. Entra como campo **`motivo`**: *re-test tras reparación*
+/ *comparación de cable* / *otro*.
+
+Se pide **a partir de la segunda revisión de la visita** y se exige para confirmar. En la
+primera no se pregunta: `numero_en_visita` ya dice que es la primera, y un campo que se
+contesta siempre igual deja de leerse.
 
 ---
 

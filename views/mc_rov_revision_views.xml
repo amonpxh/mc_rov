@@ -47,6 +47,12 @@
                             <field name="responsable_id" required="1"
                                    readonly="estado == 'confirmado'"/>
                             <field name="repair_id" readonly="estado == 'confirmado'"/>
+                            <field name="numero_en_visita" invisible="1"/>
+                            <!-- Solo desde la segunda de la visita: la primera es la primera y
+                                 numero_en_visita ya lo dice. -->
+                            <field name="motivo" readonly="estado == 'confirmado'"
+                                   invisible="numero_en_visita &lt; 2"
+                                   required="numero_en_visita &gt; 1"/>
                             <field name="horas_operacion" readonly="estado == 'confirmado'"/>
                             <field name="resultado" readonly="1"/>
                         </group>
@@ -55,11 +61,9 @@
                     <!-- Tres pestañas, en el orden en que ocurren las cosas: se miran los
                          sellos antes de tocar nada, se prueba, y se anota lo que se encontró.
 
-                         Eran cinco hasta 19.0.14.0.0. "Corridas" se fusionó en Pruebas —la
-                         corrida no es una prueba sino la condición bajo la cual se probó, y
-                         ocurre en la misma sesión, así que tenerlas aparte obligaba a saltar
-                         de pestaña en medio del trabajo— y "Condiciones" desapareció cuando
-                         las temperaturas bajaron a la corrida. -->
+                         Eran cinco hasta 19.0.14.0.0: "Corridas" se fusionó en Pruebas
+                         —la corrida no es una prueba sino la condición bajo la cual se probó, y
+                         ocurre en la misma sesión— y "Condiciones" desapareció con ella. -->
                     <notebook>
                         <page string="Sellos" name="page_sellos"
                               invisible="tipo != 'reparacion'">
@@ -87,39 +91,38 @@
                         </page>
 
                         <page string="Pruebas" name="page_chequeos">
-                            <!-- Las corridas abren la pestaña porque son la CONDICIÓN de todo
-                                 lo que viene abajo: con qué cable, con qué alimentación, y
-                                 cuánto aguantó el esfuerzo. Normalmente una; dos cuando se
-                                 usa el umbilical de prueba como muestra de control, y ahí la
-                                 comparación entre las dos filas es lo que aísla el cable como
-                                 fuente de falla.
+                            <!-- La corrida abre la pestaña porque es la CONDICIÓN de todo lo
+                                 que viene abajo: con qué cable, con qué alimentación, y cuánto
+                                 aguantó el esfuerzo.
 
-                                 Las temperaturas van en la fila de la corrida y no en la
-                                 revisión: se miden una por corrida, y además dependen del
-                                 cable —un umbilical largo cae tensión y calienta—. Son dato
-                                 interno y no salen impresas. -->
-                            <group string="Corridas">
-                                <field name="corrida_ids" nolabel="1" colspan="2"
-                                       readonly="estado == 'confirmado'">
-                                    <list editable="bottom">
-                                        <field name="sequence" widget="handle"/>
-                                        <field name="umbilical"/>
-                                        <field name="largo"/>
-                                        <field name="alimentacion"/>
-                                        <field name="tension_salida"/>
-                                        <field name="esfuerzo_duracion"/>
-                                        <field name="esfuerzo_resultado"/>
-                                        <field name="subida"/>
-                                        <field name="bajada"/>
-                                        <field name="temperatura_interior" optional="show"/>
-                                        <field name="temperatura_exterior" optional="show"/>
-                                    </list>
-                                </field>
+                                 Es una sola por revisión desde 19.0.15.0.0. Antes eran una
+                                 lista, para poder comparar dos cables dentro de la misma
+                                 ficha — pero las dos corridas compartían un solo juego de
+                                 respuestas, así que cualquier chequeo que cambiara entre
+                                 cables se perdía en silencio. Comparar dos cables son dos
+                                 revisiones, cada una con su batería completa.
+
+                                 Las temperaturas son dato interno y no salen impresas. -->
+                            <group string="Condiciones de la prueba">
+                                <group>
+                                    <field name="umbilical" readonly="estado == 'confirmado'"/>
+                                    <field name="largo" readonly="estado == 'confirmado'"/>
+                                    <field name="alimentacion" readonly="estado == 'confirmado'"/>
+                                    <field name="tension_salida" readonly="estado == 'confirmado'"/>
+                                </group>
+                                <group>
+                                    <field name="esfuerzo_resultado" readonly="estado == 'confirmado'"/>
+                                    <field name="esfuerzo_duracion" readonly="estado == 'confirmado'"/>
+                                    <field name="subida" readonly="estado == 'confirmado'"/>
+                                    <field name="bajada" readonly="estado == 'confirmado'"/>
+                                    <field name="temperatura_interior" readonly="estado == 'confirmado'"/>
+                                    <field name="temperatura_exterior" readonly="estado == 'confirmado'"/>
+                                </group>
                             </group>
 
-                            <!-- Las condiciones del terreno acompañan a las corridas por lo
-                                 mismo: describen bajo qué se probó, no qué resultó. Solo
-                                 aparecen cuando la revisión es de terreno. -->
+                            <!-- Las condiciones del terreno van junto a las de la prueba
+                                 por lo mismo: describen bajo qué se probó, no qué resultó.
+                                 Solo aparecen cuando la revisión es de terreno. -->
                             <group string="Condiciones del terreno" invisible="tipo != 'terreno'">
                                 <group>
                                     <field name="lugar" readonly="estado == 'confirmado'"/>
@@ -169,10 +172,10 @@
                             <!-- Energía y comunicación entran en 19.0.14.1.0: un ROV que no
                                  enciende o que pierde conexión no tenía ninguna prueba que lo
                                  verificara, aunque las dos cosas son familias enteras del
-                                 catálogo de síntomas. Los chequeos de comunicación se
-                                 contestan con el umbilical del equipo cuando hay dos
-                                 corridas; si con el otro cable dieran distinto, esa
-                                 diferencia la capturan los números de la corrida. -->
+                                 catálogo de síntomas. Los chequeos de comunicación dependen
+                                 del cable, y desde 19.0.15.0.0 eso no necesita convención: la
+                                 revisión tiene un solo umbilical, así que estas respuestas son
+                                 de ese cable y de ningún otro. -->
                             <group string="Prueba de energía" invisible="not chequeo_energia_ids">
                                 <field name="chequeo_energia_ids" nolabel="1" class="mc_rov_pruebas"
                                        colspan="2" readonly="estado == 'confirmado'">
@@ -274,9 +277,10 @@
                                  todas —una lista— esa diferencia deja de interrumpir el ritmo
                                  de las otras ocho.
 
-                                 El conteo se queda acá y no sube con las corridas porque el
-                                 técnico hace las tres cosas en el mismo momento: prende las
-                                 luces, cuenta cuántas encienden y prueba que respondan. -->
+                                 El conteo se queda acá y no sube con las condiciones de la
+                                 prueba porque el técnico hace las tres cosas en el mismo
+                                 momento: prende las luces, cuenta cuántas encienden y prueba
+                                 que respondan. -->
                             <group string="Prueba de luces">
                                 <field name="chequeo_luces_ids" nolabel="1" class="mc_rov_pruebas" colspan="2"
                                        invisible="not chequeo_luces_ids"

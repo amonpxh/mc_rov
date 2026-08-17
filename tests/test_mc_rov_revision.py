@@ -42,10 +42,14 @@ class RevisionCommon(TransactionCase):
         )
 
     def _corrida_completa(self, revision, **vals):
-        """Una corrida que no impide confirmar."""
-        return self.env["mc.rov.revision.corrida"].create(
+        """Llena las condiciones de la prueba para que no impidan confirmar.
+
+        Desde 19.0.15.0.0 la corrida no es un modelo aparte: es la propia revisión, con un
+        solo umbilical. El helper conserva el nombre porque lo que hace es lo mismo — dejar
+        registrada la pasada completa— y porque así los tests siguen leyéndose igual.
+        """
+        revision.write(
             {
-                "revision_id": revision.id,
                 "umbilical": "equipo",
                 "largo": 100.0,
                 "alimentacion": "Generador",
@@ -55,6 +59,7 @@ class RevisionCommon(TransactionCase):
                 **vals,
             }
         )
+        return revision
 
     def _responder_todo(self, revision, resultado="ok"):
         """Responde el checklist. Los sellos van aparte, para poder probarlos solos."""
@@ -409,24 +414,27 @@ class TestMcRovRevisionConfirmacion(RevisionCommon):
         self.assertIn(hallazgo, por_componente)
         self.assertIn(hallazgo, por_hallazgo)
 
-    def test_la_temperatura_es_de_la_corrida_y_no_de_la_revision(self):
-        """Se mide una por corrida, así que dos umbilicales dan dos lecturas comparables.
+    def test_una_revision_tiene_un_solo_umbilical(self):
+        """Una revisión es una prueba completa bajo una condición, y el cable es la condición.
 
-        En la revisión obligaba a elegir una o promediarlas, y las dos cosas pierden justo la
-        comparación que hace útil correr con el umbilical de prueba: mismo ROV, mismo banco,
-        distinto cable. Además la temperatura sí depende del cable —uno largo cae tensión y
-        calienta—, o sea que estaba clasificada al revés.
+        Eran una lista hasta 19.0.15.0.0, para comparar dos cables dentro de la misma ficha.
+        Pero las dos corridas compartían un solo juego de respuestas, así que cualquier
+        chequeo que cambiara entre cables se perdía en silencio. Comparar dos cables son dos
+        revisiones, cada una con su batería.
         """
-        revision = self._revision()
-        propia = self._corrida_completa(revision, temperatura_interior=48.0)
-        control = self._corrida_completa(revision, umbilical="prueba", temperatura_interior=39.5)
+        self.assertNotIn("corrida_ids", self.env["mc.rov.revision"]._fields)
+        self.assertNotIn("mc.rov.revision.corrida", self.env)
 
-        self.assertNotIn("temperatura_interior", revision._fields)
-        self.assertNotEqual(propia.temperatura_interior, control.temperatura_interior)
+        revision = self._corrida_completa(self._revision(), temperatura_interior=48.0)
 
-    def test_sin_corridas_no_deja_confirmar(self):
-        """La prueba de esfuerzo siempre se hace, así que una revisión sin corridas dice
-        que no se probó nada."""
+        self.assertEqual(revision.umbilical, "equipo")
+        self.assertEqual(revision.temperatura_interior, 48.0)
+
+    def test_sin_esfuerzo_no_deja_confirmar(self):
+        """La prueba de esfuerzo siempre se hace, incluso al comparar un cable.
+
+        Una revisión sin resultado de esfuerzo dice que no se probó nada.
+        """
         revision = self._revision()
         self._responder_todo(revision)
 
@@ -667,6 +675,60 @@ class TestMcRovRevisionAutomatica(RevisionCommon):
 
     def _revisiones(self, orden):
         return self.env["mc.rov.revision"].search([("repair_id", "=", orden.id)])
+
+    def _lista_para_confirmar(self, revision, **vals):
+        """Una revisión a la que solo le falta lo que el test quiera probar."""
+        revision.responsable_id = self.empleado
+        revision.write(
+            {
+                "umbilical": "equipo",
+                "largo": 100.0,
+                "alimentacion": "Generador",
+                "esfuerzo_duracion": 1.5,
+                "esfuerzo_resultado": "ok",
+                **vals,
+            }
+        )
+        revision.chequeo_ids.write({"resultado": "ok"})
+        revision.inspeccion_ids.write({"estado_sello": "intacto"})
+        return revision
+
+    def test_la_segunda_revision_no_se_confirma_sin_motivo(self):
+        """Dos revisiones en una visita pueden ser dos cosas muy distintas.
+
+        Un re-test tras reparación y una comparación de cable se ven idénticos, y contarlos
+        juntos arruina la pregunta que justifica el segundo pase: «¿cuántas veces todavía
+        muestra la falla?». Sin el motivo, la mitad de esos segundos pases podrían ser
+        comparaciones de cable y el número no significaría nada.
+        """
+        orden = self._orden()
+        orden.state = "confirmed"
+        segunda = self.env["mc.rov.revision"].create(
+            {"lot_id": self.lot.id, "repair_id": orden.id, "tipo": "reparacion"}
+        )
+        self._lista_para_confirmar(segunda)
+
+        self.assertEqual(segunda.numero_en_visita, 2)
+        with self.assertRaises(UserError):
+            segunda.action_confirmar()
+
+        segunda.motivo = "comparacion_cable"
+        segunda.action_confirmar()
+
+        self.assertEqual(segunda.estado, "confirmado")
+
+    def test_la_primera_revision_no_necesita_motivo(self):
+        """La primera es la primera, y `numero_en_visita` ya lo dice."""
+        orden = self._orden()
+        orden.state = "confirmed"
+        primera = self._revisiones(orden)
+
+        self._lista_para_confirmar(primera)
+        primera.action_confirmar()
+
+        self.assertEqual(primera.numero_en_visita, 1)
+        self.assertFalse(primera.motivo)
+        self.assertEqual(primera.estado, "confirmado")
 
     def test_una_orden_en_borrador_no_abre_revision(self):
         """Un borrador es una cotización: el equipo puede no haber llegado."""
