@@ -605,6 +605,24 @@ class McRovRevisionChequeo(models.Model):
     resultado = fields.Selection(RESULTADOS_CHEQUEO, string="Resultado")
     detalle = fields.Char(string="Detalle")
 
+    @api.depends("chequeo_id.name", "componente_id.name")
+    def _compute_display_name(self):
+        """Nombra la línea por el chequeo que representa.
+
+        El modelo no tiene `name` ni `_rec_name`, así que sin esto Odoo devuelve
+        "mc.rov.revision.chequeo,50" — y ese es el texto que salía en el desplegable de
+        «Detectado por» al registrar un hallazgo, o sea justo donde hay que elegir cuál
+        prueba lo destapó. Un identificador técnico ahí no permite elegir nada.
+
+        El componente entra cuando la línea es una de las que se generan por componente: sin
+        él, cinco filas del mismo chequeo se leerían idénticas.
+        """
+        for linea in self:
+            etiqueta = linea.chequeo_id.name or "Chequeo"
+            if linea.componente_id:
+                etiqueta = f"{etiqueta} · {linea.componente_id.name}"
+            linea.display_name = etiqueta
+
 
 class McRovRevisionHallazgo(models.Model):
     """Lo que se encontró, estructurado.
@@ -657,6 +675,22 @@ class McRovRevisionHallazgo(models.Model):
     detalle = fields.Text(string="Detalle")
 
     lot_id = fields.Many2one(related="revision_id.lot_id", string="Equipo", store=True)
+
+    @api.depends("componente_id.name", "subtipo_id.name", "hallazgo_id.name")
+    def _compute_display_name(self):
+        """Nombra el hallazgo por dónde y qué, que es como lo busca quien lo enlaza.
+
+        Mismo caso que la línea de chequeo: sin esto Odoo devuelve
+        "mc.rov.revision.hallazgo,12", y ese era el texto del desplegable «Resuelve el
+        hallazgo» en la pestaña Reparación — el campo que cierra el circuito entre lo que se
+        encontró y lo que se arregló. Con un identificador técnico ahí, nadie lo enlaza, y sin
+        el enlace la línea de trabajo queda con «por qué pasó» y sin «qué se encontró».
+        """
+        for hallazgo in self:
+            donde = hallazgo.componente_id.name or "Sin componente"
+            if hallazgo.subtipo_id:
+                donde = f"{donde} / {hallazgo.subtipo_id.name}"
+            hallazgo.display_name = f"{donde} · {hallazgo.hallazgo_id.name or 'sin hallazgo'}"
 
 
 class McRovRevisionInspeccion(models.Model):

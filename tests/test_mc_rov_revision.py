@@ -307,6 +307,40 @@ class TestMcRovRevisionResultado(RevisionCommon):
 class TestMcRovRevisionConfirmacion(RevisionCommon):
     """Tests de lo que se exige para confirmar."""
 
+    def test_una_linea_de_chequeo_se_nombra_por_su_chequeo(self):
+        """Es lo que se ve en el desplegable «Detectado por» al registrar un hallazgo.
+
+        Sin `_compute_display_name` el modelo no tiene `name` ni `_rec_name` y Odoo cae en
+        "mc.rov.revision.chequeo,50". Con un identificador técnico ahí no se puede elegir cuál
+        prueba destapó el hallazgo, que es el eje de detección del análisis: un hallazgo
+        frecuente que ningún chequeo detecta es un chequeo que falta.
+        """
+        revision = self._revision(tipo="reparacion")
+        linea = revision.chequeo_ids[0]
+
+        self.assertIn(linea.chequeo_id.name, linea.display_name)
+        self.assertNotIn("mc.rov.revision.chequeo,", linea.display_name)
+
+    def test_un_hallazgo_se_nombra_por_donde_y_que(self):
+        """Es lo que se ve en «Resuelve el hallazgo», el campo que cierra el circuito.
+
+        Mismo caso que la línea de chequeo. Si ahí sale un identificador técnico nadie enlaza
+        el trabajo con el hallazgo, y la línea queda con «por qué pasó» y sin «qué se
+        encontró» — que es justo el cruce que el análisis necesita.
+        """
+        revision = self._revision()
+        hallazgo = self.env["mc.rov.revision.hallazgo"].create(
+            {
+                "revision_id": revision.id,
+                "componente_id": self.env.ref("mc_rov.comp_motor").id,
+                "hallazgo_id": self.env.ref("mc_rov.hallazgo_corrosion").id,
+            }
+        )
+
+        self.assertIn("Motor", hallazgo.display_name)
+        self.assertIn("Corrosión", hallazgo.display_name)
+        self.assertNotIn("mc.rov.revision.hallazgo,", hallazgo.display_name)
+
     def test_la_temperatura_es_de_la_corrida_y_no_de_la_revision(self):
         """Se mide una por corrida, así que dos umbilicales dan dos lecturas comparables.
 

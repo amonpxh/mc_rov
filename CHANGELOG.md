@@ -4,6 +4,30 @@ All notable changes to the `mc_rov` Odoo module are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this module adheres to [semantic versioning](https://semver.org/) within the constraints of Odoo's version scheme: `19.0.X.Y.Z` where `19.0` is the Odoo major, `X` is breaking-change/migration, `Y` is feature, `Z` is bugfix.
 
+## [19.0.14.0.1] — 2026-08-17
+
+### Fixed
+
+- **The two link fields that close the analysis circuit showed a technical id instead of a
+  name.** «Detectado por» offered `mc.rov.revision.chequeo,50` and «Resuelve el hallazgo»
+  offered `mc.rov.revision.hallazgo,12`. Neither model has a `name` field or a `_rec_name`, so
+  Odoo falls back to `model,id` — and both are dropdowns where a human has to pick a row.
+
+  These are not cosmetic fields. `chequeo_origen_id` records **which check revealed the
+  finding**, which is the detection axis of an FMEA and yields the most useful result the data
+  can give: *a finding that recurs and that no check detects is a check missing from the
+  battery*. `hallazgo_origen_id` is what ties a repair back to what was found. **Nobody links
+  a row they cannot read**, and an unlinked row leaves a work line with "why it happened" and
+  no "what was found".
+
+  Line checks now read `«Estanqueidad bajo presión»`, or `«Marcas de plumón · E-pod»` when the
+  check is generated per component — without the component, five rows of the same check would
+  be indistinguishable. Findings read `«Motor / Rotor · Corrosión»`.
+
+  Same bug and same fix as `mc.rov.linea.falla` in 19.0.13.0.0. That one was fixed because a
+  `UserError` had to name the line; its two siblings were not checked at the time. Spotted on
+  screen after deploying 19.0.14.0.0.
+
 ## [19.0.14.0.0] — 2026-08-17
 
 The tabs become the process. Rationale in
