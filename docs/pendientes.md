@@ -41,33 +41,82 @@ sigue es lo que hay que resolver antes de escribir código.
   aprendizaje se pierde. Es el mismo hueco que el diagnóstico de fallas cerró del lado de la
   reparación, sin cerrar del lado de la manufactura.
 
+### Lo que sí quedó decidido el 2026-08-17 sobre fabricación
+
+Los tres puntos de arriba **no se diseñan por separado**: son un sistema. Decidido en
+conversación, todavía sin spec.
+
+1. **La lección es del modelo, no de la unidad.** Palabras de Paulo: *«la lección debería ser
+   del modelo, actualmente se queda solo en la unidad — ese es el problema»*. Eso parte el
+   diseño en dos niveles: la prueba es de un número de serie, la lección es de un
+   `product.template` y aplica a todo lo que se fabrique de ahí en adelante. Promover un
+   hallazgo a lección es un **acto deliberado**, no automático: «a este ROV se le filtró el
+   E-pod» y «cambiamos cómo se sellan todos los MC-300» no son la misma afirmación.
+
+2. **La lección ya tiene una segunda fuente, viva en producción hoy.** Una línea de trabajo
+   con `origen = diseno` («lo pensamos mal») o `= falla_fabricacion` («lo hicimos mal») **es
+   una lección de fabricación ya escrita**, del lado de reparación, sin destinatario. Cerrar
+   ese lazo es lo que hace que `origen` pague: hoy es análisis retrospectivo y nada más.
+
+3. **Se diseña completo, se despliega por etapas.** Diseñar la lección aislada la ajustaría a
+   la única fuente que hoy tiene datos y no calzaría cuando llegue el hallazgo de fabricación.
+   El orden de implementación se decide con el diseño entero a la vista, no antes.
+
+4. **La pregunta abierta que define el ancla: ¿se usa `mrp`?** Si fabricación se maneja con
+   órdenes de fabricación de Odoo, el evento de armado cuelga de ahí y no del lote —el lote es
+   el *resultado* del armado, no el armado—. Y además resuelve gratis el riesgo del punto 5,
+   porque una orden de fabricación es un momento en que alguien tiene que mirar la pantalla.
+   Hoy `mrp` **no** es dependencia del módulo.
+
+5. **El riesgo a resolver antes de escribir código: un registro de lecciones que nadie lee
+   mientras arma el equipo es un cementerio.** Y es peor que el riesgo habitual: esto *sí* se
+   va a llenar —escribir la lección es satisfactorio— y no se va a leer. Guardarla en el
+   producto y confiar en que alguien entre a mirarla no basta; hay que decidir **dónde
+   aparece en el momento de fabricar**.
+
+6. **La batería de fabricación deja de ser un pendiente suelto:** es el contenido del evento
+   nuevo. Lleva años sin definirse justamente porque no había dónde ponerla.
+
 - [ ] **La batería de fabricación no está definida.** Los 22 chequeos tienen las tres casillas
   `aplica_*` encendidas, así que un ROV recién armado recibe las mismas preguntas que uno que
   llegó roto — incluidas las que buscan desgaste y daño de uso. Quedó así por omisión al
   retirar el chequeo de marcas de plumón en `19.0.12.0.0`, que era el único que separaba las
   baterías. **El mecanismo para separarlas existe y está probado: son datos, no código.**
 
-- [ ] **Falta software en la batería de reparación.** Hay un síntoma —«el software de
-  superficie falla»— y ninguna prueba que lo verifique.
+- [x] ~~**Falta software en la batería de reparación.**~~ — **hecho en `19.0.15.2.0`.** Dos
+  chequeos en la sección `comunicacion`, solo reparación: «El software de superficie inicia y
+  opera» y «El software instalado corresponde a la ficha».
 
-- [ ] **La versión de software revierte sola.** Paulo lo describió así: el equipo *«se
-  autoformateaba y volvía al instalado de fábrica»*. La ficha ya guarda tres versiones con
-  `tracking`: `mc_version_software`, `mc_version_controlador` y `mc_version_ardusub`, así que
-  **se detecta comparando lo encontrado contra la ficha**, igual que `luces_difieren` contra
-  `mc_cantidad_luces`.
+- [x] ~~**La versión de software revierte sola.**~~ — **hecho en `19.0.15.2.0`, en su forma
+  mínima.** Lo que Paulo corrigió el 2026-08-17 y que cambiaba el diseño: **no es un número de
+  versión que retrocede, es el software mismo que vuelve al de fábrica** — ROVControl a
+  QGroundControl, o QGroundControl a una versión más vieja. Un diseño de tres `Char` habría
+  dejado pasar el caso más frecuente, porque el nombre de un programa no es un número. ArduSub
+  «no se toca mucho, pero quizás».
 
-  Dos formas: la barata es un chequeo («la versión corresponde a la registrada») más un
-  hallazgo de catálogo; la completa registra qué versión se encontró y compara sola. Falta
-  saber **cuál de las tres revierte** — la sospecha es ArduSub, porque corre en el vehículo.
+  Quedó como un chequeo más los cinco `related` de la ficha al lado, para poder responderlo sin
+  salir de la pantalla. **Sin modelo, sin comparación automática, a propósito** — razones y la
+  regla para revisitarlo en [`designs/revision-tecnica.md`](designs/revision-tecnica.md) § 8.8.
 
-  Efecto secundario que la hace valer igual: **obliga a mantener la ficha al día**, porque una
-  diferencia es o un equipo que revirtió o una ficha desactualizada.
+  Lo que queda vivo del punto: **medir si se llena.** El `detalle` es la evidencia que decide
+  si vale estructurarlo, y es opcional — el chequeo bloquea la confirmación, el detalle no. Sin
+  detalle, un «No OK» dice que algo no cuadró y no dice qué software era. Mismo riesgo y misma
+  mitigación que `hallazgo_origen_id` más abajo.
+
+  Efecto secundario que ya vale: **obliga a mantener la ficha al día**, porque una diferencia
+  es o un equipo que revirtió o una ficha desactualizada.
 
 - [ ] **Sí se hacen pruebas en terreno**, sobre equipos fabricados, y hoy viven en el lote. El
   tipo `terreno` de la revisión existe **sin ninguna justificación escrita** y nada lo crea:
   hay que decidirlo junto con el primer punto.
 
 ## Estado al 2026-08-17
+
+`19.0.15.2.0` metió **software a la batería de reparación**: dos chequeos en `comunicacion` y
+los cinco `related` de la ficha al lado, para poder contestarlos sin salir de la pantalla. Sin
+modelo nuevo y sin comparación automática, deliberadamente — razones y la regla para revisitarlo
+en [`designs/revision-tecnica.md`](designs/revision-tecnica.md) § 8.8.
+
 
 `19.0.14.0.0` ordenó el flujo en pantalla: **las pestañas pasaron a ser los momentos del
 proceso**, leídos de izquierda a derecha. En la orden, *Recepción · Diagnóstico · Reparación ·

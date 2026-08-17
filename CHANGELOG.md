@@ -4,6 +4,53 @@ All notable changes to the `mc_rov` Odoo module are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this module adheres to [semantic versioning](https://semver.org/) within the constraints of Odoo's version scheme: `19.0.X.Y.Z` where `19.0` is the Odoo major, `X` is breaking-change/migration, `Y` is feature, `Z` is bugfix.
 
+## [19.0.15.2.0] — 2026-08-17
+
+Software enters the repair battery. Rationale in
+[`docs/designs/revision-tecnica.md`](docs/designs/revision-tecnica.md) § 8.8.
+
+### Added
+
+- **Two checks in the `comunicacion` section**, repair battery only:
+  «El software de superficie inicia y opera» and «El software instalado corresponde a la
+  ficha».
+
+  The first closes a hole counted against the symptom catalog: [«El software de superficie
+  falla»](data/mc_rov_sintoma_data.xml) existed as a symptom with **no test that verified
+  it**, so a technician found it by looking and the finding had no originating check.
+
+  The second catches an observed failure: the unit reformats itself and reverts to the
+  factory software — usually ROVControl back to QGroundControl, or QGroundControl down to an
+  older release. It is answered by comparing against the ficha, which already keeps the three
+  versions with `tracking`.
+
+- **Five `related` fields on the revision**, read-only, showing what the ficha declares
+  installed: `software_ficha_id`, `version_software_ficha`, `version_ardusub_ficha`,
+  `controlador_ficha_id`, `version_controlador_ficha`. They exist for the screen, not the
+  model — **a check that forces the technician to open another view to answer it gets answered
+  «OK»**, which is a false datum where an honest blank used to be. The block hides itself when
+  the ficha declares nothing, which today is every pre-Odoo unit.
+
+### Notes
+
+- **This is deliberately as small as it gets: no new model, no computed `difieren`, no
+  migration.** An earlier draft had a `mc.rov.revision.software` line model with slots, a
+  derived expected value and a normalized comparison. It was dropped because **the instrument
+  cost more than what it measures**: which software reverts, and how often, is not known yet,
+  and `detalle` accepts any combination without inventing boxes for it. Structuring it now
+  would be guessing the shape of the data before having the data. The rule for revisiting is
+  written down: when these two checks show a pattern — which slot, how often — a model with an
+  automatic comparison can be justified on evidence.
+
+- **No `difieren` boolean, unlike `luces_difieren`.** With the software name typed by hand,
+  «QGround» and «QGroundControl» are the same thing and would raise a false positive. Three
+  lines side by side are compared correctly by eye, and the eye does not trip on spelling.
+
+- **Only `aplica_reparacion`.** Turning the other two on out of habit is exactly the omission
+  that left the manufacturing battery undefined (see [`docs/pendientes.md`](docs/pendientes.md)):
+  in manufacturing you install the software yourself, so comparing it against the ficha does
+  not mean the same thing.
+
 ## [19.0.15.1.0] — 2026-08-17
 
 Screen fixes from looking at the deployed revision form.

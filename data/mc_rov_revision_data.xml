@@ -179,6 +179,47 @@
         <field name="aplica_terreno" eval="True"/>
     </record>
 
+    <!-- Software, en 19.0.15.2.0. Había un síntoma —"El software de superficie falla"— y
+         ninguna prueba que lo verificara, así que el técnico lo encontraba mirando y el
+         hallazgo quedaba sin chequeo de origen.
+
+         Van en `comunicacion` y no en una sección propia porque el catálogo de síntomas ya
+         clasificó ahí esa falla. Una sección nueva habría costado un valor de Selection, un
+         one2many filtrado y un bloque de vista para dos preguntas.
+
+         **El segundo caza una falla concreta y observada:** el equipo se autoformatea y vuelve
+         al software instalado de fábrica —normalmente ROVControl vuelve a QGroundControl, o
+         QGroundControl baja a una versión más vieja—. Se responde comparando contra la ficha,
+         que ya guarda las tres versiones con `tracking`, y por eso la pantalla las muestra al
+         lado: un chequeo que obliga a salir a otra vista para contestarlo se contesta "OK".
+
+         **Deliberadamente NO se estructura más que esto.** Cuál software revierte y con qué
+         frecuencia no se sabe todavía, y `detalle` acepta cualquier combinación sin
+         casilleros. Cuando estas líneas muestren un patrón —qué ranura, cada cuánto— se puede
+         decidir si vale un modelo con comparación automática. Estructurarlo ahora sería
+         inventar la forma del dato antes de tener el dato.
+
+         Solo `aplica_reparacion`. Encender las otras dos por costumbre es exactamente la
+         omisión que dejó la batería de fabricación sin definir (ver docs/pendientes.md): en
+         fabricación el software lo instala uno mismo, así que compararlo contra la ficha no
+         significa lo mismo. -->
+    <record id="chequeo_software_opera" model="mc.rov.chequeo">
+        <field name="name">El software de superficie inicia y opera</field>
+        <field name="seccion">comunicacion</field>
+        <field name="sequence">58</field>
+        <field name="aplica_fabricacion" eval="False"/>
+        <field name="aplica_reparacion" eval="True"/>
+        <field name="aplica_terreno" eval="False"/>
+    </record>
+    <record id="chequeo_software_ficha" model="mc.rov.chequeo">
+        <field name="name">El software instalado corresponde a la ficha</field>
+        <field name="seccion">comunicacion</field>
+        <field name="sequence">59</field>
+        <field name="aplica_fabricacion" eval="False"/>
+        <field name="aplica_reparacion" eval="True"/>
+        <field name="aplica_terreno" eval="False"/>
+    </record>
+
     <!-- Navegación. Depth hold y stabilize van separados por la misma razón que están
          separados como síntomas: apuntan a lugares distintos —el sensor de presión y el IMU o
          el compás— y de tenerlos separados sale una deducción que no existe de otro modo: si

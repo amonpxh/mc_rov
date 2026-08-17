@@ -156,6 +156,37 @@ class McRovRevision(models.Model):
         string="El conteo no cuadra", compute="_compute_luces", store=True
     )
 
+    # --- Lo que la ficha declara instalado ---
+    #
+    # Entran en 19.0.15.2.0 junto al chequeo "El software instalado corresponde a la ficha".
+    # Son `related` de solo lectura y no copias: el dato vive en el número de serie y ahí se
+    # edita.
+    #
+    # Existen por una razón de pantalla, no de modelo. El chequeo se responde comparando
+    # contra la ficha, y si para responderlo hay que abrir el número de serie y volver, se
+    # responde "OK" sin mirar — que es peor que no preguntar, porque deja un dato falso donde
+    # antes había un vacío honesto.
+    #
+    # A diferencia de las luces, acá NO hay un `difieren` calculado. Con el nombre del
+    # software escrito a mano, "QGround" y "QGroundControl" son la misma cosa y darían falso
+    # positivo; y sobre todo, todavía no se sabe cuál de los tres revierte. La comparación la
+    # hace el ojo, que para tres líneas es suficiente y no se equivoca con la ortografía.
+    software_ficha_id = fields.Many2one(
+        related="lot_id.mc_software_superficie", string="Software de superficie", readonly=True
+    )
+    version_software_ficha = fields.Char(
+        related="lot_id.mc_version_software", string="Versión del software", readonly=True
+    )
+    version_ardusub_ficha = fields.Char(
+        related="lot_id.mc_version_ardusub", string="Versión ArduSub", readonly=True
+    )
+    controlador_ficha_id = fields.Many2one(
+        related="lot_id.mc_controlador_vuelo", string="Controlador de vuelo", readonly=True
+    )
+    version_controlador_ficha = fields.Char(
+        related="lot_id.mc_version_controlador", string="Versión del controlador", readonly=True
+    )
+
     # --- La corrida: con qué se probó ---
     #
     # Estos campos vivían en `mc.rov.revision.corrida`, un modelo de línea que permitía varias

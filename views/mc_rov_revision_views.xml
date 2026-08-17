@@ -272,6 +272,34 @@
                                 </field>
                             </group>
 
+                            <!-- La ficha, al lado del chequeo que la usa. "El software
+                                 instalado corresponde a la ficha" se responde comparando, y
+                                 si comparar obliga a abrir el número de serie en otra
+                                 pestaña, se responde "OK" sin mirar — un dato falso donde
+                                 antes había un vacío honesto.
+
+                                 Solo lectura: el dato vive en el número de serie. Si lo que
+                                 está mal es la ficha, se corrige allá, y el chatter del lote
+                                 registra el cambio porque las tres versiones llevan
+                                 `tracking`.
+
+                                 Se esconde cuando la ficha no declara nada —todos los equipos
+                                 anteriores a Odoo— porque cinco etiquetas vacías se leen como
+                                 algo roto y no como "esto todavía no se llenó". -->
+                            <group string="Software según la ficha"
+                                   invisible="not software_ficha_id and not version_ardusub_ficha
+                                              and not controlador_ficha_id">
+                                <group>
+                                    <field name="software_ficha_id" readonly="1"/>
+                                    <field name="version_software_ficha" readonly="1"/>
+                                    <field name="version_ardusub_ficha" readonly="1"/>
+                                </group>
+                                <group>
+                                    <field name="controlador_ficha_id" readonly="1"/>
+                                    <field name="version_controlador_ficha" readonly="1"/>
+                                </group>
+                            </group>
+
                             <group string="Prueba de navegación"
                                    invisible="not chequeo_navegacion_ids">
                                 <field name="chequeo_navegacion_ids" nolabel="1" class="mc_rov_pruebas"
