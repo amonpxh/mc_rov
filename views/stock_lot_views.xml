@@ -46,12 +46,27 @@
             <!-- Anclado a //sheet para no depender de nombres internos de grupos de Odoo -->
             <xpath expr="//sheet" position="inside">
 
-                <!-- El navegador rechaza guardar con un numérico en cero, pero no lo pinta
-                     de rojo: el usuario ve un guardado que falla sin causa visible. Este
-                     aviso nombra los campos en vez de esperar que los deduzca, y de paso
-                     cubre los que viven en otra pestaña —Cantidad de luces— y los
-                     registros creados por importación, donde no hay formulario ni puntos
-                     rojos que mirar. -->
+                <!-- **Una sola señal de ficha incompleta, y es esta.** Hasta 19.0.15.2.1
+                     convivía con el `required="es_un_rov"` de cada campo, así que lo mismo se
+                     decía dos veces: el aviso nombraba los campos y además salían pintados de
+                     rojo abajo.
+
+                     Se quedó el aviso porque es el que cubre los tres casos donde el rojo no
+                     llega: los numéricos en cero —que el navegador rechaza pero no pinta, así
+                     que el guardado fallaba sin causa visible—, los campos que viven en otra
+                     pestaña, y lo que entra por importación o por código, donde no hay
+                     formulario que mirar.
+
+                     Y el `required` no solo sobraba: era todo o nada. Quien conoce 12 de las
+                     14 especificaciones no podía guardar las 12, y la salida era inventar las
+                     otras 2 — un valor supuesto es indistinguible de uno verificado, que es
+                     justamente lo que este módulo trata de evitar desde que se retiró la
+                     opción «Desconocido» en 19.0.7.0.0.
+
+                     No se pierde presión: el aviso aparece en cada apertura y el filtro «Ficha
+                     incompleta» de la lista sigue encontrando a todos. Se pierde el bloqueo,
+                     que estaba protegiendo el formulario a costa de premiar el dato
+                     inventado. -->
                 <div class="alert alert-warning" role="alert"
                      invisible="not es_un_rov or mc_ficha_completa">
                     <strong>Faltan datos de la ficha técnica: </strong>
@@ -63,52 +78,55 @@
 
                     <page string="Especificaciones" name="page_especificaciones" invisible="not es_un_rov">
                         <group name="group_especificaciones">
-                            <!-- required="es_un_rov" y no required=True en el modelo: la
-                                 orden de fabricación crea el número de serie por código,
-                                 antes de que nadie llene la ficha, y los lotes de
-                                 componentes no tienen ninguno de estos datos. Un NOT NULL
-                                 en la base rompería las dos cosas. En la vista, en cambio,
-                                 nadie puede guardar a mano la ficha de un ROV incompleta,
-                                 y lo que entra por código o por importación queda marcado
-                                 por mc_ficha_completa. -->
+                            <!-- Ningún campo lleva `required`, ni acá ni en el modelo.
+
+                                 En el modelo nunca lo llevó: la orden de fabricación crea el
+                                 número de serie por código, antes de que nadie llene la
+                                 ficha, y los lotes de componentes no tienen ninguno de estos
+                                 datos — un NOT NULL en la base rompería las dos cosas.
+
+                                 En la vista salió en 19.0.15.2.1, por lo anotado arriba en el
+                                 aviso. Lo que marca una ficha a medio llenar es
+                                 `mc_ficha_completa`: un solo mecanismo, que funciona igual
+                                 para lo que se teclea y para lo que se importa. -->
                             <group name="group_especificaciones_left">
-                                <field name="mc_chasis" widget="radio" options="{&quot;horizontal&quot;:true}" required="es_un_rov"/>
-                                <field name="mc_modelo_motores" widget="selection" placeholder="Seleccione modelo de motor" required="es_un_rov"/>
-                                <field name="mc_n_motores" required="es_un_rov"/>
-                                <field name="mc_posicion_motores" widget="radio" options="{&quot;horizontal&quot;:true}" required="es_un_rov"/>
+                                <field name="mc_chasis" widget="radio" options="{&quot;horizontal&quot;:true}"/>
+                                <field name="mc_modelo_motores" widget="selection" placeholder="Seleccione modelo de motor"/>
+                                <field name="mc_n_motores"/>
+                                <field name="mc_posicion_motores" widget="radio" options="{&quot;horizontal&quot;:true}"/>
                                 <label for="mc_peso_consola" string="Peso Consola"/>
                                 <div class="o_row">
-                                    <field name="mc_peso_consola" nolabel="1" class="o_field_number" style="max-width: 80px;" required="es_un_rov"/>
+                                    <field name="mc_peso_consola" nolabel="1" class="o_field_number" style="max-width: 80px;"/>
                                     <span>kg</span>
                                 </div>
                                 <label for="mc_peso_rov" string="Peso ROV"/>
                                 <div class="o_row">
-                                    <field name="mc_peso_rov" nolabel="1" class="o_field_number" style="max-width: 80px;" required="es_un_rov"/>
+                                    <field name="mc_peso_rov" nolabel="1" class="o_field_number" style="max-width: 80px;"/>
                                     <span>kg</span>
                                 </div>
-                                <field name="mc_sensor_presion" widget="radio" options="{&quot;horizontal&quot;:true}" required="es_un_rov"/>
+                                <field name="mc_sensor_presion" widget="radio" options="{&quot;horizontal&quot;:true}"/>
                                 <!-- Vive aquí y no en Periféricos porque es un conteo de
                                      componentes del equipo, como N° de motores, y no un
                                      accesorio. Con esto la regla de obligatoriedad se
                                      vuelve enunciable: es todo Especificaciones y nada
                                      más. La ficha de reparación compara contra este
                                      número el conteo de luces de la prueba. -->
-                                <field name="mc_cantidad_luces" required="es_un_rov"/>
+                                <field name="mc_cantidad_luces"/>
                             </group>
                             <group name="group_especificaciones_right">
-                                <field name="mc_tarjeta_comunicacion_rov" widget="radio" options="{&quot;horizontal&quot;:true}" required="es_un_rov"/>
-                                <field name="mc_tarjeta_comunicacion_consola" widget="radio" options="{&quot;size&quot;:&quot;md&quot;,&quot;horizontal&quot;:true}" required="es_un_rov"/>
-                                <field name="mc_software_superficie" widget="radio" options="{&quot;horizontal&quot;:true}" required="es_un_rov"/>
-                                <field name="mc_version_software" placeholder="0.0.0" required="es_un_rov"/>
-                                <field name="mc_controlador_vuelo" widget="radio" options="{&quot;horizontal&quot;:true}" required="es_un_rov"/>
-                                <field name="mc_version_controlador" placeholder="0.0.0" required="es_un_rov"/>
-                                <field name="mc_version_ardusub" placeholder="0.0.0" required="es_un_rov"/>
+                                <field name="mc_tarjeta_comunicacion_rov" widget="radio" options="{&quot;horizontal&quot;:true}"/>
+                                <field name="mc_tarjeta_comunicacion_consola" widget="radio" options="{&quot;size&quot;:&quot;md&quot;,&quot;horizontal&quot;:true}"/>
+                                <field name="mc_software_superficie" widget="radio" options="{&quot;horizontal&quot;:true}"/>
+                                <field name="mc_version_software" placeholder="0.0.0"/>
+                                <field name="mc_controlador_vuelo" widget="radio" options="{&quot;horizontal&quot;:true}"/>
+                                <field name="mc_version_controlador" placeholder="0.0.0"/>
+                                <field name="mc_version_ardusub" placeholder="0.0.0"/>
                                 <!-- Selection de Sí/No y no casilla: un booleano nunca está
                                      vacío, así que un "no" no se distinguiría de un "nadie
                                      lo revisó". De este dato depende sobre qué parte de la
                                      flota se puede medir confiabilidad por horas de uso en
                                      vez de por calendario. -->
-                                <field name="mc_tiene_horometro" widget="radio" options="{&quot;horizontal&quot;:true}" required="es_un_rov"/>
+                                <field name="mc_tiene_horometro" widget="radio" options="{&quot;horizontal&quot;:true}"/>
                             </group>
                         </group>
                     </page>

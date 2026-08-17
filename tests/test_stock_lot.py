@@ -818,9 +818,11 @@ class TestStockLotFichaCompleta(StockLotPropiedadCommon):
         """En Odoo un Integer nunca queda vacío: se lee como 0.
 
         Por eso el numérico se comprueba con > 0 y no con "está lleno". Un ROV con cero
-        motores no existe, así que el cero es exactamente la señal de que nadie lo llenó
-        —y es lo que entra por importación o por código, donde el required de la vista no
-        alcanza.
+        motores no existe, así que el cero es exactamente la señal de que nadie lo llenó.
+
+        Desde 19.0.15.2.1 este compute es el **único** mecanismo: el `required` de la vista
+        se retiró para no decir lo mismo dos veces, así que lo que encuentra una ficha a
+        medio llenar —se haya tecleado o importado— es esto y el filtro que lo usa.
         """
         self.assertFalse(self._completar(mc_n_motores=0).mc_ficha_completa)
 

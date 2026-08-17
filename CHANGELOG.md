@@ -4,6 +4,57 @@ All notable changes to the `mc_rov` Odoo module are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this module adheres to [semantic versioning](https://semver.org/) within the constraints of Odoo's version scheme: `19.0.X.Y.Z` where `19.0` is the Odoo major, `X` is breaking-change/migration, `Y` is feature, `Z` is bugfix.
 
+## [19.0.15.2.1] — 2026-08-17
+
+Screen fixes on the tests tab, from looking at `19.0.15.2.0` deployed. Carries a migration.
+
+### Fixed
+
+- **The checklist was shown in creation order, not catalog order.** `mc.rov.revision.chequeo`
+  declared `sequence = fields.Integer(default=10)` — **the same value on every line** — so
+  `_order = "revision_id, sequence, id"` fell through to `id`. Two consequences that were
+  visible on screen and that nobody connected to this:
+
+  1. A check added to the catalog later stayed **last forever**, whatever its sequence.
+     «Movimiento horizontal» (sequence 66) rendered after «Sin ruido ni vibración» (77).
+  2. **Re-sequencing the catalog had no effect on revisions that already existed.**
+     `19.0.14.2.0` moved *stabilize* ahead of *depth hold* so the battery would tell a story —
+     stabilizes but will not hold depth points at the pressure sensor — and that change never
+     reached a single existing record.
+
+  `sequence` becomes a stored `related` of `chequeo_id.sequence`, so re-ordering the catalog
+  now re-orders every ficha, past ones included. The migration backfills existing lines:
+  **Odoo does not recompute an existing stored field just because its definition changed**, so
+  without the script only new revisions would come out right — the worst of both worlds, since
+  the defect would disappear exactly where it gets tested.
+
+- **Every section sized its columns differently.** Each section is an independent `<list>`, and
+  an HTML table sizes itself to its content: «Estanqueidad bajo presión» and «Tilt» are not the
+  same width, so the radios of «Resultado» ended up staggered across nine blocks. Fixed widths
+  in the module CSS, with `table-layout: fixed` — without it the browser treats percentages as
+  suggestions and measures by the longest string again. «Chequeo» deliberately keeps under half
+  the width: leaving it wide pushed the answer, which is what the technician came to click, to
+  the far edge of the screen.
+
+- **An incomplete ficha said so twice.** The banner named the missing fields *and* every field
+  was `required="es_un_rov"`, so the same thing arrived as a list of names at the top and as red
+  boxes below. **One standard, and it is the banner** — it is the one that covers the three
+  cases the red never reached: numerics at zero (which the browser rejects but does not paint,
+  so the save failed with no visible cause), fields living on another tab, and records created
+  by import or by code, where there is no form to look at.
+
+  The `required` was not merely redundant, it was **all-or-nothing**: someone who knows 12 of
+  the 14 specifications could not save the 12, and the way out was to invent the other 2. A
+  supposed value is indistinguishable from a verified one — the exact failure this module has
+  been avoiding since «Desconocido» was retired in `19.0.7.0.0`. No pressure is lost: the
+  banner shows on every open and the **«Ficha incompleta»** filter still finds every one of
+  them. What is lost is the block, which was protecting the form at the cost of rewarding
+  invented data.
+
+- **«Componente» is hidden in the physical-inspection list too.** No catalog check is
+  `por_componente` — there is a test that pins it — so the column is guaranteed empty, and
+  showing it stole width from the other three in that one block. Still available from the ⚙.
+
 ## [19.0.15.2.0] — 2026-08-17
 
 Software enters the repair battery. Rationale in

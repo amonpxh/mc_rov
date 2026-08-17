@@ -144,6 +144,39 @@ class TestMcRovRevision(RevisionCommon):
 
         self.assertFalse(revision.chequeo_ids.mapped("componente_id"))
 
+    def test_el_checklist_sale_en_el_orden_del_catalogo_y_no_de_creacion(self):
+        """Hasta `19.0.15.2.1` la línea llevaba `sequence = 10` fija, así que `_order` caía a
+        `id` y la ficha se mostraba **en orden de creación**.
+
+        Se veía en pantalla y nadie lo relacionaba con esto: un chequeo agregado al catálogo
+        después quedaba último para siempre, y reordenar el catálogo no movía ni una ficha ya
+        creada — que es lo que dejó sin efecto el reordenamiento de navegación de 19.0.14.2.0.
+
+        El segundo tramo es el que importa de verdad: reordenar el catálogo tiene que
+        reordenar lo que ya existe, o el arreglo solo sirve para las revisiones nuevas.
+        """
+        ultimo = self._chequeo_catalogo(
+            aplica_reparacion=True, seccion="otro", sequence=900, name="Va al final"
+        )
+        primero = self._chequeo_catalogo(
+            aplica_reparacion=True, seccion="otro", sequence=1, name="Va al principio"
+        )
+
+        revision = self._revision(tipo="reparacion")
+        propios = revision.chequeo_otro_ids.filtered(
+            lambda linea: linea.chequeo_id in primero | ultimo
+        )
+
+        self.assertEqual(propios.mapped("chequeo_id"), primero | ultimo)
+
+        ultimo.sequence = 0
+        revision.invalidate_recordset()
+
+        reordenados = revision.chequeo_otro_ids.filtered(
+            lambda linea: linea.chequeo_id in primero | ultimo
+        )
+        self.assertEqual(reordenados.mapped("chequeo_id"), ultimo | primero)
+
     def test_los_chequeos_de_software_son_solo_de_reparacion(self):
         """`19.0.15.2.0` los agrega **solo** a la batería de reparación, y eso es una decisión,
         no un olvido.

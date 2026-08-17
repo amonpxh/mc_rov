@@ -46,3 +46,43 @@ th[data-name="horas"] .o_list_number_th {
 .mc_rov_pruebas .o_list_table > tbody > tr:not(.o_data_row) {
     display: none;
 }
+
+/* Anchos fijos en las listas de chequeos.
+
+   Cada sección de la pestaña de pruebas es una <list> independiente, y por defecto una
+   tabla HTML se dimensiona según su contenido: "Estanqueidad bajo presión" y "Tilt" no
+   miden lo mismo, así que la columna "Chequeo" salía de un ancho en cada bloque y los
+   radios de "Resultado" quedaban escalonados por toda la página. Nueve tablas, nueve
+   anchos.
+
+   `table-layout: fixed` es lo que hace que los porcentajes manden en vez del contenido.
+   Sin él, el navegador los trata como sugerencias y vuelve a medir por el texto más largo.
+
+   Los porcentajes suman 100 y "Chequeo" se queda con menos de la mitad a propósito: es la
+   única columna que se lee de corrido, y dejarla ancha empujaba la respuesta —que es lo
+   que el técnico viene a marcar— al otro extremo de la pantalla.
+
+   Va por `data-name` porque es el único gancho estable que Odoo deja en el <th>. Mismo
+   patrón que la regla de la columna "horas" de más arriba. */
+.mc_rov_pruebas .o_list_table {
+    table-layout: fixed;
+}
+
+.mc_rov_pruebas th[data-name="chequeo_id"] {
+    width: 42%;
+}
+
+.mc_rov_pruebas th[data-name="resultado"] {
+    width: 24%;
+}
+
+.mc_rov_pruebas th[data-name="detalle"] {
+    width: 34%;
+}
+
+/* El nombre del chequeo es largo y con `table-layout: fixed` el texto no ensancha la
+   celda: sin esto se cortaría con puntos suspensivos. Que envuelva es preferible a que
+   "Sin ruido ni vibración anormal" se lea "Sin ruido ni vibr...". */
+.mc_rov_pruebas td[name="chequeo_id"] {
+    white-space: normal;
+}
