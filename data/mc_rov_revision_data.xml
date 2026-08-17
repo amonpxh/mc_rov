@@ -72,7 +72,7 @@
     <record id="chequeo_mov_vertical" model="mc.rov.chequeo">
         <field name="name">Movimiento vertical</field>
         <field name="seccion">navegacion</field>
-        <field name="sequence">70</field>
+        <field name="sequence">64</field>
         <field name="aplica_fabricacion" eval="True"/>
         <field name="aplica_reparacion" eval="True"/>
         <field name="aplica_terreno" eval="True"/>
@@ -80,7 +80,7 @@
     <record id="chequeo_mov_horizontal" model="mc.rov.chequeo">
         <field name="name">Movimiento horizontal</field>
         <field name="seccion">navegacion</field>
-        <field name="sequence">80</field>
+        <field name="sequence">66</field>
         <field name="aplica_fabricacion" eval="True"/>
         <field name="aplica_reparacion" eval="True"/>
         <field name="aplica_terreno" eval="True"/>
@@ -191,7 +191,7 @@
     <record id="chequeo_depth_hold" model="mc.rov.chequeo">
         <field name="name">Mantiene profundidad (depth hold)</field>
         <field name="seccion">navegacion</field>
-        <field name="sequence">75</field>
+        <field name="sequence">77</field>
         <field name="aplica_fabricacion" eval="True"/>
         <field name="aplica_reparacion" eval="True"/>
         <field name="aplica_terreno" eval="True"/>
@@ -199,7 +199,7 @@
     <record id="chequeo_stabilize" model="mc.rov.chequeo">
         <field name="name">Se estabiliza (stabilize)</field>
         <field name="seccion">navegacion</field>
-        <field name="sequence">77</field>
+        <field name="sequence">75</field>
         <field name="aplica_fabricacion" eval="True"/>
         <field name="aplica_reparacion" eval="True"/>
         <field name="aplica_terreno" eval="True"/>
@@ -210,7 +210,7 @@
     <record id="chequeo_luces_control" model="mc.rov.chequeo">
         <field name="name">Las luces responden al control desde superficie</field>
         <field name="seccion">luces</field>
-        <field name="sequence">105</field>
+        <field name="sequence">120</field>
         <field name="aplica_fabricacion" eval="True"/>
         <field name="aplica_reparacion" eval="True"/>
         <field name="aplica_terreno" eval="True"/>

@@ -4,6 +4,30 @@ All notable changes to the `mc_rov` Odoo module are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this module adheres to [semantic versioning](https://semver.org/) within the constraints of Odoo's version scheme: `19.0.X.Y.Z` where `19.0` is the Odoo major, `X` is breaking-change/migration, `Y` is feature, `Z` is bugfix.
 
+## [19.0.14.2.1] — 2026-08-17
+
+### Fixed
+
+- **Navigation checks were out of order, and the previous version caused it.** The six checks
+  added in 19.0.14.1.0 and 19.0.14.2.0 landed *between* «Movimiento vertical» (70) and
+  «Movimiento horizontal» (80), splitting a pair that belongs together.
+
+  The section is now sequenced by **increasing dependency**, which fixes a second thing that
+  was wrong on its own: hélices → thrusters → vertical → horizontal → acro → **stabilize** →
+  **depth hold** → ruido. Stabilize now comes *before* depth hold, because depth hold includes
+  stabilize — testing them the other way round means testing the compound before the part.
+
+### Changed
+
+- **«Prueba de luces» moves last, and its checklist now sits above the counters.** It is the
+  only section that also asks for numbers, so it is the only one shaped differently. Put last
+  and starting like every other section — a list — that difference stops interrupting the
+  rhythm of the other eight.
+
+  The count stays with the light check rather than moving up beside the runs: the technician
+  does the three things in one go — switch the lights on, count how many lit, check they
+  respond.
+
 ## [19.0.14.2.0] — 2026-08-17
 
 Second pass over the battery. The first one closed the gaps **between** symptom families; this
