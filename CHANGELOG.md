@@ -36,6 +36,21 @@ Screen fixes on the tests tab, from looking at `19.0.15.2.0` deployed. Carries a
   the width: leaving it wide pushed the answer, which is what the technician came to click, to
   the far edge of the screen.
 
+- **An incomplete ficha said so twice.** The banner named the missing fields *and* every field
+  was `required="es_un_rov"`, so the same thing arrived as a list of names at the top and as red
+  boxes below. **One standard, and it is the banner** — it is the one that covers the three
+  cases the red never reached: numerics at zero (which the browser rejects but does not paint,
+  so the save failed with no visible cause), fields living on another tab, and records created
+  by import or by code, where there is no form to look at.
+
+  The `required` was not merely redundant, it was **all-or-nothing**: someone who knows 12 of
+  the 14 specifications could not save the 12, and the way out was to invent the other 2. A
+  supposed value is indistinguishable from a verified one — the exact failure this module has
+  been avoiding since «Desconocido» was retired in `19.0.7.0.0`. No pressure is lost: the
+  banner shows on every open and the **«Ficha incompleta»** filter still finds every one of
+  them. What is lost is the block, which was protecting the form at the cost of rewarding
+  invented data.
+
 - **«Componente» is hidden in the physical-inspection list too.** No catalog check is
   `por_componente` — there is a test that pins it — so the column is guaranteed empty, and
   showing it stole width from the other three in that one block. Still available from the ⚙.
