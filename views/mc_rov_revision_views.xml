@@ -47,12 +47,13 @@
                             <field name="responsable_id" required="1"
                                    readonly="estado == 'confirmado'"/>
                             <field name="repair_id" readonly="estado == 'confirmado'"/>
-                            <field name="numero_en_visita" invisible="1"/>
-                            <!-- Solo desde la segunda de la visita: la primera es la primera y
-                                 numero_en_visita ya lo dice. -->
+                            <!-- Solo cuando hay visita: en una revisión de fabricación no
+                                 hay reparación que comprobar ni cable que comparar. La
+                                 primera de la visita trae "primer diagnóstico" por defecto;
+                                 la que abre el botón nace vacía, para forzar la elección
+                                 justo donde importa. -->
                             <field name="motivo" readonly="estado == 'confirmado'"
-                                   invisible="numero_en_visita &lt; 2"
-                                   required="numero_en_visita &gt; 1"/>
+                                   invisible="not repair_id" required="repair_id"/>
                             <field name="horas_operacion" readonly="estado == 'confirmado'"/>
                             <field name="resultado" readonly="1"/>
                         </group>
@@ -103,20 +104,64 @@
                                  revisiones, cada una con su batería completa.
 
                                  Las temperaturas son dato interno y no salen impresas. -->
-                            <group string="Condiciones de la prueba">
-                                <group>
-                                    <field name="umbilical" readonly="estado == 'confirmado'"/>
-                                    <field name="largo" readonly="estado == 'confirmado'"/>
-                                    <field name="alimentacion" readonly="estado == 'confirmado'"/>
-                                    <field name="tension_salida" readonly="estado == 'confirmado'"/>
+                            <!-- Dos bloques con título en vez de dos columnas parejas: que
+                                 una tenga cuatro filas y la otra seis se lee como una decisión
+                                 cuando cada una dice qué contiene, y como descuido cuando no.
+
+                                 Los Selection van con radio horizontal: son de dos y tres
+                                 valores, y un desplegable para elegir entre dos esconde la
+                                 mitad de la respuesta detrás de un clic.
+
+                                 Las unidades van al lado de la caja y no entre paréntesis en
+                                 la etiqueta, que es el patrón nativo de Odoo. -->
+                            <group>
+                                <group string="Con qué se probó">
+                                    <field name="umbilical" widget="radio"
+                                           options="{&quot;horizontal&quot;: true}"
+                                           readonly="estado == 'confirmado'"/>
+                                    <label for="largo"/>
+                                    <div class="o_row">
+                                        <field name="largo" readonly="estado == 'confirmado'"/>
+                                        <span>m</span>
+                                    </div>
+                                    <field name="alimentacion" widget="radio"
+                                           options="{&quot;horizontal&quot;: true}"
+                                           readonly="estado == 'confirmado'"/>
+                                    <label for="tension_salida"/>
+                                    <div class="o_row">
+                                        <field name="tension_salida" readonly="estado == 'confirmado'"/>
+                                        <span>V</span>
+                                    </div>
                                 </group>
-                                <group>
-                                    <field name="esfuerzo_resultado" readonly="estado == 'confirmado'"/>
-                                    <field name="esfuerzo_duracion" readonly="estado == 'confirmado'"/>
-                                    <field name="subida" readonly="estado == 'confirmado'"/>
-                                    <field name="bajada" readonly="estado == 'confirmado'"/>
-                                    <field name="temperatura_interior" readonly="estado == 'confirmado'"/>
-                                    <field name="temperatura_exterior" readonly="estado == 'confirmado'"/>
+                                <group string="Qué dio">
+                                    <field name="esfuerzo_resultado" widget="radio"
+                                           options="{&quot;horizontal&quot;: true}"
+                                           readonly="estado == 'confirmado'"/>
+                                    <label for="esfuerzo_duracion"/>
+                                    <div class="o_row">
+                                        <field name="esfuerzo_duracion" readonly="estado == 'confirmado'"/>
+                                        <span>h</span>
+                                    </div>
+                                    <label for="subida"/>
+                                    <div class="o_row">
+                                        <field name="subida" readonly="estado == 'confirmado'"/>
+                                        <span>Mbps</span>
+                                    </div>
+                                    <label for="bajada"/>
+                                    <div class="o_row">
+                                        <field name="bajada" readonly="estado == 'confirmado'"/>
+                                        <span>Mbps</span>
+                                    </div>
+                                    <label for="temperatura_interior"/>
+                                    <div class="o_row">
+                                        <field name="temperatura_interior" readonly="estado == 'confirmado'"/>
+                                        <span>°C</span>
+                                    </div>
+                                    <label for="temperatura_exterior"/>
+                                    <div class="o_row">
+                                        <field name="temperatura_exterior" readonly="estado == 'confirmado'"/>
+                                        <span>°C</span>
+                                    </div>
                                 </group>
                             </group>
 

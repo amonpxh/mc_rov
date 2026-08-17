@@ -693,6 +693,30 @@ class TestMcRovRevisionAutomatica(RevisionCommon):
         revision.inspeccion_ids.write({"estado_sello": "intacto"})
         return revision
 
+    def test_una_revision_a_medio_llenar_no_dice_aprobado(self):
+        """Hasta 19.0.15.1.0 caía en «Aprobado» por descarte.
+
+        Una ficha recién creada —22 chequeos sin responder, nada probado— declaraba que el
+        equipo estaba bien. Es el vacío indistinguible de un dato, y del lado optimista, que
+        es el peor de los dos.
+        """
+        orden = self._orden()
+        orden.state = "confirmed"
+        revision = self._revisiones(orden)
+
+        self.assertFalse(revision.resultado)
+
+        self._lista_para_confirmar(revision)
+
+        self.assertEqual(revision.resultado, "aprobado")
+
+    def test_la_primera_revision_trae_su_motivo_por_defecto(self):
+        """No cuesta un clic y evita que «vacío» signifique «es la primera»."""
+        orden = self._orden()
+        orden.state = "confirmed"
+
+        self.assertEqual(self._revisiones(orden).motivo, "primer_diagnostico")
+
     def test_la_segunda_revision_no_se_confirma_sin_motivo(self):
         """Dos revisiones en una visita pueden ser dos cosas muy distintas.
 
@@ -703,12 +727,11 @@ class TestMcRovRevisionAutomatica(RevisionCommon):
         """
         orden = self._orden()
         orden.state = "confirmed"
-        segunda = self.env["mc.rov.revision"].create(
-            {"lot_id": self.lot.id, "repair_id": orden.id, "tipo": "reparacion"}
-        )
+        orden.action_nueva_revision()
+        segunda = self._revisiones(orden).filtered(lambda r: r.numero_en_visita == 2)
         self._lista_para_confirmar(segunda)
 
-        self.assertEqual(segunda.numero_en_visita, 2)
+        self.assertFalse(segunda.motivo)
         with self.assertRaises(UserError):
             segunda.action_confirmar()
 

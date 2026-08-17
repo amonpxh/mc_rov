@@ -225,12 +225,16 @@ class McRovRevision(models.Model):
     # sabe perfectamente por qué lo está apretando.
     motivo = fields.Selection(
         [
+            ("primer_diagnostico", "Primer diagnóstico"),
             ("retest", "Re-test tras reparación"),
             ("comparacion_cable", "Comparación de cable"),
             ("otro", "Otro"),
         ],
         string="Motivo de esta revisión",
-        help="Por qué se abrió esta revisión además de la primera de la visita.",
+        default="primer_diagnostico",
+        help="Por qué existe esta revisión. La primera de una visita diagnostica; las "
+        "siguientes comprueban una reparación o comparan un cable, y contarlas juntas "
+        "arruina la pregunta de si la reparación sirvió.",
     )
 
     # --- Solo en pruebas de terreno ---
@@ -384,8 +388,18 @@ class McRovRevision(models.Model):
         Un chequeo fallado o un esfuerzo con problemas rechazan la revisión aunque no se
         haya registrado ningún hallazgo: el equipo no pasó, y eso no se compensa con que
         nadie haya escrito por qué.
+
+        **Y una revisión a medio llenar no dice nada: queda vacía.** Hasta 19.0.15.1.0 caía
+        en «Aprobado» por descarte, así que una ficha recién creada —con los 22 chequeos sin
+        responder y nada probado— declaraba que el equipo estaba bien. Es el vacío
+        indistinguible de un dato, y encima del lado optimista.
         """
         for revision in self:
+            sin_responder = any(not linea.resultado for linea in revision.chequeo_ids)
+            if sin_responder or not revision.esfuerzo_resultado:
+                revision.resultado = False
+                continue
+
             rechaza = (
                 any(linea.resultado == "no_ok" for linea in revision.chequeo_ids)
                 or revision.esfuerzo_resultado == "con_problemas"
@@ -564,11 +578,15 @@ class McRovRevision(models.Model):
         if bool(revision.subida) != bool(revision.bajada):
             faltan.append("la subida y la bajada — o ambas, o ninguna")
 
-        # A partir de la segunda revisión de una visita, por qué existe. Sin esto, un re-test
-        # tras reparación y una comparación de cable se ven idénticos, y contarlos juntos
-        # arruina la pregunta de si la reparación sirvió.
-        if revision.numero_en_visita > 1 and not revision.motivo:
-            faltan.append("por qué se abrió esta segunda revisión de la visita")
+        # Por qué existe la revisión. La primera de una visita trae "primer diagnóstico" por
+        # defecto; la que abre el botón nace vacía a propósito, para forzar la elección justo
+        # donde importa. Sin esto, un re-test tras reparación y una comparación de cable se
+        # ven idénticos, y contarlos juntos arruina la pregunta de si la reparación sirvió.
+        #
+        # Solo se pide cuando hay visita: en una revisión de fabricación no hay a qué
+        # compararla ni reparación que comprobar.
+        if revision.repair_id and not revision.motivo:
+            faltan.append("por qué se abrió esta revisión")
 
         sin_responder = revision.chequeo_ids.filtered(lambda linea: not linea.resultado)
         if sin_responder:
