@@ -4,6 +4,81 @@ All notable changes to the `mc_rov` Odoo module are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this module adheres to [semantic versioning](https://semver.org/) within the constraints of Odoo's version scheme: `19.0.X.Y.Z` where `19.0` is the Odoo major, `X` is breaking-change/migration, `Y` is feature, `Z` is bugfix.
 
+## [19.0.14.1.0] — 2026-08-17
+
+The test battery grows to cover what customers actually report. Rationale in
+[`docs/designs/revision-tecnica.md`](docs/designs/revision-tecnica.md) §§ 8.5–8.6.
+
+### Added
+
+- **Two new check sections, `energia` and `comunicacion`**, and **nine seed checks** — the
+  battery goes from 7 to 16.
+
+  This came from counting the battery against the symptom catalogue. The original seven came
+  off the paper sheet and covered four areas; the symptom catalogue has **nine families**, and
+  three of them had no check at all. A ROV that won't power up, that loses its surface link, or
+  whose lights don't respond was going to be diagnosed by looking at it.
+
+  That reads badly in the one analysis that matters: the finding would carry an empty
+  `chequeo_origen_id`, counted as *no check detected this* — indistinguishable from a gap in
+  the battery. And the gap was real.
+
+  | Section | New checks |
+  |---|---|
+  | Energía *(new)* | Enciende y arranca correctamente |
+  | Comunicación *(new)* | Responde a comandos desde superficie · El ancho de banda es el esperado |
+  | Inspección física *(was empty)* | Chasis · Penetradores y conectores · Hélices |
+  | Navegación | Mantiene profundidad (depth hold) · Se estabiliza (stabilize) |
+  | Luces | Las luces responden al control desde superficie |
+
+  **Depth hold and stabilize are two checks, not one**, for the same reason they are two
+  symptoms: they point at different parts — the pressure sensor and the IMU/compass. That gives
+  a deduction available no other way: *if depth hold fails but stabilize works, the problem is
+  the depth sensor*, since one depends on the other. Until now that could be **reported** as a
+  symptom but never **verified**. It also removes any need for a "Sensores" section: the depth
+  sensor is tested by testing depth hold.
+
+  **Nothing the run already measures was added.** Shutting off on its own is
+  `esfuerzo_resultado` plus its duration; heating is the temperatures; bandwidth is `subida` /
+  `bajada`. Recording the same fact as a number *and* a checkbox leaves two versions and no
+  reliable one — and a number beats a checkbox anyway: "held 90 minutes" says more than "OK".
+
+  **Thresholds are answered by hand, not derived.** Saying whether 8 Mbps is good needs a
+  threshold nobody has defined, and one invented in code would flag "No OK" against a
+  meaningless number — the same defect that sank the "confidence level" field in the
+  diagnostics design. The technician knows what their model delivers. **When the spec sheet
+  declares an expected value, this can become derived**, exactly as `luces_difieren` already
+  does against `mc_cantidad_luces`.
+
+### Changed
+
+- **The umbilical option «De prueba (control)» is now «Del taller».** The old label sometimes
+  lied: the workshop cable is a control sample when there are two runs, but it is also used
+  **because the ROV arrived without its own** — rare, but it happens. In that case it is not a
+  control of anything, it is the only cable. Whether it serves as a comparison depends on there
+  being two runs, which is visible by counting runs. **The `prueba` key is unchanged, so no
+  query breaks.**
+
+  > **A revision with a single run, and that run `prueba`, means the unit arrived with no
+  > umbilical of its own.** Exclude those from any umbilical failure analysis: that ROV can
+  > never carry a cable finding — not because the cable was sound, but because it was not
+  > there. Without the exclusion, the statistics say umbilicals fail less than they do.
+
+### Documented
+
+- **Checks are answered with the equipment's own umbilical.** Some depend on the cable and the
+  checklist is answered once per revision. The convention survives all three scenarios — the
+  only ambiguous one is *two runs*, and there the convention decides; a lone workshop-cable run
+  means there was no other cable. A per-run checklist was considered and rejected: a new model
+  with a migration for a minority of visits, when the difference between cables is already
+  captured by the run's own numbers.
+
+### Note for deploy
+
+Existing revisions keep their seven lines — the checklist is copied when the revision is
+created. **The «Actualizar checklist» button on a draft revision brings the nine new ones in.**
+It only adds; it never touches an answer.
+
 ## [19.0.14.0.2] — 2026-08-17
 
 ### Fixed

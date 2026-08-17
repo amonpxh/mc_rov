@@ -193,6 +193,12 @@ class McRovRevision(models.Model):
         domain=[("seccion", "=", "inspeccion_fisica")],
         string="Inspección física",
     )
+    chequeo_energia_ids = fields.One2many(
+        "mc.rov.revision.chequeo",
+        "revision_id",
+        domain=[("seccion", "=", "energia")],
+        string="Prueba de energía",
+    )
     chequeo_presion_ids = fields.One2many(
         "mc.rov.revision.chequeo",
         "revision_id",
@@ -204,6 +210,12 @@ class McRovRevision(models.Model):
         "revision_id",
         domain=[("seccion", "=", "leak")],
         string="Prueba de leak",
+    )
+    chequeo_comunicacion_ids = fields.One2many(
+        "mc.rov.revision.chequeo",
+        "revision_id",
+        domain=[("seccion", "=", "comunicacion")],
+        string="Prueba de comunicación",
     )
     chequeo_navegacion_ids = fields.One2many(
         "mc.rov.revision.chequeo",
@@ -531,11 +543,24 @@ class McRovRevisionCorrida(models.Model):
     )
     sequence = fields.Integer(default=10)
 
+    # La etiqueta decía "De prueba (control)" y a veces mentía: el umbilical del taller se usa
+    # como muestra de control cuando hay dos corridas, pero también se usa **porque el ROV
+    # llegó sin el suyo** —raro, pero pasa—. En ese caso no es control de nada, es el único
+    # cable. Que sirva de comparación depende de si hay dos corridas, y eso se ve contando
+    # corridas, no leyendo esta etiqueta. La clave `prueba` no cambia: ninguna consulta se
+    # rompe.
+    #
+    # **Una revisión con una sola corrida y esa corrida `prueba` significa que el equipo llegó
+    # sin umbilical propio**, y eso hay que saberlo antes de contar fallas de umbilical: ese
+    # ROV no puede tener un hallazgo de cable, no porque el cable esté bueno sino porque no
+    # estaba.
     umbilical = fields.Selection(
-        [("equipo", "Del equipo"), ("prueba", "De prueba (control)")],
+        [("equipo", "Del equipo"), ("prueba", "Del taller")],
         string="Umbilical",
         required=True,
         default="equipo",
+        help="«Del taller» se usa como muestra de control junto a la corrida del equipo, o "
+        "como único cable cuando el ROV llegó sin el suyo.",
     )
     largo = fields.Float(string="Largo (m)", required=True)
 

@@ -206,35 +206,34 @@ class TestMcRovRevision(RevisionCommon):
             revision.action_actualizar_checklist()
 
     def test_las_secciones_reparten_el_checklist_sin_perder_ni_repetir(self):
-        """Los siete campos por sección son vistas de las mismas líneas, y la pantalla se
-        arma con ellos: una línea que no caiga en ninguno es un chequeo que el técnico no
-        va a ver nunca y que sin embargo le va a impedir confirmar."""
+        """Los campos por sección son vistas de las mismas líneas, y la pantalla se arma con
+        ellos: una línea que no caiga en ninguno es un chequeo que el técnico no va a ver
+        nunca y que sin embargo le va a impedir confirmar.
+
+        Este test es el que hay que mirar al agregar una sección a `SECCIONES`: si se agrega
+        el valor y se olvida el campo, las líneas de esa sección quedan invisibles. Pasó al
+        agregar `energia` y `comunicacion` en 19.0.14.1.0, y lo agarró acá.
+        """
         revision = self._revision(tipo="reparacion")
 
-        por_seccion = (
-            revision.chequeo_inspeccion_fisica_ids
-            | revision.chequeo_presion_ids
-            | revision.chequeo_leak_ids
-            | revision.chequeo_navegacion_ids
-            | revision.chequeo_video_ids
-            | revision.chequeo_luces_ids
-            | revision.chequeo_otro_ids
+        campos = (
+            revision.chequeo_inspeccion_fisica_ids,
+            revision.chequeo_energia_ids,
+            revision.chequeo_presion_ids,
+            revision.chequeo_leak_ids,
+            revision.chequeo_comunicacion_ids,
+            revision.chequeo_navegacion_ids,
+            revision.chequeo_video_ids,
+            revision.chequeo_luces_ids,
+            revision.chequeo_otro_ids,
         )
 
+        por_seccion = self.env["mc.rov.revision.chequeo"].browse()
+        for campo in campos:
+            por_seccion |= campo
+
         self.assertEqual(por_seccion, revision.chequeo_ids)
-        suma = sum(
-            len(campo)
-            for campo in (
-                revision.chequeo_inspeccion_fisica_ids,
-                revision.chequeo_presion_ids,
-                revision.chequeo_leak_ids,
-                revision.chequeo_navegacion_ids,
-                revision.chequeo_video_ids,
-                revision.chequeo_luces_ids,
-                revision.chequeo_otro_ids,
-            )
-        )
-        self.assertEqual(suma, len(revision.chequeo_ids))
+        self.assertEqual(sum(len(campo) for campo in campos), len(revision.chequeo_ids))
 
 
 @tagged("post_install", "-at_install")
@@ -340,6 +339,34 @@ class TestMcRovRevisionConfirmacion(RevisionCommon):
         self.assertIn("Motor", hallazgo.display_name)
         self.assertIn("Corrosión", hallazgo.display_name)
         self.assertNotIn("mc.rov.revision.hallazgo,", hallazgo.display_name)
+
+    def test_la_bateria_cubre_energia_y_comunicacion(self):
+        """Eran dos familias enteras del catálogo de síntomas sin ninguna prueba que las mirara.
+
+        Un ROV que no enciende o que pierde conexión se iba a diagnosticar mirando, y el
+        hallazgo quedaría sin «Prueba que lo detectó» — indistinguible de un chequeo que falta,
+        que es justo lo que faltaba.
+        """
+        revision = self._revision(tipo="reparacion")
+
+        secciones = set(revision.chequeo_ids.mapped("seccion"))
+
+        self.assertIn("energia", secciones)
+        self.assertIn("comunicacion", secciones)
+        self.assertIn("inspeccion_fisica", secciones)
+
+    def test_depth_hold_y_stabilize_son_dos_chequeos(self):
+        """Apuntan a lugares distintos: el sensor de presión y el IMU o el compás.
+
+        Y de tenerlos separados sale la deducción que no existe de otro modo: si depth hold
+        falla pero stabilize funciona, el problema es el sensor de profundidad, porque uno
+        depende del otro. Fusionarlos la haría imposible.
+        """
+        revision = self._revision(tipo="reparacion")
+        chequeos = revision.chequeo_ids.mapped("chequeo_id")
+
+        self.assertIn(self.env.ref("mc_rov.chequeo_depth_hold"), chequeos)
+        self.assertIn(self.env.ref("mc_rov.chequeo_stabilize"), chequeos)
 
     def test_una_linea_de_chequeo_se_puede_buscar_escribiendo(self):
         """Mostrar bien el nombre no alcanza: hay que poder filtrar escribiendo.

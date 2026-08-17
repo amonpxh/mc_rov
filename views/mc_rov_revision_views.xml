@@ -166,6 +166,26 @@
                                 </field>
                             </group>
 
+                            <!-- Energía y comunicación entran en 19.0.14.1.0: un ROV que no
+                                 enciende o que pierde conexión no tenía ninguna prueba que lo
+                                 verificara, aunque las dos cosas son familias enteras del
+                                 catálogo de síntomas. Los chequeos de comunicación se
+                                 contestan con el umbilical del equipo cuando hay dos
+                                 corridas; si con el otro cable dieran distinto, esa
+                                 diferencia la capturan los números de la corrida. -->
+                            <group string="Prueba de energía" invisible="not chequeo_energia_ids">
+                                <field name="chequeo_energia_ids" nolabel="1" class="mc_rov_pruebas"
+                                       colspan="2" readonly="estado == 'confirmado'">
+                                    <list editable="bottom" create="0" delete="0">
+                                        <field name="chequeo_id" readonly="1"/>
+                                        <field name="componente_id" readonly="1" optional="hide"/>
+                                        <field name="resultado" widget="radio"
+                                               options="{&quot;horizontal&quot;: true}"/>
+                                        <field name="detalle"/>
+                                    </list>
+                                </field>
+                            </group>
+
                             <group string="Prueba de presión" invisible="not chequeo_presion_ids">
                                 <field name="chequeo_presion_ids" nolabel="1" class="mc_rov_pruebas"
                                        colspan="2" readonly="estado == 'confirmado'">
@@ -183,6 +203,20 @@
                                        colspan="2" readonly="estado == 'confirmado'">
                                     <list editable="bottom" create="0" delete="0">
                                         <field name="chequeo_id" readonly="1"/>
+                                        <field name="resultado" widget="radio"
+                                               options="{&quot;horizontal&quot;: true}"/>
+                                        <field name="detalle"/>
+                                    </list>
+                                </field>
+                            </group>
+
+                            <group string="Prueba de comunicación"
+                                   invisible="not chequeo_comunicacion_ids">
+                                <field name="chequeo_comunicacion_ids" nolabel="1" class="mc_rov_pruebas"
+                                       colspan="2" readonly="estado == 'confirmado'">
+                                    <list editable="bottom" create="0" delete="0">
+                                        <field name="chequeo_id" readonly="1"/>
+                                        <field name="componente_id" readonly="1" optional="hide"/>
                                         <field name="resultado" widget="radio"
                                                options="{&quot;horizontal&quot;: true}"/>
                                         <field name="detalle"/>

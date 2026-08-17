@@ -4,10 +4,20 @@ from odoo import models, fields
 # secciones son la estructura del documento y son estables, mientras que los chequeos que
 # viven dentro de ellas son operativos y cambian. Un catálogo de secciones sería un
 # catálogo de catálogos para resolver un problema que no existe.
+#
+# `energia` y `comunicacion` entran en 19.0.14.1.0. Salieron de contar la batería contra el
+# catálogo de síntomas: un ROV que no enciende o que pierde conexión con la superficie no
+# tenía ninguna prueba que lo verificara, así que el técnico lo iba a encontrar mirando y el
+# hallazgo quedaría sin chequeo de origen. Se agregan como secciones y no como entradas de
+# "Otro" porque son áreas de trabajo distintas —el arranque se verifica antes que nada, los
+# comandos desde la consola— y un "Otro" que junta arranque, comandos y ancho de banda deja
+# de decir qué se está probando.
 SECCIONES = [
     ("inspeccion_fisica", "Inspección física"),
+    ("energia", "Prueba de energía"),
     ("presion", "Prueba de presión"),
     ("leak", "Prueba de leak"),
+    ("comunicacion", "Prueba de comunicación"),
     ("navegacion", "Prueba de navegación"),
     ("video", "Prueba de video"),
     ("luces", "Prueba de luces"),

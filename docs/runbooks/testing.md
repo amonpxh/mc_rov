@@ -13,7 +13,7 @@
 | Test database | `odoo_test` |
 | Config | `/etc/odoo/odoo.conf` |
 | Test runner | Odoo's native test framework |
-| Total tests | 179 (73 `stock.lot` + 16 `repair.order` + 18 `mc.rov.componente` + 51 `mc.rov.revision` + 21 diagnóstico de fallas) |
+| Total tests | 181 (73 `stock.lot` + 16 `repair.order` + 18 `mc.rov.componente` + 53 `mc.rov.revision` + 21 diagnóstico de fallas) |
 
 ## Running all tests
 
