@@ -205,8 +205,17 @@
                                        colspan="2" readonly="estado == 'confirmado'">
                                     <list editable="bottom" create="0" delete="0">
                                         <field name="chequeo_id" readonly="1"/>
+                                        <!-- Oculta como en las demás secciones desde
+                                             19.0.15.2.1. Ningún chequeo del catálogo es
+                                             `por_componente` —hay un test que lo fija— así
+                                             que la columna está garantizadamente vacía, y
+                                             mostrarla le robaba ancho a las otras tres solo
+                                             en este bloque: era la sección que se veía
+                                             distinta de las nueve. Sigue disponible desde
+                                             el ⚙ si algún día vuelve un chequeo por
+                                             componente. -->
                                         <field name="componente_id" readonly="1"
-                                               optional="show"/>
+                                               optional="hide"/>
                                         <field name="resultado" widget="radio"
                                                options="{&quot;horizontal&quot;: true}"/>
                                         <field name="detalle"/>

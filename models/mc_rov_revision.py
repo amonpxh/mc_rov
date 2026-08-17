@@ -666,7 +666,22 @@ class McRovRevisionChequeo(models.Model):
     revision_id = fields.Many2one(
         "mc.rov.revision", string="Revisión", required=True, ondelete="cascade", index=True
     )
-    sequence = fields.Integer(default=10)
+    # `related` al catálogo y no un entero propio. Era `fields.Integer(default=10)`, o sea
+    # **el mismo valor en todas las líneas**, así que `_order` caía a `id` y la ficha se
+    # mostraba en orden de creación. Dos consecuencias que se veían en pantalla y que nadie
+    # relacionaba con esto:
+    #
+    # 1. Un chequeo agregado al catálogo después quedaba **último para siempre**, aunque su
+    #    secuencia lo pusiera al medio. «Movimiento horizontal» (sequence 66) salía detrás de
+    #    «Sin ruido ni vibración» (77).
+    # 2. **Reordenar el catálogo no tenía ningún efecto sobre las revisiones ya creadas.** En
+    #    19.0.14.2.0 se movió *stabilize* antes de *depth hold* para que la batería contara
+    #    una historia —si estabiliza pero no mantiene profundidad, apunta al sensor de
+    #    presión— y ese cambio no llegó a ninguna ficha existente.
+    #
+    # Almacenado porque `_order` no puede ordenar por un campo que no vive en la tabla, e
+    # indexado porque se ordena por él en cada apertura de la ficha.
+    sequence = fields.Integer(related="chequeo_id.sequence", store=True, index=True)
 
     chequeo_id = fields.Many2one(
         "mc.rov.chequeo", string="Chequeo", required=True, ondelete="restrict"
