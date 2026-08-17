@@ -104,7 +104,19 @@
                         </list>
                     </field>
                 </page>
-                <page string="Diagnóstico" name="revisiones">
+                <page string="Revisiones" name="revisiones">
+                    <!-- Se llamó "Diagnóstico" un rato, para que la barra de pestañas se
+                         leyera como el proceso. Se revirtió porque dejaba dos nombres para
+                         una misma cosa: la pestaña decía Diagnóstico y adentro cada registro
+                         decía REV/00006 — Revisión técnica.
+                         Y "revisión" es además el nombre preciso: la de fabricación no
+                         diagnostica nada, y la segunda de una visita comprueba en vez de
+                         diagnosticar. Lo que nombra el paso es la línea de abajo. -->
+                    <div class="text-muted mb-2">
+                        Acá se diagnostica el equipo: se corre la batería completa y se anota
+                        lo que se encuentra. Una segunda revisión sirve para comprobar que la
+                        reparación funcionó, o para comparar con otro umbilical.
+                    </div>
                     <!-- La revisión de esta visita. Normalmente una sola, y se abre sola al
                          confirmar la orden; el botón es para el segundo pase, cuando el
                          equipo se prueba, se arregla y se vuelve a probar.

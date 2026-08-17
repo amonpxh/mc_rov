@@ -4,6 +4,49 @@ All notable changes to the `mc_rov` Odoo module are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this module adheres to [semantic versioning](https://semver.org/) within the constraints of Odoo's version scheme: `19.0.X.Y.Z` where `19.0` is the Odoo major, `X` is breaking-change/migration, `Y` is feature, `Z` is bugfix.
 
+## [19.0.15.1.0] — 2026-08-17
+
+Screen fixes from looking at the deployed revision form.
+
+### Fixed
+
+- **A half-filled revision said «Aprobado».** `resultado` fell through to *approved* by
+  elimination, so a freshly created record — 22 checks unanswered, nothing tested — declared
+  the unit fine. It is the empty-indistinguishable-from-a-datum failure, on the optimistic
+  side, which is the worse of the two. It now stays **blank** until every check is answered
+  and the stress test has a result.
+
+- **«Equipos recibidos» accepted other ROVs.** With no domain, a second vehicle could be added
+  as if it were an accessory — and that unit would then have no revision, no checks and no
+  history: invisible to every analysis. Restricted to `es_un_rov = False`, which also excludes
+  the order's own unit.
+
+### Changed
+
+- **The tab goes back to «Revisiones».** It was «Diagnóstico» for a few hours so the tab bar
+  would read as the process, and that left **two names for one thing**: the tab said
+  Diagnóstico and every record inside said `REV/00006 — Revisión técnica`.
+
+  «Revisión» is also the precise one: a manufacturing revision diagnoses nothing, and the
+  second one of a visit verifies rather than diagnoses. What names the *step* is now a muted
+  line inside the tab, which the technician reads where the work happens — more than a
+  three-word label ever said.
+
+- **`motivo` gains «Primer diagnóstico» as an explicit, default value.** Empty used to mean
+  "this is the first one", which is inferring from an absence. Now the field is self-describing
+  and countable without joining to `numero_en_visita`, and it costs no clicks: the revision
+  auto-created on order confirmation arrives already marked. **The «Nueva revisión» button
+  creates it empty on purpose**, to force the choice exactly where it matters. Only asked when
+  there is a visit — a manufacturing revision has no repair to verify and no cable to compare.
+
+- **«Condiciones de la prueba» becomes two titled blocks** — *Con qué se probó* and *Qué dio* —
+  instead of two uneven columns. Four rows against six reads as a decision when each block says
+  what it holds, and as sloppiness when it does not.
+
+  The three Selections go to **horizontal radio**: they hold two and three values, and a
+  dropdown to choose between two hides half the answer behind a click. **Units move out of the
+  labels** and sit beside the input — `m`, `V`, `h`, `Mbps`, `°C`.
+
 ## [19.0.15.0.0] — 2026-08-17
 
 One run per revision. Rationale in

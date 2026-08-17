@@ -13,7 +13,7 @@
 | Test database | `odoo_test` |
 | Config | `/etc/odoo/odoo.conf` |
 | Test runner | Odoo's native test framework |
-| Total tests | 183 (73 `stock.lot` + 16 `repair.order` + 18 `mc.rov.componente` + 55 `mc.rov.revision` + 21 diagnóstico de fallas) |
+| Total tests | 185 (73 `stock.lot` + 16 `repair.order` + 18 `mc.rov.componente` + 57 `mc.rov.revision` + 21 diagnóstico de fallas) |
 
 ## Running all tests
 
@@ -64,7 +64,7 @@ Available test classes (as of v19.0.12.0.0):
 | `TestMcRovRevisionConfirmacion` | 7 | qué se exige para confirmar |
 | `TestMcRovRevisionLuces` | 3 | la comparación contra la ficha técnica |
 | `TestMcRovRevisionSellos` | 9 | la inspección de sellos y la evidencia de manipulación |
-| `TestMcRovRevisionAutomatica` | 8 | la revisión que se abre sola, el botón del segundo pase y el motivo |
+| `TestMcRovRevisionAutomatica` | 10 | la revisión que se abre sola, el botón del segundo pase y el motivo |
 | `TestMcRovRevisionTrazabilidad` | 3 | el circuito hallazgo → trabajo |
 | `TestMcRovComponente` | 18 | all four custom models (`componente`, `subtipo`, `accion`, `linea.falla`) |
 | `TestRecepcion` | 7 | síntoma y sospecha, el catálogo, el archivado que esconde el histórico |

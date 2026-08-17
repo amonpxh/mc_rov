@@ -34,8 +34,13 @@ class RepairOrder(models.Model):
         column1="repair_order_id",
         column2="lot_id",
         string="Equipos recibidos",
+        # Sin dominio se podía meter otro ROV como si fuera un accesorio, y ese equipo
+        # quedaba sin revisión, sin chequeos y sin historial: invisible para todo el
+        # análisis. El dominio también excluye al propio equipo de la orden, que es un ROV.
+        domain="[('es_un_rov', '=', False)]",
         help="Lo que llegó junto al ROV: consola, umbilical, e-pods. Es lo que la "
-        "inspección física de la revisión va a mirar.",
+        "inspección física de la revisión va a mirar. No acepta otros ROV: cada vehículo "
+        "necesita su propia orden para tener revisión e historial.",
     )
 
     # Descripción literal de la falla según el cliente, sin interpretación técnica
@@ -122,6 +127,11 @@ class RepairOrder(models.Model):
                 "lot_id": self.lot_id.id,
                 "repair_id": self.id,
                 "tipo": "reparacion",
+                # Sin motivo a propósito: la primera revisión de la visita trae "primer
+                # diagnóstico" por defecto, y esta nace vacía para que quien la abre diga por
+                # qué. Es la única que puede ser un re-test o una comparación de cable, y
+                # confundirlas arruina la pregunta de si la reparación sirvió.
+                "motivo": False,
             }
         )
         return {

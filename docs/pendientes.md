@@ -2,6 +2,71 @@
 
 > Actualizar esta sección al cerrar cada sesión de trabajo.
 
+## Diseño abierto, salido de mirar las pantallas el 2026-08-17
+
+Todo esto quedó discutido y **sin decidir**. El hilo está en el historial de esa sesión; lo que
+sigue es lo que hay que resolver antes de escribir código.
+
+- [ ] **Las pruebas de fabricación y de terreno ya existen en `stock.lot`, y la revisión las
+  duplica.** El número de serie guarda los resultados de las dos: laboratorio
+  (`mc_prueba_leak`, `mc_ancho_banda`, `mc_subida`, `mc_bajada`, las dos temperaturas `_lab`,
+  `mc_tiempo_prueba_lab`, `mc_esfuerzo`, `mc_en_reposo`, `mc_consumo_corriente`,
+  `mc_limitacion_pilot_gain`, `mc_ganancia_luz`) y terreno (`mc_fecha_prueba`, `mc_lugar`,
+  `mc_profundidad`, `mc_velocidad_corriente`, `mc_alimentacion`, `mc_tiempo_prueba_terreno`,
+  las dos temperaturas `_terreno`, `mc_observacion`). La revisión con `tipo` en `fabricacion`
+  o `terreno` registra lo mismo, y está vacía porque nadie la usa.
+
+  **En el lote, una prueba es un valor único: correrla dos veces pisa la anterior.** El campo
+  se llama `mc_fecha_prueba` —tiene fecha, o sea que se entendió que era un evento— pero solo
+  hay espacio para uno.
+
+  Esto contradice el § 1.1 del diseño de la revisión, que descartó mover esos campos diciendo
+  que eran «la ficha técnica de fabricación». **Esa corrección metió en la misma bolsa dos
+  cosas**: chasis, motores, pesos y medidas del umbilical sí son ficha (*cómo es* el equipo);
+  prueba de leak, ancho de banda, temperaturas, lugar y profundidad son resultados de un
+  evento.
+
+  **Posición de Paulo (2026-08-17):** los puso en el lote porque la fabricación se identifica
+  por número de serie, y **no quiere mezclarlas con las revisiones de reparación** — una
+  prueba de fabricación no es una revisión: no lleva sellos ni hallazgos, y los campos no son
+  los mismos. Tampoco se hacen varias pruebas por equipo, **salvo en un diseño nuevo o un
+  rediseño**, y ahí el enfoque es de troubleshooting.
+
+  Entonces la pregunta no es «¿mover o no mover?» sino **qué modelo describe una prueba de
+  fabricación**, que probablemente no sea ni el lote ni la revisión actual.
+
+- [ ] **Las lecciones aprendidas de fabricación no se guardan en ninguna parte**, y esto es lo
+  más valioso que salió de esa conversación. Hoy se hacen fabricaciones y modificaciones de
+  fabricación **a partir de errores y problemas detectados al armar equipos**, y ese
+  aprendizaje se pierde. Es el mismo hueco que el diagnóstico de fallas cerró del lado de la
+  reparación, sin cerrar del lado de la manufactura.
+
+- [ ] **La batería de fabricación no está definida.** Los 22 chequeos tienen las tres casillas
+  `aplica_*` encendidas, así que un ROV recién armado recibe las mismas preguntas que uno que
+  llegó roto — incluidas las que buscan desgaste y daño de uso. Quedó así por omisión al
+  retirar el chequeo de marcas de plumón en `19.0.12.0.0`, que era el único que separaba las
+  baterías. **El mecanismo para separarlas existe y está probado: son datos, no código.**
+
+- [ ] **Falta software en la batería de reparación.** Hay un síntoma —«el software de
+  superficie falla»— y ninguna prueba que lo verifique.
+
+- [ ] **La versión de software revierte sola.** Paulo lo describió así: el equipo *«se
+  autoformateaba y volvía al instalado de fábrica»*. La ficha ya guarda tres versiones con
+  `tracking`: `mc_version_software`, `mc_version_controlador` y `mc_version_ardusub`, así que
+  **se detecta comparando lo encontrado contra la ficha**, igual que `luces_difieren` contra
+  `mc_cantidad_luces`.
+
+  Dos formas: la barata es un chequeo («la versión corresponde a la registrada») más un
+  hallazgo de catálogo; la completa registra qué versión se encontró y compara sola. Falta
+  saber **cuál de las tres revierte** — la sospecha es ArduSub, porque corre en el vehículo.
+
+  Efecto secundario que la hace valer igual: **obliga a mantener la ficha al día**, porque una
+  diferencia es o un equipo que revirtió o una ficha desactualizada.
+
+- [ ] **Sí se hacen pruebas en terreno**, sobre equipos fabricados, y hoy viven en el lote. El
+  tipo `terreno` de la revisión existe **sin ninguna justificación escrita** y nada lo crea:
+  hay que decidirlo junto con el primer punto.
+
 ## Estado al 2026-08-17
 
 `19.0.14.0.0` ordenó el flujo en pantalla: **las pestañas pasaron a ser los momentos del
