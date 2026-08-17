@@ -752,6 +752,69 @@ equipo no se fue a ninguna parte.
 **Si en unos meses ese filtro muestra una pila, ahí está la evidencia para bloquear** — y
 recién entonces se sabrá cuánto cuesta de verdad, que hoy es una suposición.
 
+### 8.5 La batería se ordena por área, y crece hasta cubrir los síntomas *(19.0.14.1.0)*
+
+Salió de contar la batería contra el catálogo de síntomas del diagnóstico de fallas. Los siete
+chequeos originales salieron de la hoja de papel y cubrían cuatro áreas —presión, leak,
+navegación, video—. **El catálogo de síntomas tiene nueve familias**, y para tres de ellas no
+había ninguna prueba: un ROV que no enciende, que pierde conexión con la superficie o al que no
+le responde una luz se iba a diagnosticar mirando.
+
+Eso no rompía nada, pero se leía mal en el único análisis que importa: el hallazgo quedaría con
+`chequeo_origen_id` vacío, o sea contado como *«ningún chequeo lo detectó»* — indistinguible de
+un hueco en la batería. Y el hueco existía de verdad.
+
+Entran dos secciones nuevas en código —**Energía** y **Comunicación**— y nueve chequeos como
+datos semilla. La sección **Inspección física**, que había quedado vacía en `19.0.12.0.0` al
+salir las marcas de plumón, vuelve a tener contenido.
+
+**Lo que deliberadamente no se agrega es todo lo que la corrida ya mide.** Que el equipo se
+apague solo lo dice `esfuerzo_resultado` junto con su duración; que se caliente, las
+temperaturas; el ancho de banda son `subida` y `bajada`. Registrar el mismo hecho como número y
+como casilla deja dos versiones del mismo dato y ninguna confiable — y además **un número le
+gana a una casilla**: «aguantó 90 minutos» dice más que «OK».
+
+**Los umbrales se contestan a mano, no se derivan.** Decir si 8 Mbps está bien exige un umbral
+que hoy nadie definió, y uno inventado en el código marcaría «No OK» según un número sin
+significado — el mismo defecto que hizo descartar el «nivel de confianza» en el diseño del
+diagnóstico. Por eso el ancho de banda entra como chequeo contestado por el técnico, que sabe
+qué da su modelo. **El día que la ficha técnica declare el valor esperado, puede pasar a
+derivarse solo**, exactamente como ya lo hace `luces_difieren` contra `mc_cantidad_luces`.
+
+**No hay sección «Sensores»** porque el sensor de profundidad se verifica probando depth hold.
+
+### 8.6 Los chequeos se contestan con el umbilical del equipo *(19.0.14.1.0)*
+
+Algunos chequeos dependen del cable —«responde a comandos» puede dar distinto con un umbilical
+que con otro— y el checklist se contesta una sola vez por revisión. La convención es que **se
+contesta con el umbilical del equipo**, y sobrevive a los tres escenarios posibles:
+
+| Escenario | Con qué cable se contestó |
+|---|---|
+| Una corrida, umbilical del equipo | Inequívoco |
+| Una corrida, umbilical del taller *(llegó sin el suyo)* | Inequívoco: no hay otro |
+| Dos corridas | La convención: el del equipo |
+
+El caso ambiguo es solo el tercero, y ahí la convención decide. Se evaluó un checklist por
+corrida y se descartó: es un modelo nuevo con migración para algo que ocurre en una minoría de
+las visitas, y si con el otro cable diera distinto esa diferencia ya la capturan los números de
+la corrida — que es justamente para lo que existe la segunda.
+
+Un campo «corrida de referencia» tampoco haría falta: nunca decidiría nada que la convención no
+decida ya.
+
+> **La opción del umbilical se llamaba «De prueba (control)» y a veces mentía.** El cable del
+> taller se usa como muestra de control cuando hay dos corridas, pero también **porque el ROV
+> llegó sin el suyo** — raro, pero pasa. En ese caso no es control de nada: es el único cable.
+> Pasa a llamarse **«Del taller»**; la clave `prueba` no cambia, así que ninguna consulta se
+> rompe.
+>
+> **Y una revisión con una sola corrida, esa corrida `prueba`, significa que el equipo llegó
+> sin umbilical propio.** Hay que excluir esos casos del análisis de fallas de umbilical: ese
+> ROV nunca va a tener un hallazgo de cable, no porque el cable estuviera bueno sino porque no
+> estaba. Sin esa exclusión, la estadística dice que los umbilicales fallan menos de lo que
+> fallan.
+
 ---
 
 ## 9. Qué cambia en `repair.order`

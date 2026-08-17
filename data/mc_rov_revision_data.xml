@@ -103,6 +103,119 @@
         <field name="aplica_terreno" eval="True"/>
     </record>
 
+    <!-- ========== Ampliación de la batería, 19.0.14.1.0 ==========
+         Los siete chequeos de arriba salieron de la hoja de papel. Estos nueve salieron de
+         contar esa batería contra el catálogo de síntomas, y de ahí salió el hueco: un ROV
+         que no enciende, que pierde conexión o al que no le responde una luz no tenía
+         ninguna prueba que lo verificara. El técnico lo iba a encontrar mirando, y el
+         hallazgo quedaría sin «Prueba que lo detectó» — o sea marcado como si a la batería
+         le faltara un chequeo, que es exactamente lo que le faltaba.
+
+         Lo que NO se agrega, y conviene que quede dicho: nada que la corrida ya mida. Que se
+         apague solo lo dice `esfuerzo_resultado` con su duración, que se caliente lo dicen
+         las temperaturas, y el ancho de banda son `subida` y `bajada`. Registrar el mismo
+         hecho como número y como casilla deja dos versiones y ninguna confiable. -->
+
+    <!-- Energía -->
+    <record id="chequeo_enciende" model="mc.rov.chequeo">
+        <field name="name">Enciende y arranca correctamente</field>
+        <field name="seccion">energia</field>
+        <field name="sequence">15</field>
+        <field name="aplica_fabricacion" eval="True"/>
+        <field name="aplica_reparacion" eval="True"/>
+        <field name="aplica_terreno" eval="True"/>
+    </record>
+
+    <!-- Inspección física. La sección quedó sin chequeos en 19.0.12.0.0 al salir las marcas
+         de plumón, y sin nada adentro no se miraba nada al recibir de forma registrable. -->
+    <record id="chequeo_chasis" model="mc.rov.chequeo">
+        <field name="name">Chasis y estructura sin daño visible</field>
+        <field name="seccion">inspeccion_fisica</field>
+        <field name="sequence">20</field>
+        <field name="aplica_fabricacion" eval="True"/>
+        <field name="aplica_reparacion" eval="True"/>
+        <field name="aplica_terreno" eval="True"/>
+    </record>
+    <record id="chequeo_penetradores" model="mc.rov.chequeo">
+        <field name="name">Penetradores y conectores sin daño</field>
+        <field name="seccion">inspeccion_fisica</field>
+        <field name="sequence">25</field>
+        <field name="aplica_fabricacion" eval="True"/>
+        <field name="aplica_reparacion" eval="True"/>
+        <field name="aplica_terreno" eval="True"/>
+    </record>
+    <record id="chequeo_helices_dano" model="mc.rov.chequeo">
+        <field name="name">Hélices sin daño ni desgaste</field>
+        <field name="seccion">inspeccion_fisica</field>
+        <field name="sequence">30</field>
+        <field name="aplica_fabricacion" eval="True"/>
+        <field name="aplica_reparacion" eval="True"/>
+        <field name="aplica_terreno" eval="True"/>
+    </record>
+
+    <!-- Comunicación. "Responde a comandos" no es lo mismo que tener ancho de banda: el
+         síntoma "conectado pero no responde" existe justamente porque son dos fallas
+         distintas.
+
+         El ancho de banda se contesta a mano y no se deriva de `subida`/`bajada`: decir si 8
+         Mbps está bien exige un umbral que hoy nadie definió, y un umbral inventado en el
+         código marcaría "No OK" según un número que no significa nada. El técnico sabe qué da
+         su modelo. El día que la ficha técnica declare el valor esperado, esto puede pasar a
+         derivarse solo, igual que ya lo hace `luces_difieren` contra la cantidad de luces. -->
+    <record id="chequeo_responde_comandos" model="mc.rov.chequeo">
+        <field name="name">Responde a comandos desde superficie</field>
+        <field name="seccion">comunicacion</field>
+        <field name="sequence">55</field>
+        <field name="aplica_fabricacion" eval="True"/>
+        <field name="aplica_reparacion" eval="True"/>
+        <field name="aplica_terreno" eval="True"/>
+    </record>
+    <record id="chequeo_ancho_banda" model="mc.rov.chequeo">
+        <field name="name">El ancho de banda es el esperado para este equipo y este cable</field>
+        <field name="seccion">comunicacion</field>
+        <field name="sequence">57</field>
+        <field name="aplica_fabricacion" eval="True"/>
+        <field name="aplica_reparacion" eval="True"/>
+        <field name="aplica_terreno" eval="True"/>
+    </record>
+
+    <!-- Navegación. Depth hold y stabilize van separados por la misma razón que están
+         separados como síntomas: apuntan a lugares distintos —el sensor de presión y el IMU o
+         el compás— y de tenerlos separados sale una deducción que no existe de otro modo: si
+         depth hold falla pero stabilize funciona, el problema es el sensor de profundidad,
+         porque uno depende del otro. Hasta ahora esa deducción se podía reportar como síntoma
+         pero no comprobar, porque no había prueba que la midiera.
+
+         Por eso tampoco hace falta una sección "Sensores": el sensor de profundidad se
+         verifica probando depth hold. -->
+    <record id="chequeo_depth_hold" model="mc.rov.chequeo">
+        <field name="name">Mantiene profundidad (depth hold)</field>
+        <field name="seccion">navegacion</field>
+        <field name="sequence">75</field>
+        <field name="aplica_fabricacion" eval="True"/>
+        <field name="aplica_reparacion" eval="True"/>
+        <field name="aplica_terreno" eval="True"/>
+    </record>
+    <record id="chequeo_stabilize" model="mc.rov.chequeo">
+        <field name="name">Se estabiliza (stabilize)</field>
+        <field name="seccion">navegacion</field>
+        <field name="sequence">77</field>
+        <field name="aplica_fabricacion" eval="True"/>
+        <field name="aplica_reparacion" eval="True"/>
+        <field name="aplica_terreno" eval="True"/>
+    </record>
+
+    <!-- Luces. Contar cuántas encienden —que es lo que ya hacen `luces_internas` y
+         `luces_externas`— no es lo mismo que verificar que se controlan desde superficie. -->
+    <record id="chequeo_luces_control" model="mc.rov.chequeo">
+        <field name="name">Las luces responden al control desde superficie</field>
+        <field name="seccion">luces</field>
+        <field name="sequence">105</field>
+        <field name="aplica_fabricacion" eval="True"/>
+        <field name="aplica_reparacion" eval="True"/>
+        <field name="aplica_terreno" eval="True"/>
+    </record>
+
     <!-- La sección "luces" no lleva chequeos de OK / No OK: la prueba de luces es contar
          cuántas encienden, y eso ya son los tres campos de la revisión —internas, externas
          y el total, que se compara solo contra la ficha del equipo—. Un chequeo

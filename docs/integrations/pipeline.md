@@ -226,8 +226,17 @@ building towards. One record per test session on one unit.
 
 - `mc.rov.revision.corrida`: one pass with one umbilical — `umbilical` (`equipo` |
   `prueba`), `largo`, `alimentacion`, `tension_salida`, `esfuerzo_duracion`,
-  `esfuerzo_resultado`, `subida`, `bajada`. Two rows when the standard test cable is used
+  `esfuerzo_resultado`, `subida`, `bajada`. Two rows when the workshop cable is used
   as a **control sample**; comparing them isolates the cable as a fault source.
+
+  > **`prueba` does not always mean "control sample", and 19.0.14.1.0 relabelled it to «Del
+  > taller» for exactly that reason** (the stored key is unchanged). The workshop cable is also
+  > used **when the unit arrived without one of its own** — rare, but it happens.
+  >
+  > **A revision with exactly one run, and that run `prueba`, means the unit had no umbilical.**
+  > Exclude those from any umbilical failure analysis: the unit cannot carry a cable finding,
+  > not because the cable was sound but because it was absent. Counting them denominator-style
+  > makes umbilicals look more reliable than they are.
 
   > **Moved in 19.0.14.0.0: `temperatura_interior` and `temperatura_exterior` came down from
   > `mc.rov.revision`,** where the columns were dropped. A query naming them on the revision
@@ -281,8 +290,9 @@ building towards. One record per test session on one unit.
   sudden rise in `manipulacion_externa` as possibly procedural before treating it as a rise
   in third-party tampering.
 
-- `mc.rov.chequeo` (catalogue): `name`, `seccion` (`inspeccion_fisica` | `presion` | `leak` |
-  `navegacion` | `video` | `luces` | `otro`), `por_componente`, and three booleans declaring
+- `mc.rov.chequeo` (catalogue): `name`, `seccion` (`inspeccion_fisica` | **`energia`** |
+  `presion` | `leak` | **`comunicacion`** | `navegacion` | `video` | `luces` | `otro`),
+  `por_componente`, and three booleans declaring
   which revision types it applies to — `aplica_fabricacion`, `aplica_reparacion`,
   `aplica_terreno`. **`aplica_recepcion` and `aplica_entrega` were merged into
   `aplica_reparacion` in 19.0.12.0.0 and the columns dropped.** `mc.rov.hallazgo`
