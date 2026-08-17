@@ -252,33 +252,6 @@
                             <!-- La prueba de luces es un conteo y no un OK / No OK: se
                                  cuentan las que encienden. El total sale solo y se compara
                                  contra la ficha del equipo. -->
-                            <group string="Prueba de luces">
-                                <group>
-                                    <field name="luces_internas" readonly="estado == 'confirmado'"/>
-                                    <field name="luces_externas" readonly="estado == 'confirmado'"/>
-                                </group>
-                                <group>
-                                    <field name="luces_total"/>
-                                    <field name="luces_ficha"/>
-                                    <field name="luces_difieren" invisible="1"/>
-                                </group>
-                                <field name="chequeo_luces_ids" nolabel="1" class="mc_rov_pruebas" colspan="2"
-                                       invisible="not chequeo_luces_ids"
-                                       readonly="estado == 'confirmado'">
-                                    <list editable="bottom" create="0" delete="0">
-                                        <field name="chequeo_id" readonly="1"/>
-                                        <field name="resultado" widget="radio"
-                                               options="{&quot;horizontal&quot;: true}"/>
-                                        <field name="detalle"/>
-                                    </list>
-                                </field>
-                            </group>
-                            <div class="alert alert-warning" role="alert"
-                                 invisible="not luces_difieren">
-                                El conteo de luces de la prueba no coincide con la ficha del
-                                equipo. O el equipo perdió luces, o la ficha está mal.
-                            </div>
-
                             <!-- Manipulador y sonar los lleva una minoría de los equipos, y
                                  por eso se preguntan igual: "No aplica" afirma que el equipo
                                  no lo tiene, que es distinto de no haberlo mirado. -->
@@ -294,6 +267,42 @@
                                     </list>
                                 </field>
                             </group>
+
+                            <!-- Luces va al final y con el checklist ARRIBA de los contadores.
+                                 Es la única sección que además pide números, así que es la
+                                 única con una forma distinta; puesta última y empezando como
+                                 todas —una lista— esa diferencia deja de interrumpir el ritmo
+                                 de las otras ocho.
+
+                                 El conteo se queda acá y no sube con las corridas porque el
+                                 técnico hace las tres cosas en el mismo momento: prende las
+                                 luces, cuenta cuántas encienden y prueba que respondan. -->
+                            <group string="Prueba de luces">
+                                <field name="chequeo_luces_ids" nolabel="1" class="mc_rov_pruebas" colspan="2"
+                                       invisible="not chequeo_luces_ids"
+                                       readonly="estado == 'confirmado'">
+                                    <list editable="bottom" create="0" delete="0">
+                                        <field name="chequeo_id" readonly="1"/>
+                                        <field name="resultado" widget="radio"
+                                               options="{&quot;horizontal&quot;: true}"/>
+                                        <field name="detalle"/>
+                                    </list>
+                                </field>
+                                <group>
+                                    <field name="luces_internas" readonly="estado == 'confirmado'"/>
+                                    <field name="luces_externas" readonly="estado == 'confirmado'"/>
+                                </group>
+                                <group>
+                                    <field name="luces_total"/>
+                                    <field name="luces_ficha"/>
+                                    <field name="luces_difieren" invisible="1"/>
+                                </group>
+                            </group>
+                            <div class="alert alert-warning" role="alert"
+                                 invisible="not luces_difieren">
+                                El conteo de luces de la prueba no coincide con la ficha del
+                                equipo. O el equipo perdió luces, o la ficha está mal.
+                            </div>
 
                             <group string="Otras pruebas" invisible="not chequeo_otro_ids">
                                 <field name="chequeo_otro_ids" nolabel="1" class="mc_rov_pruebas"
