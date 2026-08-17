@@ -224,29 +224,32 @@ building towards. One record per test session on one unit.
   consecutive revisions** — the hours the unit actually flew. Reliability figures computed
   on calendar time flatter units that nobody uses.
 
-- `mc.rov.revision.corrida`: one pass with one umbilical — `umbilical` (`equipo` |
-  `prueba`), `largo`, `alimentacion`, `tension_salida`, `esfuerzo_duracion`,
-  `esfuerzo_resultado`, `subida`, `bajada`. Two rows when the workshop cable is used
-  as a **control sample**; comparing them isolates the cable as a fault source.
+- `mc.rov.revision.corrida` — **REMOVED in 19.0.15.0.0. The table is dropped; a query naming
+  it errors out.** Its fields moved up onto `mc.rov.revision` with the same names:
+  `umbilical` (`equipo` | `prueba`), `largo`, `alimentacion`, `tension_salida`,
+  `esfuerzo_duracion`, `esfuerzo_resultado`, `subida`, `bajada`, `temperatura_interior`,
+  `temperatura_exterior`.
 
-  > **`prueba` does not always mean "control sample", and 19.0.14.1.0 relabelled it to «Del
-  > taller» for exactly that reason** (the stored key is unchanged). The workshop cable is also
-  > used **when the unit arrived without one of its own** — rare, but it happens.
+  > **A revision now describes exactly one run with exactly one cable.** It used to hold a
+  > list, so two cables could be compared inside one record — but both runs shared **one set
+  > of check answers**, so any check that differed between cables was lost silently. Comparing
+  > cables is now two revisions, each with its own battery.
   >
-  > **A revision with exactly one run, and that run `prueba`, means the unit had no umbilical.**
-  > Exclude those from any umbilical failure analysis: the unit cannot carry a cable finding,
-  > not because the cable was sound but because it was absent. Counting them denominator-style
-  > makes umbilicals look more reliable than they are.
+  > **Migration kept the first run of each revision and discarded the rest**, logging every
+  > discarded row in full. They could not be converted into extra revisions: the second
+  > revision would need its own 22 answers, and those answers never existed — which is the
+  > defect that motivated the change.
+  >
+  > `umbilical = 'prueba'` means the workshop cable, which is either a control comparison or
+  > the only cable available when the unit arrived without its own. **`motivo` is what
+  > distinguishes them** (see below).
 
-  > **Moved in 19.0.14.0.0: `temperatura_interior` and `temperatura_exterior` came down from
-  > `mc.rov.revision`,** where the columns were dropped. A query naming them on the revision
-  > errors out. They are measured **once per run**, so a revision with two runs has two
-  > readings and they are meant to be compared, not averaged. No production row had a value at
-  > migration time, so there is no pre-19.0.14.0.0 history to reconcile.
-  >
-  > **Internal figure — never expose it in anything customer-facing.** It used to be given to
-  > the customer and was used against Marine Connection; it is being measured again on the
-  > explicit condition that it stays inside.
+- `mc.rov.revision.motivo` — **new in 19.0.15.0.0**: `retest` | `comparacion_cable` | `otro`.
+  Why a second revision exists in a visit. **Read it before aggregating second passes.** A
+  retest after repair and a cable comparison are the same shape and answer different
+  questions; counting them together destroys *"how often does the second pass still show the
+  fault"*. Empty on the first revision of a visit, and required to confirm any later one — so
+  it is reliably populated from 19.0.15.0.0 onward and absent before it.
 
 - `mc.rov.revision.chequeo`: `chequeo_id`, `componente_id`, `seccion` (stored related),
   `resultado` (`ok` | `no_ok` | `no_lo_tiene`), `detalle`. **`no_lo_tiene` means the unit

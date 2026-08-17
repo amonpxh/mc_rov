@@ -156,9 +156,82 @@ class McRovRevision(models.Model):
         string="El conteo no cuadra", compute="_compute_luces", store=True
     )
 
-    # Las temperaturas bajaron a la corrida en 19.0.14.0.0: se miden una vez por corrida y no
-    # una por sesión, y además dependen del cable —la caída de tensión en un umbilical largo
-    # calienta—, que es lo contrario de lo que suponía tenerlas acá.
+    # --- La corrida: con qué se probó ---
+    #
+    # Estos campos vivían en `mc.rov.revision.corrida`, un modelo de línea que permitía varias
+    # corridas por revisión. Subieron acá en 19.0.15.0.0 y ese modelo desapareció.
+    #
+    # **La razón por la que estaban abajo resultó ser falsa a medias.** El argumento era que
+    # "lo que no depende del cable vive en la revisión y se hace una sola vez aunque haya dos
+    # corridas". Pero varios chequeos sí dependen del cable —responde a comandos, ancho de
+    # banda, y probablemente video— y con dos corridas compartiendo un solo juego de
+    # respuestas, **todo chequeo que cambiara entre cables se perdía en silencio**: la
+    # comparación quedaba visible en cuatro números y en nada más.
+    #
+    # Ahora una revisión es una prueba completa bajo una condición: un cable, una batería, un
+    # juego de respuestas. Comparar dos cables son dos revisiones, y cuesta responder los
+    # chequeos de nuevo — que es exactamente lo que hace que la comparación sirva.
+    #
+    # No llevan `required` a nivel de modelo porque la revisión se crea sola al confirmar la
+    # orden, antes de que nadie haya probado nada. Se exigen al confirmar.
+
+    # «Del taller» se usa como muestra de control frente al cable del equipo, y también
+    # **porque el ROV llegó sin el suyo** — raro, pero pasa. Una revisión con este valor puede
+    # ser cualquiera de las dos cosas; lo que las distingue es `motivo`.
+    umbilical = fields.Selection(
+        [("equipo", "Del equipo"), ("prueba", "Del taller")],
+        string="Umbilical",
+        default="equipo",
+        help="Con qué cable se corrió esta batería. «Del taller» puede ser una comparación "
+        "de control o el único cable disponible, si el equipo llegó sin el suyo.",
+    )
+    largo = fields.Float(string="Largo del umbilical (m)")
+
+    alimentacion = fields.Selection(
+        [("UPS", "UPS"), ("Generador", "Generador"), ("Transformador", "Transformador")],
+        string="Alimentación",
+    )
+    tension_salida = fields.Integer(string="Tensión de salida (V)")
+
+    # El resultado del esfuerzo es binario —el ROV corre 1 a 1½ horas en un bin con agua y
+    # o aguanta o presenta problemas— pero cuánto aguantó es información distinta y
+    # comparable. "Aguantó 90 minutos" y "falló a los 15" quedarían registrados igual sin la
+    # duración. Si falló, es tiempo hasta la falla; si pasó, es la fuerza de la evidencia.
+    esfuerzo_duracion = fields.Float(string="Duración del esfuerzo (h)", digits=(5, 2))
+    esfuerzo_resultado = fields.Selection(
+        [("ok", "Sin problemas"), ("con_problemas", "Presentó problemas")],
+        string="Resultado del esfuerzo",
+    )
+
+    # No hay campo "ancho de banda": ese es el nombre de la prueba, no una tercera medición.
+    subida = fields.Float(string="Subida (Mbps)", digits=(6, 2))
+    bajada = fields.Float(string="Bajada (Mbps)", digits=(6, 2))
+
+    # Dato interno: se medía, se le entregaba al cliente y el cliente la usó en contra. Vuelve
+    # a medirse con la condición de que NO salga en el reporte impreso.
+    temperatura_interior = fields.Float(string="Temperatura interior (°C)")
+    temperatura_exterior = fields.Float(string="Temperatura exterior (°C)")
+
+    # Por qué existe esta revisión. Solo tiene sentido a partir de la segunda de una visita:
+    # la primera es la primera y `numero_en_visita` ya lo dice.
+    #
+    # Sin este campo, dos revisiones en una misma visita son ambiguas —¿se arregló y se volvió
+    # a probar, o se comparó un cable?— y mezclarlas corrompe el análisis que más importa:
+    # «¿cuántas veces el segundo pase todavía muestra la falla?» no significa nada si la mitad
+    # de esos segundos pases eran comparaciones de cable.
+    #
+    # Se podría inferir del umbilical —si difiere, es comparación— pero miente cuando un
+    # re-test usa otro cable por casualidad. Lo contesta quien aprieta «Nueva revisión», que
+    # sabe perfectamente por qué lo está apretando.
+    motivo = fields.Selection(
+        [
+            ("retest", "Re-test tras reparación"),
+            ("comparacion_cable", "Comparación de cable"),
+            ("otro", "Otro"),
+        ],
+        string="Motivo de esta revisión",
+        help="Por qué se abrió esta revisión además de la primera de la visita.",
+    )
 
     # --- Solo en pruebas de terreno ---
 
@@ -168,7 +241,6 @@ class McRovRevision(models.Model):
 
     # --- Líneas ---
 
-    corrida_ids = fields.One2many("mc.rov.revision.corrida", "revision_id", string="Corridas")
     chequeo_ids = fields.One2many("mc.rov.revision.chequeo", "revision_id", string="Chequeos")
     hallazgo_ids = fields.One2many("mc.rov.revision.hallazgo", "revision_id", string="Hallazgos")
     inspeccion_ids = fields.One2many(
@@ -284,7 +356,7 @@ class McRovRevision(models.Model):
         string="Resultado",
         compute="_compute_resultado",
         store=True,
-        help="Se deriva de los chequeos, las corridas y los hallazgos. No es editable: un "
+        help="Se deriva de los chequeos, el esfuerzo y los hallazgos. No es editable: un "
         "override sería el texto libre de vuelta, en otra forma.",
     )
 
@@ -303,7 +375,7 @@ class McRovRevision(models.Model):
 
     @api.depends(
         "chequeo_ids.resultado",
-        "corrida_ids.esfuerzo_resultado",
+        "esfuerzo_resultado",
         "hallazgo_ids.severidad",
     )
     def _compute_resultado(self):
@@ -316,10 +388,7 @@ class McRovRevision(models.Model):
         for revision in self:
             rechaza = (
                 any(linea.resultado == "no_ok" for linea in revision.chequeo_ids)
-                or any(
-                    corrida.esfuerzo_resultado == "con_problemas"
-                    for corrida in revision.corrida_ids
-                )
+                or revision.esfuerzo_resultado == "con_problemas"
                 or any(hallazgo.severidad == "impide_operar" for hallazgo in revision.hallazgo_ids)
             )
             if rechaza:
@@ -481,19 +550,25 @@ class McRovRevision(models.Model):
         if not revision.responsable_id:
             faltan.append("indicar el responsable")
 
-        if not revision.corrida_ids:
-            faltan.append("registrar al menos una corrida (la prueba de esfuerzo siempre se hace)")
+        # La prueba de esfuerzo siempre se hace, incluso cuando la revisión existe solo para
+        # comparar un cable: el taller confirmó que nunca se cambia el umbilical solo para
+        # medir ancho de banda.
+        if not revision.esfuerzo_resultado:
+            faltan.append("el resultado de la prueba de esfuerzo")
+        if revision.esfuerzo_resultado and not revision.esfuerzo_duracion:
+            faltan.append("cuánto duró el esfuerzo")
+        if not revision.alimentacion:
+            faltan.append("la alimentación usada")
+        if not revision.largo:
+            faltan.append("el largo del umbilical con el que se probó")
+        if bool(revision.subida) != bool(revision.bajada):
+            faltan.append("la subida y la bajada — o ambas, o ninguna")
 
-        for corrida in revision.corrida_ids:
-            etiqueta = corrida.display_name
-            if not corrida.esfuerzo_resultado:
-                faltan.append(f"el resultado del esfuerzo en {etiqueta}")
-            if corrida.esfuerzo_resultado and not corrida.esfuerzo_duracion:
-                faltan.append(f"cuánto duró el esfuerzo en {etiqueta}")
-            if not corrida.alimentacion:
-                faltan.append(f"la alimentación usada en {etiqueta}")
-            if bool(corrida.subida) != bool(corrida.bajada):
-                faltan.append(f"la subida y la bajada en {etiqueta} — o ambas, o ninguna")
+        # A partir de la segunda revisión de una visita, por qué existe. Sin esto, un re-test
+        # tras reparación y una comparación de cable se ven idénticos, y contarlos juntos
+        # arruina la pregunta de si la reparación sirvió.
+        if revision.numero_en_visita > 1 and not revision.motivo:
+            faltan.append("por qué se abrió esta segunda revisión de la visita")
 
         sin_responder = revision.chequeo_ids.filtered(lambda linea: not linea.resultado)
         if sin_responder:
@@ -524,88 +599,6 @@ class McRovRevision(models.Model):
         for revision in self:
             revision.estado = "borrador"
             revision.message_post(body="La revisión volvió a borrador para corregirse.")
-
-
-class McRovRevisionCorrida(models.Model):
-    """Una pasada de pruebas con un umbilical determinado.
-
-    Existe como modelo aparte porque **el umbilical es una condición de la corrida y no un
-    dato de una prueba**. Normalmente hay una sola, con el cable del propio equipo. Hay dos
-    cuando se usa además el umbilical de prueba estándar como muestra de control, y
-    entonces la comparación entre líneas aísla el cable como fuente de falla: mismo ROV,
-    mismo banco, distinto cable. Si el ancho de banda solo cae con el umbilical propio, el
-    problema es el cable y no el vehículo.
-
-    Lo que no depende del cable —inspección física, presión, leak, luces, video— vive en el
-    revision y se hace una sola vez aunque haya dos corridas.
-    """
-
-    _name = "mc.rov.revision.corrida"
-    _description = "Corrida de pruebas con un umbilical"
-    _order = "revision_id, sequence, id"
-
-    revision_id = fields.Many2one(
-        "mc.rov.revision", string="Revisión", required=True, ondelete="cascade", index=True
-    )
-    sequence = fields.Integer(default=10)
-
-    # La etiqueta decía "De prueba (control)" y a veces mentía: el umbilical del taller se usa
-    # como muestra de control cuando hay dos corridas, pero también se usa **porque el ROV
-    # llegó sin el suyo** —raro, pero pasa—. En ese caso no es control de nada, es el único
-    # cable. Que sirva de comparación depende de si hay dos corridas, y eso se ve contando
-    # corridas, no leyendo esta etiqueta. La clave `prueba` no cambia: ninguna consulta se
-    # rompe.
-    #
-    # **Una revisión con una sola corrida y esa corrida `prueba` significa que el equipo llegó
-    # sin umbilical propio**, y eso hay que saberlo antes de contar fallas de umbilical: ese
-    # ROV no puede tener un hallazgo de cable, no porque el cable esté bueno sino porque no
-    # estaba.
-    umbilical = fields.Selection(
-        [("equipo", "Del equipo"), ("prueba", "Del taller")],
-        string="Umbilical",
-        required=True,
-        default="equipo",
-        help="«Del taller» se usa como muestra de control junto a la corrida del equipo, o "
-        "como único cable cuando el ROV llegó sin el suyo.",
-    )
-    largo = fields.Float(string="Largo (m)", required=True)
-
-    alimentacion = fields.Selection(
-        [("UPS", "UPS"), ("Generador", "Generador"), ("Transformador", "Transformador")],
-        string="Alimentación",
-    )
-    tension_salida = fields.Integer(string="Tensión de salida (V)")
-
-    # El resultado del esfuerzo es binario —el ROV corre 1 a 1½ horas en un bin con agua y
-    # o aguanta o presenta problemas— pero cuánto aguantó es información distinta y
-    # comparable. "Aguantó 90 minutos" y "falló a los 15" hoy quedan registrados igual, o
-    # sea, no registrados. Si falló, la duración es tiempo hasta la falla; si pasó, es la
-    # fuerza de la evidencia.
-    esfuerzo_duracion = fields.Float(string="Duración del esfuerzo (h)", digits=(5, 2))
-    esfuerzo_resultado = fields.Selection(
-        [("ok", "Sin problemas"), ("con_problemas", "Presentó problemas")],
-        string="Resultado del esfuerzo",
-    )
-
-    # No hay campo "ancho de banda": ese es el nombre de la prueba, no una tercera medición.
-    subida = fields.Float(string="Subida (Mbps)", digits=(6, 2))
-    bajada = fields.Float(string="Bajada (Mbps)", digits=(6, 2))
-
-    # Bajaron desde mc.rov.revision en 19.0.14.0.0. Se miden una vez por corrida y no una por
-    # sesión: con dos umbilicales son dos lecturas, y guardarlas en la revisión obligaba a
-    # elegir una o promediarlas — las dos cosas pierden la comparación que hace útil la
-    # segunda corrida. Además dependen del cable, porque la caída de tensión en un umbilical
-    # largo calienta, así que estaban clasificadas justo al revés.
-    #
-    # Es dato interno: se medía, se le entregaba al cliente y el cliente la usó en contra.
-    # NO debe salir en el reporte impreso.
-    temperatura_interior = fields.Float(string="Temperatura interior (°C)")
-    temperatura_exterior = fields.Float(string="Temperatura exterior (°C)")
-
-    def _compute_display_name(self):
-        for corrida in self:
-            etiqueta = dict(corrida._fields["umbilical"].selection).get(corrida.umbilical, "")
-            corrida.display_name = f"{etiqueta} · {corrida.largo:g} m"
 
 
 class McRovRevisionChequeo(models.Model):

@@ -211,7 +211,7 @@ class McRovLineaFalla(models.Model):
         Sin esto el modelo no tiene `name` ni `_rec_name`, así que Odoo devuelve
         "mc.rov.linea.falla,42" — y ese es el texto que vería el técnico en el error que le
         impide cerrar la orden por falta de origen. Mismo caso y misma solución que
-        `mc.rov.revision.corrida`.
+        `mc.rov.revision.chequeo` y `mc.rov.revision.hallazgo`.
         """
         for linea in self:
             componente = linea.componente_id.name or "sin componente"
