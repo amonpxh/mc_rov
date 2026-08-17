@@ -624,6 +624,118 @@ El reporte también tapa un hueco actual: el técnico llena trabajos, causa raí
 observaciones, y **nada de eso sale en un PDF** — el único documento imprimible es el
 presupuesto por defecto de Odoo.
 
+### 8.1 Las pestañas son el orden del trabajo *(19.0.14.0.0)*
+
+Salió de mirar las dos pantallas juntas: **la barra de pestañas es lo que le dice al usuario
+cuál es el proceso**, así que tiene que leerse de izquierda a derecha en el orden en que las
+cosas ocurren. Donde no lo hacía, era porque las pestañas se habían agregado en el orden en
+que se fueron implementando.
+
+En la revisión pasan de cinco a tres:
+
+| Antes | Ahora | Por qué |
+|---|---|---|
+| Corridas · Sellos · Pruebas · Hallazgos · Condiciones | **Sellos · Pruebas · Hallazgos** | |
+
+- **Sellos va primera** porque se inspecciona **antes de tocar el equipo** — lo dice el aviso
+  de esa misma pestaña. Estaba segunda, contradiciendo su propia instrucción.
+- **Corridas se fusiona dentro de Pruebas.** La corrida no es una prueba: es *la condición
+  bajo la cual se probó* —qué cable, qué alimentación, cuánto aguantó el esfuerzo—. Pero
+  ocurre en la misma sesión, con el equipo encendido, y tenerlas separadas obligaba a saltar
+  de pestaña en medio del trabajo. Adentro: las corridas arriba, las siete secciones del
+  checklist debajo, y el bloque de terreno cuando el tipo lo pide.
+- **Condiciones desaparece** como pestaña. Ver § 8.2.
+
+En la orden de reparación, las pestañas pasan a ser los cuatro momentos del diagnóstico de
+fallas, más las dos nativas:
+
+> **Recepción · Diagnóstico · Reparación · Repuestos · Cierre · Notas**
+
+- **Recepción** es nueva y se lleva los cuatro campos que estaban sueltos en la cabecera
+  —falla reportada, síntomas, sospecha, equipos recibidos—, que además estaban repartidos
+  entre las dos columnas y mezclados con los campos nativos de Odoo.
+- **Diagnóstico** era *Revisiones*. Nombra el paso en vez del artefacto; la lista de adentro
+  sigue diciendo «Revisión» en cada fila. **Es impreciso a propósito:** esa pestaña también
+  guarda la segunda revisión, la de después de reparar, que no diagnostica sino que verifica.
+  Se aceptó la imprecisión porque el 90% de las visitas lleva una sola revisión y es la
+  diagnóstica, y porque la legibilidad del proceso vale más que el caso raro.
+- **Reparación** era *Trabajos realizados*. Es la palabra del taller; «Corrección» se lee como
+  corregir un error propio.
+- **Cierre** era *Resultado*. Con el origen y el análisis adentro dejó de ser solo el
+  resultado: es el acto de cerrar.
+
+**Repuestos no se fusiona con Reparación**, aunque sean el mismo momento. Son dos modelos
+haciendo dos cosas: uno es el *relato* del trabajo (componente, acción, horas), el otro el
+*consumo material* que descuenta inventario y se factura. Meter la lista nativa de Odoo dentro
+de una pestaña propia arrastra comportamientos que se rompen en la próxima actualización. Lo
+que los ata de verdad no es el layout sino la validación del § 8.3.
+
+**La regla que concilia las dos pantallas**, y que conviene tener escrita para no
+«arreglarla» mal después: *lo derivado se lee arriba de las pestañas; lo que se llena va
+adentro de una.* Por eso el `resultado` de la revisión —que se calcula solo— está en la
+cabecera, y el cierre de la orden —donde se escribe el origen— es una pestaña.
+
+### 8.2 La temperatura es de la corrida, no de la revisión *(19.0.14.0.0)*
+
+`temperatura_interior` y `temperatura_exterior` estaban en `mc.rov.revision`, listadas en el
+§ 5.1 bajo «mediciones que no dependen del cable». **Nunca hubo un argumento escrito para
+ponerlas ahí**: se arrastraron, y la revisión de este diseño no encontró ninguna línea que las
+justificara.
+
+Ahora hay dos datos que sí deciden:
+
+1. **Se mide una vez por corrida, no una por sesión** (confirmado por Marine Connection). Si
+   se corre con el umbilical propio y después con el de prueba, son dos lecturas. Guardarlas
+   en la revisión obligaría a elegir una o a promediarlas, y las dos cosas pierden justamente
+   la comparación que hace útil la segunda corrida.
+2. La temperatura **depende del cable**, que es lo contrario de lo que decía el § 5.1: la
+   caída de tensión en un umbilical largo calienta. Estaba clasificada al revés.
+
+Pasan a `mc.rov.revision.corrida`. En `odoo_prod` no había ninguna lectura registrada al
+migrar, así que no hubo nada que repartir.
+
+> **Restricción para el reporte PDF, y hay que respetarla:** la temperatura vuelve a medirse
+> como **dato interno** y **no debe salir impresa**. Antes se le entregaba al cliente y el
+> cliente la usó en contra. Es el primer caso concreto de lo que el § 12.1 anticipaba en
+> abstracto — que el reporte obliga a decidir campo por campo qué es interno y qué se
+> entrega.
+
+### 8.3 Que no se registre el repuesto es un modo de falla, no un descuido *(19.0.14.0.0)*
+
+Una línea de trabajo con acción «Cambio completo» y ninguna línea de producto significa que se
+cambió una pieza y no quedó registrada: se pierde el vínculo con el lote y se corta el
+análisis de fallas por componente. Hoy la orden se cierra igual.
+
+`mc.rov.accion` gana un booleano **`consume_repuesto`**, marcado en las acciones de cambio, y
+el cierre lo valida. **No se hardcodean los nombres de las acciones**: el catálogo es
+configurable y mañana aparece «Reemplazo de sello».
+
+**Alcance declarado:** exige *al menos una* línea de producto, no una por cada cambio. Una
+orden con tres cambios y un repuesto registrado pasa. Es un piso y no una garantía; la
+correspondencia uno a uno obligaría a decir qué repuesto va con qué trabajo, que es otro campo
+y otra decisión.
+
+### 8.4 La revisión sin confirmar se muestra, no bloquea *(19.0.14.0.0)*
+
+Hoy la orden se cierra con la revisión en borrador y medio checklist sin responder: los dos
+ciclos de estado corren en paralelo sin tocarse. Se evaluó exigir la revisión confirmada para
+cerrar y **se descartó**, por dos razones que apuntan al mismo lado:
+
+- La revisión se crea sola en **toda** orden de ROV, así que bloquear obligaría a recorrer los
+  veinte chequeos incluso cuando el equipo entró a cambiar un conector. **Y cuando responder
+  cuesta, se marca «No aplica» en cadena para pasar el trámite** — que envenena el dato mucho
+  más que una revisión en borrador. Es el mismo argumento por el que el análisis del origen no
+  es obligatorio.
+- El vacío acá **no es ambiguo**, y la regla es bloquear solo cuando lo sería. Una revisión en
+  *Borrador* dice literalmente que está sin terminar; el estado ya es la señal.
+
+Entra como filtro **«Revisión sin confirmar»** en la lista de órdenes. A diferencia de «Sin
+síntoma registrado», este sí puede llegar a cero: la revisión se confirma cualquier día, el
+equipo no se fue a ninguna parte.
+
+**Si en unos meses ese filtro muestra una pila, ahí está la evidencia para bloquear** — y
+recién entonces se sabrá cuánto cuesta de verdad, que hoy es una suposición.
+
 ---
 
 ## 9. Qué cambia en `repair.order`

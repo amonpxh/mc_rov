@@ -88,6 +88,21 @@ class McRovAccion(models.Model):
     _order = "name"
 
     name = fields.Char(string="Acción", required=True)
+
+    # Marca las acciones que necesariamente consumen una pieza del inventario. El cierre de la
+    # orden lo valida: un "Cambio completo" sin ninguna línea de producto significa que se
+    # cambió algo y no quedó registrado, y ahí se pierde el vínculo con el lote y se corta el
+    # análisis de fallas por componente.
+    #
+    # Es una casilla del catálogo y no una lista de nombres en el código, por lo mismo que
+    # `es_mantencion` en los tipos de intervención: mañana aparece "Reemplazo de sello" y
+    # tienen que poder marcarla sin desplegar.
+    consume_repuesto = fields.Boolean(
+        string="Consume repuesto",
+        help="Marque las acciones que siempre gastan una pieza del inventario. La orden no "
+        "se podrá cerrar si hay un trabajo con esta acción y ningún repuesto registrado.",
+    )
+
     active = fields.Boolean(default=True)
 
 

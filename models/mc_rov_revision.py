@@ -156,8 +156,9 @@ class McRovRevision(models.Model):
         string="El conteo no cuadra", compute="_compute_luces", store=True
     )
 
-    temperatura_interior = fields.Float(string="Temperatura interior (°C)")
-    temperatura_exterior = fields.Float(string="Temperatura exterior (°C)")
+    # Las temperaturas bajaron a la corrida en 19.0.14.0.0: se miden una vez por corrida y no
+    # una por sesión, y además dependen del cable —la caída de tensión en un umbilical largo
+    # calienta—, que es lo contrario de lo que suponía tenerlas acá.
 
     # --- Solo en pruebas de terreno ---
 
@@ -558,6 +559,17 @@ class McRovRevisionCorrida(models.Model):
     # No hay campo "ancho de banda": ese es el nombre de la prueba, no una tercera medición.
     subida = fields.Float(string="Subida (Mbps)", digits=(6, 2))
     bajada = fields.Float(string="Bajada (Mbps)", digits=(6, 2))
+
+    # Bajaron desde mc.rov.revision en 19.0.14.0.0. Se miden una vez por corrida y no una por
+    # sesión: con dos umbilicales son dos lecturas, y guardarlas en la revisión obligaba a
+    # elegir una o promediarlas — las dos cosas pierden la comparación que hace útil la
+    # segunda corrida. Además dependen del cable, porque la caída de tensión en un umbilical
+    # largo calienta, así que estaban clasificadas justo al revés.
+    #
+    # Es dato interno: se medía, se le entregaba al cliente y el cliente la usó en contra.
+    # NO debe salir en el reporte impreso.
+    temperatura_interior = fields.Float(string="Temperatura interior (°C)")
+    temperatura_exterior = fields.Float(string="Temperatura exterior (°C)")
 
     def _compute_display_name(self):
         for corrida in self:

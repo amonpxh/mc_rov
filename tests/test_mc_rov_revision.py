@@ -307,6 +307,21 @@ class TestMcRovRevisionResultado(RevisionCommon):
 class TestMcRovRevisionConfirmacion(RevisionCommon):
     """Tests de lo que se exige para confirmar."""
 
+    def test_la_temperatura_es_de_la_corrida_y_no_de_la_revision(self):
+        """Se mide una por corrida, así que dos umbilicales dan dos lecturas comparables.
+
+        En la revisión obligaba a elegir una o promediarlas, y las dos cosas pierden justo la
+        comparación que hace útil correr con el umbilical de prueba: mismo ROV, mismo banco,
+        distinto cable. Además la temperatura sí depende del cable —uno largo cae tensión y
+        calienta—, o sea que estaba clasificada al revés.
+        """
+        revision = self._revision()
+        propia = self._corrida_completa(revision, temperatura_interior=48.0)
+        control = self._corrida_completa(revision, umbilical="prueba", temperatura_interior=39.5)
+
+        self.assertNotIn("temperatura_interior", revision._fields)
+        self.assertNotEqual(propia.temperatura_interior, control.temperatura_interior)
+
     def test_sin_corridas_no_deja_confirmar(self):
         """La prueba de esfuerzo siempre se hace, así que una revisión sin corridas dice
         que no se probó nada."""

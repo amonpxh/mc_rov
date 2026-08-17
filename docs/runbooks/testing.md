@@ -13,7 +13,7 @@
 | Test database | `odoo_test` |
 | Config | `/etc/odoo/odoo.conf` |
 | Test runner | Odoo's native test framework |
-| Total tests | 168 (73 `stock.lot` + 16 `repair.order` + 18 `mc.rov.componente` + 46 `mc.rov.revision` + 15 diagnóstico de fallas) |
+| Total tests | 175 (73 `stock.lot` + 16 `repair.order` + 18 `mc.rov.componente` + 47 `mc.rov.revision` + 21 diagnóstico de fallas) |
 
 ## Running all tests
 
@@ -67,11 +67,12 @@ Available test classes (as of v19.0.12.0.0):
 | `TestMcRovRevisionAutomatica` | 6 | la revisión que se abre sola, y el botón del segundo pase |
 | `TestMcRovRevisionTrazabilidad` | 3 | el circuito hallazgo → trabajo |
 | `TestMcRovComponente` | 18 | all four custom models (`componente`, `subtipo`, `accion`, `linea.falla`) |
-| `TestDiagnosticoFallas` | 15 | síntoma y sospecha, `origen` exigido al cerrar, el análisis escrito |
+| `TestRecepcion` | 7 | síntoma y sospecha, el catálogo, el archivado que esconde el histórico |
+| `TestCierreDeOrden` | 14 | `origen` exigido al cerrar, el análisis escrito, el repuesto del cambio, la revisión sin confirmar |
 
 Two shared fixture bases declare no tests — do not target them with `--test-tags`:
 `StockLotOrdenesCommon` (classes that need repair orders), `RevisionCommon` (revision
-classes) and `StockLotPropiedadCommon`
+classes), `DiagnosticoCommon` (order-close classes) and `StockLotPropiedadCommon`
 (classes that need a real ROV, i.e. the category tree, because ownership history is only
 written for units with `es_un_rov` on).
 

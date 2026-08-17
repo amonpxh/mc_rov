@@ -52,26 +52,15 @@
                         </group>
                     </group>
 
-                    <notebook>
-                        <page string="Corridas" name="page_corridas">
-                            <!-- Normalmente una; dos cuando se usa el umbilical de prueba
-                                 como muestra de control. La comparación entre ambas es lo
-                                 que aísla el cable como fuente de falla. -->
-                            <field name="corrida_ids" readonly="estado == 'confirmado'">
-                                <list editable="bottom">
-                                    <field name="sequence" widget="handle"/>
-                                    <field name="umbilical"/>
-                                    <field name="largo"/>
-                                    <field name="alimentacion"/>
-                                    <field name="tension_salida"/>
-                                    <field name="esfuerzo_duracion"/>
-                                    <field name="esfuerzo_resultado"/>
-                                    <field name="subida"/>
-                                    <field name="bajada"/>
-                                </list>
-                            </field>
-                        </page>
+                    <!-- Tres pestañas, en el orden en que ocurren las cosas: se miran los
+                         sellos antes de tocar nada, se prueba, y se anota lo que se encontró.
 
+                         Eran cinco hasta 19.0.14.0.0. "Corridas" se fusionó en Pruebas —la
+                         corrida no es una prueba sino la condición bajo la cual se probó, y
+                         ocurre en la misma sesión, así que tenerlas aparte obligaba a saltar
+                         de pestaña en medio del trabajo— y "Condiciones" desapareció cuando
+                         las temperaturas bajaron a la corrida. -->
+                    <notebook>
                         <page string="Sellos" name="page_sellos"
                               invisible="tipo != 'reparacion'">
                             <!-- Una fila por componente sellado, y siempre el estado con
@@ -98,6 +87,49 @@
                         </page>
 
                         <page string="Pruebas" name="page_chequeos">
+                            <!-- Las corridas abren la pestaña porque son la CONDICIÓN de todo
+                                 lo que viene abajo: con qué cable, con qué alimentación, y
+                                 cuánto aguantó el esfuerzo. Normalmente una; dos cuando se
+                                 usa el umbilical de prueba como muestra de control, y ahí la
+                                 comparación entre las dos filas es lo que aísla el cable como
+                                 fuente de falla.
+
+                                 Las temperaturas van en la fila de la corrida y no en la
+                                 revisión: se miden una por corrida, y además dependen del
+                                 cable —un umbilical largo cae tensión y calienta—. Son dato
+                                 interno y no salen impresas. -->
+                            <group string="Corridas">
+                                <field name="corrida_ids" nolabel="1" colspan="2"
+                                       readonly="estado == 'confirmado'">
+                                    <list editable="bottom">
+                                        <field name="sequence" widget="handle"/>
+                                        <field name="umbilical"/>
+                                        <field name="largo"/>
+                                        <field name="alimentacion"/>
+                                        <field name="tension_salida"/>
+                                        <field name="esfuerzo_duracion"/>
+                                        <field name="esfuerzo_resultado"/>
+                                        <field name="subida"/>
+                                        <field name="bajada"/>
+                                        <field name="temperatura_interior" optional="show"/>
+                                        <field name="temperatura_exterior" optional="show"/>
+                                    </list>
+                                </field>
+                            </group>
+
+                            <!-- Las condiciones del terreno acompañan a las corridas por lo
+                                 mismo: describen bajo qué se probó, no qué resultó. Solo
+                                 aparecen cuando la revisión es de terreno. -->
+                            <group string="Condiciones del terreno" invisible="tipo != 'terreno'">
+                                <group>
+                                    <field name="lugar" readonly="estado == 'confirmado'"/>
+                                    <field name="profundidad" readonly="estado == 'confirmado'"/>
+                                </group>
+                                <group>
+                                    <field name="velocidad_corriente" readonly="estado == 'confirmado'"/>
+                                </group>
+                            </group>
+
                             <!-- Un bloque por sección, como la hoja de papel: "Prueba de
                                  video" con cámara y tilt, "Prueba de navegación" con las
                                  hélices y los dos movimientos. Son siete vistas de las
@@ -245,26 +277,6 @@
                             </field>
                         </page>
 
-                        <!-- Las condiciones en que se corrió la batería, no sus resultados.
-                             El conteo de luces se fue a Pruebas, con el resto de la hoja. -->
-                        <page string="Condiciones" name="page_mediciones">
-                            <group>
-                                <group string="Temperatura">
-                                    <field name="temperatura_interior" readonly="estado == 'confirmado'"/>
-                                    <field name="temperatura_exterior" readonly="estado == 'confirmado'"/>
-                                </group>
-                                <group/>
-                            </group>
-                            <group string="Prueba en terreno" invisible="tipo != 'terreno'">
-                                <group>
-                                    <field name="lugar" readonly="estado == 'confirmado'"/>
-                                    <field name="profundidad" readonly="estado == 'confirmado'"/>
-                                </group>
-                                <group>
-                                    <field name="velocidad_corriente" readonly="estado == 'confirmado'"/>
-                                </group>
-                            </group>
-                        </page>
                     </notebook>
                 </sheet>
                 <chatter/>

@@ -229,6 +229,16 @@ building towards. One record per test session on one unit.
   `esfuerzo_resultado`, `subida`, `bajada`. Two rows when the standard test cable is used
   as a **control sample**; comparing them isolates the cable as a fault source.
 
+  > **Moved in 19.0.14.0.0: `temperatura_interior` and `temperatura_exterior` came down from
+  > `mc.rov.revision`,** where the columns were dropped. A query naming them on the revision
+  > errors out. They are measured **once per run**, so a revision with two runs has two
+  > readings and they are meant to be compared, not averaged. No production row had a value at
+  > migration time, so there is no pre-19.0.14.0.0 history to reconcile.
+  >
+  > **Internal figure — never expose it in anything customer-facing.** It used to be given to
+  > the customer and was used against Marine Connection; it is being measured again on the
+  > explicit condition that it stays inside.
+
 - `mc.rov.revision.chequeo`: `chequeo_id`, `componente_id`, `seccion` (stored related),
   `resultado` (`ok` | `no_ok` | `no_lo_tiene`), `detalle`. **`no_lo_tiene` means the unit
   lacks that component** — not that it went unchecked. Empty means unanswered, which blocks
@@ -292,7 +302,11 @@ building towards. One record per test session on one unit.
 
 - `mc.rov.componente`: `id`, `name`, `active`
 - `mc.rov.subtipo`: `id`, `name`, `componente_id`, `active`
-- `mc.rov.accion`: `id`, `name`, `active`
+- `mc.rov.accion`: `id`, `name`, `active`, and **`consume_repuesto` (new in 19.0.14.0.0)** —
+  whether the action necessarily consumes a part. It drives a close-time check, so **from that
+  version on, a closed order with a `consume_repuesto` work line has at least one product
+  line**. Orders closed before it may have none; and even after, the guarantee is *at least
+  one part per order*, not one per change.
 - `mc.rov.chequeo`, `mc.rov.hallazgo`, `mc.rov.software.superficie`,
   `mc.rov.controlador.vuelo`: catalogues added in 19.0.8.0.0 and 19.0.9.0.0, all with
   `active`. **Retirement is a flag, not a deletion** — a unit that referenced a retired

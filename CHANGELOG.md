@@ -4,6 +4,97 @@ All notable changes to the `mc_rov` Odoo module are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this module adheres to [semantic versioning](https://semver.org/) within the constraints of Odoo's version scheme: `19.0.X.Y.Z` where `19.0` is the Odoo major, `X` is breaking-change/migration, `Y` is feature, `Z` is bugfix.
 
+## [19.0.14.0.0] — 2026-08-17
+
+The tabs become the process. Rationale in
+[`docs/designs/revision-tecnica.md`](docs/designs/revision-tecnica.md) §§ 8.1–8.4.
+
+### Changed
+
+- **Repair order tabs are now the four moments, left to right: Recepción · Diagnóstico ·
+  Reparación · Repuestos · Cierre · Notas.** Three of the four moments were already tabs and
+  the first one was not — it lived loose in the header, split across both columns and
+  interleaved with Odoo's native fields, so the tab bar did not tell you what the process was.
+
+  *Recepción* is new and takes the four intake fields. *Revisiones* → **Diagnóstico**,
+  *Trabajos realizados* → **Reparación**, *Resultado* → **Cierre**. Field names and model
+  names are unchanged; only the labels moved.
+
+  **«Diagnóstico» is deliberately imprecise:** that tab also holds the *second* revision, the
+  one run after repairing, which verifies rather than diagnoses. Accepted because the vast
+  majority of visits carry a single, diagnostic revision, and process legibility beats
+  precision on the rare case.
+
+  **Repuestos stays a separate tab** although it is the same moment as Reparación. They are
+  two models doing two things — the *narrative* of the work versus the *material* consumed
+  from stock and invoiced — and pulling Odoo's native parts list into a custom page drags
+  behaviour that breaks on the next upgrade. What ties them is the validation below, not the
+  layout.
+
+- **Revision tabs go from five to three: Sellos · Pruebas · Hallazgos.** *Sellos* moves first
+  because seals are inspected **before touching the equipment** — its own banner says so, and
+  it was second. *Corridas* folds into *Pruebas*: a run is not a test, it is the **condition**
+  the tests ran under, but it happens in the same session, and keeping them apart forced a tab
+  jump mid-work. *Condiciones* disappears with the temperature move below.
+
+- **`temperatura_interior` / `temperatura_exterior` move from `mc.rov.revision` to
+  `mc.rov.revision.corrida`.** Both halves of the claim that filed them under "measurements
+  that do not depend on the cable" were wrong: they are taken **once per run**, so two
+  umbilicals give two readings — and storing them on the header forced picking one or
+  averaging, both of which destroy the very comparison that makes the control run useful.
+  And they *do* depend on the cable: a long umbilical drops voltage and heats.
+
+  The original design listed these two fields with **no recorded justification**. They were
+  inherited, not decided.
+
+  > **Report constraint, recorded now so it is not lost:** temperature is being measured again
+  > as an **internal** figure and **must not be printed**. It used to be handed to the
+  > customer and the customer used it against Marine Connection. It is the first concrete case
+  > of what the PDF report will have to decide field by field.
+
+### Added
+
+- **`mc.rov.accion.consume_repuesto`** and a close-time check. A work line with action "Cambio
+  completo" and no product line means a part was swapped and never recorded — what is lost is
+  the link to the part's lot, and with it any later answer to *which component fails most* or
+  *how long one lasts*. Marked on the two change actions; which actions require it is read
+  from the flag, never from comparing names, because the catalogue is configurable.
+
+  **Declared scope:** it demands *at least one* product line, not one per change. An order
+  with three changes and one part recorded passes. That is a deliberate floor — one-to-one
+  correspondence would require saying which part goes with which job, which is a field that
+  does not exist.
+
+- **`repair.order.mc_revision_pendiente`** (stored) and a **«Revisión sin confirmar»** filter.
+  Closing an order with its revision still in draft was possible and invisible. Blocking it
+  was considered and **rejected**: a revision is auto-created on every ROV order, so blocking
+  would force walking twenty checks even when the unit came in to swap a connector — and when
+  answering costs, people tick "No aplica" down the list to get through, which poisons the
+  data far worse than a draft revision does. The empty here is also not ambiguous: the state
+  literally reads *Borrador*.
+
+  Unlike «Sin síntoma registrado», this filter **can** reach zero — the revision can be
+  confirmed any day. If it accumulates a pile over the coming months, that is the evidence to
+  revisit blocking, with a real cost instead of a guess.
+
+### Migration
+
+`19.0.14.0.0/pre-migrate.py` drops the two temperature columns from `mc_rov_revision`; the ORM
+recreates them on `mc_rov_revision_corrida`. `odoo_prod` had **no revision with a temperature
+recorded**, which is what made this clean — a per-session reading cannot be split across two
+runs without inventing the second.
+
+**If it finds data, it drops nothing** and logs a warning instead, leaving two inert orphan
+columns rather than losing measurements silently.
+
+### Documentation
+
+- `docs/runbooks/deploy.md` gains the browser-cache trap: Odoo's web client serves cached view
+  definitions for as long as the tab stays loaded, so a tab open from before the deploy shows
+  the **old** form while everything server-side is correct. Hard-refresh before trusting any
+  on-screen check. This cost fifteen minutes on 2026-08-14, with the combined view arch
+  verified correct and the fields still missing from the screen.
+
 ## [19.0.13.0.0] — 2026-08-14
 
 Failure diagnostics. Design in

@@ -4,14 +4,8 @@ from odoo.tests import tagged
 
 
 @tagged("post_install", "-at_install")
-class TestDiagnosticoFallas(TransactionCase):
-    """Lo que 19.0.13.0.0 agrega: el síntoma reportado y la calidad de la causa.
-
-    El diseño completo está en `docs/designs/diagnostico-de-fallas.md`. Lo que estos tests
-    protegen no son los campos —eso lo hace el ORM— sino las tres decisiones que se pueden
-    revertir sin darse cuenta: que el síntoma y la sospecha son cosas distintas, que el
-    origen se exige al **cerrar** y no al guardar, y que «No determinado» deja cerrar.
-    """
+class DiagnosticoCommon(TransactionCase):
+    """Fixtures del diagnóstico de fallas. No declara tests."""
 
     @classmethod
     def setUpClass(cls):
@@ -43,6 +37,24 @@ class TestDiagnosticoFallas(TransactionCase):
         """
         self.order.tipo_intervencion_ids = [(6, 0, self.tipo.ids)]
         self.order.state = "done"
+
+    def _revision_en_borrador(self, nombre):
+        """Una revisión sin confirmar colgada de la orden."""
+        lot = self.env["stock.lot"].create({"name": nombre, "product_id": self.product.id})
+        revision = self.env["mc.rov.revision"].create({"lot_id": lot.id, "tipo": "reparacion"})
+        self.order.revision_ids = [(6, 0, revision.ids)]
+        return revision
+
+
+@tagged("post_install", "-at_install")
+class TestRecepcion(DiagnosticoCommon):
+    """Lo que el cliente dice, separado de lo que el taller comprueba.
+
+    Lo que estos tests protegen no son los campos —eso lo hace el ORM— sino la decisión que
+    se puede revertir sin darse cuenta: que el síntoma (lo que vio) y la sospecha (lo que
+    deduce) son dos cosas distintas, porque el análisis de cuánto le achunta el cliente solo
+    tiene sentido sobre las adivinanzas.
+    """
 
     # --- Recepción: el síntoma y la sospecha son dos campos ---
 
@@ -135,6 +147,37 @@ class TestDiagnosticoFallas(TransactionCase):
 
         self.assertTrue(temporales)
         self.assertIn(self.env.ref("mc_rov.sintoma_intermitente"), temporales)
+
+    # --- El catálogo de síntomas ---
+
+    def test_el_catalogo_trae_las_nueve_familias(self):
+        """Una familia sin ninguna entrada sería una sección vacía en el buscador."""
+        familias = set(self.env["mc.rov.sintoma"].search([]).mapped("familia"))
+
+        self.assertEqual(len(familias), 9)
+
+    def test_los_componentes_que_los_sintomas_nombran_existen(self):
+        """El cruce «reportado vs real» se cae si el cliente no puede señalar el componente.
+
+        Luces, manipulador y sonar aparecían como síntomas y no existían en el catálogo de
+        componentes: el cliente veía «las luces no prenden» y no tenía de qué sospechar.
+        """
+        for xml_id in ("mc_rov.comp_luces", "mc_rov.comp_manipulador", "mc_rov.comp_sonar"):
+            componente = self.env.ref(xml_id)
+            self.assertTrue(componente.exists())
+            # No entran a la inspección física: no se revisan buscando sellos de terceros,
+            # y marcarlos agregaría tres filas a responder en cada revisión.
+            self.assertFalse(componente.es_inspeccionable)
+
+
+@tagged("post_install", "-at_install")
+class TestCierreDeOrden(DiagnosticoCommon):
+    """Qué se exige para cerrar, y por qué justo eso y no más.
+
+    Las tres validaciones del cierre —tipo de intervención, origen y repuesto— comparten un
+    criterio: bloquean cuando el vacío sería indistinguible de un dato, y solo entonces. Lo
+    que no bloquea, se muestra.
+    """
 
     # --- El origen se exige al cerrar, no al guardar ---
 
@@ -234,23 +277,80 @@ class TestDiagnosticoFallas(TransactionCase):
 
         self.assertEqual(self.order.linea_falla_cierre_ids, self.order.linea_falla_ids)
 
-    # --- El catálogo de síntomas ---
+    # --- El repuesto que no se registró ---
 
-    def test_el_catalogo_trae_las_nueve_familias(self):
-        """Una familia sin ninguna entrada sería una sección vacía en el buscador."""
-        familias = set(self.env["mc.rov.sintoma"].search([]).mapped("familia"))
+    def test_un_cambio_sin_repuesto_no_deja_cerrar(self):
+        """Un «Cambio completo» sin línea de producto es una pieza que se cambió y no se anotó.
 
-        self.assertEqual(len(familias), 9)
-
-    def test_los_componentes_que_los_sintomas_nombran_existen(self):
-        """El cruce «reportado vs real» se cae si el cliente no puede señalar el componente.
-
-        Luces, manipulador y sonar aparecían como síntomas y no existían en el catálogo de
-        componentes: el cliente veía «las luces no prenden» y no tenía de qué sospechar.
+        Lo que se pierde no es papeleo: es el vínculo con el lote del repuesto, y con él la
+        posibilidad de saber después qué componente falla más seguido o cuánto dura.
         """
-        for xml_id in ("mc_rov.comp_luces", "mc_rov.comp_manipulador", "mc_rov.comp_sonar"):
-            componente = self.env.ref(xml_id)
-            self.assertTrue(componente.exists())
-            # No entran a la inspección física: no se revisan buscando sellos de terceros,
-            # y marcarlos agregaría tres filas a responder en cada revisión.
-            self.assertFalse(componente.es_inspeccionable)
+        self._linea(
+            accion_id=self.env.ref("mc_rov.accion_cambio_completo").id,
+            origen="desgaste",
+        )
+
+        with self.assertRaises(UserError):
+            self._cerrar()
+
+    def test_una_accion_que_no_consume_repuesto_cierra_sin_el(self):
+        """Reparar, soldar o calibrar arreglan lo que ya está: no hay pieza que registrar."""
+        self._linea(accion_id=self.accion.id, origen="desgaste")
+
+        self._cerrar()
+
+        self.assertEqual(self.order.state, "done")
+
+    def test_que_acciones_exigen_repuesto_sale_del_catalogo(self):
+        """La regla se lee de la casilla, nunca de comparar el nombre de la acción.
+
+        El catálogo es configurable: si mañana agregan «Reemplazo de sello», tienen que poder
+        marcarla desde Configuración sin que nadie toque el código.
+        """
+        self.assertTrue(self.env.ref("mc_rov.accion_cambio_completo").consume_repuesto)
+        self.assertTrue(self.env.ref("mc_rov.accion_cambio_componente").consume_repuesto)
+        for xml_id in ("mc_rov.accion_limpieza", "mc_rov.accion_calibracion"):
+            self.assertFalse(self.env.ref(xml_id).consume_repuesto)
+
+    # --- La revisión a medio llenar se muestra, no bloquea ---
+
+    def test_la_orden_se_cierra_con_la_revision_en_borrador(self):
+        """Se evaluó bloquear y se descartó: la revisión se crea sola en toda orden de ROV.
+
+        Exigir confirmarla obligaría a recorrer los veinte chequeos aunque el equipo haya
+        entrado a cambiar un conector — y cuando responder cuesta, se marca «No aplica» en
+        cadena para pasar el trámite, que envenena el dato mucho más que un borrador.
+        """
+        revision = self._revision_en_borrador("SN-BORRADOR")
+
+        self._cerrar()
+
+        self.assertEqual(revision.estado, "borrador")
+        self.assertEqual(self.order.state, "done")
+
+    def test_la_revision_en_borrador_enciende_el_indicador(self):
+        """Es lo que hace visible lo que no se bloquea: sin señal, el borrador no lo ve nadie.
+
+        Almacenado porque es criterio de un filtro de la lista, y un campo sin store no se
+        puede filtrar.
+        """
+        self._revision_en_borrador("SN-SENAL")
+
+        self.assertTrue(self.order.mc_revision_pendiente)
+        self.assertIn(
+            self.order,
+            self.env["repair.order"].search([("mc_revision_pendiente", "=", True)]),
+        )
+
+    def test_confirmar_la_revision_apaga_el_indicador(self):
+        """Es lo que hace que este filtro sí pueda llegar a cero, a diferencia del de síntomas.
+
+        Una orden cerrada hace un año no se puede completar —el cliente ya no está— pero una
+        revisión se confirma cualquier día. Un filtro que nunca llega a cero se deja de mirar.
+        """
+        revision = self._revision_en_borrador("SN-APAGA")
+        self.assertTrue(self.order.mc_revision_pendiente)
+
+        revision.estado = "confirmado"
+
+        self.assertFalse(self.order.mc_revision_pendiente)
