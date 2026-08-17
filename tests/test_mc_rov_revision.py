@@ -740,8 +740,13 @@ class TestMcRovRevisionAutomatica(RevisionCommon):
 
         self.assertEqual(segunda.estado, "confirmado")
 
-    def test_la_primera_revision_no_necesita_motivo(self):
-        """La primera es la primera, y `numero_en_visita` ya lo dice."""
+    def test_la_primera_revision_se_confirma_sin_que_nadie_elija_motivo(self):
+        """El motivo se exige siempre que haya visita, y aun así la primera no cuesta un clic.
+
+        Lo resuelve el valor por defecto: la revisión que se abre sola al confirmar la orden
+        nace con «primer diagnóstico», que es lo que es. La que hay que contestar a mano es la
+        segunda, que es la única ambigua.
+        """
         orden = self._orden()
         orden.state = "confirmed"
         primera = self._revisiones(orden)
@@ -750,7 +755,7 @@ class TestMcRovRevisionAutomatica(RevisionCommon):
         primera.action_confirmar()
 
         self.assertEqual(primera.numero_en_visita, 1)
-        self.assertFalse(primera.motivo)
+        self.assertEqual(primera.motivo, "primer_diagnostico")
         self.assertEqual(primera.estado, "confirmado")
 
     def test_una_orden_en_borrador_no_abre_revision(self):
