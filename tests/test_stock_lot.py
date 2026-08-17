@@ -6,6 +6,7 @@ from odoo.tests.common import TransactionCase
 from odoo.tests import tagged
 
 from odoo.addons.mc_rov.models.stock_lot import (
+    CAMPOS_FICHA,
     CICLO_MANTENCION_PARAM,
     ROV_CATEG_PARAM,
 )
@@ -812,7 +813,31 @@ class TestStockLotFichaCompleta(StockLotPropiedadCommon):
         self.assertIn("Cantidad de luces", lot.mc_ficha_faltantes)
 
     def test_una_ficha_completa_no_reporta_faltantes(self):
-        self.assertFalse(self._completar().mc_ficha_faltantes)
+        lot = self._completar()
+
+        self.assertFalse(lot.mc_ficha_faltantes)
+        self.assertEqual(lot.mc_ficha_faltantes_n, 0)
+
+    def test_el_conteo_de_faltantes_acompana_a_la_lista(self):
+        """El aviso muestra «faltan N de M», y N tiene que ser la lista y no otra cuenta.
+
+        Existe desde 19.0.15.2.2, cuando el aviso quedó como única señal de ficha incompleta:
+        sin conteo decía lo mismo con un campo vacío que con dieciséis, así que llenar quince
+        de dieciséis se veía igual que no haber empezado.
+        """
+        lot = self._completar(mc_n_motores=0, mc_cantidad_luces=0)
+
+        self.assertEqual(lot.mc_ficha_faltantes_n, 2)
+        self.assertEqual(lot.mc_ficha_faltantes.count(",") + 1, 2)
+
+    def test_el_total_sale_de_los_campos_de_ficha_y_no_de_un_numero_escrito(self):
+        """El «de M» del aviso es calculado a propósito.
+
+        Agregar una especificación a CAMPOS_FICHA es de una línea, y un total escrito en la
+        vista se quedaría viejo sin que nada avisara — el aviso seguiría diciendo «de 16»
+        mientras la ficha pide 17.
+        """
+        self.assertEqual(self._completar().mc_ficha_total_n, len(CAMPOS_FICHA))
 
     def test_cero_motores_deja_la_ficha_incompleta(self):
         """En Odoo un Integer nunca queda vacío: se lee como 0.

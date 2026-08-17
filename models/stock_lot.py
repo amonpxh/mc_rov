@@ -466,6 +466,21 @@ class StockLot(models.Model):
         help="Los campos de ficha técnica que todavía están vacíos, por nombre.",
     )
 
+    # El par que convierte el aviso en una medida de avance. Sin ellos decía exactamente lo
+    # mismo con un campo vacío que con dieciséis —una barra amarilla— así que llenar quince
+    # de dieciséis no se distinguía de no haber empezado. Importa desde 19.0.15.2.1, cuando
+    # salió el `required` de la vista y el aviso quedó como única señal.
+    #
+    # El total es un campo calculado y no un número escrito en la vista a propósito: agregar
+    # una especificación a CAMPOS_FICHA es de una línea, y un "de 16" hardcodeado se quedaría
+    # viejo sin que nada avisara.
+    mc_ficha_faltantes_n = fields.Integer(
+        string="Datos que faltan (cantidad)", compute="_compute_mc_ficha_completa"
+    )
+    mc_ficha_total_n = fields.Integer(
+        string="Datos que pide la ficha", compute="_compute_mc_ficha_completa"
+    )
+
     def _falta_en_ficha(self, lot, campo):
         """Si `campo` cuenta como no levantado en `lot`.
 
@@ -498,15 +513,19 @@ class StockLot(models.Model):
         pestaña y los registros que entraron por importación, donde no hay formulario.
         """
         for lot in self:
+            lot.mc_ficha_total_n = len(CAMPOS_FICHA)
+
             if not lot.es_un_rov:
                 lot.mc_ficha_completa = False
                 lot.mc_ficha_faltantes = False
+                lot.mc_ficha_faltantes_n = 0
                 continue
 
             faltan = [campo for campo in CAMPOS_FICHA if self._falta_en_ficha(lot, campo)]
 
             lot.mc_ficha_completa = not faltan
             lot.mc_ficha_faltantes = ", ".join(self._fields[campo].string for campo in faltan)
+            lot.mc_ficha_faltantes_n = len(faltan)
 
     # --- Periféricos ---
 
