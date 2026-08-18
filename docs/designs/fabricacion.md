@@ -114,7 +114,11 @@ el idioma común.*
 ### 3.1 El flujo completo, de punta a punta
 
 Las secciones siguientes están organizadas por tema. Esto es el proceso, que es lo que hay que
-digitalizar:
+digitalizar.
+
+> **La versión para usuarios, con ejemplos y sin razones de diseño, está en
+> [`flujo-de-trabajo.md`](../flujo-de-trabajo.md).** Este documento explica por qué; ése explica
+> qué app abrir.
 
 1. **Se crea la orden de fabricación** desde el BoM del modelo.
 2. **Se arma.** Durante el armado se responden los puntos de calidad: sellos y o-rings,
@@ -249,6 +253,39 @@ registro. La pestaña muestra la lista de pruebas y cada una se abre en su formu
 Y la forma corresponde al contenido: **las mediciones se leen mejor en formulario, y los
 pasa/falla en lista.** Por eso la prueba de rendimiento tiene bloques con títulos y la batería
 es una lista de chequeos. Cada cosa con su forma.
+
+### 4.8 Duración y texto libre: un estándar, no dos
+
+Hoy las **líneas** de una revisión tienen texto libre —`detalle` en cada chequeo, `observacion`
+en cada sello— y la **cabecera** no. Es una inconsistencia real, y las pruebas de aceptación la
+destapan porque necesitan las dos cosas.
+
+Se resuelve con una regla que vale para todo el módulo:
+
+> **Texto libre para el contexto. Catálogo para el contenido.**
+
+**`duracion` (h)** entra en la cabecera: cuánto duró la prueba. **No es `esfuerzo_duracion`** —
+esa es la corrida de resistencia *dentro* de la prueba. Una prueba en terreno de tres horas puede
+no tener corrida de resistencia; una de banco tiene las dos, y son números distintos.
+
+**Un texto libre en la cabecera**, y el nombre es parte del diseño: se llama **«Condiciones y
+notas de la prueba»** y **no «Observaciones»**. *Observaciones* es una invitación a escribir ahí
+los hallazgos, y eso mataría el catálogo que costó dos versiones construir. La ayuda del campo lo
+dice explícito: lo que hace falta para interpretar los resultados y no cabe en ningún chequeo —
+la marea, que el cliente pidió cortarla antes, que el generador andaba justo. **Los hallazgos van
+en su pestaña.**
+
+Entra a la lista de revisar en seis meses junto a `analisis_causa`: un campo «por si acaso» o no
+se usa o se abusa, y las dos cosas hay que medirlas.
+
+#### Un defecto que esto destapa
+
+`_compute_resultado` exige `esfuerzo_resultado` para dar cualquier resultado. **Si una prueba en
+terreno no lleva corrida de resistencia, esa revisión no podría quedar aprobada nunca** — se
+quedaría en blanco para siempre, que es justo el modo de falla que `19.0.15.1.0` vino a arreglar
+del otro lado.
+
+El esfuerzo tiene que exigirse **solo donde es parte de la batería**, no siempre.
 
 ### 4.7 La numeración, y por qué obliga a congelar el tipo
 
@@ -567,9 +604,10 @@ para hacerlo es ahora: con equipos reales cargados, cada una de esas tres pregun
    falta `odoo_lab`: los módulos ya estaban instalados en producción, así que la copia los trae.
 2. **El contenido exacto de las dos baterías nuevas** — qué se pregunta en rendimiento y qué en
    terreno. La tabla del § 5.2 es una propuesta para llevar al taller, no una decisión.
-3. **Si la revisión de terreno necesita un tiempo de prueba propio y un texto libre.** Dejaron de
-   ser preguntas de migración al no haber datos, pero vuelven antes de la primera prueba real.
-   Preliminar: el texto libre no, por lo mismo que se retiró de todas partes.
+3. ~~**Si la revisión de terreno necesita un tiempo de prueba propio y un texto libre.**~~ —
+   **resuelto el 2026-08-18: las dos, sí.** Ver § 4.8. Mi preliminar era que el texto libre no, y
+   estaba mal: las líneas ya tenían texto libre y la cabecera no, así que el estándar estaba roto
+   de antes. Lo que faltaba no era prohibirlo sino nombrarlo bien.
 4. **Los mínimos y máximos por modelo.** No bloquean esto —§ 9— pero si no existen escritos, eso
    mismo es el hallazgo.
 5. **Empezar con un solo modelo de ROV** y una MO completa de punta a punta antes de escribir
