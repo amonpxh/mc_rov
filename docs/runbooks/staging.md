@@ -185,6 +185,26 @@ What it does, in order:
    staging is a 404.
 4. **Neutralises it.** Not optional — see below.
 
+## Logging in
+
+Staging users get **their own password**, applied by the refresh script on every run:
+`fernando.nanco@marineconnection.cl` / `staging`, unless `STAGING_PASSWORD` says otherwise.
+
+That divergence is deliberate. It stops muscle memory from confusing the two tabs, and a leaked
+staging credential stops being a production credential.
+
+**The weak default is a decision, not an oversight: the real access control is the SSH tunnel.**
+Odoo listens on `127.0.0.1` and staging is not published on the firewall, so reaching the login
+form already requires access to the server.
+
+> **If staging is ever exposed beyond the tunnel, that password becomes the only thing standing
+> in front of a complete copy of production's data** — customers, contacts and all. Export
+> `STAGING_PASSWORD` with something real before that happens, and do not write it into the
+> script: that file is versioned.
+
+The password is set through `odoo shell`, never with SQL — the value has to go through Odoo's
+hashing, and an `UPDATE` with plain text leaves the user unable to log in anywhere.
+
 ## Neutralising, and why it is not optional
 
 A copy of production contains **your customers' real email addresses** and their scheduled
