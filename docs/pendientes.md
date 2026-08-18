@@ -111,6 +111,12 @@ conversación, todavía sin spec.
   hay que decidirlo junto con el primer punto. Ver el apartado de fabricación de más abajo —
   la decisión depende de una sola pregunta sin responder.
 
+## Fabricación — el diseño está escrito
+
+**Ver [`designs/fabricacion.md`](designs/fabricacion.md).** Recoge todo lo discutido el
+2026-08-17 y 18, con lo verificado contra `odoo_prod` en su § 2 y lo que queda sin decidir en su
+§ 10. Lo que sigue aquí abajo es el detalle que le dio origen.
+
 ## Fabricación — lo verificado el 2026-08-18
 
 Todo lo de aquí abajo **se comprobó contra `odoo_prod`**, no es de memoria. Cambia bastante lo
