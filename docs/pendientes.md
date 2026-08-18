@@ -108,7 +108,168 @@ conversación, todavía sin spec.
 
 - [ ] **Sí se hacen pruebas en terreno**, sobre equipos fabricados, y hoy viven en el lote. El
   tipo `terreno` de la revisión existe **sin ninguna justificación escrita** y nada lo crea:
-  hay que decidirlo junto con el primer punto.
+  hay que decidirlo junto con el primer punto. Ver el apartado de fabricación de más abajo —
+  la decisión depende de una sola pregunta sin responder.
+
+## Fabricación — lo verificado el 2026-08-18
+
+Todo lo de aquí abajo **se comprobó contra `odoo_prod`**, no es de memoria. Cambia bastante lo
+que había anotado el 2026-08-17: la mayor parte de lo que íbamos a construir ya existe.
+
+### Los módulos están instalados, no solo disponibles
+
+`mrp`, `mrp_plm`, `quality`, `quality_control` y `web_enterprise` salen todos `installed`. Es
+una instancia **Enterprise**, así que PLM y Calidad están sobre la mesa y nadie los usa.
+
+`mrp` asigna el número de serie por su cuenta (`mrp.production.lot_producing_id`); hacen falta
+dos configuraciones y ninguna línea de código: *Inventario → Trazabilidad → Lotes y números de
+serie*, y en el producto *Trazabilidad → Por número de serie único*.
+
+Tipos de punto de calidad disponibles: `passfail`, `measure`, `instructions`, `picture`,
+`print_label`, `register_byproducts`, `register_consumed_materials`, `register_production`,
+`spreadsheet`. **`measure` es el que sostiene toda la recomendación** — trae norma, mínimo,
+máximo y unidad.
+
+### La corrección grande: `quality.alert` **es** la lección aprendida
+
+Estaba anotado que había que construir un modelo de lecciones sobre `product.template`. **No
+hay que construirlo.** `quality.alert` ya trae, verificado en `ir_model_fields`:
+
+| Lo que pedía el diseño | Campo |
+|---|---|
+| Lección **del modelo**, no de la unidad | `product_tmpl_id` → `product.template` |
+| Qué unidades quedaron afectadas | `lot_ids` (m2m a `stock.lot`) |
+| Por qué pasó | `reason_id` → `quality.reason` (catálogo) |
+| Qué se corrigió | `action_corrective` (html) |
+| **Qué hacemos para que no se repita** | `action_preventive` (html) |
+| De dónde salió | `check_id`, `production_id` |
+| Flujo e historial | `stage_id`, `team_id`, chatter |
+
+Trae **más** de lo que se iba a escribir, incluido el alcance del daño, que el diseño del
+2026-08-17 no contemplaba.
+
+### Los huecos reales, y son chicos
+
+1. **No hay puente alerta ↔ ECO.** Verificado: `mrp.eco` no tiene ningún campo hacia
+   `quality.alert` ni al revés. Así que «cambiamos el BoM por esto» no queda registrado. Se
+   arregla con **un campo**.
+2. **`product.template` no tiene relación con `quality.alert`.** Tampoco `stock.lot`. O sea que
+   **el que arme el próximo ROV no va a ver las lecciones** salvo que se acuerde de ir a la app
+   de Calidad. Es el riesgo del «cementerio» localizado en un campo que falta: **dos
+   `One2many`, y es el trabajo más valioso de todo el bloque.**
+3. **De la línea de trabajo a la alerta** falta un botón que la pre-llene desde `origen`.
+
+### Lo inesperado: `repair.order` ya está integrado con Calidad
+
+Tiene `quality_alert_ids` y `quality_check_ids` nativos. Dos consecuencias:
+
+- **El puente reparación → fabricación está a medio construir de fábrica.** No hay que
+  inventarlo, hay que usarlo.
+- Odoo ya traía un mecanismo de chequeos sobre reparaciones cuando se construyó
+  `mc.rov.revision`. **No se toca la revisión**: hace cosas que un `quality.check` no hace
+  —inspección de sellos, catálogo de hallazgos por familia, «No aplica» como respuesta válida—
+  y sobre todo **es un entregable al cliente**, que un chequeo de calidad no es. Pero
+  `quality_check_ids` conviene **esconderlo de la vista**: dos mecanismos de chequeo en la
+  misma pantalla es una invitación a llenar el equivocado.
+
+**La regla que sale de esto y que conviene no olvidar:** *los chequeos pertenecen al proceso que
+los define; las alertas son el idioma común.* En fabricación **no se construye una segunda
+batería** — se configuran puntos de calidad.
+
+### Alcance real en `mc_rov`
+
+De «un sistema de fabricación» a esto:
+
+| Qué | Dónde | Tamaño |
+|---|---|---|
+| Ver las lecciones del modelo al fabricar | `product.template` ← alertas | Chico, **y es el que importa** |
+| Ver qué alertas afectan a una unidad | `stock.lot` ← inverso de `alert.lot_ids` | Chico |
+| «Cambiamos el BoM por esto» | `quality.alert` → `mrp.eco` | Chico |
+| De la línea de trabajo a la alerta | Botón que pre-llena desde `origen` | Chico |
+| Ficha del cliente con resultados | Reporte QWeb sobre `quality.check` | Mediano — **es el PDF, va al final** |
+| Batería de fabricación | Puntos de calidad | **Configuración, no código** |
+
+### La batería de fabricación, propuesta
+
+Dos cosas la hacen genuinamente distinta de la de reparación, y no es «la misma con menos
+ítems»:
+
+1. **En fabricación los umbrales existen.** Se construye contra una especificación, así que la
+   especificación *es* el umbral — y por eso `measure` sirve acá y no en reparación, donde se
+   decidió no derivar el ancho de banda porque nadie los había definido.
+2. **El software se mide al revés.** En reparación se compara contra la ficha; en fabricación
+   **se instala**, así que la fabricación es la *fuente* de la ficha. Registrar las versiones al
+   armar es lo que haría que la ficha dejara de nacer vacía.
+
+Y el orden importa porque el proceso es físico: **hay cosas que solo se pueden verificar antes
+de cerrar el casco.** Si el punto de control no está amarrado a la operación, se responde
+después, de memoria, mirando un equipo cerrado.
+
+| Momento | Qué | Tipo |
+|---|---|---|
+| Antes de cerrar | Sellos y o-rings instalados y lubricados | Pass-Fail |
+| | Penetradores y conectores apretados | Pass-Fail |
+| | Cableado interno ordenado y asegurado | Pass-Fail |
+| | Foto del interior armado | Picture |
+| Cerrado | Estanqueidad bajo presión · Prueba de leak | Pass-Fail |
+| Banco eléctrico | Tensión de salida (V) · Consumo en reposo (A) · Consumo bajo carga (A) | Measure |
+| Comunicación | Ancho de banda subida / bajada (Mbps) | Measure |
+| Propulsión | Thrusters responden y giran en el sentido correcto | Pass-Fail |
+| | Movimiento vertical / horizontal / lateral | Pass-Fail |
+| | *stabilize* · *depth hold* | Pass-Fail |
+| Video y luces | Imagen y tilt | Pass-Fail |
+| | Cantidad de luces encendidas · Ganancia de luz (%) | Measure |
+| Esfuerzo | Duración (h) · Temperatura interior y exterior (°C) | Measure |
+| Cierre | Registrar número de serie | Register Production |
+| | Versiones de software, controlador y ArduSub — **alimentan la ficha** | Instructions |
+
+**Casi la mitad ya se mide hoy**, guardada como columnas del número de serie. No es una batería
+nueva: son esas columnas convertidas en un evento con umbrales.
+
+**Arreglo gratis que viene con esto:** `mc_ancho_banda` y `mc_consumo_corriente` hoy son `Char`,
+así que no se pueden promediar, comparar ni graficar. Como puntos `measure` pasan a ser números
+con unidad, y recién ahí sirven para el pipeline.
+
+### Lo que sigue sin decidir
+
+1. **Los mínimos y máximos.** Qué tensión, qué consumo en reposo, qué ancho de banda es
+   aceptable para cada modelo. **Si esos números no existen escritos hoy, eso mismo es el
+   hallazgo**: un `measure` sin tolerancia guarda el número pero no dice si está bien.
+
+2. **Cuántas veces se le hace prueba en terreno a un mismo equipo.** Es lo único que decide
+   dónde vive, y hoy vive en dos lugares — los campos del lote, que se usan, y `tipo = terreno`
+   en la revisión, que está muerto. **No es «agregar terreno a la revisión», es cuál de los dos
+   sobrevive**, porque dejar los dos es duplicar.
+
+   - *Una sola vez* (aceptación antes de entregar) → el lote está bien: una foto basta, y
+     `terreno` sale de la revisión por muerto.
+   - *Cada cierto tiempo o por trabajo* → tiene que ser un evento, porque hoy correrla de nuevo
+     **pisa la anterior en silencio**. Gana la revisión y los campos del lote se migran.
+
+   Es la misma pregunta que resolvió la corrida en `19.0.15.0.0`, y ahí cambió el modelo entero.
+
+   Nota contra un argumento propio: *«dejarlo donde ya se hace»* no aplica limpio acá. Nadie
+   llena el formulario del lote parado en un bote — los dos lugares son transcripción posterior.
+
+3. **`tipo = fabricacion` se retira** de la revisión: la prueba de fabricación pasa a ser puntos
+   de calidad sobre la MO. Sale con la migración de este bloque.
+
+4. **El re-test tras rediseño no se diseña todavía.** Ocurre pocas veces al año, con enfoque de
+   troubleshooting, y nadie sabe describir su forma. Modelarlo ahora es inventar la forma del
+   dato antes de tener el dato — el mismo error que se evitó con el software en `19.0.15.2.0`.
+   Mientras tanto cae en su lugar natural: el prototipo se arma con una MO, la MO trae sus
+   chequeos, y si falla, la alerta se lleva el troubleshooting.
+
+5. **Empezar con un solo modelo de ROV**, el que más se arme, y una MO completa de punta a
+   punta antes de escribir una línea. Se está digitalizando un proceso hoy físico: no hay
+   costumbre que aprovechar, hay costumbre que cambiar, y eso se descubre haciendo una.
+
+6. **No rastrear todo por lote.** La trazabilidad es configuración *por producto*: se puede
+   tener un BoM de 40 líneas con 4 rastreadas —o-rings, thrusters, tarjetas, controlador— y el
+   resto consumido automáticamente. Eso convierte «registrar 40 piezas» en «elegir el lote de
+   4», y deja intacto lo único que hoy no se puede responder de ninguna forma: **qué otras
+   unidades llevan la pieza que salió mala.** Hoy `origen = pieza_proveedor` se registra en la
+   reparación y muere ahí, sin poder mirar hacia los lados.
 
 ## Estado al 2026-08-17
 
