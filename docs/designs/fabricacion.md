@@ -1,7 +1,9 @@
 # Fabricación
 
-> Estado: **diseño acordado, sin implementar.** Salido de dos días de conversación (2026-08-17
-> y 18) y de verificar `odoo_prod` en vez de suponer. Lo que quedó sin decidir está en § 10.
+> Estado: **diseño acordado y aprobado por el supervisor, sin implementar.** Salido de dos días
+> de conversación (2026-08-17 y 18), de verificar `odoo_prod` en vez de suponer, y de correr el
+> flujo completo en `odoo_staging` — § 2.1, donde tres hallazgos contradicen lo que este mismo
+> documento decía antes. Lo que queda sin decidir está en § 10.
 
 ## 1. Qué problema resuelve
 
@@ -44,6 +46,52 @@ Todo esto se comprobó contra `odoo_prod` el 2026-08-18:
 - `repair.order` **sí** tiene `quality_alert_ids` y `quality_check_ids`, nativos.
 - Filas afectadas por la migración de pruebas de terreno: **cero**. Cuatro lotes ROV, ninguno
   con datos de prueba.
+
+### 2.1 El experimento en staging *(2026-08-18)*
+
+Media hora de hacer clic sobre `odoo_staging` con MRP y Calidad reales. **Tres de los siete
+hallazgos contradicen lo que este documento decía antes**, y por eso están escritos acá.
+
+1. **Calidad pisa el chequeo.** Se falló y se volvió a aprobar el mismo control: la fila cambió
+   de `fail` a `pass` y `control_date` se sobrescribió. Ni fila nueva ni encadenamiento —
+   `previous_check_id` y `next_check_id` quedaron vacíos, o sea que sirven para ordenar
+   chequeos dentro de una operación, no para reintentos.
+2. **La alerta no se crea sola al fallar.** Hay un botón «Crear alerta» y alguien tiene que
+   apretarlo. Este documento daba por hecho que se acumulaban solas.
+3. **Un chequeo fallido no impide cerrar la orden.** Verificado: `quality_state = fail` junto a
+   `state = done`.
+4. **La alerta llena `product_tmpl_id` sola.** Nace apuntando al modelo sin que nadie lo diga,
+   que es lo que la vuelve una lección y no un incidente suelto.
+5. **No hay ningún puente al ECO**, confirmado en pantalla además de en `ir_model_fields`: la
+   pestaña «Misceláneo» trae Proveedor, Fecha asignada y Fecha de cierre, y el menú ⚙ solo
+   Duplicar y Eliminar.
+6. **`quality.reason` trae cuatro valores por defecto** —Falla en el centro de trabajo, Calidad
+   de las piezas, Operación de trabajo, Otros— y **le falta «Diseño o especificación»**.
+7. **La orden creó el número de serie sola** (`0000011`), con trazabilidad y movimientos.
+   También produjo con los componentes en «No disponible», dejando stock negativo.
+
+#### Los tres primeros, juntos, describen cómo se borra lo que veníamos a capturar
+
+> El técnico marca **Fallido** → no se crea nada → nada lo detiene → arregla el equipo → marca
+> **Aprueba** → **el fallo se sobrescribe** → la orden cierra impecable.
+
+Al final, esa orden se ve perfecta: el chequeo dice `pass`, no hay ninguna alerta, y lo único
+que queda es una línea de chatter — prosa, por registro, no consultable.
+
+**Y no es un defecto de Odoo: Calidad responde otra pregunta.** Está hecho para contestar *«¿esta
+unidad quedó buena?»*, no *«¿qué aprendimos armándola?»*. Para la primera, pisar el estado es lo
+correcto — lo que importa es el veredicto final.
+
+Que no bloquee (hallazgo 3) es **bueno**: si bloqueara, la salida cómoda sería marcar «Aprueba»
+para poder avanzar, y eso es un dato falso donde antes había un vacío honesto. Pero la otra cara
+es que nada obliga a cerrar el ciclo.
+
+#### Y validó por contraste la decisión del § 4.5
+
+La recomendación inicial era poner las pruebas de aceptación como puntos de calidad. **Si se
+hubiera hecho, el caso «probar hasta que quede bueno» habría perdido todos los intentos menos el
+último.** Están en `mc.rov.revision` porque ahí sí hay historial, y eso resultó ser lo que las
+salva.
 
 ## 3. El reparto: qué módulo hace qué
 
@@ -292,7 +340,7 @@ El diseño del 2026-08-17 proponía construir un modelo de lecciones sobre `prod
 `lot_ids` es el que más importa y no estaba en el diseño anterior: **es el alcance del daño.**
 «Cambiamos el o-ring» es la lección; «estas 7 unidades llevan el viejo» es la acción.
 
-### 6.1 Los tres huecos, y son chicos
+### 6.1 Los huecos, revisados después del experimento
 
 1. **Nadie ve las lecciones en el momento de armar, y ése es el riesgo del cementerio.**
 
@@ -315,6 +363,41 @@ El diseño del 2026-08-17 proponía construir un modelo de lecciones sobre `prod
 3. **De la línea de trabajo a la alerta** falta un botón que la pre-llene desde `origen`. El
    puente ya está a medio construir: `repair.order.quality_alert_ids` existe de fábrica.
 
+4. **La alerta no se crea sola al fallar un chequeo, y ése es el hueco que hace fallar todo lo
+   demás.** Sin ella, el § 6 completo es un archivador que nadie llena.
+
+   **Fallar un chequeo debe crear la alerta automáticamente**, en borrador, enlazada y sin
+   título — visiblemente a medio llenar. Una alerta vacía en la lista es una deuda evidente; una
+   lección que nunca se escribió es invisible.
+
+   La objeción razonable es que fallar el chequeo también es manual, así que no se elimina la
+   dependencia humana. Pero hay una asimetría que decide: **marcar el chequeo como fallido es
+   obligatorio para avanzar; crear la alerta no lo pide nadie.** El primero está en el camino, el
+   segundo es un desvío — y los desvíos no se toman a las siete de la tarde con un equipo a medio
+   armar.
+
+   **Y resuelve dos problemas con una sola pieza:** si la alerta nace en el momento del fallo, el
+   fallo queda registrado ahí para siempre, así que **la alerta se vuelve el historial de
+   intentos** que el chequeo no guarda (§ 2.1, hallazgo 1).
+
+5. **`lot_ids` no se llena solo.** Es el campo que se destacó como «el alcance del daño», y en la
+   prueba quedó vacío: cuando se creó la alerta, la orden todavía no tenía número de serie.
+   Poblarlo tiene que ocurrir al terminar la orden, no al crear la alerta.
+
+6. **La etapa «Resuelto» es ambigua.** Las etapas son *Nueva → Confirmado → Acción propuesta →
+   Resuelto*, y la última no distingue «lo arreglamos en este equipo» de «lo cambiamos para todos
+   los que vengan» — que es exactamente la distinción unidad/modelo sobre la que se construyó este
+   diseño. Hace falta una etapa más, o una casilla.
+
+7. **`quality.reason` tiene que alinearse con `ORIGENES`.** Le falta «Diseño o especificación»,
+   que es uno de los dos orígenes que convierten una línea de reparación en una lección de
+   manufactura. Sin esa opción, una falla de diseño se registra como «Operación de trabajo» y el
+   cruce entre los dos lados miente.
+
+   **La alineación no es por estadística, es por recuperación.** Con el volumen de fabricación el
+   cruce numérico va a ser flaco; lo que se gana es que un mismo filtro encuentre las dos cosas.
+   Cuesta un desplegable de seis valores y son datos, no código.
+
 ### 6.2 Por qué la revisión no se reemplaza por chequeos de calidad
 
 `repair.order` ya trae `quality_check_ids`, o sea que Odoo tenía un mecanismo de chequeos sobre
@@ -330,6 +413,97 @@ calidad: **también son entregables** — la ficha que recibe el cliente lleva s
 
 `repair.order.quality_check_ids` se esconde de la vista: dos mecanismos de chequeo visibles en
 la misma pantalla es una invitación a llenar el equivocado.
+
+### 6.3 Por qué reparación lleva catálogo y fabricación texto libre
+
+**Esto va escrito porque parece una inconsistencia y no lo es.** Sin la razón registrada, alguien
+va a «arreglarlo» unificando los dos vocabularios, y va a romper justo lo que sigue.
+
+Las fallas no desaparecen cuando un diseño madura: **se mudan.** La misma población de defectos
+aparece en un sistema o en el otro según cuándo se manifieste.
+
+| | Diseño inmaduro | Diseño maduro |
+|---|---|---|
+| Dónde aparece | Armando | En terreno, con los años |
+| Volumen | Ráfaga sobre **un** modelo | Goteo sobre **toda** la flota |
+| Cómo se lee | De corrido, en el momento | Estadísticamente, después |
+| Forma correcta | **Texto libre** | **Catálogo** |
+
+Un catálogo vale en proporción a las repeticiones. Con del orden de diez equipos al año, un
+catálogo de fabricación da conteos de 1 y 2, y leer diez descripciones toma cinco minutos. En
+reparación es al revés: el volumen crece con la flota y con los años, y la prosa se vuelve
+ilegible.
+
+Además, **en fabricación no importa la frecuencia sino no repetir**: una sola vez basta para que
+valga escribirlo. Eso no necesita taxonomía, necesita que el registro exista y cuelgue del modelo.
+
+Lo que sí se estructura en fabricación es **la forma del registro, no el vocabulario**: que
+exista como registro y no como conversación, que apunte a `product_tmpl_id`, y que **la acción
+correctiva esté separada de la preventiva** — esa separación es toda la estructura necesaria,
+porque es la diferencia entre *arreglamos este equipo* y *cambiamos cómo se arman todos*.
+
+**Y el remate:** una línea de reparación con `origen = falla_fabricacion` o `= diseno` **es un
+patrón de fabricación descubierto tarde**. Los patrones de manufactura sí se detectan — pero en
+los datos de reparación, con el volumen de la flota entera y años de exposición, que es
+justamente lo que a fabricación le falta.
+
+> **Fabricación no necesita detectar sus propios patrones, porque reparación se los detecta.**
+
+Eso le da su lugar definitivo al puente del § 6.1.3: no es trazabilidad decorativa, es **el canal
+por el que vuelve el patrón que fabricación no podía ver**. Y sube la importancia de `origen`,
+que por suerte es obligatorio al cerrar la orden desde `19.0.13.0.0`.
+
+**Cuándo revisitarlo:** probablemente nunca. Y si alguna vez, la señal no es un número sino que
+alguien diga *«ya no me acuerdo de todas»* — ahí leerlas dejó de funcionar, y para entonces las
+categorías salen de mirar las descripciones escritas en vez de adivinarlas.
+
+### 6.4 La curva de maduración, y cuándo se pasa de MRP a PLM
+
+Los hallazgos de fabricación no llegan a tasa constante: **llegan en ráfaga durante los primeros
+equipos de un modelo y después bajan casi a cero.** Es la misma forma que la revisión técnica ya
+razona para las unidades —falla infantil contra desgaste, § 16.3 de `revision-tecnica.md`— pero
+aplicada **al diseño en vez de al equipo**.
+
+De ahí sale algo que nadie pidió y que vale la pena: **contar alertas por modelo y por trimestre
+dice cuándo un diseño maduró.** No hacen falta categorías, solo fecha y producto, que ya vienen
+con la alerta. Y tiene plata detrás — no se puede cotizar a precio fijo ni comprometer plazos en
+un modelo que todavía tira sorpresas. Da una regla operativa que hoy no existe: *«el MK3 lleva dos
+trimestres sin alertas, se puede cotizar como producto maduro»*.
+
+#### El punto de cambio
+
+**El primer BoM se crea directo en MRP. Desde el primer cambio en adelante, todo es ECO.**
+
+La línea no está entre inmaduro y maduro, está **entre crear y cambiar**. El primer BoM no es un
+cambio: es escribir de qué quedó hecho lo que se acaba de armar.
+
+El ECO vale por razones distintas en cada fase, y conviene no confundir la ceremonia con el
+propósito:
+
+- **Madurando:** es un **cuaderno**. Registra la secuencia de intentos, que es exactamente el
+  historial de maduración. La ceremonia estorba.
+- **Ya maduro:** es un **control**. Un cambio ahora hace que los equipos en terreno dejen de ser
+  iguales a los que salen hoy, con consecuencias en repuestos, reparaciones y documentación. La
+  ceremonia se justifica.
+
+PLM soporta esa diferencia sin código: `mrp.eco.type` permite dos tipos con etapas y aprobaciones
+distintas — uno *Maduración*, rápido y sin aprobación, y otro *Cambio en producto en producción*,
+con aprobación.
+
+> **Disciplina que hay que respetar o no sirve de nada:** desde que un modelo usa ECOs, su BoM no
+> se edita nunca más a mano. PLM no lo impide, y **el uso mixto es peor que cualquiera de los dos
+> puros**, porque la comparación entre versiones queda con agujeros y miente en silencio.
+
+Y un matiz que evita una preocupación falsa: **de qué está hecho realmente un equipo no vive en el
+BoM, vive en sus movimientos de stock.** El BoM versionado registra la *intención*; la
+trazabilidad registra el *hecho*. Dos preguntas distintas, las dos respondidas.
+
+#### Y con eso, las lecciones aprendidas dejan de ser un modelo
+
+> **El historial de maduración de un diseño es la cadena de alertas y ECOs de ese modelo, en
+> orden:** qué encontramos → qué cambiamos → qué encontramos después.
+
+Ya está casi todo modelado. Falta el campo que los une.
 
 ## 7. Qué se retira
 
@@ -388,9 +562,9 @@ para hacerlo es ahora: con equipos reales cargados, cada una de esas tres pregun
 
 ## 10. Lo que sigue sin decidir
 
-1. **Si Calidad guarda el historial de intentos** cuando un chequeo falla y se repite, o si el
-   último pisa al anterior. Si lo pisa, el caso «probar hasta que quede bueno» tiene el mismo
-   defecto del snapshot dentro del armado. **Es lo primero que hay que probar en `odoo_lab`.**
+1. ~~**Si Calidad guarda el historial de intentos.**~~ — **resuelto el 2026-08-18: pisa.** Ver
+   § 2.1, hallazgo 1, y su efecto sobre el diseño en § 6.1.4. Se probó en `odoo_staging` y no hizo
+   falta `odoo_lab`: los módulos ya estaban instalados en producción, así que la copia los trae.
 2. **El contenido exacto de las dos baterías nuevas** — qué se pregunta en rendimiento y qué en
    terreno. La tabla del § 5.2 es una propuesta para llevar al taller, no una decisión.
 3. **Si la revisión de terreno necesita un tiempo de prueba propio y un texto libre.** Dejaron de
@@ -403,6 +577,19 @@ para hacerlo es ahora: con equipos reales cargados, cada una de esas tres pregun
    costumbre que cambiar, y eso se descubre haciendo una.
 
 ### Lo que se decidió el 2026-08-18, y no vuelve a discusión
+
+Todo esto lo revisó y aprobó el supervisor.
+
+- **Fabricación registra en texto libre, reparación con catálogo** — § 6.3, con su porqué, que
+  hay que conservar o alguien va a «arreglar» la asimetría.
+- **La causa raíz sí se alinea** con `ORIGENES`, por recuperación y no por estadística. Con esa
+  lista basta para cubrir el origen de las fallas; el texto libre conserva el detalle del oficio
+  de madurar un diseño.
+- **Fallar un chequeo crea la alerta automáticamente**, en borrador — § 6.1.4.
+- **El primer BoM se crea en MRP; desde el primer cambio, todo es ECO** — § 6.4, con dos tipos de
+  ECO según la fase, y la disciplina de no volver a editar el BoM a mano.
+- **Se cuentan alertas por modelo y por trimestre** para saber cuándo un diseño maduró.
+
 
 - **`tipo` compartido**, no modelo nuevo (§ 4.1).
 - **Solo se exige a los equipos con MO**; los ROV-MC anteriores a Odoo se dan por buenos.
