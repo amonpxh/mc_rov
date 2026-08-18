@@ -63,6 +63,29 @@ Todo esto se comprobó contra `odoo_prod` el 2026-08-18:
 **La regla que ordena esto:** *los chequeos pertenecen al proceso que los define; las alertas son
 el idioma común.*
 
+### 3.1 El flujo completo, de punta a punta
+
+Las secciones siguientes están organizadas por tema. Esto es el proceso, que es lo que hay que
+digitalizar:
+
+1. **Se crea la orden de fabricación** desde el BoM del modelo.
+2. **Se arma.** Durante el armado se responden los puntos de calidad: sellos y o-rings,
+   penetradores, cableado, foto del interior. **Antes de cerrar el casco**, porque después no se
+   ven.
+3. **Se cierra el casco** y se responden estanqueidad y leak.
+4. **Se termina la MO y ahí nace el número de serie** (`lot_producing_id`). Los componentes
+   rastreados por lote quedan registrados contra esta unidad.
+5. **Se llena la ficha técnica** del número de serie.
+6. **Prueba de rendimiento**, desde un botón en el número de serie: mediciones de banco, corrida
+   de resistencia, y las versiones de software instaladas — **que son las que alimentan la
+   ficha**, porque acá el software se instala, no se compara.
+7. **Prueba en terreno**, desde el mismo lugar: condiciones del sitio y batería reducida.
+8. **Si alguna de las dos falla, se ajusta y se hace otra.** Las dos quedan en el historial;
+   solo la aprobada satisface el requisito (§ 4.4).
+9. **Se entrega**, con el indicador diciendo si las dos están.
+10. Si en cualquier punto aparece un problema **del modelo y no de la unidad**: alerta de
+    calidad con su acción preventiva, y si cambia el BoM, un ECO enlazado (§ 6).
+
 ## 4. Las pruebas de aceptación
 
 ### 4.1 Por qué `tipo` y no un modelo nuevo
@@ -83,9 +106,18 @@ parte en *Pruebas de fabricación* y *Revisiones de reparación*, cada una con s
 Es el mismo mecanismo que usan los `chequeo_<seccion>_ids`: un solo `One2many`, nueve vistas por
 dominio.
 
-**El precio, declarado:** son el mismo modelo, así que la separación depende de la disciplina de
-las visibilidades por `tipo`. Ya se hace hoy con `lugar` y `profundidad`, y hay tests que fijan
-que fabricación no genera inspección de sellos.
+**El precio, declarado, y contando los dos lados.** Un modelo nuevo duplicaría ocho campos; el
+`tipo` compartido arrastra los que **no** aplican. Una prueba de rendimiento hereda `umbilical`
+—«del equipo» / «del taller» no significa nada en un ROV recién armado—, `motivo` (re-test /
+comparación de cable), `horas_operacion` (que es 0 en un equipo nuevo), y `repair_id` y
+`partner_id` vacíos. Esconderlos es una visibilidad más que mantener por cada uno.
+
+La decisión sigue siendo el `tipo` compartido, porque **ocho campos duplicados se desincronizan
+solos y cuatro campos escondidos no**: el primero es un error silencioso, el segundo es
+disciplina verificable con un test. Pero la comparación no es «duplicar contra no duplicar».
+
+Ya se hace hoy con `lugar` y `profundidad`, y hay tests que fijan que una revisión de fabricación
+no genera inspección de sellos.
 
 ### 4.2 Los tres tipos
 
@@ -116,14 +148,43 @@ La especificidad del botón es lo que impide crear el registro equivocado.
 
 Las dos son obligatorias antes de entregar. **Un requisito que el sistema no muestra es un
 requisito que se olvida**, así que se deriva en el número de serie —igual que
-`mc_ficha_completa`— si cada una está hecha, más un filtro **«Sin pruebas de aceptación»** en la
-lista de números de serie.
+`mc_ficha_completa`— más un filtro **«Sin pruebas de aceptación»** en la lista. Eso convierte
+«hay que acordarse» en «hay una lista de los que todavía no se pueden entregar».
 
-Eso convierte «hay que acordarse» en «hay una lista de los que todavía no se pueden entregar».
+**No bloquea nada, se comporta como el aviso amarillo de la ficha.** Misma decisión que retirar
+el `required` en `19.0.15.2.1`: bloquear empuja a inventar, y lo que encuentra los incompletos es
+una lista, no un candado. Además no hay dónde bloquear — **el módulo no tiene una acción de
+«entregar»**, así que un requisito de entrega no tiene punto de verificación. Afirmar lo
+contrario sería inventar una compuerta que no existe.
 
-**No bloquea nada.** Es la misma decisión que se tomó al retirar el `required` de la ficha en
-`19.0.15.2.1`: bloquear empuja a inventar, y lo que encuentra los incompletos es una lista, no
-un candado.
+#### A qué equipos se les exige
+
+**Solo a los que salieron de una orden de fabricación.** Es el criterio preciso y se deriva del
+dato, no de que alguien haya categorizado bien.
+
+Resuelve de una vez dos casos que un criterio por categoría dejaba roto:
+
+- **Los ROV de terceros.** `es_un_rov` cubre `ROV-MC` y `ROV-XX` por igual, así que derivarlo de
+  ahí habría dejado a todos los equipos de clientes marcados como pendientes **para siempre**. Un
+  indicador permanentemente en rojo para media flota se aprende a ignorar en una semana.
+- **Los ROV-MC anteriores a Odoo.** Son de marca propia, así que la categoría diría «nuestro», y
+  nunca van a tener estas pruebas porque se armaron antes de que existieran. **Decidido: se dan
+  por buenos** — están en terreno funcionando y no se prueban retroactivamente. Sin MO no se les
+  exige nada, y eso sale gratis del mismo criterio.
+
+#### Qué cuenta como «hecha»
+
+**Confirmada y con resultado *Aprobado* o *Aprobado con observaciones*.** Una prueba
+**Rechazada** no cumple el requisito.
+
+La distinción importa, y son dos cosas separadas:
+
+> **El historial registra todos los intentos. El indicador refleja si el requisito está
+> cumplido.**
+
+Una prueba que falló existe, queda fechada y con su resultado, y el equipo **sigue apareciendo
+como pendiente** hasta que se repita y pase. Es exactamente la secuencia «falló → se ajustó →
+pasó» que la foto de un solo valor borraba (§ 4.5).
 
 ### 4.5 Historial, no foto
 
@@ -140,6 +201,26 @@ registro. La pestaña muestra la lista de pruebas y cada una se abre en su formu
 Y la forma corresponde al contenido: **las mediciones se leen mejor en formulario, y los
 pasa/falla en lista.** Por eso la prueba de rendimiento tiene bloques con títulos y la batería
 es una lista de chequeos. Cada cosa con su forma.
+
+### 4.7 La numeración, y por qué obliga a congelar el tipo
+
+Las pruebas de aceptación **son documentos que ve el cliente**, así que no deberían salir
+numeradas dentro de la serie de reparaciones: una ficha de equipo nuevo llamada `REV/00042`,
+intercalada entre reparaciones de otros equipos, se lee como un trámite interno.
+
+Tres secuencias: **`REV/`** se queda con reparación —los registros existentes no cambian de
+significado— y las de aceptación estrenan **`REN/`** y **`TER/`**.
+
+**Y eso obliga a algo que hace falta igual:** hoy `tipo` es editable después de crear —hay tests
+que cubren que cambiarlo ajusta el checklist—, así que un prefijo asignado al crear podría quedar
+mintiendo, y renombrar rompería una referencia ya entregada. **`tipo` se congela al confirmar.**
+
+No es un parche de la numeración: **cambiarle el tipo a una revisión confirmada no debería poder
+hacerse de todos modos.** Es un documento emitido. Que hoy se pueda es un hueco que existe con o
+sin las secuencias.
+
+Queda anotado en el contrato del pipeline aunque `name` no sea clave ahí, porque el formato
+cambia.
 
 ## 5. Las baterías
 
@@ -213,10 +294,23 @@ El diseño del 2026-08-17 proponía construir un modelo de lecciones sobre `prod
 
 ### 6.1 Los tres huecos, y son chicos
 
-1. **`product.template` no tiene relación con las alertas.** O sea que el que arme el próximo
-   ROV **no las va a ver** salvo que se acuerde de ir a la app de Calidad. Es el riesgo del
-   cementerio localizado en un campo que falta. **Dos `One2many` —producto y lote— y es el
-   trabajo más valioso de todo el bloque.**
+1. **Nadie ve las lecciones en el momento de armar, y ése es el riesgo del cementerio.**
+
+   `product.template` y `stock.lot` no tienen ninguna relación con las alertas. Pero **el que
+   arma un ROV no está en la ficha del producto: está en la orden de fabricación.** Ponerlas solo
+   en el producto es casi tan inútil como dejarlas en la app de Calidad — las dos exigen que
+   alguien se acuerde de ir a mirar.
+
+   Y `mrp.production.quality_alert_ids` **no sirve para esto**: son las alertas *de esa MO*, no
+   las lecciones históricas del modelo. Justo lo contrario de lo que hace falta.
+
+   Lo que hay que construir es **la MO mostrando las alertas anteriores de su modelo**, y ahí una
+   decisión de alcance: **solo las cerradas que tengan acción preventiva escrita.** Todas las
+   alertas del modelo sería ruido; las que produjeron una acción preventiva son exactamente las
+   lecciones.
+
+   El producto y el lote también las llevan, pero como consulta de referencia. **La que importa
+   es la de la MO**, porque es la única que aparece sin que nadie la busque.
 2. **No hay puente alerta ↔ ECO.** «Cambiamos el BoM por esto» no queda registrado. Un campo.
 3. **De la línea de trabajo a la alerta** falta un botón que la pre-llene desde `origen`. El
    puente ya está a medio construir: `repair.order.quality_alert_ids` existe de fábrica.
@@ -246,6 +340,18 @@ la misma pantalla es una invitación a llenar el equivocado.
   `mc_temperatura_exterior_terreno`, `mc_observacion`.
 - Las columnas de prueba de laboratorio del lote, una vez que la prueba de rendimiento las
   reemplace.
+
+Y un renombre que no es cosmético: **«En reposo» / «Esfuerzo» del lote pasan a «Consumo en
+reposo» / «Consumo bajo carga».** Hoy la palabra *esfuerzo* significa dos cosas distintas en el
+módulo: en la ficha del lote es **un consumo en kWh bajo carga** —hace pareja con el consumo en
+reposo, por eso están uno debajo del otro—, y en la revisión es **la corrida de resistencia**, el
+ROV andando una hora y media en un bin con agua.
+
+Sin este renombre, una revisión de `tipo = rendimiento` tendría adentro un campo «esfuerzo» que
+significa distinto del «Esfuerzo» que hoy vive dentro de la prueba de rendimiento. Se renombra el
+del lote y no el de la revisión porque *prueba de esfuerzo* es el término estándar para una
+corrida de resistencia, y porque «consumo en reposo / bajo carga» es lo que el par realmente
+mide.
 
 ## 8. Migración
 
@@ -295,3 +401,14 @@ para hacerlo es ahora: con equipos reales cargados, cada una de esas tres pregun
 5. **Empezar con un solo modelo de ROV** y una MO completa de punta a punta antes de escribir
    código. Se está digitalizando un proceso hoy físico: no hay costumbre que aprovechar, hay
    costumbre que cambiar, y eso se descubre haciendo una.
+
+### Lo que se decidió el 2026-08-18, y no vuelve a discusión
+
+- **`tipo` compartido**, no modelo nuevo (§ 4.1).
+- **Solo se exige a los equipos con MO**; los ROV-MC anteriores a Odoo se dan por buenos.
+- **«Hecha» = confirmada y aprobada**; una prueba rechazada se registra y no cumple el requisito.
+- **No se bloquea nada**: indicador y filtro, como el aviso amarillo de la ficha.
+- **Tres secuencias** `REV/` · `REN/` · `TER/`, y `tipo` congelado al confirmar.
+- **Las lecciones se muestran en la MO**, filtradas a las cerradas con acción preventiva.
+- **El par «En reposo» / «Esfuerzo» del lote se renombra** para que *esfuerzo* signifique una
+  sola cosa.
