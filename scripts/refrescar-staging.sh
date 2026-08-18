@@ -15,6 +15,20 @@ set -euo pipefail
 PROD_DB="${PROD_DB:-odoo_prod}"
 STAGING_DB="${STAGING_DB:-odoo_staging}"
 FILESTORE_ROOT="${FILESTORE_ROOT:-/var/lib/odoo/.local/share/Odoo/filestore}"
+STAGING_CONF="${STAGING_CONF:-/etc/odoo/odoo-staging.conf}"
+
+# Contraseña de los usuarios internos en staging. Se separa de la de producción a propósito:
+# evita confundir las dos pestañas por memoria muscular, y una credencial de staging filtrada
+# deja de ser una credencial de producción.
+#
+# El valor por defecto es débil y visible, y eso es una decisión, no un descuido: **el control
+# de acceso real es el túnel SSH**. Odoo escucha en 127.0.0.1 y staging no está publicado en el
+# firewall, así que para llegar al formulario de login ya hay que tener acceso al servidor.
+#
+# **Si alguien alguna vez expone staging más allá del túnel, esta contraseña pasa a ser lo único
+# que protege una copia completa de los datos de producción.** Ese día hay que exportar
+# STAGING_PASSWORD con algo serio — no escribirla acá, que este archivo está versionado.
+STAGING_PASSWORD="${STAGING_PASSWORD:-staging}"
 
 # --- Guardarraíles -------------------------------------------------------------------------
 
@@ -108,4 +122,29 @@ if [ "$CRONS" != "0" ] || [ "$CORREOS" != "0" ]; then
     exit 1
 fi
 
-echo "==> Listo. Levantar con: odoo -c /etc/odoo/odoo-staging.conf"
+# --- 5. Contraseña propia de staging ---------------------------------------------------------
+# Va por `odoo shell` y no por SQL: la contraseña tiene que pasar por el hasheo de Odoo, y un
+# UPDATE con texto plano deja al usuario sin poder entrar a ninguna parte.
+#
+# Se aplica a los usuarios internos activos (`share = False`), que son los que tienen login de
+# backend. Los técnicos, el público y las plantillas de portal quedan fuera.
+#
+# Hay que rehacerlo en cada refresco, porque el dump vuelve a traer los hashes de producción.
+
+if [ -f "$STAGING_CONF" ]; then
+    echo "==> Aplicando contraseña de staging"
+    STAGING_PASSWORD="$STAGING_PASSWORD" odoo shell -d "$STAGING_DB" -c "$STAGING_CONF" \
+        --no-http --log-level=warn <<'PY'
+import os
+
+usuarios = env["res.users"].search([("share", "=", False), ("active", "=", True)])
+usuarios.write({"password": os.environ["STAGING_PASSWORD"]})
+env.cr.commit()
+print("    %s usuario(s) interno(s) actualizados" % len(usuarios))
+PY
+else
+    echo "==> Sin $STAGING_CONF — se omite la contraseña de staging"
+    echo "    (normal en el primer llenado, si la configuración todavía no existe)"
+fi
+
+echo "==> Listo. Levantar con: odoo -c $STAGING_CONF"

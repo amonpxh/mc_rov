@@ -64,11 +64,16 @@ sudo cat /etc/odoo/odoo.conf
 ### 2. Create the staging checkout
 
 ```bash
-sudo -H -u odoo mkdir -p /opt/odoo/staging-addons && \
+mkdir -p /opt/odoo/staging-addons && chown odoo:odoo /opt/odoo/staging-addons && \
 sudo -H -u odoo git clone /opt/odoo/custom-addons/mc_rov /opt/odoo/staging-addons/mc_rov && \
 sudo -H -u odoo git -C /opt/odoo/staging-addons/mc_rov remote set-url origin git@github.com:amonpxh/mc_rov.git && \
 sudo -H -u odoo git -C /opt/odoo/staging-addons/mc_rov fetch origin
 ```
+
+**The directory is created by root and handed over; the clone runs as `odoo`.** `/opt/odoo`
+belongs to root, so `sudo -u odoo mkdir` there fails with `Permission denied`. The clone itself
+still has to be `odoo` — same rule as the deploy: git as root leaves root-owned objects in
+`.git` that break the next checkout.
 
 Cloning from the local production checkout instead of GitHub is deliberate: it is faster and it
 works even if the deploy key only allows one origin. The remote is repointed straight after, so
@@ -179,6 +184,26 @@ What it does, in order:
 3. Copies the filestore. Attachments do not live in the database, so without this every file in
    staging is a 404.
 4. **Neutralises it.** Not optional — see below.
+
+## Logging in
+
+Staging users get **their own password**, applied by the refresh script on every run:
+`fernando.nanco@marineconnection.cl` / `staging`, unless `STAGING_PASSWORD` says otherwise.
+
+That divergence is deliberate. It stops muscle memory from confusing the two tabs, and a leaked
+staging credential stops being a production credential.
+
+**The weak default is a decision, not an oversight: the real access control is the SSH tunnel.**
+Odoo listens on `127.0.0.1` and staging is not published on the firewall, so reaching the login
+form already requires access to the server.
+
+> **If staging is ever exposed beyond the tunnel, that password becomes the only thing standing
+> in front of a complete copy of production's data** — customers, contacts and all. Export
+> `STAGING_PASSWORD` with something real before that happens, and do not write it into the
+> script: that file is versioned.
+
+The password is set through `odoo shell`, never with SQL — the value has to go through Odoo's
+hashing, and an `UPDATE` with plain text leaves the user unable to log in anywhere.
 
 ## Neutralising, and why it is not optional
 
