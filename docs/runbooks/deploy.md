@@ -20,6 +20,7 @@
 
 ## Pre-deploy checklist
 
+- [ ] **If the change includes a migration, or touches data you cannot recreate: rehearse it on staging first.** See [`staging.md`](staging.md). Every migration in this module shipped straight to production, which was safe only while production was nearly empty — that ends with the real ROV product load.
 - [ ] PR is merged into `main`
 - [ ] CI is green (lint + tests passed on the merge commit)
 - [ ] You have SSH access to the production VPS via a deploy key (not personal key)
