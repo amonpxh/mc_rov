@@ -64,11 +64,16 @@ sudo cat /etc/odoo/odoo.conf
 ### 2. Create the staging checkout
 
 ```bash
-sudo -H -u odoo mkdir -p /opt/odoo/staging-addons && \
+mkdir -p /opt/odoo/staging-addons && chown odoo:odoo /opt/odoo/staging-addons && \
 sudo -H -u odoo git clone /opt/odoo/custom-addons/mc_rov /opt/odoo/staging-addons/mc_rov && \
 sudo -H -u odoo git -C /opt/odoo/staging-addons/mc_rov remote set-url origin git@github.com:amonpxh/mc_rov.git && \
 sudo -H -u odoo git -C /opt/odoo/staging-addons/mc_rov fetch origin
 ```
+
+**The directory is created by root and handed over; the clone runs as `odoo`.** `/opt/odoo`
+belongs to root, so `sudo -u odoo mkdir` there fails with `Permission denied`. The clone itself
+still has to be `odoo` — same rule as the deploy: git as root leaves root-owned objects in
+`.git` that break the next checkout.
 
 Cloning from the local production checkout instead of GitHub is deliberate: it is faster and it
 works even if the deploy key only allows one origin. The remote is repointed straight after, so
