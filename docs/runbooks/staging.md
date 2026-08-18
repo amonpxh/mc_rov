@@ -53,7 +53,7 @@ useful.
 
 ### 1. Read the production config
 
-You need its `addons_path` verbatim — the staging config is the same file with five changes,
+You need its `addons_path` verbatim — the staging config is the same file with seven changes,
 and guessing the Odoo and Enterprise addons directories is how you get a server that starts and
 is missing half its apps.
 
@@ -76,29 +76,33 @@ works even if the deploy key only allows one origin. The remote is repointed str
 
 ### 3. Write the staging config
 
-Copy the production config and change **exactly** these five lines. Everything else stays.
+`odoo.conf` needs **seven** changes. Since you are root, build it with `sed` rather than by
+hand — the `diff` at the end is the check:
 
 ```bash
-sudo cp /etc/odoo/odoo.conf /etc/odoo/odoo-staging.conf && \
-sudo chown odoo:odoo /etc/odoo/odoo-staging.conf && \
-sudo chmod 640 /etc/odoo/odoo-staging.conf
+sed -e 's/^db_name = odoo_prod$/db_name = odoo_staging/'     -e 's/^dbfilter = \^odoo_prod\$$/dbfilter = ^odoo_staging$/'     -e 's#odoo-server\.log#odoo-staging.log#'     -e 's#/opt/odoo/custom-addons#/opt/odoo/staging-addons#'     -e 's/^workers = 3$/workers = 0/'     -e 's/^max_cron_threads = 1$/max_cron_threads = 0/'     /etc/odoo/odoo.conf > /etc/odoo/odoo-staging.conf && echo "http_port = 8070" >> /etc/odoo/odoo-staging.conf && chown odoo:odoo /etc/odoo/odoo-staging.conf && chmod 640 /etc/odoo/odoo-staging.conf && diff /etc/odoo/odoo.conf /etc/odoo/odoo-staging.conf
 ```
 
-Then edit `/etc/odoo/odoo-staging.conf`:
+| Key | Value | Why |
+|---|---|---|
+| `db_name` | `odoo_staging` | |
+| `dbfilter` | `^odoo_staging$` | **Miss this one and staging says «database not found» with no hint why.** Production filters to `^odoo_prod$`, so a copied config refuses to serve the staging database at all |
+| `logfile` | `/var/log/odoo/odoo-staging.log` | Sharing production's log makes both unreadable |
+| `addons_path` | `/opt/odoo/custom-addons` → `/opt/odoo/staging-addons` | **The one that ruins the day** — see below |
+| `http_port` | `8070` | Not present in production's config, so it must be added; the default is 8069 |
+| `workers` | `0` | One process for one person. Production runs three on this same machine |
+| `max_cron_threads` | `0` | Belt and braces: the refresh script deactivates every cron, this stops the runner too |
 
-| Key | Value |
-|---|---|
-| `db_name` | `odoo_staging` |
-| `http_port` | `8070` |
-| `gevent_port` | `8073` |
-| `logfile` | `/var/log/odoo/odoo-staging.log` |
-| `addons_path` | the production value, with `/opt/odoo/custom-addons` replaced by `/opt/odoo/staging-addons` |
+**Leave `data_dir` alone** — it is unset, so it defaults to `/var/lib/odoo/.local/share/Odoo`,
+the filestore lives per database underneath it, and the refresh script relies on that layout.
 
-**Leave `data_dir` alone.** The filestore is stored per database underneath it, so production
-and staging do not collide, and the refresh script relies on that layout.
+**Leave `http_interface = 127.0.0.1` alone.** Odoo listens on localhost behind the reverse
+proxy, so staging is not reachable from outside and the SSH tunnel below is not a fallback — it
+is the only way in. That is the safer arrangement anyway.
 
 > **The one that ruins the day:** if `addons_path` still points at `/opt/odoo/custom-addons`,
-> staging serves production's code and every rehearsal is a false pass. Check that line twice.
+> staging serves production's code and every rehearsal is a false pass. If that line does not
+> show up in the `diff`, stop and fix it before going on.
 
 ### 4. First fill
 
@@ -115,14 +119,16 @@ sudo -u odoo odoo -c /etc/odoo/odoo-staging.conf
 It holds the terminal on purpose — `Ctrl+C` closes it. Production keeps running on 8069 without
 noticing.
 
-Open `http://<server-ip>:8070`. If it does not load, port 8070 is closed on the firewall; tunnel
-instead:
+**Reaching it needs an SSH tunnel**, because `http_interface = 127.0.0.1`: Odoo listens only on
+localhost, behind the reverse proxy. From your own machine:
 
 ```bash
 ssh -L 8070:localhost:8070 root@<server-ip>
 ```
 
-and open `http://localhost:8070` on your own machine.
+then open `http://localhost:8070`. Nothing has to be opened on the firewall, which is the safer
+arrangement — staging holds a copy of production's data and has no business being reachable from
+the internet.
 
 ---
 
