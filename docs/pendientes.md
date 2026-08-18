@@ -424,7 +424,15 @@ Lo que sigue del plan original, en orden:
 
 - [ ] **Phase -1 del pipeline roadmap — Foundation handoff** — prerequisito bloqueante para iniciar el pipeline. Checklist completo en `rov-pipeline-roadmap.md` Phase -1. Duración estimada: 1 semana.
 
+- [ ] **Montar staging** siguiendo [`runbooks/staging.md`](runbooks/staging.md). Escrito el 2026-08-18; falta correr los comandos en el servidor.
+
+  **La ventana es ahora.** Hoy staging vale poco —4 números de serie, 2 líneas de trabajo— pero está a punto de valer mucho, y por tres cosas que llegan juntas: la carga de productos ROV reales, el bump `X` de fabricación que borra columnas, y MRP + Calidad tocando inventario de verdad. Ensayar una migración por primera vez *después* de cargar los datos reales es ensayarla cuando ya no puede salir mal barato.
+
+  Las tres migraciones de esta sesión se probaron en producción. Salieron bien porque no había qué romper: la de `19.0.15.0.0` habría descartado corridas si hubieran existido, y el log lo habría dicho **después**.
+
 - [ ] **Separar el workspace del runner de CI del addons de producción.** Hoy son el mismo directorio: `/opt/odoo/custom-addons/mc_rov`. Descubierto el 2026-08-07 al desplegar `19.0.5.0.0`.
+
+  **Se resuelve con la misma reorganización que staging:** tres checkouts separados —producción en `/opt/odoo/custom-addons`, staging en `/opt/odoo/staging-addons`, y CI fuera de los dos— en vez de dos procesos compartiendo un directorio.
 
   **El deploy en sí ya no es el problema**: el usuario `odoo` tiene deploy key y hace `fetch` por su cuenta. Lo único que fallaba era que el runbook decía `git pull` a secas, que corre como root — corregido en [`runbooks/deploy.md`](runbooks/deploy.md).
 
