@@ -1,0 +1,4 @@
+# Los scripts de servidor corren en Linux. Con CRLF fallan con "bad interpreter:
+# /usr/bin/env bash^M", que no se parece en nada a la causa. No depender de la
+# configuración de core.autocrlf de cada máquina.
+*.sh text eol=lf
