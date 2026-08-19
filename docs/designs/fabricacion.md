@@ -174,7 +174,26 @@ no genera inspección de sellos.
 ### 4.2 Los tres tipos
 
 `tipo` queda en **`reparacion`**, **`rendimiento`** y **`terreno`**. El valor `fabricacion` se
-retira: era genérico y nunca tuvo justificación escrita.
+retira: era genérico y nunca tuvo justificación escrita, y además dejó de describir una sola
+cosa — lo que pasa al armar son puntos de calidad, lo que pasa después es la prueba de
+rendimiento.
+
+**Y `terreno` no es solo prueba de aceptación.** A veces un cliente pide, después de una
+reparación, comprobar que el equipo sigue respetando su profundidad máxima. Es poco frecuente
+pero ocurre, y el modelo lo aguanta sin cambios porque `repair_id` es opcional:
+
+| Revisión de terreno | Qué es |
+|---|---|
+| **sin** orden de reparación | Prueba de aceptación de un equipo nuevo |
+| **con** orden de reparación | Prueba extra pedida dentro de una reparación |
+
+Por eso el botón *«Nueva prueba en terreno»* existe en **dos lugares**: el número de serie y la
+orden de reparación. La batería es la misma en los dos casos — no hay una cuarta.
+
+Vale la pena notar lo que eso significa: **cuando un cliente pide comprobar la profundidad
+después de una reparación, está pidiendo exactamente la prueba de aceptación, años después.**
+Misma batería, mismo criterio. Que la pregunta *«¿este equipo aguanta lo que dice aguantar?»* se
+conteste igual el día 1 que el día 1.500 es señal de que el modelo quedó en el lugar correcto.
 
 | Tipo | Cuándo | Origen | Lleva |
 |---|---|---|---|
@@ -254,7 +273,7 @@ Y la forma corresponde al contenido: **las mediciones se leen mejor en formulari
 pasa/falla en lista.** Por eso la prueba de rendimiento tiene bloques con títulos y la batería
 es una lista de chequeos. Cada cosa con su forma.
 
-### 4.8 Duración y texto libre: un estándar, no dos
+### 4.7 Duración y texto libre: un estándar, no dos
 
 Hoy las **líneas** de una revisión tienen texto libre —`detalle` en cada chequeo, `observacion`
 en cada sello— y la **cabecera** no. Es una inconsistencia real, y las pruebas de aceptación la
@@ -287,7 +306,7 @@ del otro lado.
 
 El esfuerzo tiene que exigirse **solo donde es parte de la batería**, no siempre.
 
-### 4.7 La numeración, y por qué obliga a congelar el tipo
+### 4.8 La numeración, y por qué obliga a congelar el tipo
 
 Las pruebas de aceptación **son documentos que ve el cliente**, así que no deberían salir
 numeradas dentro de la serie de reparaciones: una ficha de equipo nuevo llamada `REV/00042`,
@@ -323,37 +342,157 @@ desgaste. **El mecanismo para separarlas existe y está probado: son datos, no c
    armar es lo que haría que la ficha dejara de nacer vacía — que es el problema que hoy
    arrastran todos los equipos anteriores a Odoo.
 
-### 5.2 El armado va en puntos de calidad, no en la revisión
+### 5.2 Cuatro baterías, y el criterio que las separa
 
-Y hay una razón que solo aparece cuando el proceso es físico: **hay cosas que solo se pueden
-verificar antes de cerrar el casco.** Sellos, o-rings, torque de penetradores, cableado interno.
-Si el control no está amarrado a la operación de armado, se responde después, de memoria,
-mirando un equipo cerrado.
+Hay **cuatro**, no tres, porque el armado se verifica en un sistema distinto:
 
-Los puntos de calidad se enganchan a la operación; una batería plana no. Por eso el armado va
-ahí y la prueba de aceptación va en la revisión.
-
-| Momento | Qué | Dónde | Tipo |
+| Batería | Módulo | Se llena en | Cuándo |
 |---|---|---|---|
-| Antes de cerrar | Sellos y o-rings instalados y lubricados | Punto de calidad | Pass-Fail |
-| | Penetradores y conectores apretados | Punto de calidad | Pass-Fail |
-| | Cableado interno ordenado y asegurado | Punto de calidad | Pass-Fail |
-| | Foto del interior armado | Punto de calidad | Picture |
-| Cerrado | Estanqueidad · Leak | Punto de calidad | Pass-Fail |
-| Cierre | Registrar número de serie | Punto de calidad | Register Production |
-| **Banco** | Tensión, consumo en reposo y bajo carga | **Revisión `rendimiento`** | Medición |
-| | Ancho de banda subida / bajada | **Revisión `rendimiento`** | Medición |
-| | Thrusters, movimientos, *stabilize*, *depth hold* | **Revisión `rendimiento`** | Chequeo |
-| | Imagen, tilt, luces, ganancia | **Revisión `rendimiento`** | Chequeo + medición |
-| | Esfuerzo: duración y temperaturas | **Revisión `rendimiento`** | Medición |
-| | Versiones de software instaladas | **Revisión `rendimiento`** | **Alimentan la ficha** |
-| **Terreno** | Lugar, profundidad, corriente, alimentación | **Revisión `terreno`** | Condiciones |
-| | Batería reducida de navegación, video y comunicación | **Revisión `terreno`** | Chequeo |
+| **Armado** | Calidad | Dentro de la orden de fabricación | Mientras se arma, antes de cerrar el casco |
+| **Rendimiento** | mc_rov | N° de serie → botón | Equipo armado, en el banco |
+| **Terreno** | mc_rov | N° de serie **o** orden de reparación → botón | En agua |
+| **Reparación** | mc_rov | Orden de reparación | Cada vez que el equipo vuelve |
 
-Casi la mitad de las mediciones ya se toman hoy: son las columnas del número de serie
-convertidas en un evento repetible.
+**El armado va en puntos de calidad** porque hay cosas que solo se pueden verificar antes de
+cerrar el casco: sellos, o-rings, torque de penetradores, cableado interno. Un punto de calidad
+se engancha a la operación; una batería plana no. Si el control no está amarrado al momento, se
+responde después, de memoria, mirando un equipo cerrado.
 
-### 5.3 Un arreglo que viene gratis
+**Y el criterio que ordena la de terreno no es la relevancia, es la física:**
+
+> **Qué se puede medir efectivamente estando ahí.**
+
+Ése es el corte, y lo aportó Paulo. No es «qué importa en terreno» —importa casi todo— sino qué
+se puede hacer sin el taller detrás. De ahí salen las tres diferencias reales de esa batería, y
+ninguna es arbitraria.
+
+#### El caso que lo ilustra: la presión se verifica por dos medios
+
+La misma pregunta —*¿se mantiene estanco?*— se responde con instrumentos distintos según dónde
+estés:
+
+| | Cómo se presuriza | Qué se mide |
+|---|---|---|
+| **Rendimiento** (taller) | Máquina de presión | bar + tiempo |
+| **Terreno** | Descenso real | profundidad alcanzada |
+| **Reparación** (taller) | Máquina de presión | bar + tiempo |
+
+Por eso **el chequeo de estanqueidad está en las tres** y lo que cambia son las mediciones. La
+profundidad en terreno **no es contexto: es la verificación de presión hecha por otro medio.**
+
+### 5.3 Los chequeos
+
+Los 24 del catálogo, más los 6 del armado. **Solo se listan las diferencias respecto de cómo
+está hoy** — los otros 18 aplican a las cuatro baterías tal como ya están configurados.
+
+| Chequeo | Hoy | Queda en | Por qué |
+|---|---|---|---|
+| Hélices en posición correcta | Fab · Rep · Terr | **Rep** | En rendimiento la posición ya se verifica funcionalmente: si una hélice está al revés, fallan los chequeos de movimiento |
+| Chasis y estructura sin daño visible | Fab · Rep · Terr | **Rep** | Busca daño de uso |
+| Penetradores y conectores sin daño | Fab · Rep · Terr | **Rep** | Ídem |
+| Umbilical sin cortes ni aplastamientos | Fab · Rep · Terr | **Rep** | Ídem |
+| Hélices sin daño ni desgaste | Fab · Rep · Terr | **Rep** | Busca desgaste |
+| El software de superficie inicia y opera | Rep | **Rend · Terr · Rep** | Se acotó de más en 19.0.15.2.0 |
+| *(nuevos)* Sellos y o-rings · Penetradores apretados · Cableado interno · Foto del interior · Registrar N° de serie | — | **Armado** | Solo verificables antes de cerrar el casco |
+
+**Totales: Armado 5 · Rendimiento 18 · Terreno 17 · Reparación 24.**
+
+Terreno es rendimiento **menos estanqueidad**, porque no hay máquina de presión en el muelle.
+
+> **Los cinco chequeos de armado no salieron del taller: los escribió el diseño.** Razonados
+> desde el principio de «antes de cerrar el casco», pero sin conocer cómo se arma. **Son la parte
+> más débil de este documento** y deben ser lo primero que se corrija con retroalimentación real.
+> Quedan porque tener algo que corregir es mejor que tener nada que mirar.
+
+### 5.4 Las mediciones
+
+Solo las diferencias respecto de hoy. **No cambian:** alimentación, temperaturas interior y
+exterior, lugar, velocidad de la corriente y horómetro.
+
+| Medición | Rend. | Terr. | Rep. |
+|---|---|---|---|
+| **Fecha de la prueba** | ✗ → **✓** | ✓ | ✓ |
+| Duración de la prueba | ✓ | ✓ | ✗ → **✓** |
+| Modelo de fuente | ✓ | ✗ → **✓** | ✗ → **✓** |
+| Tensión de salida (V) | ✓ | ✗ → **✓** | ✓ |
+| Umbilical usado *(y largo solo si es del taller)* | ✗ → **✓** | ✗ → **✓** | ✓ |
+| **Presión alcanzada (bar) + tiempo** | ✗ → **✓** | ✗ *(va profundidad)* | ✗ → **✓** |
+| Profundidad alcanzada (m) | ✗ | ✓ | ✗ |
+| **Fuga de corriente (A)** — nueva | ✗ → **✓** | ✗ *(no hay instrumento)* | ✗ → **✓** |
+| Consumo en reposo | ✓ | ✗ | ✗ → **✓** |
+| Consumo bajo carga *(era «esfuerzo»)* | ✓ | ✗ | ✗ → **✓** |
+| Funcionamiento continuo: duración + resultado | ✗ → **✓** | ✗ | ✓ |
+| Ancho de banda subida / bajada | ✓ | ✗ → **✓** | ✓ |
+| Conteo de luces internas / externas | ✗ → **✓** | ✗ → **✓** | ✓ |
+| Limitación pilot gain (%) | ✓ | ✗ → **✓** | ✗ → **ficha** |
+| Ganancia luz (%) | ✓ | ✗ → **✓** | ✗ → **ficha** |
+| Versiones de software instaladas | ✗ → **✓** | ✗ | ficha |
+| Condiciones y notas de la prueba | ✗ → **✓** | ✓ | ✗ → **✓** |
+
+**Tres cosas que la comparación deja en evidencia**, y ninguna es de diseño — son huecos de hoy:
+
+1. **La prueba de rendimiento no tiene fecha.** No se puede saber cuándo se probó un equipo en el
+   banco. La de terreno sí la tiene.
+2. **La presión no se registra en ninguna parte** —ni bar ni tiempo— aunque el estándar existe:
+   2 h a 30 bar, 50 en algunos modelos, eventualmente hasta 100.
+3. **La prueba de rendimiento no guarda la corrida de funcionamiento continuo**, que sí guarda la
+   de reparación.
+
+#### Ficha y prueba no compiten: dicen cosas distintas
+
+Tres campos parecían duplicados y no lo son. La regla que los ordena:
+
+> **La ficha guarda lo que el equipo *debería* tener. La prueba anota lo que *se encontró*.**
+
+- Ficha: 6 luces. Prueba: se encendieron 4. `luces_difieren` lo marca solo.
+- Ficha: ArduSub 4.1.0. Prueba: se encontró 4.0.2. Igual.
+- Ficha: umbilical de 200 m con su número de serie. Prueba: se usó ése, o uno del taller.
+
+**En fabricación va al revés:** ahí la prueba **determina** el valor y la ficha lo recibe. Por eso
+las versiones de software se anotan en rendimiento y no se comparan.
+
+Y donde dice **ficha**: no se vuelve a medir, se muestra el valor registrado para que el técnico
+vea si cambió — el mismo bloque que ya funciona con las versiones de software desde
+`19.0.15.2.0`.
+
+**Consecuencia de agregar pilot gain y ganancia luz a terreno:** si se ajustan ahí, el valor de la
+ficha queda viejo. **Quien ajusta, actualiza.**
+
+### 5.5 Se retira la palabra «esfuerzo»
+
+Significaba tres cosas a la vez: el consumo bajo carga en kWh de la ficha, la corrida de hora y
+media en el bin, y todo el conjunto al hablar. **Asignársela a una de las tres deja a las otras
+sin nombre**, así que se retira entera:
+
+| Antes | Ahora |
+|---|---|
+| «Esfuerzo» (kWh, ficha) | **Consumo bajo carga** |
+| `esfuerzo_duracion` / `esfuerzo_resultado` | **Prueba de funcionamiento continuo** |
+
+*Funcionamiento continuo* y no *resistencia*, porque va a quedar al lado de «fuga de corriente» y
+ahí resistencia se lee como ohmios. Y describe exactamente lo que pasa: el ROV anda hora y media
+seguida a ver si aguanta.
+
+Las tres mediciones eléctricas quedan como bloque: **fuga de corriente (A) · consumo en reposo ·
+consumo bajo carga**.
+
+### 5.6 Dos umbrales que se descartaron a propósito
+
+El § 5.1 dice que en fabricación los umbrales existen. **Eso es cierto y aun así se descartaron
+dos**, por razones que conviene dejar escritas o alguien los va a agregar creyendo que faltaban.
+
+**La profundidad en terreno no se compara contra la profundidad máxima del modelo.** Existe el
+dato —100, 250, 300, 500, 600, hasta 1000 según el modelo— y vive en la hoja de cotización. Pero
+un umbral ahí **no mediría mejor: empujaría a arriesgar más.** Alguien bajaría un ROV a 250 m para
+satisfacer al sistema cuando el trabajo pedía 40. Es la misma familia que el `required` de la
+ficha — la restricción no mejora el dato, cambia la conducta, y para peor.
+
+**La presión de taller sí tiene estándar** —2 h a 30 bar— pero **tampoco se deriva todavía**,
+porque varía por modelo y la ficha no lo declara. El chequeo se responde a mano y los dos números
+se guardan. El día que la ficha declare la presión de prueba por modelo, se deriva solo — la
+misma regla escrita para el ancho de banda y las luces.
+
+### 5.7 Un arreglo que viene gratis
 
 `mc_ancho_banda` y `mc_consumo_corriente` son `Char` hoy, así que no se pueden promediar,
 comparar ni graficar. Al pasar a la revisión se declaran como numéricos con unidad, y recién ahí
@@ -602,10 +741,11 @@ para hacerlo es ahora: con equipos reales cargados, cada una de esas tres pregun
 1. ~~**Si Calidad guarda el historial de intentos.**~~ — **resuelto el 2026-08-18: pisa.** Ver
    § 2.1, hallazgo 1, y su efecto sobre el diseño en § 6.1.4. Se probó en `odoo_staging` y no hizo
    falta `odoo_lab`: los módulos ya estaban instalados en producción, así que la copia los trae.
-2. **El contenido exacto de las dos baterías nuevas** — qué se pregunta en rendimiento y qué en
-   terreno. La tabla del § 5.2 es una propuesta para llevar al taller, no una decisión.
+2. ~~**El contenido exacto de las dos baterías nuevas.**~~ — **cerrado el 2026-08-19**, § 5.2 a
+   § 5.6. Lo único que queda de ese punto son **los cinco chequeos de armado**, que los escribió
+   el diseño y no el taller: se implementan y se corrigen con la primera retroalimentación real.
 3. ~~**Si la revisión de terreno necesita un tiempo de prueba propio y un texto libre.**~~ —
-   **resuelto el 2026-08-18: las dos, sí.** Ver § 4.8. Mi preliminar era que el texto libre no, y
+   **resuelto el 2026-08-18: las dos, sí.** Ver § 4.7. Mi preliminar era que el texto libre no, y
    estaba mal: las líneas ya tenían texto libre y la cabecera no, así que el estándar estaba roto
    de antes. Lo que faltaba no era prohibirlo sino nombrarlo bien.
 4. **Los mínimos y máximos por modelo.** No bloquean esto —§ 9— pero si no existen escritos, eso
@@ -627,6 +767,11 @@ Todo esto lo revisó y aprobó el supervisor.
 - **El primer BoM se crea en MRP; desde el primer cambio, todo es ECO** — § 6.4, con dos tipos de
   ECO según la fase, y la disciplina de no volver a editar el BoM a mano.
 - **Se cuentan alertas por modelo y por trimestre** para saber cuándo un diseño maduró.
+- **Las cuatro baterías**, con el criterio de terreno —*qué se puede medir efectivamente estando
+  ahí*— y la presión verificada por dos medios según dónde se esté (§ 5.2).
+- **Se retira la palabra «esfuerzo»** del vocabulario (§ 5.5).
+- **Dos umbrales descartados a propósito**: la profundidad en terreno y la presión de taller
+  (§ 5.6).
 
 
 - **`tipo` compartido**, no modelo nuevo (§ 4.1).
