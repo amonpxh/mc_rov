@@ -27,6 +27,48 @@ abrir en cada momento y qué queda registrado**, sin entrar en cómo está const
 
 ---
 
+## No es una sola línea, son tres
+
+Los procesos no van uno detrás de otro. Corren en paralelo y a ritmos distintos:
+
+```
+UNIDAD     fabricar → aceptar → entregar → operar → mantener/reparar → baja
+                                                          │
+                                                          ↓ origen = diseño / manufactura
+MODELO     diseñar → madurar (ECO tras ECO) ─────────→ maduro
+                        ↑
+COMERCIAL  cotizar → vender/arrendar → facturar
+```
+
+- **La unidad** sí es secuencial: un equipo pasa por sus etapas en orden.
+- **El modelo** corre en paralelo y abarca muchas unidades — el MK3 madura mientras se arman el
+  tercero, el cuarto y el quinto.
+- **Lo comercial** tiene su propio ritmo y toca a la unidad en dos puntos: al cotizarla y al
+  entregarla.
+
+La flecha que sube de reparación al modelo es la importante: **un defecto de fabricación
+descubierto dos años después vuelve a la línea del modelo** y cambia cómo se arman los que vengan.
+
+### Qué módulo usa cada proceso
+
+| Proceso | Abre | Y toca sin darse cuenta |
+|---|---|---|
+| Fabricar | Fabricación | Calidad, Inventario |
+| Aceptar | **Inventario** | — |
+| Entregar / arrendar | Ventas, Alquiler | Inventario |
+| Mantener | Reparaciones | — |
+| Reparar | Reparaciones | **Calidad** (para la alerta) |
+| Cambiar el diseño | **PLM** | Calidad, Fabricación |
+| Dar de baja | Inventario | — |
+| Cotizar | Ventas / Reparaciones | — |
+
+**Ahí están las dos fricciones que más van a perder a la gente**, y no son las obvias:
+
+1. **Aceptar se hace en «Inventario».** El técnico piensa *«voy a probar el equipo»*, no *«voy a
+   inventario»*. Es el proceso con peor nombre de puerta de todos.
+2. **Reparar termina en «Calidad»**, un módulo que esa persona no abre nunca. Justo el paso que
+   cierra el círculo con fabricación es el que exige saltar a una app ajena.
+
 ## 1. Un ROV nuevo: del armado a la entrega
 
 ### Paso 1 — La orden de fabricación

@@ -695,6 +695,13 @@ Ya está casi todo modelado. Falta el campo que los une.
 - Las columnas de prueba de laboratorio del lote, una vez que la prueba de rendimiento las
   reemplace.
 
+Y **`observacion` en la línea de inspección de sellos pasa a `detalle`.** Hoy hay tres nombres
+para la misma idea: `detalle` en la línea de chequeo, `detalle` en la de hallazgo, y
+`observacion` en la de sellos. Es el mismo «dos nombres para una cosa» que ya se corrigió en la
+pestaña de la revisión y en el chequeo de acro. Como esta versión lleva migración de todos modos,
+sale gratis; si no, dentro de un año alguien escribe un reporte y se pregunta por qué ese campo
+se llama distinto.
+
 Y un renombre que no es cosmético: **«En reposo» / «Esfuerzo» del lote pasan a «Consumo en
 reposo» / «Consumo bajo carga».** Hoy la palabra *esfuerzo* significa dos cosas distintas en el
 módulo: en la ficha del lote es **un consumo en kWh bajo carga** —hace pareja con el consumo en

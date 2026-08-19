@@ -111,6 +111,77 @@ conversación, todavía sin spec.
   hay que decidirlo junto con el primer punto. Ver el apartado de fabricación de más abajo —
   la decisión depende de una sola pregunta sin responder.
 
+## Guiar al usuario dentro de Odoo *(diseño abierto, 2026-08-19)*
+
+El problema: son varios módulos y **el usuario no lee documentación — abre Odoo y no sabe qué
+botón tocar**. [`flujo-de-trabajo.md`](flujo-de-trabajo.md) sirve para nosotros, no para ellos.
+La ayuda tiene que estar dentro del programa.
+
+Dos principios que ordenan todo lo demás:
+
+> **1. El siguiente paso tiene que ser un botón en el registro que ya estás mirando.** La guía
+> por cercanía le gana siempre a la guía por documentación.
+>
+> **2. La pantalla vacía es el mejor momento para enseñar.** Quien llega a una lista sin nada
+> está detenido y mirando, y Odoo ya reserva ese espacio.
+
+Las ideas, por lo que rinden frente a lo que cuestan:
+
+| | Idea | Comentario |
+|---|---|---|
+| **a** | **Botones de siguiente paso** | La más valiosa. *«Ir a la ficha del equipo»* al terminar la MO; *«Nueva prueba de rendimiento»* en el N° de serie; *«Levantar alerta»* en la línea de trabajo — ese último ya resuelve la fricción de que reparación termine en Calidad, porque el usuario nunca tiene que saber que Calidad existe |
+| **b** | **Textos de lista vacía** | Gratis: es un atributo de la acción y Odoo lo muestra solo. Va de paso con lo demás, no compite con (a) |
+| **c** | **Tablero de «qué me falta»** | Fichas incompletas, equipos sin pruebas, revisiones sin confirmar, alertas sin acción preventiva |
+| **d** | **Menú propio ordenado por proceso** | *«ROV → 2. Aceptar»* en vez de *«Inventario → Números de serie»*. Resuelve la fricción del nombre de puerta |
+| **e** | **Semáforo en la ficha del equipo** | Ya existe y funciona: el aviso de «faltan 3 de 16» es exactamente este patrón |
+
+**Descartado: artículos de Knowledge o manuales embebidos.** Es otro lugar más al que nadie va a
+entrar, y compite con el trabajo en vez de acompañarlo.
+
+**(c) y (d) van juntas y aparte, como un «centro de mando», y después de (a).** Responden una
+pregunta distinta —*«¿qué hago hoy?»* en vez de *«¿cómo sigo?»*— y mezclarlas empeora las dos.
+Además: **un tablero construido antes de que el proceso esté en uso muestra lo que es fácil de
+contar, no lo que importa.** Con tres meses de datos reales se sabrá qué miran de verdad.
+
+### El presupuesto de indicadores
+
+El patrón de (e) —un derivado que dice «a este registro le falta algo»— se gana su lugar **donde
+la ausencia es silenciosa y la consecuencia es tardía**. Si el sistema ya reclama, un indicador
+es ruido.
+
+Candidatos, por cuán callada y cara es la falla:
+
+1. **Fecha de puesta en servicio vacía** — sin ella el reloj de mantención no arranca y el equipo
+   no aparece nunca en «mantención vencida». Nada reclama; te enteras cuando reclama el cliente.
+2. **Producto ROV fuera de la rama de categorías** — se apagan las cuatro pestañas de ficha y
+   **el síntoma no apunta a la causa**: se reporta «no me aparecen las pestañas».
+3. **Alerta de calidad cerrada sin acción preventiva** — es una lección que nunca se escribió.
+4. **Propietario mal puesto en un equipo vendido** — aparece como «Disponible» y ensucia la flota.
+5. **Pruebas de aceptación** — ya diseñado en `designs/fabricacion.md` § 4.4.
+
+Y uno que **ya existe y es de la misma familia**: `mc_revision_pendiente`, que en `19.0.14.0.0` se
+decidió mostrar con un filtro en vez de bloquear.
+
+> **La regla, para no repetir lo del `required` rojo: un indicador por registro, que agregue todo
+> lo que le falta. No uno por campo.**
+
+El aviso de la ficha ya lo hace bien —dice «faltan 3 de 16» y los nombra— en vez de cuatro avisos
+compitiendo por la misma franja. **Conviene diseñarlos juntos y no de a uno**, porque el que
+llegue segundo va a querer su propia franja.
+
+### La cotización declara lo que la ficha después registra
+
+Una cotización de ROV custom **declara lo que el equipo va a llevar** —cuántas luces, cámara
+lateral, brazo— y la ficha registra lo que llevó. **Son la misma lista en dos momentos: promesa y
+hecho.**
+
+Eso importa porque resuelve por el lado correcto el pendiente de más abajo sobre las luces y
+cámaras custom: ahí quedó anotado que la ficha debería declarar qué trae el equipo para que la
+revisión no pregunte de más. **Si la cotización alimenta la ficha, el dato entra donde se decide
+y no donde se transcribe.**
+
+Sin decidir: si eso se modela o queda como convención.
+
 ## Fabricación — listo para implementar
 
 **El diseño está cerrado y aprobado.** Ver [`designs/fabricacion.md`](designs/fabricacion.md),
@@ -467,11 +538,16 @@ Lo que sigue del plan original, en orden:
 
 - [ ] **Phase -1 del pipeline roadmap — Foundation handoff** — prerequisito bloqueante para iniciar el pipeline. Checklist completo en `rov-pipeline-roadmap.md` Phase -1. Duración estimada: 1 semana.
 
-- [ ] **Montar staging** siguiendo [`runbooks/staging.md`](runbooks/staging.md). Escrito el 2026-08-18; falta correr los comandos en el servidor.
+- [ ] **Cambiar el `admin_passwd` de `/etc/odoo/odoo.conf`.** Quedó expuesto en una conversación
+  el 2026-08-18. Es la contraseña maestra del gestor de bases de datos: permite crear, duplicar y
+  **borrar** cualquier base. Se cambia en ese archivo y requiere reiniciar el servicio.
 
-  **La ventana es ahora.** Hoy staging vale poco —4 números de serie, 2 líneas de trabajo— pero está a punto de valer mucho, y por tres cosas que llegan juntas: la carga de productos ROV reales, el bump `X` de fabricación que borra columnas, y MRP + Calidad tocando inventario de verdad. Ensayar una migración por primera vez *después* de cargar los datos reales es ensayarla cuando ya no puede salir mal barato.
+- [x] ~~**Montar staging**~~ — **hecho el 2026-08-18.** Base `odoo_staging`, servicio
+  `odoo-staging` en el puerto 8070, checkout propio en `/opt/odoo/staging-addons/mc_rov`, y
+  acceso solo por túnel SSH. Ver [`runbooks/staging.md`](runbooks/staging.md).
 
-  Las tres migraciones de esta sesión se probaron en producción. Salieron bien porque no había qué romper: la de `19.0.15.0.0` habría descartado corridas si hubieran existido, y el log lo habría dicho **después**.
+  **Todavía no se ha usado para lo que se montó:** ensayar una migración. La de fabricación va a
+  ser la primera de verdad.
 
 - [ ] **Separar el workspace del runner de CI del addons de producción.** Hoy son el mismo directorio: `/opt/odoo/custom-addons/mc_rov`. Descubierto el 2026-08-07 al desplegar `19.0.5.0.0`.
 
