@@ -487,10 +487,14 @@ un umbral ahí **no mediría mejor: empujaría a arriesgar más.** Alguien bajar
 satisfacer al sistema cuando el trabajo pedía 40. Es la misma familia que el `required` de la
 ficha — la restricción no mejora el dato, cambia la conducta, y para peor.
 
-**La presión de taller sí tiene estándar** —2 h a 30 bar— pero **tampoco se deriva todavía**,
-porque varía por modelo y la ficha no lo declara. El chequeo se responde a mano y los dos números
-se guardan. El día que la ficha declare la presión de prueba por modelo, se deriva solo — la
-misma regla escrita para el ancho de banda y las luces.
+**La presión de taller tiene estándar** —2 h a 30 bar, 50 en algunos modelos, eventualmente hasta
+100— **y aun así no se declara en la ficha ni se deriva.** Se evaluó pedir una «presión de prueba»
+por modelo para poder derivar el chequeo, y **se descartó: los técnicos saben a cuánto va cada
+equipo**, y exigir el valor por adelantado es agregarle trámite a algo que ya funciona.
+
+Se registran los bar y el tiempo alcanzados; quien dice si aprobó es la persona. Es exactamente
+el mismo trato que el ancho de banda, y por la misma razón: **el sistema guarda la medición y no
+opina sobre ella mientras no tenga con qué.**
 
 ### 5.7 Un arreglo que viene gratis
 

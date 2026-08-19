@@ -111,6 +111,49 @@ conversación, todavía sin spec.
   hay que decidirlo junto con el primer punto. Ver el apartado de fabricación de más abajo —
   la decisión depende de una sola pregunta sin responder.
 
+## Fabricación — listo para implementar
+
+**El diseño está cerrado y aprobado.** Ver [`designs/fabricacion.md`](designs/fabricacion.md),
+790 líneas, y la guía para usuarios en [`flujo-de-trabajo.md`](flujo-de-trabajo.md).
+
+### Cómo partirlo
+
+| | Qué | Tamaño | Depende de |
+|---|---|---|---|
+| **A** | Los tres tipos de revisión, la migración de las columnas del lote, las mediciones nuevas, `aplica_fabricacion` → `aplica_rendimiento` | Grande, bump `X` | — |
+| **B** | Los puentes a `quality.alert`: alerta automática al fallar, alertas del modelo dentro de la MO, enlace al ECO, botón desde la línea de trabajo | Chico | — |
+| **C** | Los indicadores agregados en el número de serie (§ 4.4), con el presupuesto de **uno por registro** | Chico | A |
+| **D** | Configurar los puntos de calidad del armado y alinear `quality.reason` con `ORIGENES` | Datos, cero código | B |
+
+**A y B son independientes.** B se nota antes —son los cuatro campos que cierran el círculo con
+reparación— y no lleva migración, así que sirve de rodaje para el flujo nuevo con staging antes
+de la migración grande.
+
+### Antes de empezar B: una verificación
+
+B agrega **`mrp`, `quality_control` y `mrp_plm` a las dependencias del módulo**. Eso hace que
+`mc_rov` ya no se pueda instalar sin ellos — en producción están, pero **hay que confirmar que el
+runner de CI puede instalar el módulo con esas dependencias**, o sea que su addons path incluye
+Enterprise. Si no, el primer PR de B rompe CI y no por el código.
+
+La alternativa sería un módulo puente aparte (`mc_rov_quality`), pero es mucha infraestructura
+para cuatro campos en un módulo de una sola empresa. **Se elige agregar las dependencias**, y
+queda anotado que ése es el costo.
+
+### Lo que no se va a pedir
+
+- **La presión de prueba por modelo.** Se evaluó pedirla en la ficha para derivar el chequeo de
+  estanqueidad y se descartó: los técnicos saben a cuánto va cada equipo. Se registran bar y
+  tiempo, y la persona juzga. Ver § 5.6.
+- **La profundidad máxima del modelo.** Se queda en la hoja de cotización. Un umbral ahí
+  empujaría a arriesgar el equipo de más. Ver § 5.6.
+
+### Lo único que necesita retroalimentación, y no bloquea
+
+**Los cinco chequeos de armado** los escribió el diseño, no el taller. Se implementan como están
+y se corrigen con el primer uso real. Está dicho así en § 5.3 para que nadie los confunda con
+algo que dijo el taller.
+
 ## Fabricación — el diseño está escrito
 
 **Ver [`designs/fabricacion.md`](designs/fabricacion.md).** Recoge todo lo discutido el
