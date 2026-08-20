@@ -62,6 +62,15 @@ goes into real use**, because it is the only one carrying a migration. § 8 puts
   affected rows: what held on 2026-08-18 may not hold the day it runs, and the lesson of
   `19.0.15.0.0` is that the warning about what is lost has to arrive *before* the rows go.
 
+  **And rehearsing it on staging immediately proved the dump wrong.** Against a copy of
+  production it reported three serials as losing field-test data; reading the values, the only
+  real one was `mc_alimentacion = 'Generador'` on a test serial. The rest were zeros — because
+  Odoo stores `0`, not `NULL`, in an Integer or Float nobody filled, so `IS NOT NULL` cannot
+  tell an untouched column from a measured zero. It is the same «zero of the numeric fields»
+  the spec sheet already has identified and tested. Emptiness is now judged per type, because
+  **a warning that cries wolf is worse than no warning**: the next time there is real data,
+  nobody will read it.
+
 - **The unused «Revisiones de fabricación» action.** No menu referenced it — bench tests are
   created from the serial's button — and after the rename its domain would have matched nothing.
 

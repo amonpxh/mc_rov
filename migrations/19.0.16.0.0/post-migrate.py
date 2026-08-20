@@ -30,18 +30,26 @@ import logging
 
 _logger = logging.getLogger(__name__)
 
-# Las columnas de prueba en terreno que vivían en `stock.lot`.
-COLUMNAS_TERRENO = [
-    "mc_fecha_prueba",
-    "mc_lugar",
-    "mc_profundidad",
-    "mc_velocidad_corriente",
-    "mc_alimentacion",
-    "mc_tiempo_prueba_terreno",
-    "mc_temperatura_interior_terreno",
-    "mc_temperatura_exterior_terreno",
-    "mc_observacion",
-]
+# Las columnas de prueba en terreno que vivían en `stock.lot`, y qué significa «vacía» en
+# cada una.
+#
+# **En las numéricas el cero es indistinguible de no haber llenado nada**, porque Odoo guarda
+# 0 y no NULL en un Integer o un Float que nadie tocó. Es el mismo problema que la ficha
+# técnica ya tiene identificado y cubierto con tests. Preguntar solo `IS NOT NULL` hace que
+# este script avise de datos que no existen — y **un aviso que grita en falso es peor que no
+# tenerlo**, porque la próxima vez que haya datos de verdad nadie lo va a mirar. Se descubrió
+# ensayando en staging contra una copia de producción, que es exactamente para lo que está.
+COLUMNAS_TERRENO = {
+    "mc_fecha_prueba": "{c} IS NOT NULL",
+    "mc_lugar": "{c} IS NOT NULL AND {c} <> ''",
+    "mc_profundidad": "{c} IS NOT NULL AND {c} <> 0",
+    "mc_velocidad_corriente": "{c} IS NOT NULL AND {c} <> 0",
+    "mc_alimentacion": "{c} IS NOT NULL AND {c} <> ''",
+    "mc_tiempo_prueba_terreno": "{c} IS NOT NULL AND {c} <> 0",
+    "mc_temperatura_interior_terreno": "{c} IS NOT NULL AND {c} <> 0",
+    "mc_temperatura_exterior_terreno": "{c} IS NOT NULL AND {c} <> 0",
+    "mc_observacion": "{c} IS NOT NULL AND {c} <> ''",
+}
 
 
 def _existe_columna(cr, tabla, columna):
@@ -99,7 +107,7 @@ def _avisar_de_las_pruebas_de_terreno(cr):
         _logger.info("mc_rov 19.0.16.0.0: las columnas de prueba en terreno ya no están")
         return []
 
-    condicion = " OR ".join(f"{c} IS NOT NULL" for c in presentes)
+    condicion = " OR ".join(COLUMNAS_TERRENO[c].format(c=c) for c in presentes)
     columnas = ", ".join(presentes)
     cr.execute(f"SELECT id, name, {columnas} FROM stock_lot WHERE {condicion} ORDER BY id")
     filas = cr.fetchall()
@@ -107,7 +115,8 @@ def _avisar_de_las_pruebas_de_terreno(cr):
     if not filas:
         _logger.info(
             "mc_rov 19.0.16.0.0: ningún número de serie tenía datos de prueba en terreno, "
-            "como anticipaba el § 8 del diseño"
+            "como anticipaba el § 8 del diseño. Los ceros de las columnas numéricas no "
+            "cuentan: en Odoo un Float sin llenar se guarda como 0 y no como NULL."
         )
         return presentes
 
