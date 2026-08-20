@@ -10,11 +10,11 @@ from odoo.exceptions import UserError
 # y además había dejado de describir una sola cosa: lo que pasa mientras se arma son puntos
 # de calidad, y lo que pasa después es esta prueba.
 #
-# Se llama `banco` y no `rendimiento` porque tiene que contrastar con `terreno` en el mismo
+# Se llama `rendimiento` y no `rendimiento` porque tiene que contrastar con `terreno` en el mismo
 # eje —dónde se prueba— o el desplegable deja abierta la pregunta «¿y la de terreno no mide
 # rendimiento?». La etiqueta nunca dice «Banco» a secas por la misma razón.
 TIPOS = [
-    ("banco", "Prueba de banco"),
+    ("rendimiento", "Prueba de rendimiento"),
     ("reparacion", "Reparación"),
     ("terreno", "Prueba en terreno"),
 ]
@@ -23,7 +23,7 @@ TIPOS = [
 # de encadenar ifs, para que agregar un tipo sea tocar dos listas y no buscar condicionales
 # repartidos por el archivo.
 CAMPO_APLICA = {
-    "banco": "aplica_banco",
+    "rendimiento": "aplica_rendimiento",
     "reparacion": "aplica_reparacion",
     "terreno": "aplica_terreno",
 }
@@ -35,15 +35,30 @@ CAMPO_APLICA = {
 # exigía su resultado siempre, así que **una revisión de terreno no podía quedar aprobada
 # nunca** — se quedaba en blanco para siempre, que es el mismo modo de falla que
 # `19.0.15.1.0` vino a arreglar del otro lado. Ver `designs/fabricacion.md` § 4.7.
-TIPOS_CON_FUNCIONAMIENTO_CONTINUO = {"banco", "reparacion"}
+TIPOS_CON_FUNCIONAMIENTO_CONTINUO = {"rendimiento", "reparacion"}
 
-# Qué campo de la prueba de banco alimenta qué campo de la ficha del equipo.
+# Qué campo de la prueba alimenta qué campo de la ficha del equipo, y desde qué tipos.
+#
+# **La regla que decide qué entra acá:** el volcado vale cuando la prueba es el único origen
+# de ese valor, y NO vale cuando la ficha es la referencia contra la que la prueba compara —
+# ahí escribir la ficha borraría justamente la diferencia que se quería ver. Por eso el conteo
+# de luces no está en esta tabla y no debe agregarse: la ficha dice cuántas luces debería
+# tener el equipo, y una luz quemada se volvería la nueva especificación.
+
+# El software solo lo determina la prueba de rendimiento: es donde se instala.
 SOFTWARE_A_FICHA = {
     "software_instalado_id": "mc_software_superficie",
     "version_software_instalada": "mc_version_software",
     "version_ardusub_instalada": "mc_version_ardusub",
     "controlador_instalado_id": "mc_controlador_vuelo",
     "version_controlador_instalada": "mc_version_controlador",
+}
+
+# Los ajustes se confirman en las tres pruebas, así que manda la más reciente sea del tipo
+# que sea.
+AJUSTES_A_FICHA = {
+    "limitacion_pilot_gain": "mc_limitacion_pilot_gain",
+    "ganancia_luz": "mc_ganancia_luz",
 }
 
 RESULTADOS_CHEQUEO = [
@@ -215,7 +230,7 @@ class McRovRevision(models.Model):
     # --- Software instalado, y va al revés que en reparación ---
     #
     # En reparación el software se COMPARA: la ficha es la referencia y la revisión contrasta
-    # (los cinco `related` de arriba). En la prueba de banco no hay contra qué comparar —el
+    # (los cinco `related` de arriba). En la prueba de rendimiento no hay contra qué comparar —el
     # equipo acaba de nacer y su ficha está vacía— así que **la prueba determina el valor y la
     # ficha lo recibe** (§ 5.4).
     software_instalado_id = fields.Many2one(
@@ -262,6 +277,20 @@ class McRovRevision(models.Model):
     # «umbilical usado, y largo solo si es del taller».
     largo = fields.Float(string="Largo del umbilical (m)")
 
+    # El cable del equipo, traído de la ficha. En una prueba de aceptación se prueba con el
+    # umbilical propio, así que estos tres datos ya están definidos y no hay por qué volver a
+    # teclearlos — se muestran para saber con qué se probó. El peso no: no dice nada de la
+    # prueba. Si el cable es del taller, esto no aplica y el largo se pide a mano.
+    umbilical_ficha = fields.Char(
+        related="lot_id.mc_n_serie_umbilical", string="N° de serie del umbilical", readonly=True
+    )
+    largo_ficha = fields.Float(
+        related="lot_id.mc_longitud", string="Largo según ficha (m)", readonly=True
+    )
+    diametro_ficha = fields.Float(
+        related="lot_id.mc_diametro", string="Diámetro según ficha (mm)", readonly=True
+    )
+
     alimentacion = fields.Selection(
         [("UPS", "UPS"), ("Generador", "Generador"), ("Transformador", "Transformador")],
         string="Alimentación",
@@ -299,7 +328,7 @@ class McRovRevision(models.Model):
 
     # Cuánto duró la prueba entera. **No es `funcionamiento_continuo_duracion`**: ésa es la
     # corrida de resistencia DENTRO de la prueba. Una prueba en terreno de tres horas puede no
-    # llevar corrida; una de banco lleva las dos y son números distintos (§ 4.7).
+    # llevar corrida; una de rendimiento lleva las dos y son números distintos (§ 4.7).
     duracion = fields.Float(string="Duración de la prueba (h)", digits=(5, 2))
 
     # Se llama «Condiciones y notas» y **no «Observaciones»**, y el nombre es parte del
@@ -340,20 +369,15 @@ class McRovRevision(models.Model):
 
     # --- Parámetros de trabajo ---
     #
-    # Se miden en banco y en terreno; en reparación no se vuelven a medir, se muestran desde
-    # la ficha para ver si cambiaron. Y si se ajustan en terreno, la ficha queda vieja: ahí
-    # rige «quien ajusta, actualiza», que el § 5.4 acepta explícitamente.
+    # Se miden en las tres. El § 5.4 decía que en reparación solo se mostraban desde la ficha,
+    # y el taller corrigió eso el 2026-08-20: también se vuelven a confirmar al reparar.
+    #
+    # Por eso no hay bloque de comparación: **la ficha recibe el valor de la prueba más
+    # reciente**, igual que las versiones de software. Son ajustes, y el último ajuste es la
+    # verdad — a diferencia del conteo de luces, donde la ficha dice cuántas debería tener el
+    # equipo y la diferencia con lo que encendió ES el hallazgo.
     limitacion_pilot_gain = fields.Integer(string="Limitación pilot gain (%)")
     ganancia_luz = fields.Integer(string="Ganancia luz (%)")
-
-    # En reparación estos dos no se vuelven a medir: se muestran desde la ficha para que el
-    # técnico vea si cambiaron. Mismo bloque que ya funciona con las versiones de software.
-    limitacion_pilot_gain_ficha = fields.Integer(
-        related="lot_id.mc_limitacion_pilot_gain", string="Pilot gain según ficha", readonly=True
-    )
-    ganancia_luz_ficha = fields.Integer(
-        related="lot_id.mc_ganancia_luz", string="Ganancia luz según ficha", readonly=True
-    )
 
     # Dato interno: se medía, se le entregaba al cliente y el cliente la usó en contra. Vuelve
     # a medirse con la condición de que NO salga en el reporte impreso.
@@ -770,61 +794,69 @@ class McRovRevision(models.Model):
                     f"Falta lo siguiente para confirmar {revision.display_name}:\n\n{detalle}"
                 )
             revision.estado = "confirmado"
-            revision._volcar_software_a_la_ficha()
+            revision._volcar_a_la_ficha()
 
-    def _volcar_software_a_la_ficha(self):
-        """La prueba de banco escribe en la ficha las versiones que se instalaron.
+    def _volcar_a_la_ficha(self):
+        """La prueba escribe en la ficha lo que sólo ella sabe.
 
-        En reparación el software se compara contra la ficha; acá es al revés, porque el
-        equipo acaba de nacer y no hay contra qué comparar. Si esto no ocurriera, la ficha
-        quedaría vacía **y la comparación del lado de reparación no funcionaría nunca** — sin
-        referencia, cada visita posterior compararía contra la nada, y nada lo avisaría.
+        Dos volcados con reglas distintas, y la diferencia importa:
 
-        **Sobrescribe, pero solo desde la prueba de banco más reciente del equipo.** Sobre-
-        escribir es lo correcto: si alguien actualiza el software y corre otra prueba, dejar
-        la versión vieja en la ficha haría que cada reparación posterior registrara una
-        diferencia falsa. Lo que no puede pasar es que **corregir una revisión antigua pise la
-        ficha de hoy** — confirmar no ocurre en orden cronológico, y una prueba de hace dos
-        años reconfirmada por una errata escribiría valores de hace dos años. Por eso manda la
-        más reciente y no la que se está confirmando. Mismo criterio que `ultima_mantencion`,
-        que usa la última orden de su tipo y no cualquiera.
+        - **El software lo determina la prueba de rendimiento**, porque es donde se instala. En
+          reparación se compara contra la ficha; acá es al revés, y si esto no ocurriera la
+          ficha quedaría vacía **y la comparación del lado de reparación no funcionaría nunca**.
+        - **Los ajustes —pilot gain y ganancia luz— se confirman en las tres pruebas**, así que
+          manda la más reciente sea del tipo que sea. Son ajustes: el último es la verdad.
+
+        **En los dos casos sobrescribe, y solo desde la prueba más reciente.** Sobrescribir es
+        lo correcto: dejar un valor viejo haría que cada revisión posterior registrara una
+        diferencia falsa. Lo que no puede pasar es que corregir una prueba antigua pise la
+        ficha de hoy — confirmar no ocurre en orden cronológico. Por eso manda la más reciente
+        y no la que se está confirmando, mismo criterio que `ultima_mantencion`.
 
         Y queda en el chatter del equipo: escribir en la ficha de otro registro sin dejar
         rastro es justo lo que este módulo evita.
         """
         self.ensure_one()
-        if self.tipo != "banco" or not self.lot_id:
-            return
-
-        mas_reciente = self.search(
-            [
-                ("lot_id", "=", self.lot_id.id),
-                ("tipo", "=", "banco"),
-                ("estado", "=", "confirmado"),
-            ],
-            order="fecha desc, id desc",
-            limit=1,
-        )
-        if mas_reciente != self:
+        if not self.lot_id:
             return
 
         valores = {}
-        for campo_prueba, campo_ficha in SOFTWARE_A_FICHA.items():
+        if self._es_la_mas_reciente(tipo="rendimiento"):
+            valores.update(self._valores_para_la_ficha(SOFTWARE_A_FICHA))
+        if self._es_la_mas_reciente():
+            valores.update(self._valores_para_la_ficha(AJUSTES_A_FICHA))
+        if not valores:
+            return
+
+        self.lot_id.write(valores)
+        nombres = ", ".join(self.lot_id._fields[campo].string for campo in valores)
+        self.lot_id.message_post(body=f"Ficha actualizada desde {self.display_name}: {nombres}.")
+
+    def _es_la_mas_reciente(self, tipo=None):
+        """Si esta revisión es la última confirmada del equipo, opcionalmente de un tipo."""
+        self.ensure_one()
+        dominio = [("lot_id", "=", self.lot_id.id), ("estado", "=", "confirmado")]
+        if tipo:
+            dominio.append(("tipo", "=", tipo))
+        elif self.tipo:
+            dominio.append(("tipo", "!=", False))
+        return self.search(dominio, order="fecha desc, id desc", limit=1) == self
+
+    def _valores_para_la_ficha(self, mapa):
+        """Lo que hay que escribir, saltando lo que no se anotó y lo que ya coincide.
+
+        Un campo vacío en la prueba no es una afirmación sobre el equipo: no borra la ficha.
+        """
+        self.ensure_one()
+        valores = {}
+        for campo_prueba, campo_ficha in mapa.items():
             valor = self[campo_prueba]
             if not valor:
                 continue
             valor = valor.id if hasattr(valor, "id") else valor
             if self.lot_id[campo_ficha] != valor:
                 valores[campo_ficha] = valor
-
-        if not valores:
-            return
-
-        self.lot_id.write(valores)
-        nombres = ", ".join(self.lot_id._fields[campo].string for campo in valores)
-        self.lot_id.message_post(
-            body=f"Ficha actualizada desde la prueba de banco {self.display_name}: {nombres}."
-        )
+        return valores
 
     def action_volver_a_borrador(self):
         """Reabre una revisión confirmado. Existe porque las fichas se equivocan.

@@ -47,7 +47,7 @@
         <field name="name">Estanqueidad bajo presión</field>
         <field name="seccion">presion</field>
         <field name="sequence">40</field>
-        <field name="aplica_banco" eval="True"/>
+        <field name="aplica_rendimiento" eval="True"/>
         <field name="aplica_reparacion" eval="True"/>
         <field name="aplica_terreno" eval="True"/>
     </record>
@@ -56,7 +56,7 @@
         <field name="name">El sensor de leak responde</field>
         <field name="seccion">leak</field>
         <field name="sequence">50</field>
-        <field name="aplica_banco" eval="True"/>
+        <field name="aplica_rendimiento" eval="True"/>
         <field name="aplica_reparacion" eval="True"/>
         <field name="aplica_terreno" eval="True"/>
     </record>
@@ -65,7 +65,7 @@
         <field name="name">Hélices en posición correcta</field>
         <field name="seccion">navegacion</field>
         <field name="sequence">60</field>
-        <field name="aplica_banco" eval="True"/>
+        <field name="aplica_rendimiento" eval="True"/>
         <field name="aplica_reparacion" eval="True"/>
         <field name="aplica_terreno" eval="True"/>
     </record>
@@ -73,7 +73,7 @@
         <field name="name">Movimiento vertical</field>
         <field name="seccion">navegacion</field>
         <field name="sequence">64</field>
-        <field name="aplica_banco" eval="True"/>
+        <field name="aplica_rendimiento" eval="True"/>
         <field name="aplica_reparacion" eval="True"/>
         <field name="aplica_terreno" eval="True"/>
     </record>
@@ -81,7 +81,7 @@
         <field name="name">Movimiento horizontal</field>
         <field name="seccion">navegacion</field>
         <field name="sequence">66</field>
-        <field name="aplica_banco" eval="True"/>
+        <field name="aplica_rendimiento" eval="True"/>
         <field name="aplica_reparacion" eval="True"/>
         <field name="aplica_terreno" eval="True"/>
     </record>
@@ -90,7 +90,7 @@
         <field name="name">Imagen de cámara</field>
         <field name="seccion">video</field>
         <field name="sequence">90</field>
-        <field name="aplica_banco" eval="True"/>
+        <field name="aplica_rendimiento" eval="True"/>
         <field name="aplica_reparacion" eval="True"/>
         <field name="aplica_terreno" eval="True"/>
     </record>
@@ -98,7 +98,7 @@
         <field name="name">Tilt</field>
         <field name="seccion">video</field>
         <field name="sequence">100</field>
-        <field name="aplica_banco" eval="True"/>
+        <field name="aplica_rendimiento" eval="True"/>
         <field name="aplica_reparacion" eval="True"/>
         <field name="aplica_terreno" eval="True"/>
     </record>
@@ -121,7 +121,7 @@
         <field name="name">Enciende y arranca correctamente</field>
         <field name="seccion">energia</field>
         <field name="sequence">15</field>
-        <field name="aplica_banco" eval="True"/>
+        <field name="aplica_rendimiento" eval="True"/>
         <field name="aplica_reparacion" eval="True"/>
         <field name="aplica_terreno" eval="True"/>
     </record>
@@ -132,7 +132,7 @@
         <field name="name">Chasis y estructura sin daño visible</field>
         <field name="seccion">inspeccion_fisica</field>
         <field name="sequence">20</field>
-        <field name="aplica_banco" eval="True"/>
+        <field name="aplica_rendimiento" eval="True"/>
         <field name="aplica_reparacion" eval="True"/>
         <field name="aplica_terreno" eval="True"/>
     </record>
@@ -140,7 +140,7 @@
         <field name="name">Penetradores y conectores sin daño</field>
         <field name="seccion">inspeccion_fisica</field>
         <field name="sequence">25</field>
-        <field name="aplica_banco" eval="True"/>
+        <field name="aplica_rendimiento" eval="True"/>
         <field name="aplica_reparacion" eval="True"/>
         <field name="aplica_terreno" eval="True"/>
     </record>
@@ -148,7 +148,7 @@
         <field name="name">Hélices sin daño ni desgaste</field>
         <field name="seccion">inspeccion_fisica</field>
         <field name="sequence">30</field>
-        <field name="aplica_banco" eval="True"/>
+        <field name="aplica_rendimiento" eval="True"/>
         <field name="aplica_reparacion" eval="True"/>
         <field name="aplica_terreno" eval="True"/>
     </record>
@@ -166,7 +166,7 @@
         <field name="name">Responde a comandos desde superficie</field>
         <field name="seccion">comunicacion</field>
         <field name="sequence">55</field>
-        <field name="aplica_banco" eval="True"/>
+        <field name="aplica_rendimiento" eval="True"/>
         <field name="aplica_reparacion" eval="True"/>
         <field name="aplica_terreno" eval="True"/>
     </record>
@@ -174,7 +174,7 @@
         <field name="name">El ancho de banda es el esperado para este equipo y este cable</field>
         <field name="seccion">comunicacion</field>
         <field name="sequence">57</field>
-        <field name="aplica_banco" eval="True"/>
+        <field name="aplica_rendimiento" eval="True"/>
         <field name="aplica_reparacion" eval="True"/>
         <field name="aplica_terreno" eval="True"/>
     </record>
@@ -207,7 +207,7 @@
         <field name="name">El software de superficie inicia y opera</field>
         <field name="seccion">comunicacion</field>
         <field name="sequence">58</field>
-        <field name="aplica_banco" eval="False"/>
+        <field name="aplica_rendimiento" eval="False"/>
         <field name="aplica_reparacion" eval="True"/>
         <field name="aplica_terreno" eval="False"/>
     </record>
@@ -215,7 +215,7 @@
         <field name="name">El software instalado corresponde a la ficha</field>
         <field name="seccion">comunicacion</field>
         <field name="sequence">59</field>
-        <field name="aplica_banco" eval="False"/>
+        <field name="aplica_rendimiento" eval="False"/>
         <field name="aplica_reparacion" eval="True"/>
         <field name="aplica_terreno" eval="False"/>
     </record>
@@ -233,7 +233,7 @@
         <field name="name">Mantiene profundidad (depth hold)</field>
         <field name="seccion">navegacion</field>
         <field name="sequence">77</field>
-        <field name="aplica_banco" eval="True"/>
+        <field name="aplica_rendimiento" eval="True"/>
         <field name="aplica_reparacion" eval="True"/>
         <field name="aplica_terreno" eval="True"/>
     </record>
@@ -241,7 +241,7 @@
         <field name="name">Se estabiliza (stabilize)</field>
         <field name="seccion">navegacion</field>
         <field name="sequence">75</field>
-        <field name="aplica_banco" eval="True"/>
+        <field name="aplica_rendimiento" eval="True"/>
         <field name="aplica_reparacion" eval="True"/>
         <field name="aplica_terreno" eval="True"/>
     </record>
@@ -252,7 +252,7 @@
         <field name="name">Las luces responden al control desde superficie</field>
         <field name="seccion">luces</field>
         <field name="sequence">120</field>
-        <field name="aplica_banco" eval="True"/>
+        <field name="aplica_rendimiento" eval="True"/>
         <field name="aplica_reparacion" eval="True"/>
         <field name="aplica_terreno" eval="True"/>
     </record>
@@ -273,7 +273,7 @@
         <field name="name">Todos los thrusters responden</field>
         <field name="seccion">navegacion</field>
         <field name="sequence">62</field>
-        <field name="aplica_banco" eval="True"/>
+        <field name="aplica_rendimiento" eval="True"/>
         <field name="aplica_reparacion" eval="True"/>
         <field name="aplica_terreno" eval="True"/>
     </record>
@@ -281,7 +281,7 @@
         <field name="name">Responde en modo acrobático (acro)</field>
         <field name="seccion">navegacion</field>
         <field name="sequence">73</field>
-        <field name="aplica_banco" eval="True"/>
+        <field name="aplica_rendimiento" eval="True"/>
         <field name="aplica_reparacion" eval="True"/>
         <field name="aplica_terreno" eval="True"/>
     </record>
@@ -290,7 +290,7 @@
         <field name="name">Sin ruido ni vibración anormal</field>
         <field name="seccion">navegacion</field>
         <field name="sequence">79</field>
-        <field name="aplica_banco" eval="True"/>
+        <field name="aplica_rendimiento" eval="True"/>
         <field name="aplica_reparacion" eval="True"/>
         <field name="aplica_terreno" eval="True"/>
     </record>
@@ -301,7 +301,7 @@
         <field name="name">Umbilical sin cortes ni aplastamientos</field>
         <field name="seccion">inspeccion_fisica</field>
         <field name="sequence">27</field>
-        <field name="aplica_banco" eval="True"/>
+        <field name="aplica_rendimiento" eval="True"/>
         <field name="aplica_reparacion" eval="True"/>
         <field name="aplica_terreno" eval="True"/>
     </record>
@@ -311,7 +311,7 @@
         <field name="name">Manipulador responde</field>
         <field name="seccion">accesorios</field>
         <field name="sequence">110</field>
-        <field name="aplica_banco" eval="True"/>
+        <field name="aplica_rendimiento" eval="True"/>
         <field name="aplica_reparacion" eval="True"/>
         <field name="aplica_terreno" eval="True"/>
     </record>
@@ -319,7 +319,7 @@
         <field name="name">Sonar funciona</field>
         <field name="seccion">accesorios</field>
         <field name="sequence">115</field>
-        <field name="aplica_banco" eval="True"/>
+        <field name="aplica_rendimiento" eval="True"/>
         <field name="aplica_reparacion" eval="True"/>
         <field name="aplica_terreno" eval="True"/>
     </record>

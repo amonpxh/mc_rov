@@ -81,7 +81,7 @@ class RevisionCommon(TransactionCase):
             {
                 "name": "Chequeo de prueba",
                 "seccion": "otro",
-                "aplica_banco": False,
+                "aplica_rendimiento": False,
                 "aplica_reparacion": False,
                 "aplica_terreno": False,
                 **vals,
@@ -194,14 +194,14 @@ class TestMcRovRevision(RevisionCommon):
         )
 
         self.assertTrue(all(software.mapped("aplica_reparacion")))
-        self.assertFalse(any(software.mapped("aplica_banco")))
+        self.assertFalse(any(software.mapped("aplica_rendimiento")))
         self.assertFalse(any(software.mapped("aplica_terreno")))
 
         reparacion = self._revision(tipo="reparacion").chequeo_ids.mapped("chequeo_id")
-        banco = self._revision(tipo="banco").chequeo_ids.mapped("chequeo_id")
+        rendimiento = self._revision(tipo="rendimiento").chequeo_ids.mapped("chequeo_id")
 
         self.assertFalse(software - reparacion)
-        self.assertFalse(software & banco)
+        self.assertFalse(software & rendimiento)
 
     def test_cambiar_el_tipo_ajusta_el_checklist_sin_borrar_respuestas(self):
         """Cambiar de tipo quita las líneas que ya no corresponden, pero nunca las que
@@ -213,7 +213,7 @@ class TestMcRovRevision(RevisionCommon):
         respondida = propias[0]
         respondida.resultado = "ok"
 
-        revision.tipo = "banco"
+        revision.tipo = "rendimiento"
 
         self.assertIn(respondida, revision.chequeo_ids)
 
@@ -222,7 +222,7 @@ class TestMcRovRevision(RevisionCommon):
         revision = self._revision(tipo="reparacion")
         propias = revision.chequeo_ids.filtered(lambda linea: linea.chequeo_id == solo_reparacion)
 
-        revision.tipo = "banco"
+        revision.tipo = "rendimiento"
 
         self.assertFalse(propias.exists())
 
@@ -303,14 +303,14 @@ class TestMcRovRevision(RevisionCommon):
 
 @tagged("post_install", "-at_install")
 class TestSoftwareALaFicha(RevisionCommon):
-    """La prueba de banco escribe en la ficha las versiones que se instalaron.
+    """La prueba de rendimiento escribe en la ficha las versiones que se instalaron.
 
     En reparación el software se compara contra la ficha; acá es al revés, porque el equipo
     acaba de nacer y no hay contra qué comparar (§ 5.4).
     """
 
-    def _banco(self, version="4.1.0", **vals):
-        revision = self._revision(tipo="banco", version_ardusub_instalada=version, **vals)
+    def _rendimiento(self, version="4.1.0", **vals):
+        revision = self._revision(tipo="rendimiento", version_ardusub_instalada=version, **vals)
         revision.estado = "confirmado"
         return revision
 
@@ -318,7 +318,7 @@ class TestSoftwareALaFicha(RevisionCommon):
         """Sin esto la ficha queda vacía y la comparación de reparación no funciona nunca."""
         self.assertFalse(self.lot.mc_version_ardusub)
 
-        self._banco()._volcar_software_a_la_ficha()
+        self._rendimiento()._volcar_a_la_ficha()
 
         self.assertEqual(self.lot.mc_version_ardusub, "4.1.0")
 
@@ -326,7 +326,7 @@ class TestSoftwareALaFicha(RevisionCommon):
         """Dejar la versión vieja haría que cada reparación registrara una diferencia falsa."""
         self.lot.mc_version_ardusub = "4.0.2"
 
-        self._banco(version="4.1.0")._volcar_software_a_la_ficha()
+        self._rendimiento(version="4.1.0")._volcar_a_la_ficha()
 
         self.assertEqual(self.lot.mc_version_ardusub, "4.1.0")
 
@@ -337,10 +337,10 @@ class TestSoftwareALaFicha(RevisionCommon):
         guarda escribiría en la ficha valores de hace dos años. Manda la más reciente, no la
         que se está confirmando — mismo criterio que `ultima_mantencion`.
         """
-        antigua = self._banco(version="4.0.2", fecha="2024-01-15")
-        self._banco(version="4.1.0", fecha="2026-08-20")._volcar_software_a_la_ficha()
+        antigua = self._rendimiento(version="4.0.2", fecha="2024-01-15")
+        self._rendimiento(version="4.1.0", fecha="2026-08-20")._volcar_a_la_ficha()
 
-        antigua._volcar_software_a_la_ficha()
+        antigua._volcar_a_la_ficha()
 
         self.assertEqual(self.lot.mc_version_ardusub, "4.1.0")
 
@@ -350,7 +350,7 @@ class TestSoftwareALaFicha(RevisionCommon):
         revision = self._revision(tipo="reparacion", version_ardusub_instalada="9.9.9")
         revision.estado = "confirmado"
 
-        revision._volcar_software_a_la_ficha()
+        revision._volcar_a_la_ficha()
 
         self.assertEqual(self.lot.mc_version_ardusub, "4.0.2")
 
@@ -358,15 +358,44 @@ class TestSoftwareALaFicha(RevisionCommon):
         """Un campo vacío en la prueba no es una afirmación sobre el equipo."""
         self.lot.mc_version_software = "ROVControl 2.3"
 
-        self._banco()._volcar_software_a_la_ficha()
+        self._rendimiento()._volcar_a_la_ficha()
 
         self.assertEqual(self.lot.mc_version_software, "ROVControl 2.3")
+
+    def test_los_ajustes_se_vuelcan_desde_cualquier_tipo(self):
+        """Pilot gain y ganancia luz se confirman en las tres pruebas, no solo en aceptación.
+
+        El § 5.4 decía que en reparación solo se mostraban desde la ficha; el taller lo
+        corrigió el 2026-08-20. Manda la más reciente sea del tipo que sea.
+        """
+        revision = self._revision(tipo="reparacion", limitacion_pilot_gain=80)
+        revision.estado = "confirmado"
+
+        revision._volcar_a_la_ficha()
+
+        self.assertEqual(self.lot.mc_limitacion_pilot_gain, 80)
+
+    def test_el_conteo_de_luces_nunca_se_vuelca(self):
+        """El contraejemplo de la regla, y por eso tiene test propio.
+
+        La ficha dice cuántas luces DEBERÍA tener el equipo; la prueba cuenta cuántas
+        encendieron. Si la prueba escribiera la ficha, una luz quemada se volvería la nueva
+        especificación y `luces_difieren` no volvería a avisar nunca. Ahí la diferencia **es**
+        el hallazgo.
+        """
+        self.lot.mc_cantidad_luces = 6
+        revision = self._rendimiento(luces_internas=2, luces_externas=2)
+
+        revision._volcar_a_la_ficha()
+
+        self.assertEqual(self.lot.mc_cantidad_luces, 6)
+        self.assertTrue(revision.luces_difieren)
 
     def test_el_cambio_queda_en_el_chatter_del_equipo(self):
         """Escribir en la ficha de otro registro sin dejar rastro es lo que el módulo evita."""
         mensajes_antes = len(self.lot.message_ids)
 
-        self._banco()._volcar_software_a_la_ficha()
+        self._rendimiento()._volcar_a_la_ficha()
 
         self.assertGreater(len(self.lot.message_ids), mensajes_antes)
 
@@ -390,9 +419,9 @@ class TestMcRovRevisionResultado(RevisionCommon):
         )
         self.assertEqual(revision.resultado, "aprobado")
 
-    def test_banco_sigue_exigiendo_la_corrida_de_resistencia(self):
+    def test_rendimiento_sigue_exigiendo_la_corrida(self):
         """El arreglo no puede convertirse en dejar de pedirlo donde sí corresponde."""
-        revision = self._revision(tipo="banco")
+        revision = self._revision(tipo="rendimiento")
         self._responder_todo(revision)
 
         self.assertFalse(
@@ -753,9 +782,9 @@ class TestMcRovRevisionSellos(RevisionCommon):
         componentes = revision.inspeccion_ids.mapped("componente_id")
         self.assertTrue(all(componentes.mapped("es_inspeccionable")))
 
-    def test_la_prueba_de_banco_no_lleva_inspeccion_de_sellos(self):
+    def test_la_prueba_de_rendimiento_no_lleva_inspeccion_de_sellos(self):
         """En un equipo recién armado no hay sello previo que mirar."""
-        self.assertFalse(self._revision(tipo="banco").inspeccion_ids)
+        self.assertFalse(self._revision(tipo="rendimiento").inspeccion_ids)
 
     def test_terreno_tampoco_lleva_inspeccion_de_sellos(self):
         """Una prueba en terreno no es una entrada al taller: el equipo no cambió de manos
