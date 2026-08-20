@@ -23,3 +23,8 @@ disable=
     W0613,
     # Los saltos de línea son responsabilidad del editor / git — no del linter
     C0327,
+    # En Odoo el guion bajo marca API interna del MÓDULO, no de la clase, y llamarla entre
+    # recordsets es la convención: `_for_xml_id` es la forma recomendada de resolver una
+    # acción, y un helper propio se invoca sobre el recordset filtrado del mismo modelo.
+    # Pylint lee las dos cosas como acceso a miembro protegido de una clase ajena.
+    W0212,

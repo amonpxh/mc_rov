@@ -4,6 +4,73 @@ All notable changes to the `mc_rov` Odoo module are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this module adheres to [semantic versioning](https://semver.org/) within the constraints of Odoo's version scheme: `19.0.X.Y.Z` where `19.0` is the Odoo major, `X` is breaking-change/migration, `Y` is feature, `Z` is bugfix.
 
+## [19.0.15.3.0] — 2026-08-20
+
+Block B of the fabrication design: the bridges to `quality.alert`. See
+`docs/designs/fabricacion.md` § 6 and the split in `docs/pendientes.md`.
+
+### Added
+
+- **A failed quality check now opens its quality alert by itself, in draft and untitled.**
+  This is the gap that made everything else in § 6 an empty filing cabinet. The staging
+  experiment of 2026-08-18 showed how the record disappears: the technician marks Failed,
+  nothing is created, nothing stops them, they fix the unit, mark Passed — and Quality
+  overwrites the check's state, so the order closes looking spotless with no trace beyond
+  one chatter line.
+
+  The asymmetry that justifies automating it: marking the check as failed is *mandatory to
+  move on*, and creating the alert is a detour nobody asks for — and detours are not taken
+  at seven in the evening with a half-built ROV on the bench.
+
+  **Idempotent per check, and that is half the value.** Fail → adjust → fail again produces
+  one alert with the retry in its chatter, not two alerts. That is what turns the alert into
+  the history of attempts the check itself cannot keep. A *closed* alert is never reopened:
+  the same control failing months later is a new finding about a lesson already learnt.
+
+- **The manufacturing order shows the lessons of its model**, in a banner above the tabs and
+  a tab of its own. This is the cementerio risk pinned to a screen: a lessons register nobody
+  reads while building the equipment is a graveyard, and worse than usual, because this one
+  *will* get filled — writing the lesson is satisfying — and will not get read. The product
+  form is not enough; whoever builds a ROV is looking at the order, not at the product.
+
+  **Only closed alerts with a preventive action written.** Every alert of the model would be
+  noise: it would include the ones still open and the ones closed by fixing one unit without
+  changing anything. The ones that produced a preventive action are exactly the lessons.
+
+  Alerts born in a *repair* order are included, and that is the point rather than a side
+  effect: a work line with origin «design» or «own manufacturing» is a manufacturing pattern
+  found late, and this is the channel that carries it back (§ 6.3).
+
+- **`quality.alert.mc_eco_id`** — the alert now points at the engineering change it produced,
+  and `mrp.eco` lists the lessons behind it. Verified on production that no such link existed
+  in either direction, so «we changed the BoM because of this» was recorded nowhere. Chained
+  in order, alerts and ECOs are the maturity history of a design (§ 6.4).
+
+- **A button on the repair work line raises the quality alert**, pre-filled from `origen`,
+  the affected unit and the written root-cause analysis. It lives on the line you are already
+  looking at so that whoever repairs never has to learn that the Quality app exists. The line
+  keeps the alert in `mc_alerta_id`, so a second click opens the existing one instead of
+  inflating the per-model count that tells us when a design matured.
+
+- **The serial number is written into the order's alerts when the MO is finished.** `lot_ids`
+  is the scope of the damage — «we changed the o-ring» is the lesson, «these 7 units carry the
+  old one» is the action — and it came out empty in the experiment, because when the alert is
+  created the order has no serial yet (§ 6.1.5). Alerts whose scope was set by hand are left
+  alone.
+
+### Changed
+
+- **`mrp`, `quality_control`, `mrp_plm`, `quality_mrp` and `quality_repair` join the module's
+  dependencies**, so `mc_rov` no longer installs without Enterprise. A separate bridge module
+  (`mc_rov_quality`) was considered and rejected: too much infrastructure for four fields in a
+  single-company module. The CI runner's `addons_path` and the state of `odoo_test` were both
+  verified before this landed.
+
+  `quality_mrp` and `quality_repair` were not in the design and are needed: they define
+  `quality.alert.production_id` and `quality.alert.repair_id`, which is where the bridges
+  attach. Both are `auto_install`, so they were already there — declaring them fixes the load
+  order.
+
 ## [19.0.15.2.2] — 2026-08-17
 
 ### Changed

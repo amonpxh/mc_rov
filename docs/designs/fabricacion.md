@@ -42,7 +42,14 @@ Todo esto se comprobó contra `odoo_prod` el 2026-08-18:
 - `quality.alert` trae `product_tmpl_id`, `lot_ids`, `reason_id`, `action_corrective`,
   `action_preventive`, `check_id`, `production_id`, `stage_id`, `team_id` y chatter.
 - **`mrp.eco` no tiene ningún campo hacia `quality.alert`, ni al revés.**
-- **`product.template` y `stock.lot` no tienen ninguna relación con `quality.alert`.**
+- **`product.template` no tiene ninguna relación con `quality.alert`.** Trae `eco_ids` y los
+  conteos de chequeos, y nada de alertas.
+- **`stock.lot` sí tiene algo, y esta línea decía lo contrario hasta el 2026-08-20.**
+  `quality_control` ya le pone `quality_alert_qty` y `quality_check_qty`, computados y
+  restringidos a `quality.group_quality_user`. No es una relación —son conteos— pero existen
+  para sostener botones inteligentes, así que **el lado del lote probablemente ya está
+  construido de fábrica** y no hay que escribirlo. Queda por confirmar en pantalla, en el
+  ensayo de staging de `19.0.15.3.0`.
 - `repair.order` **sí** tiene `quality_alert_ids` y `quality_check_ids`, nativos.
 - Filas afectadas por la migración de pruebas de terreno: **cero**. Cuatro lotes ROV, ninguno
   con datos de prueba.
