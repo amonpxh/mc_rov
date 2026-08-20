@@ -54,8 +54,8 @@ class RevisionCommon(TransactionCase):
                 "largo": 100.0,
                 "alimentacion": "Generador",
                 "tension_salida": 220,
-                "esfuerzo_duracion": 1.5,
-                "esfuerzo_resultado": "ok",
+                "funcionamiento_continuo_duracion": 1.5,
+                "funcionamiento_continuo_resultado": "ok",
                 **vals,
             }
         )
@@ -375,7 +375,7 @@ class TestMcRovRevisionResultado(RevisionCommon):
     """Tests de `resultado`, que se deriva y no se decide."""
 
     def test_terreno_se_aprueba_sin_corrida_de_resistencia(self):
-        """El esfuerzo se exige solo donde es parte de la batería.
+        """El funcionamiento continuo se exige solo donde es parte de la batería.
 
         Hasta `19.0.16.0.0` se exigía siempre, así que **una revisión de terreno no podía
         quedar aprobada nunca**: se quedaba en blanco para siempre. Y en terreno no hay
@@ -385,7 +385,9 @@ class TestMcRovRevisionResultado(RevisionCommon):
         revision = self._revision(tipo="terreno")
         self._responder_todo(revision)
 
-        self.assertFalse(revision.esfuerzo_resultado, "en terreno no se corre el esfuerzo")
+        self.assertFalse(
+            revision.funcionamiento_continuo_resultado, "en terreno no se corre el esfuerzo"
+        )
         self.assertEqual(revision.resultado, "aprobado")
 
     def test_banco_sigue_exigiendo_la_corrida_de_resistencia(self):
@@ -393,7 +395,9 @@ class TestMcRovRevisionResultado(RevisionCommon):
         revision = self._revision(tipo="banco")
         self._responder_todo(revision)
 
-        self.assertFalse(revision.resultado, "sin esfuerzo no hay resultado posible")
+        self.assertFalse(
+            revision.resultado, "sin funcionamiento continuo no hay resultado posible"
+        )
 
     def test_sin_hallazgos_ni_fallas_el_revision_esta_aprobado(self):
         revision = self._revision()
@@ -441,9 +445,9 @@ class TestMcRovRevisionResultado(RevisionCommon):
 
         self.assertEqual(revision.resultado, "rechazado")
 
-    def test_un_esfuerzo_con_problemas_rechaza(self):
+    def test_un_funcionamiento_continuo_con_problemas_rechaza(self):
         revision = self._revision()
-        self._corrida_completa(revision, esfuerzo_resultado="con_problemas")
+        self._corrida_completa(revision, funcionamiento_continuo_resultado="con_problemas")
         self._responder_todo(revision)
 
         self.assertEqual(revision.resultado, "rechazado")
@@ -579,10 +583,10 @@ class TestMcRovRevisionConfirmacion(RevisionCommon):
         self.assertEqual(revision.umbilical, "equipo")
         self.assertEqual(revision.temperatura_interior, 48.0)
 
-    def test_sin_esfuerzo_no_deja_confirmar(self):
-        """La prueba de esfuerzo siempre se hace, incluso al comparar un cable.
+    def test_sin_funcionamiento_continuo_no_deja_confirmar(self):
+        """La corrida siempre se hace, incluso al comparar un cable.
 
-        Una revisión sin resultado de esfuerzo dice que no se probó nada.
+        Una revisión sin ese resultado dice que no se probó nada.
         """
         revision = self._revision()
         self._responder_todo(revision)
@@ -606,10 +610,10 @@ class TestMcRovRevisionConfirmacion(RevisionCommon):
         with self.assertRaises(UserError):
             revision.action_confirmar()
 
-    def test_un_esfuerzo_sin_duracion_no_deja_confirmar(self):
+    def test_un_funcionamiento_continuo_sin_duracion_no_deja_confirmar(self):
         """Cuánto aguantó es información distinta de si pasó."""
         revision = self._revision()
-        self._corrida_completa(revision, esfuerzo_duracion=0.0)
+        self._corrida_completa(revision, funcionamiento_continuo_duracion=0.0)
         self._responder_todo(revision)
 
         with self.assertRaises(UserError):
@@ -833,8 +837,8 @@ class TestMcRovRevisionAutomatica(RevisionCommon):
                 "umbilical": "equipo",
                 "largo": 100.0,
                 "alimentacion": "Generador",
-                "esfuerzo_duracion": 1.5,
-                "esfuerzo_resultado": "ok",
+                "funcionamiento_continuo_duracion": 1.5,
+                "funcionamiento_continuo_resultado": "ok",
                 **vals,
             }
         )

@@ -105,7 +105,7 @@
                         <page string="Pruebas" name="page_chequeos">
                             <!-- La corrida abre la pestaña porque es la CONDICIÓN de todo lo
                                  que viene abajo: con qué cable, con qué alimentación, y cuánto
-                                 aguantó el esfuerzo.
+                                 aguantó el funcionamiento continuo.
 
                                  Es una sola por revisión desde 19.0.15.0.0. Antes eran una
                                  lista, para poder comparar dos cables dentro de la misma
@@ -130,8 +130,10 @@
                                     <field name="umbilical" widget="radio"
                                            options="{&quot;horizontal&quot;: true}"
                                            readonly="estado == 'confirmado'"/>
-                                    <label for="largo"/>
-                                    <div class="o_row">
+                                    <!-- Solo para el cable del taller: el del equipo ya
+                                         declara su largo en la ficha. -->
+                                    <label for="largo" invisible="umbilical != 'prueba'"/>
+                                    <div class="o_row" invisible="umbilical != 'prueba'">
                                         <field name="largo" readonly="estado == 'confirmado'"/>
                                         <span>m</span>
                                     </div>
@@ -154,12 +156,12 @@
                                     </div>
                                 </group>
                                 <group string="Qué dio">
-                                    <field name="esfuerzo_resultado" widget="radio"
+                                    <field name="funcionamiento_continuo_resultado" widget="radio"
                                            options="{&quot;horizontal&quot;: true}"
                                            readonly="estado == 'confirmado'"/>
-                                    <label for="esfuerzo_duracion"/>
+                                    <label for="funcionamiento_continuo_duracion"/>
                                     <div class="o_row">
-                                        <field name="esfuerzo_duracion" readonly="estado == 'confirmado'"/>
+                                        <field name="funcionamiento_continuo_duracion" readonly="estado == 'confirmado'"/>
                                         <span>h</span>
                                     </div>
                                     <label for="subida"/>

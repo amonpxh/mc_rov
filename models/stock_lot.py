@@ -583,31 +583,24 @@ class StockLot(models.Model):
     mc_longitud = fields.Float(string="Longitud")
     mc_diametro = fields.Float(string="Diámetro")
     mc_peso_umbilical = fields.Float(string="Peso Umbilical")
-    mc_modelo_fuente = fields.Char(string="Modelo de fuente")
+    # Aquí vivieron trece columnas de prueba de banco hasta 19.0.17.0.0: modelo de fuente,
+    # fuente de energía, tensión, consumos, tiempo de prueba, prueba de leak, ancho de banda,
+    # subida, bajada y las dos temperaturas.
+    #
+    # Eran el resultado de un evento guardado como ficha técnica, con el mismo defecto que ya
+    # tenían las de terreno: **correr la prueba dos veces pisaba la anterior en silencio**. Y
+    # además estaban duplicadas — la revisión recogía las mismas mediciones desde 19.0.15.0.0,
+    # así que el mismo dato se tecleaba dos veces sin ninguna señal de que sobraba.
+    #
+    # Ahora viven en una revisión de tipo `banco`, que lleva historial.
 
-    mc_fuente_energia = fields.Selection(
-        [
-            ("UPS", "UPS"),
-            ("Generador", "Generador"),
-            ("Transformador", "Transformador"),
-        ],
-        string="Fuente de energía",
-    )
-
-    mc_tension_salida = fields.Integer(string="Tensión de salida")
-    mc_consumo_corriente = fields.Char(string="Consumo corriente")
-    mc_en_reposo = fields.Integer(string="En reposo")
-    mc_esfuerzo = fields.Integer(string="Esfuerzo")
-    mc_limitacion_pilot_gain = fields.Integer(string="Limitación pilot gain")
-    mc_ganancia_luz = fields.Integer(string="Ganancia Luz")
-    mc_tiempo_prueba_lab = fields.Float(string="Tiempo de Prueba")
-    mc_prueba_leak = fields.Boolean(string="Prueba de leak")
-    # Valor calculado externamente (ej. medición de red); se edita solo desde herramientas técnicas
-    mc_ancho_banda = fields.Char(string="Ancho de banda (puede variar ±5%)")
-    mc_subida = fields.Float(string="Subida")
-    mc_bajada = fields.Float(string="Bajada")
-    mc_temperatura_interior_lab = fields.Float(string="Temperatura interior")
-    mc_temperatura_exterior_lab = fields.Float(string="Temperatura exterior")
+    # --- Parámetros de trabajo ---
+    #
+    # Estos dos NO son medición: son configuración del equipo, o sea ficha. Por eso sobreviven
+    # al retiro y siguen aquí. La prueba de banco y la de terreno los miden; la revisión de
+    # reparación los muestra desde aquí para ver si cambiaron (§ 5.4).
+    mc_limitacion_pilot_gain = fields.Integer(string="Limitación pilot gain (%)")
+    mc_ganancia_luz = fields.Integer(string="Ganancia luz (%)")
 
     # Las columnas de prueba en terreno vivieron aquí hasta 19.0.16.0.0. Eran el resultado
     # de un evento —fecha, lugar, profundidad, condiciones— guardado como si fuera ficha, y

@@ -35,7 +35,7 @@ CAMPO_APLICA = {
 # exigía su resultado siempre, así que **una revisión de terreno no podía quedar aprobada
 # nunca** — se quedaba en blanco para siempre, que es el mismo modo de falla que
 # `19.0.15.1.0` vino a arreglar del otro lado. Ver `designs/fabricacion.md` § 4.7.
-TIPOS_CON_ESFUERZO = {"banco", "reparacion"}
+TIPOS_CON_FUNCIONAMIENTO_CONTINUO = {"banco", "reparacion"}
 
 # Qué campo de la prueba de banco alimenta qué campo de la ficha del equipo.
 SOFTWARE_A_FICHA = {
@@ -257,6 +257,9 @@ class McRovRevision(models.Model):
         help="Con qué cable se corrió esta batería. «Del taller» puede ser una comparación "
         "de control o el único cable disponible, si el equipo llegó sin el suyo.",
     )
+    # Solo cuando el cable es del taller. Si es el del equipo, su largo ya está en la ficha
+    # y pedirlo otra vez es teclear dos veces el mismo dato — el § 5.4 lo dice así:
+    # «umbilical usado, y largo solo si es del taller».
     largo = fields.Float(string="Largo del umbilical (m)")
 
     alimentacion = fields.Selection(
@@ -265,14 +268,16 @@ class McRovRevision(models.Model):
     )
     tension_salida = fields.Integer(string="Tensión de salida (V)")
 
-    # El resultado del esfuerzo es binario —el ROV corre 1 a 1½ horas en un bin con agua y
+    # El resultado es binario —el ROV corre 1 a 1½ horas en un bin con agua y
     # o aguanta o presenta problemas— pero cuánto aguantó es información distinta y
     # comparable. "Aguantó 90 minutos" y "falló a los 15" quedarían registrados igual sin la
     # duración. Si falló, es tiempo hasta la falla; si pasó, es la fuerza de la evidencia.
-    esfuerzo_duracion = fields.Float(string="Duración del esfuerzo (h)", digits=(5, 2))
-    esfuerzo_resultado = fields.Selection(
+    funcionamiento_continuo_duracion = fields.Float(
+        string="Duración del funcionamiento continuo (h)", digits=(5, 2)
+    )
+    funcionamiento_continuo_resultado = fields.Selection(
         [("ok", "Sin problemas"), ("con_problemas", "Presentó problemas")],
-        string="Resultado del esfuerzo",
+        string="Resultado del funcionamiento continuo",
     )
 
     # No hay campo "ancho de banda": ese es el nombre de la prueba, no una tercera medición.
@@ -503,7 +508,8 @@ class McRovRevision(models.Model):
         string="Resultado",
         compute="_compute_resultado",
         store=True,
-        help="Se deriva de los chequeos, el esfuerzo y los hallazgos. No es editable: un "
+        help="Se deriva de los chequeos, el funcionamiento continuo y los hallazgos. No es "
+        "editable: un "
         "override sería el texto libre de vuelta, en otra forma.",
     )
 
@@ -523,13 +529,14 @@ class McRovRevision(models.Model):
     @api.depends(
         "tipo",
         "chequeo_ids.resultado",
-        "esfuerzo_resultado",
+        "funcionamiento_continuo_resultado",
         "hallazgo_ids.severidad",
     )
     def _compute_resultado(self):
         """El orden de las condiciones es la regla de negocio.
 
-        Un chequeo fallado o un esfuerzo con problemas rechazan la revisión aunque no se
+        Un chequeo fallado o un funcionamiento continuo con problemas rechazan la revisión
+        aunque no se
         haya registrado ningún hallazgo: el equipo no pasó, y eso no se compensa con que
         nadie haya escrito por qué.
 
@@ -540,18 +547,19 @@ class McRovRevision(models.Model):
         """
         for revision in self:
             sin_responder = any(not linea.resultado for linea in revision.chequeo_ids)
-            # El esfuerzo se exige solo donde es parte de la batería. Exigirlo siempre
+            # Se exige solo donde es parte de la batería. Exigirlo siempre
             # dejaba a las revisiones de terreno sin resultado posible.
-            falta_esfuerzo = (
-                revision.tipo in TIPOS_CON_ESFUERZO and not revision.esfuerzo_resultado
+            falta_continuo = (
+                revision.tipo in TIPOS_CON_FUNCIONAMIENTO_CONTINUO
+                and not revision.funcionamiento_continuo_resultado
             )
-            if sin_responder or falta_esfuerzo:
+            if sin_responder or falta_continuo:
                 revision.resultado = False
                 continue
 
             rechaza = (
                 any(linea.resultado == "no_ok" for linea in revision.chequeo_ids)
-                or revision.esfuerzo_resultado == "con_problemas"
+                or revision.funcionamiento_continuo_resultado == "con_problemas"
                 or any(hallazgo.severidad == "impide_operar" for hallazgo in revision.hallazgo_ids)
             )
             if rechaza:
@@ -713,17 +721,22 @@ class McRovRevision(models.Model):
         if not revision.responsable_id:
             faltan.append("indicar el responsable")
 
-        # La prueba de esfuerzo siempre se hace, incluso cuando la revisión existe solo para
+        # La corrida siempre se hace, incluso cuando la revisión existe solo para
         # comparar un cable: el taller confirmó que nunca se cambia el umbilical solo para
         # medir ancho de banda.
-        if not revision.esfuerzo_resultado:
-            faltan.append("el resultado de la prueba de esfuerzo")
-        if revision.esfuerzo_resultado and not revision.esfuerzo_duracion:
-            faltan.append("cuánto duró el esfuerzo")
+        if not revision.funcionamiento_continuo_resultado:
+            faltan.append("el resultado del funcionamiento continuo")
+        if (
+            revision.funcionamiento_continuo_resultado
+            and not revision.funcionamiento_continuo_duracion
+        ):
+            faltan.append("cuánto duró el funcionamiento continuo")
         if not revision.alimentacion:
             faltan.append("la alimentación usada")
-        if not revision.largo:
-            faltan.append("el largo del umbilical con el que se probó")
+        # Solo se exige para el cable del taller: el del equipo ya declara su largo en la
+        # ficha, y exigirlo acá obligaría a copiarlo a mano en cada revisión.
+        if revision.umbilical == "prueba" and not revision.largo:
+            faltan.append("el largo del umbilical del taller con el que se probó")
         if bool(revision.subida) != bool(revision.bajada):
             faltan.append("la subida y la bajada — o ambas, o ninguna")
 
