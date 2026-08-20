@@ -101,16 +101,18 @@
                             <field name="fecha"/>
                             <field name="horas" class="text-start" sum="Total HH."/>
                             <field name="detalle"/>
-                            <!-- El puente por el que un patrón de fabricación descubierto
-                                 tarde vuelve a fabricación. Va acá, en la línea que ya
-                                 estás mirando, y no en la app de Calidad: quien repara
-                                 nunca tiene que enterarse de que Calidad existe. -->
-                            <field name="mc_alerta_id" optional="hide"/>
-                            <button name="action_crear_alerta_calidad"
-                                    type="object"
-                                    icon="fa-graduation-cap"
-                                    title="Levantar la lección de calidad de este trabajo"
-                                    groups="quality.group_quality_user"/>
+                            <!-- Solo de lectura: qué lección alimentó este trabajo.
+                                 **Aquí hubo un botón para levantarla, y se retiró en
+                                 19.0.15.5.0.** No por ruido sino porque hacía daño: la cola
+                                 de Lecciones pendientes muestra los trabajos con
+                                 `mc_alerta_id` vacío, así que un clic distraído del técnico
+                                 le escondía la evidencia al supervisor, en silencio.
+
+                                 Y sobraba igual: quien cierra una reparación no es quien
+                                 puede decir qué se cambia para todos los equipos del
+                                 modelo. Esa decisión se toma en la cola, con varios
+                                 trabajos a la vista. -->
+                            <field name="mc_alerta_id" optional="hide" readonly="1"/>
                         </list>
                     </field>
                 </page>

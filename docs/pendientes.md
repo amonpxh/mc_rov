@@ -253,13 +253,14 @@ queda anotado que ése es el costo.
 y se corrigen con el primer uso real. Está dicho así en § 5.3 para que nadie los confunda con
 algo que dijo el taller.
 
-## El puente reparación → lección, a rediseñar *(2026-08-20)*
+## El puente reparación → lección — rediseñado e implementado *(2026-08-20)*
+
+> **Implementado en `19.0.15.5.0`.** Lo que sigue es el razonamiento completo, que conviene
+> conservar: la parte más valiosa no es el mecanismo sino por qué el anterior no servía.
 
 **El § 6.1.3 del diseño pide «un botón que la pre-llene desde `origen`», y eso no sobrevive a la
 pregunta de Paulo: ¿cómo sabe el usuario qué hace ese botón, y por qué lo apretaría?** No tiene
-incentivo, y no necesariamente tiene la formación para escribir lo que viene después. El botón se
-implementó en `19.0.15.3.0` y **se queda donde está sin invertirle más** hasta que esto se
-resuelva.
+incentivo, y no necesariamente tiene la formación para escribir lo que viene después.
 
 ### Lo que sí está resuelto, y hay que no perderlo de vista
 
@@ -295,7 +296,36 @@ patrón.
 y no en Calidad porque **la evidencia que hay que leer para decidir es evidencia de reparación**, y
 porque mantiene la regla de que nadie tenga que enterarse de que Calidad existe.
 
-### En qué se convierte el botón
+### Lo que quedó construido
+
+La lista muestra los trabajos con origen hacia adentro que todavía no alimentaron una lección ni
+fueron descartados, **agrupada por modelo**. El conteo de cada grupo es la evidencia del patrón, y
+no hay umbral: cuatro trabajos sobre el mismo componente del mismo modelo saltan a la vista, y uno
+solo también — decidir dónde está la línea es un juicio, y por eso no se codificó un número.
+
+Se seleccionan los que son el mismo problema y **un botón de cabecera escribe una sola lección con
+todos**: todas las unidades en el alcance del daño, y los «por qué pasó» uno tras otro en la
+descripción, cada uno con su equipo delante. Si alguno ya alimentaba una lección, los demás se le
+suman en vez de crear otra.
+
+**Descartar es escribir por qué**, en una columna editable de la misma lista. No hay asistente ni
+casilla: el motivo obligatorio es la fricción que evita el descarte distraído, igual que en la baja
+de un equipo, y deja un dato que sirve después. Hay un filtro para volver a mirar lo descartado,
+porque un juicio se revisa.
+
+**No se mezclan modelos en una lección** — se rechaza con un error que los nombra. Y la causa raíz
+solo se propone si los trabajos coinciden en el origen: elegir uno de dos sería inventar el dato.
+
+### El botón se retiró de la línea de trabajo
+
+Quedaba en la pantalla de la persona que ya habíamos concluido que no lo iba a apretar. Y hacía
+daño, no solo ruido: **la cola filtra por `mc_alerta_id` vacío, así que un clic distraído del
+técnico le escondía la evidencia al supervisor**, en silencio y sin que nadie pudiera notarlo.
+Condicionarlo a ciertos orígenes habría arreglado el ruido y no eso.
+
+El campo se queda como columna de solo lectura: qué lección alimentó ese trabajo.
+
+### En qué se convierte la acción
 
 De mecanismo de descubrimiento a acción sobre un patrón ya detectado. Cambia de **sujeto** (un
 patrón, no una línea), de **dueño** (quien tiene el criterio, no el técnico), de **pre-llenado**

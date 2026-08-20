@@ -1,3 +1,4 @@
+from odoo.exceptions import UserError
 from odoo.tests.common import TransactionCase
 from odoo.tests import tagged
 
@@ -305,7 +306,12 @@ class TestPuenteAlEco(CalidadCommon):
 
 
 class TestAlertaDesdeLineaDeTrabajo(CalidadCommon):
-    """El botón de la línea de reparación (§ 6.1.3)."""
+    """La lección escrita desde un solo trabajo.
+
+    Es el caso de seleccionar una fila sola en la cola. Hasta `19.0.15.5.0` era además un
+    botón en la orden de reparación, y se retiró: la cola filtra por `mc_alerta_id` vacío,
+    así que un clic distraído del técnico le escondía la evidencia al supervisor.
+    """
 
     def setUp(self):
         super().setUp()
@@ -361,3 +367,103 @@ class TestAlertaDesdeLineaDeTrabajo(CalidadCommon):
         self.linea.action_crear_alerta_calidad()
         esperado = self.env.ref("mc_rov.quality_reason_diseno", raise_if_not_found=False)
         self.assertEqual(self.linea.mc_alerta_id.reason_id, esperado or self.env["quality.reason"])
+
+
+class TestLeccionDesdeVariosTrabajos(CalidadCommon):
+    """La cola de lecciones pendientes: varios trabajos, una sola lección.
+
+    Una línea suelta es una anécdota; lo que la vuelve lección es la repetición. Por eso la
+    acción opera sobre lo seleccionado y no sobre una fila.
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.otro_equipo = self.env["stock.lot"].create(
+            {"name": "SN-CALIDAD-9", "product_id": self.producto.id}
+        )
+        self.linea_a = self._trabajo(self.equipo, "El conector era IP67 y trabaja sumergido.")
+        self.linea_b = self._trabajo(self.otro_equipo, "Mismo conector, mismo síntoma.")
+
+    def _trabajo(self, equipo, analisis, **vals):
+        """Un trabajo cerrado con origen hacia adentro, en su propia orden."""
+        orden = self.env["repair.order"].create(
+            {"product_id": self.producto.id, "lot_id": equipo.id}
+        )
+        return self.env["mc.rov.linea.falla"].create(
+            {
+                "repair_id": orden.id,
+                "componente_id": self.env.ref("mc_rov.comp_motor").id,
+                "accion_id": self.env.ref("mc_rov.accion_reparacion").id,
+                "origen": "diseno",
+                "analisis_causa": analisis,
+                **vals,
+            }
+        )
+
+    def test_el_modelo_se_deriva_de_la_orden(self):
+        """La cola se agrupa por esta columna, así que tiene que llenarse sola."""
+        self.assertEqual(self.linea_a.mc_product_tmpl_id, self.plantilla)
+
+    def test_varios_trabajos_dan_una_sola_leccion(self):
+        (self.linea_a | self.linea_b).action_crear_alerta_calidad()
+
+        self.assertEqual(self.linea_a.mc_alerta_id, self.linea_b.mc_alerta_id)
+        self.assertEqual(
+            self.env["quality.alert"].search_count([("product_tmpl_id", "=", self.plantilla.id)]),
+            1,
+        )
+
+    def test_la_leccion_recoge_todas_las_unidades(self):
+        """El alcance del daño: «estas dos lo traen», no solo «cambiamos el o-ring»."""
+        (self.linea_a | self.linea_b).action_crear_alerta_calidad()
+
+        self.assertEqual(self.linea_a.mc_alerta_id.lot_ids, self.equipo | self.otro_equipo)
+
+    def test_la_descripcion_nombra_a_cada_equipo_con_su_analisis(self):
+        """Con varias unidades hace falta saber cuál dijo qué."""
+        (self.linea_a | self.linea_b).action_crear_alerta_calidad()
+        descripcion = self.linea_a.mc_alerta_id.description
+
+        self.assertIn("SN-CALIDAD-1", descripcion)
+        self.assertIn("SN-CALIDAD-9", descripcion)
+        self.assertIn("IP67", descripcion)
+        self.assertIn("Mismo conector", descripcion)
+
+    def test_no_apunta_a_una_orden_cuando_son_varias(self):
+        """Con dos órdenes no hay una sola a la que apuntar; la descripción las nombra."""
+        (self.linea_a | self.linea_b).action_crear_alerta_calidad()
+        self.assertFalse(self.linea_a.mc_alerta_id.repair_id)
+
+    def test_se_suma_a_la_leccion_que_ya_existe(self):
+        """Duplicar inflaría el conteo por modelo, que es lo que dice si un diseño maduró."""
+        self.linea_a.action_crear_alerta_calidad()
+        alerta = self.linea_a.mc_alerta_id
+
+        (self.linea_a | self.linea_b).action_crear_alerta_calidad()
+
+        self.assertEqual(self.linea_b.mc_alerta_id, alerta)
+        self.assertEqual(alerta.lot_ids, self.equipo | self.otro_equipo)
+
+    def test_no_mezcla_modelos_en_una_leccion(self):
+        """Una lección es de un modelo: mezclar dos rompe el campo que la define."""
+        otro_producto = self.env["product.product"].create(
+            {"name": "ROV MC-100 Test", "categ_id": self.categoria.id}
+        )
+        orden = self.env["repair.order"].create({"product_id": otro_producto.id})
+        ajena = self.env["mc.rov.linea.falla"].create(
+            {
+                "repair_id": orden.id,
+                "componente_id": self.env.ref("mc_rov.comp_motor").id,
+                "accion_id": self.env.ref("mc_rov.accion_reparacion").id,
+                "origen": "diseno",
+            }
+        )
+
+        with self.assertRaises(UserError):
+            (self.linea_a | ajena).action_crear_alerta_calidad()
+
+    def test_con_origenes_distintos_no_propone_causa_raiz(self):
+        """Elegir uno de los dos sería inventar el dato."""
+        self.linea_b.origen = "falla_fabricacion"
+        (self.linea_a | self.linea_b).action_crear_alerta_calidad()
+        self.assertFalse(self.linea_a.mc_alerta_id.reason_id)

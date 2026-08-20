@@ -1,6 +1,6 @@
 {
     "name": "Marine Connection - ROV",
-    "version": "19.0.15.4.0",
+    "version": "19.0.15.5.0",
     "category": "Inventory",
     "summary": "Gestión de equipos ROV y órdenes de reparación",
     "author": "Marine Connection",
@@ -46,6 +46,7 @@
         "views/mc_rov_baja_wizard_views.xml",
         # Los puentes a Calidad. Después de repair_order_views.xml porque el botón de
         # la línea de trabajo vive dentro de esa vista.
+        "views/mc_rov_leccion_views.xml",
         "views/quality_alert_views.xml",
         "views/mrp_production_views.xml",
         "views/mrp_eco_views.xml",

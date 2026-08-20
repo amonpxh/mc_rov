@@ -207,6 +207,31 @@ class McRovLineaFalla(models.Model):
     horas = fields.Float(string="HH.", digits=(5, 1))
     detalle = fields.Text(string="Detalle")
 
+    # Almacenado y no derivado al vuelo porque **la cola de lecciones se agrupa por
+    # modelo**, y Odoo solo agrupa por columnas que existen en la tabla. No es una de las
+    # copias manuales que advierte el CLAUDE.md: es un `related` almacenado, y de mantenerlo
+    # al día se encarga el ORM.
+    mc_product_tmpl_id = fields.Many2one(
+        "product.template",
+        string="Modelo",
+        related="repair_id.product_id.product_tmpl_id",
+        store=True,
+        index=True,
+    )
+
+    # El descarte es lo ÚNICO que se guarda de todo el mecanismo de patrones. El patrón se
+    # calcula —existe porque existen las líneas— pero decidir que algo NO es una lección es
+    # un acto humano y no se deriva de nada. Mismo criterio que el booleano de "mantención
+    # vencida" que el CLAUDE.md prohíbe almacenar: lo derivado no se guarda, lo decidido sí.
+    #
+    # Es el motivo y no una casilla, por la razón del asistente de baja: tener que escribir
+    # por qué evita el descarte distraído, y encima deja un dato que sirve después.
+    mc_descarte_motivo = fields.Char(
+        string="Descartado porque",
+        help="Por qué esto no es una lección del modelo. El trabajo sale de la lista de "
+        "lecciones pendientes y el texto queda como registro.",
+    )
+
     # Guardar la alerta y no solo crearla: sin este campo el botón duplica en cada clic, y
     # además la línea no muestra que la lección ya se levantó. Es la traza que cierra el
     # circuito reparación → fabricación, del mismo modo que `hallazgo_origen_id` cierra el
@@ -236,7 +261,7 @@ class McRovLineaFalla(models.Model):
             linea.display_name = f"{componente} · {accion}"
 
     def action_crear_alerta_calidad(self):
-        """Levanta la alerta de calidad de este trabajo, pre-llenada desde el origen.
+        """Escribe la lección del modelo a partir de los trabajos seleccionados.
 
         Es el canal por el que un patrón de fabricación descubierto tarde vuelve a
         fabricación (§ 6.3 del diseño). Reparación ve lo que fabricación no puede ver
@@ -244,22 +269,41 @@ class McRovLineaFalla(models.Model):
         «manufactura propia» es una lección de manufactura ya escrita, que hasta ahora no
         tenía destinatario.
 
-        El botón está acá y no en la app de Calidad por la regla que ordena toda la guía
-        del usuario: **el siguiente paso tiene que ser un botón en el registro que ya
-        estás mirando.** Quien repara nunca tiene que enterarse de que Calidad existe.
-        """
-        self.ensure_one()
-        if not self.repair_id:
-            raise UserError("Esta línea no cuelga de ninguna orden de reparación.")
+        **Opera sobre varias líneas a la vez, y ésa es la corrección de fondo.** Una línea
+        suelta es una anécdota; lo que la vuelve lección es la repetición. Leídos de
+        corrido, tres «por qué pasó» del mismo componente dicen algo que ninguno dice
+        solo, y las tres unidades quedan juntas en el alcance del daño — que es la mitad
+        del valor: no «cambiamos el o-ring» sino «estas tres llevan el viejo».
 
-        # Idempotente: el segundo clic abre la alerta que ya existe en vez de duplicarla.
-        # Sin esto, una línea larga de trabajo termina con tres alertas del mismo problema
-        # y el conteo por modelo —que es lo que dice cuándo un diseño maduró (§ 6.4)—
-        # empieza a mentir hacia arriba.
-        alerta = self.mc_alerta_id.exists()
-        if not alerta:
+        Sigue funcionando con una sola línea, que es el botón de la orden de reparación.
+        """
+        if not self:
+            raise UserError("No hay ningún trabajo seleccionado.")
+
+        if self.filtered(lambda linea: not linea.repair_id):
+            raise UserError("Hay trabajos que no cuelgan de ninguna orden de reparación.")
+
+        # Una lección es de UN modelo. Mezclar dos en la misma alerta rompe justamente el
+        # campo que la vuelve una lección y no un incidente suelto.
+        modelos = self.mc_product_tmpl_id
+        if len(modelos) > 1:
+            nombres = ", ".join(sorted(modelos.mapped("display_name")))
+            raise UserError(
+                "Estos trabajos son de modelos distintos, y una lección es de un solo "
+                "modelo:\n\n"
+                f"{nombres}\n\n"
+                "Selecciona los de un modelo a la vez."
+            )
+
+        # Idempotente: si alguna de las líneas ya alimentó una lección, se reutiliza ésa y
+        # las demás se le suman. Sin esto, el conteo de alertas por modelo —que es lo que
+        # dice cuándo un diseño maduró (§ 6.4)— empieza a mentir hacia arriba.
+        alerta = self.mc_alerta_id.exists()[:1]
+        if alerta:
+            alerta.write({"lot_ids": [(4, lot.id) for lot in self.repair_id.lot_id]})
+        else:
             alerta = self.env["quality.alert"].create(self._mc_valores_de_alerta())
-            self.mc_alerta_id = alerta
+        self.mc_alerta_id = alerta
 
         return {
             "name": "Alerta de calidad",
@@ -270,7 +314,7 @@ class McRovLineaFalla(models.Model):
         }
 
     def _mc_valores_de_alerta(self):
-        """Lo que la línea puede afirmar sobre el problema, puesto donde la alerta lo espera.
+        """Lo que los trabajos pueden afirmar del problema, donde la alerta lo espera.
 
         `title` queda vacío, igual que en la alerta que nace de un chequeo fallido: la
         alerta tiene que verse a medio llenar para que alguien la termine.
@@ -278,42 +322,52 @@ class McRovLineaFalla(models.Model):
         La causa raíz se resuelve por XML ID y no por nombre. **Ése es el contrato con el
         bloque D**, que alinea el catálogo `quality.reason` con `ORIGENES` creando
         `mc_rov.quality_reason_<origen>`. Mientras D no exista, esto devuelve vacío y la
-        persona elige la razón a mano; cuando exista, el botón empieza a llenarla sin
-        tocar una línea de este archivo.
+        persona elige la razón a mano; cuando exista, empieza a llenarla sin tocar una
+        línea de este archivo.
         """
-        self.ensure_one()
-        equipo = self.repair_id.product_id
-        razon = (
-            self.env.ref(f"mc_rov.quality_reason_{self.origen}", raise_if_not_found=False)
-            if self.origen
-            else None
-        )
+        # Solo se propone la causa raíz si los trabajos coinciden en el origen. Si no,
+        # decide la persona: elegir uno acá sería inventar el dato.
+        origenes = set(self.mapped("origen")) - {False}
+        razon = None
+        if len(origenes) == 1:
+            razon = self.env.ref(
+                f"mc_rov.quality_reason_{origenes.pop()}", raise_if_not_found=False
+            )
+
+        ordenes = self.repair_id
         return {
-            "product_id": equipo.id,
-            "product_tmpl_id": equipo.product_tmpl_id.id,
-            # El equipo reparado es la unidad afectada conocida. Si el problema resulta
-            # ser del modelo, quien escriba la lección agrega las demás.
-            "lot_ids": self.repair_id.lot_id.ids,
-            "repair_id": self.repair_id.id,
+            "product_id": ordenes[:1].product_id.id,
+            "product_tmpl_id": self.mc_product_tmpl_id.id,
+            # Todas las unidades que traían el problema. Es el alcance del daño, y con
+            # varias líneas se llena solo — que es lo que no ocurría de a una.
+            "lot_ids": ordenes.lot_id.ids,
+            # Solo si todos los trabajos vienen de la misma orden. Con varias no hay una
+            # sola a la que apuntar, y la descripción las nombra igual.
+            "repair_id": ordenes.id if len(ordenes) == 1 else False,
             "reason_id": razon.id if razon else False,
             "description": self._mc_descripcion_de_alerta(),
         }
 
     def _mc_descripcion_de_alerta(self):
-        """El razonamiento de la línea, copiado a la alerta en vez de referenciado.
+        """El razonamiento de cada trabajo, copiado a la alerta en vez de referenciado.
 
         `analisis_causa` responde «por qué pasó», que es exactamente lo que la lección
-        necesita y lo que se pierde si la alerta solo enlaza a la orden: seis meses
-        después nadie abre la reparación para leerlo.
+        necesita y lo que se pierde si la alerta solo enlaza a las órdenes: seis meses
+        después nadie abre cuatro reparaciones para leerlas.
+
+        Cada bloque nombra su equipo. Con varias unidades hace falta saber cuál dijo qué
+        —dos análisis del mismo componente pueden estar describiendo cosas distintas— y
+        distinguirlo es justamente el juicio que se le pide a quien escriba la lección.
         """
-        self.ensure_one()
         etiquetas = dict(self._fields["origen"].selection)
-        lineas = [
-            f"Origen: {etiquetas.get(self.origen, 'sin determinar')}",
-            f"Trabajo: {self.display_name}",
-        ]
-        if self.analisis_causa:
-            lineas.append(self.analisis_causa)
-        if self.detalle:
-            lineas.append(self.detalle)
-        return "".join(f"<p>{escape(linea)}</p>" for linea in lineas)
+        parrafos = []
+        for linea in self:
+            equipo = linea.repair_id.lot_id.name or linea.repair_id.display_name
+            parrafos.append(
+                f"{equipo} — {etiquetas.get(linea.origen, 'origen sin determinar')}: "
+                f"{linea.display_name}"
+            )
+            for texto in (linea.analisis_causa, linea.detalle):
+                if texto:
+                    parrafos.append(texto)
+        return "".join(f"<p>{escape(parrafo)}</p>" for parrafo in parrafos)
