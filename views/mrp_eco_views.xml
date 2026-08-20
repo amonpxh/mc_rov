@@ -7,7 +7,7 @@
     <record id="view_mrp_eco_form_mc_rov" model="ir.ui.view">
         <field name="name">mrp.eco.form.mc.rov</field>
         <field name="model">mrp.eco</field>
-        <field name="inherit_id" ref="mrp_plm.mrp_eco_form_view"/>
+        <field name="inherit_id" ref="mrp_plm.mrp_eco_view_form"/>
         <field name="arch" type="xml">
 
             <div name="button_box" position="inside">
