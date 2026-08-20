@@ -143,6 +143,15 @@
                                         <field name="tension_salida" readonly="estado == 'confirmado'"/>
                                         <span>V</span>
                                     </div>
+                                    <field name="modelo_fuente" readonly="estado == 'confirmado'"/>
+                                    <!-- Cuánto duró la prueba entera, que no es la corrida de
+                                         funcionamiento continuo de al lado: una prueba en
+                                         terreno de tres horas puede no llevar corrida. -->
+                                    <label for="duracion"/>
+                                    <div class="o_row">
+                                        <field name="duracion" readonly="estado == 'confirmado'"/>
+                                        <span>h</span>
+                                    </div>
                                 </group>
                                 <group string="Qué dio">
                                     <field name="esfuerzo_resultado" widget="radio"
@@ -176,6 +185,79 @@
                                 </group>
                             </group>
 
+                            <group>
+                                <!-- La medición al lado del chequeo, no en su lugar: quien
+                                     dice si la estanqueidad aprobó es «Estanqueidad bajo
+                                     presión», que responde OK / No OK / No aplica. Estos dos
+                                     números lo acompañan y no opinan — sin umbral, porque los
+                                     técnicos saben a cuánto va cada equipo (§ 5.6).
+
+                                     En terreno no aplica: ahí la verificación de presión es la
+                                     profundidad alcanzada, la misma pregunta por otro medio. -->
+                                <group string="Estanqueidad" invisible="tipo == 'terreno'">
+                                    <label for="presion_bar"/>
+                                    <div class="o_row">
+                                        <field name="presion_bar" readonly="estado == 'confirmado'"/>
+                                        <span>bar</span>
+                                    </div>
+                                    <label for="presion_tiempo"/>
+                                    <div class="o_row">
+                                        <field name="presion_tiempo" readonly="estado == 'confirmado'"/>
+                                        <span>h</span>
+                                    </div>
+                                </group>
+                                <!-- Las tres juntas porque se leen juntas: una fuga alta con
+                                     consumos normales dice algo distinto de una fuga alta con
+                                     el consumo disparado. En terreno no hay instrumento. -->
+                                <group string="Eléctrico" invisible="tipo == 'terreno'">
+                                    <label for="fuga_corriente"/>
+                                    <div class="o_row">
+                                        <field name="fuga_corriente" readonly="estado == 'confirmado'"/>
+                                        <span>A</span>
+                                    </div>
+                                    <label for="consumo_reposo"/>
+                                    <div class="o_row">
+                                        <field name="consumo_reposo" readonly="estado == 'confirmado'"/>
+                                        <span>kWh</span>
+                                    </div>
+                                    <label for="consumo_carga"/>
+                                    <div class="o_row">
+                                        <field name="consumo_carga" readonly="estado == 'confirmado'"/>
+                                        <span>kWh</span>
+                                    </div>
+                                </group>
+                            </group>
+
+                            <group>
+                                <!-- Se miden donde se pueden ajustar. En reparación no se
+                                     vuelven a medir: se muestran desde la ficha para ver si
+                                     cambiaron, igual que las versiones de software. -->
+                                <group string="Parámetros de trabajo" invisible="tipo == 'reparacion'">
+                                    <field name="limitacion_pilot_gain" readonly="estado == 'confirmado'"/>
+                                    <field name="ganancia_luz" readonly="estado == 'confirmado'"/>
+                                </group>
+                                <group string="Parámetros según la ficha" invisible="tipo != 'reparacion'">
+                                    <field name="limitacion_pilot_gain_ficha"/>
+                                    <field name="ganancia_luz_ficha"/>
+                                </group>
+                            </group>
+
+                            <!-- En la prueba de banco el software va al revés que en
+                                 reparación: no se compara contra la ficha, se anota lo que se
+                                 instaló y la ficha lo recibe al confirmar. El equipo acaba de
+                                 nacer y no hay contra qué comparar. -->
+                            <group string="Software instalado" invisible="tipo != 'banco'">
+                                <group>
+                                    <field name="software_instalado_id" readonly="estado == 'confirmado'"/>
+                                    <field name="version_software_instalada" readonly="estado == 'confirmado'"/>
+                                    <field name="version_ardusub_instalada" readonly="estado == 'confirmado'"/>
+                                </group>
+                                <group>
+                                    <field name="controlador_instalado_id" readonly="estado == 'confirmado'"/>
+                                    <field name="version_controlador_instalada" readonly="estado == 'confirmado'"/>
+                                </group>
+                            </group>
+
                             <!-- Las condiciones del terreno van junto a las de la prueba
                                  por lo mismo: describen bajo qué se probó, no qué resultó.
                                  Solo aparecen cuando la revisión es de terreno. -->
@@ -188,6 +270,12 @@
                                     <field name="velocidad_corriente" readonly="estado == 'confirmado'"/>
                                 </group>
                             </group>
+
+                            <!-- «Condiciones y notas» y no «Observaciones», a propósito: esa
+                                 palabra invita a escribir aquí los hallazgos, y eso mataría el
+                                 catálogo que costó dos versiones construir (§ 4.7). -->
+                            <field name="condiciones_notas" readonly="estado == 'confirmado'"
+                                   placeholder="La marea, que el cliente pidió cortar antes, que el generador andaba justo. Los hallazgos van en su pestaña."/>
 
                             <!-- Un bloque por sección, como la hoja de papel: "Prueba de
                                  video" con cámara y tilt, "Prueba de navegación" con las

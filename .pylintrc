@@ -3,6 +3,16 @@
 # para tolerar docstrings y strings literales que black no puede partir.
 max-line-length=120
 
+# El default son 1000 líneas por módulo. mc_rov_revision.py lo pasó en 19.0.16.2.0 con
+# 1045 — de las cuales **507 son comentarios, docstrings y líneas en blanco**, y solo unas
+# 540 código. El largo lo produce la convención del CLAUDE.md, que pide explicar el porqué
+# en el código, no un modelo inflado.
+#
+# La alternativa era sacar los tres modelos de línea a su propio archivo, y separa cosas que
+# se leen juntas: la revisión y sus líneas son una unidad. Se sube el techo con holgura, no
+# se quita — un archivo que llegue a 1400 sí necesita partirse.
+max-module-lines=1400
+
 [MESSAGES CONTROL]
 disable=
     # Odoo no está instalado fuera del runtime — los imports son válidos en producción

@@ -302,6 +302,75 @@ class TestMcRovRevision(RevisionCommon):
 
 
 @tagged("post_install", "-at_install")
+class TestSoftwareALaFicha(RevisionCommon):
+    """La prueba de banco escribe en la ficha las versiones que se instalaron.
+
+    En reparación el software se compara contra la ficha; acá es al revés, porque el equipo
+    acaba de nacer y no hay contra qué comparar (§ 5.4).
+    """
+
+    def _banco(self, version="4.1.0", **vals):
+        revision = self._revision(tipo="banco", version_ardusub_instalada=version, **vals)
+        revision.estado = "confirmado"
+        return revision
+
+    def test_confirmar_llena_la_ficha_vacia(self):
+        """Sin esto la ficha queda vacía y la comparación de reparación no funciona nunca."""
+        self.assertFalse(self.lot.mc_version_ardusub)
+
+        self._banco()._volcar_software_a_la_ficha()
+
+        self.assertEqual(self.lot.mc_version_ardusub, "4.1.0")
+
+    def test_sobrescribe_un_valor_anterior(self):
+        """Dejar la versión vieja haría que cada reparación registrara una diferencia falsa."""
+        self.lot.mc_version_ardusub = "4.0.2"
+
+        self._banco(version="4.1.0")._volcar_software_a_la_ficha()
+
+        self.assertEqual(self.lot.mc_version_ardusub, "4.1.0")
+
+    def test_una_prueba_antigua_no_pisa_la_ficha_de_hoy(self):
+        """Confirmar no ocurre en orden cronológico, y ésa es la trampa.
+
+        Corregirle una errata a una prueba de hace dos años la vuelve a confirmar, y sin esta
+        guarda escribiría en la ficha valores de hace dos años. Manda la más reciente, no la
+        que se está confirmando — mismo criterio que `ultima_mantencion`.
+        """
+        antigua = self._banco(version="4.0.2", fecha="2024-01-15")
+        self._banco(version="4.1.0", fecha="2026-08-20")._volcar_software_a_la_ficha()
+
+        antigua._volcar_software_a_la_ficha()
+
+        self.assertEqual(self.lot.mc_version_ardusub, "4.1.0")
+
+    def test_una_reparacion_no_escribe_la_ficha(self):
+        """Ahí el software se compara, no se determina."""
+        self.lot.mc_version_ardusub = "4.0.2"
+        revision = self._revision(tipo="reparacion", version_ardusub_instalada="9.9.9")
+        revision.estado = "confirmado"
+
+        revision._volcar_software_a_la_ficha()
+
+        self.assertEqual(self.lot.mc_version_ardusub, "4.0.2")
+
+    def test_lo_que_no_se_anoto_no_borra_la_ficha(self):
+        """Un campo vacío en la prueba no es una afirmación sobre el equipo."""
+        self.lot.mc_version_software = "ROVControl 2.3"
+
+        self._banco()._volcar_software_a_la_ficha()
+
+        self.assertEqual(self.lot.mc_version_software, "ROVControl 2.3")
+
+    def test_el_cambio_queda_en_el_chatter_del_equipo(self):
+        """Escribir en la ficha de otro registro sin dejar rastro es lo que el módulo evita."""
+        mensajes_antes = len(self.lot.message_ids)
+
+        self._banco()._volcar_software_a_la_ficha()
+
+        self.assertGreater(len(self.lot.message_ids), mensajes_antes)
+
+
 class TestMcRovRevisionResultado(RevisionCommon):
     """Tests de `resultado`, que se deriva y no se decide."""
 
