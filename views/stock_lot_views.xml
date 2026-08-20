@@ -308,6 +308,31 @@
                          Esta es la serie de tiempo del equipo: dos revisiones separadas por
                          un año son lo que deja ver que el ancho de banda cayó, o cuántas
                          horas voló entre visitas. -->
+                    <!-- Las lecciones que tocaron a esta unidad. Va como pestaña por la
+                         misma razón que la de Revisiones y que está escrita arriba: este
+                         formulario no declara un oe_button_box con nombre estable, y
+                         adivinar internos de una vista heredada ya costó dos defectos.
+
+                         Es consulta de referencia, no el lugar principal: la lista que
+                         importa es la de la orden de fabricación, porque es la única que
+                         aparece sin que nadie la busque (fabricacion.md § 6.1.1). Ésta
+                         contesta la otra pregunta — «¿a este equipo qué le pasó que fuera
+                         del modelo y no suyo?». -->
+                    <page string="Alertas de calidad"
+                          name="page_alertas_calidad"
+                          groups="quality.group_quality_user"
+                          invisible="not mc_alerta_ids">
+                        <field name="mc_alerta_ids" readonly="1" nolabel="1">
+                            <list>
+                                <field name="name" string="Referencia"/>
+                                <field name="title"/>
+                                <field name="reason_id"/>
+                                <field name="stage_id"/>
+                                <field name="mc_eco_id" optional="show"/>
+                            </list>
+                        </field>
+                    </page>
+
                     <page string="Revisiones" name="page_revisiones" invisible="not es_un_rov">
                         <!-- El botón que reemplaza al menú de revisiones de
                              fabricación: manufactura las crea desde aquí, que es donde ya

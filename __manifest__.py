@@ -1,6 +1,6 @@
 {
     "name": "Marine Connection - ROV",
-    "version": "19.0.15.3.0",
+    "version": "19.0.15.4.0",
     "category": "Inventory",
     "summary": "Gestión de equipos ROV y órdenes de reparación",
     "author": "Marine Connection",

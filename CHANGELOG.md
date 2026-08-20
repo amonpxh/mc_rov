@@ -4,6 +4,34 @@ All notable changes to the `mc_rov` Odoo module are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this module adheres to [semantic versioning](https://semver.org/) within the constraints of Odoo's version scheme: `19.0.X.Y.Z` where `19.0` is the Odoo major, `X` is breaking-change/migration, `Y` is feature, `Z` is bugfix.
 
+## [19.0.15.4.0] — 2026-08-20
+
+Corrections found by walking `19.0.15.3.0` on screen in production.
+
+### Added
+
+- **The serial number lists the quality alerts that name it.** `quality_control` puts
+  `quality_alert_qty` on `stock.lot` and no view uses it — verified on screen against
+  `odoo_prod`, where the form shows *Por reparar / Hecho*, *Ubicación* and *Trazabilidad* and
+  nothing from Quality. So the lot side of § 6.1.1 had to be written after all; the design said
+  it was probably native and it is not.
+
+  **A tab, not a smart button**, for the reason already written in `views/stock_lot_views.xml`:
+  this form declares no `oe_button_box` with a stable name, and guessing at the internals of an
+  inherited view is what caused the defects in `19.0.5.0.1` and `19.0.5.1.0`.
+
+  It does **not** filter by stage, unlike the model's tab. The model answers «what did we change
+  for everyone», so only closed lessons belong there. This one answers «what happened to this
+  unit», and an open alert naming it is exactly what you want to know before delivering it.
+
+### Changed
+
+- **The repair order tab goes back to «Trabajos realizados» from «Reparación».** The rename in
+  `19.0.14.0.0` was meant to make the tab bar read as the process, moment by moment — but a tab
+  called *Reparación* inside the Repair module distinguishes nothing. Same symptom that already
+  sent *Diagnóstico* back to *Revisiones*: the label fought with what was inside. Label only;
+  the internal name was `trabajos_realizados` all along.
+
 ## [19.0.15.3.0] — 2026-08-20
 
 Block B of the fabrication design: the bridges to `quality.alert`. See

@@ -227,13 +227,14 @@ queda anotado que ése es el costo.
 
 ### Lo que queda de B después de `19.0.15.3.0`
 
-- **Confirmar en pantalla el botón inteligente del número de serie.** `stock.lot` ya trae
-  `quality_alert_qty` de `quality_control`, así que el lado del lote del § 6.1.1 probablemente ya
-  existe de fábrica. Si no lo muestra, son diez líneas.
-- **Decidir quién ve el botón de la línea de trabajo.** Está detrás de
-  `quality.group_quality_user`, que es honesto —sin ese grupo la creación de la alerta fallaría
-  igual por permisos— pero significa que **un técnico de reparación no lo ve hasta que se le dé
-  el grupo**. Es configuración, y va con el bloque D.
+- [x] ~~**Confirmar en pantalla el botón inteligente del número de serie.**~~ — **hecho el
+  2026-08-20: no existe.** El lote trae los conteos de `quality_control` y ninguna vista los usa.
+  Se escribió como pestaña en `19.0.15.4.0`.
+- [x] ~~**Decidir quién ve el botón de la línea de trabajo.**~~ — **la pregunta no existe:** hay
+  **un solo usuario activo** en `odoo_prod` y ya tiene `quality.group_quality_user`. Concuerda
+  con el `CLAUDE.md`: los técnicos no tienen login propio porque las licencias se pagan por
+  usuario, y por eso los responsables son `hr.employee`. Vuelve el día que alguien más tenga
+  login.
 - ~~**El ruido posible de la alerta automática.**~~ — **resuelto el 2026-08-20:** se acotó a la
   rama de categorías ROV. El § 6.1.4 no lo calificaba y se implementó sin restringir; Paulo lo
   corrigió al revisarlo. El § 6.1.4 quedó actualizado con la razón.
@@ -251,6 +252,78 @@ queda anotado que ése es el costo.
 **Los cinco chequeos de armado** los escribió el diseño, no el taller. Se implementan como están
 y se corrigen con el primer uso real. Está dicho así en § 5.3 para que nadie los confunda con
 algo que dijo el taller.
+
+## El puente reparación → lección, a rediseñar *(2026-08-20)*
+
+**El § 6.1.3 del diseño pide «un botón que la pre-llene desde `origen`», y eso no sobrevive a la
+pregunta de Paulo: ¿cómo sabe el usuario qué hace ese botón, y por qué lo apretaría?** No tiene
+incentivo, y no necesariamente tiene la formación para escribir lo que viene después. El botón se
+implementó en `19.0.15.3.0` y **se queda donde está sin invertirle más** hasta que esto se
+resuelva.
+
+### Lo que sí está resuelto, y hay que no perderlo de vista
+
+**El conocimiento del momento no se pierde.** Al cerrar, el técnico ya deja el `origen`
+—obligatorio desde `19.0.13.0.0`— y el «por qué pasó», más componente, subtipo, acción y el
+hallazgo que resolvió. Eso es la **observación**, y es durable.
+
+Lo que falta es la **conclusión**, y es un juicio de ingeniería con consecuencias en repuestos,
+costos y garantías. **No es trabajo del técnico**, y pedírselo produce o silencio o texto malo.
+
+### La corrección: el sistema detecta, la persona concluye
+
+Una línea suelta es una anécdota; **lo que la vuelve lección es la repetición**. Y la repetición
+es contable, porque una línea de trabajo no es texto libre: componente, subtipo, acción y origen
+salen todos de catálogo. Además el propio `origen` ya excluye lo que ensuciaría el conteo — si
+dice diseño, manufactura propia o pieza de proveedor, el técnico **ya afirmó que no fue el cliente
+ni el desgaste**.
+
+El § 6.3 dice que *«los patrones de manufactura sí se detectan, pero en los datos de reparación»*
+y **nunca dice quién detecta**. Ahí estaba el hueco: la respuesta es el sistema, no una persona.
+
+**Regla propuesta:** N unidades **distintas** del mismo modelo con líneas del mismo componente y
+origen en esos tres. `N` en un parámetro de sistema, no en el código —igual que el ciclo de
+mantención—, empezando en 2. *Unidades distintas* importa: el mismo equipo reparado dos veces no
+es un patrón.
+
+**Dónde:** `Reparaciones → Lecciones pendientes`, al lado de *Revisiones técnicas*. En Reparaciones
+y no en Calidad porque **la evidencia que hay que leer para decidir es evidencia de reparación**, y
+porque mantiene la regla de que nadie tenga que enterarse de que Calidad existe.
+
+### En qué se convierte el botón
+
+De mecanismo de descubrimiento a acción sobre un patrón ya detectado. Cambia de **sujeto** (un
+patrón, no una línea), de **dueño** (quien tiene el criterio, no el técnico), de **pre-llenado**
+(las N unidades en el alcance del daño y los N «por qué pasó» juntos — leídos de corrido dicen algo
+que ninguno dice solo) y de **nombre**. Y gana un hermano, **«Descartar»**: si el sistema propone,
+tiene que poder decírsele que no, o el mismo patrón reaparece cada vez y la gente deja de abrir la
+lista.
+
+`mc.rov.linea.falla.mc_alerta_id`, que ya existe desde `19.0.15.3.0`, es lo que hace que un patrón
+deje de estar pendiente: cuando todas sus líneas alimentaron una lección, sale de la cola.
+
+### Lo abierto, y son la misma pregunta
+
+**¿El patrón es un agrupamiento calculado al vuelo o un registro?** Si es lo primero, no hay dónde
+escribir el descarte **y tampoco a qué colgarle el botón** — Odoo no pone botones en las cabeceras
+de grupo de una lista. Si es un registro, las dos se resuelven y aparece una tercera: quién lo
+crea, cuándo, y qué pasa cuando llega la cuarta unidad.
+
+### La alternativa que se evaluó y se descartó
+
+**Crear la alerta automáticamente al cerrar la orden**, por cada línea con esos tres orígenes,
+agrupando por modelo. Se descartó por dos razones: le pide el juicio a la persona equivocada, y se
+lo pide **cuando el patrón todavía no se ve** —al cerrar la primera orden hay una anécdota—. Y su
+modo de falla es peor que el de la cola: si nadie mira, deja veinte borradores vacíos en Calidad y
+la sensación falsa de que algo quedó capturado. La cola, si nadie la mira, deja las cosas donde ya
+estaban.
+
+### Lo que no se automatiza, y conviene no prometerlo
+
+**La acción preventiva.** Ningún diseño fabrica disciplina: lo que se puede hacer es que la
+omisión sea visible y que actuar cueste poco, y ahí se acaba. El día que se quiera subir el piso,
+el lugar no es más automatismo sino un indicador donde el supervisor ya mira — y eso cae en «el
+presupuesto de indicadores» de más arriba, que pide diseñarlos todos juntos.
 
 ## Fabricación — el diseño está escrito
 
