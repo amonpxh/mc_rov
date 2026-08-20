@@ -362,18 +362,24 @@ class TestSoftwareALaFicha(RevisionCommon):
 
         self.assertEqual(self.lot.mc_version_software, "ROVControl 2.3")
 
-    def test_los_ajustes_se_vuelcan_desde_cualquier_tipo(self):
-        """Pilot gain y ganancia luz se confirman en las tres pruebas, no solo en aceptación.
-
-        El § 5.4 decía que en reparación solo se mostraban desde la ficha; el taller lo
-        corrigió el 2026-08-20. Manda la más reciente sea del tipo que sea.
-        """
-        revision = self._revision(tipo="reparacion", limitacion_pilot_gain=80)
+    def test_los_ajustes_se_vuelcan_desde_una_prueba_de_aceptacion(self):
+        """Pilot gain y ganancia luz se miden en rendimiento y en terreno."""
+        revision = self._revision(tipo="terreno", limitacion_pilot_gain=80)
         revision.estado = "confirmado"
 
         revision._volcar_a_la_ficha()
 
         self.assertEqual(self.lot.mc_limitacion_pilot_gain, 80)
+
+    def test_una_reparacion_no_vuelca_los_ajustes(self):
+        """En reparación no se miden: se muestran desde la ficha para ver si cambiaron."""
+        self.lot.mc_limitacion_pilot_gain = 60
+        revision = self._revision(tipo="reparacion", limitacion_pilot_gain=80)
+        revision.estado = "confirmado"
+
+        revision._volcar_a_la_ficha()
+
+        self.assertEqual(self.lot.mc_limitacion_pilot_gain, 60)
 
     def test_el_conteo_de_luces_nunca_se_vuelca(self):
         """El contraejemplo de la regla, y por eso tiene test propio.

@@ -242,11 +242,10 @@
                                 <!-- Se miden donde se pueden ajustar. En reparación no se
                                      vuelven a medir: se muestran desde la ficha para ver si
                                      cambiaron, igual que las versiones de software. -->
-                                <!-- Se confirman en las tres, no solo en las de aceptación:
-                                     lo corrigió el taller el 2026-08-20. La ficha recibe el
-                                     valor de la prueba más reciente, así que no hay bloque de
-                                     comparación — el último ajuste es la verdad. -->
-                                <group string="Parámetros de trabajo">
+                                <!-- Se miden en las dos pruebas de aceptación. En reparación
+                                     no: ahí se muestran desde la ficha para ver si cambiaron,
+                                     igual que las versiones de software. -->
+                                <group string="Parámetros de trabajo" invisible="tipo == 'reparacion'">
                                     <label for="limitacion_pilot_gain"/>
                                     <div class="o_row">
                                         <field name="limitacion_pilot_gain" readonly="estado == 'confirmado'"/>
@@ -257,6 +256,10 @@
                                         <field name="ganancia_luz" readonly="estado == 'confirmado'"/>
                                         <span>%</span>
                                     </div>
+                                </group>
+                                <group string="Parámetros según la ficha" invisible="tipo != 'reparacion'">
+                                    <field name="limitacion_pilot_gain_ficha"/>
+                                    <field name="ganancia_luz_ficha"/>
                                 </group>
                             </group>
 

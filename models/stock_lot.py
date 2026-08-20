@@ -599,8 +599,20 @@ class StockLot(models.Model):
     # Estos dos NO son medición: son configuración del equipo, o sea ficha. Por eso sobreviven
     # al retiro y siguen aquí. La prueba de rendimiento y la de terreno los miden; la revisión de
     # reparación los muestra desde aquí para ver si cambiaron (§ 5.4).
-    mc_limitacion_pilot_gain = fields.Integer(string="Limitación pilot gain (%)")
-    mc_ganancia_luz = fields.Integer(string="Ganancia luz (%)")
+    # Editables a pesar de que las pruebas los escriben solas, y a propósito: la flota
+    # anterior a Odoo no tiene ninguna prueba de aceptación registrada, así que su ficha solo
+    # se puede llenar a mano. Bloquearlos dejaría a esos equipos sin ajustes para siempre y
+    # sin forma de arreglarlo salvo inventando una prueba que nunca ocurrió. Lo mismo vale
+    # para corregir una errata. Toda escritura automática queda en el chatter del equipo.
+    AVISO_PRUEBA = (
+        "Lo actualiza la prueba de aceptación más reciente al confirmarse. Se puede editar a "
+        "mano —hace falta para los equipos anteriores al sistema— pero la próxima prueba "
+        "manda."
+    )
+    mc_limitacion_pilot_gain = fields.Integer(
+        string="Limitación pilot gain (%)", help=AVISO_PRUEBA
+    )
+    mc_ganancia_luz = fields.Integer(string="Ganancia luz (%)", help=AVISO_PRUEBA)
 
     # Las columnas de prueba en terreno vivieron aquí hasta 19.0.16.0.0. Eran el resultado
     # de un evento —fecha, lugar, profundidad, condiciones— guardado como si fuera ficha, y

@@ -37,6 +37,9 @@ CAMPO_APLICA = {
 # `19.0.15.1.0` vino a arreglar del otro lado. Ver `designs/fabricacion.md` § 4.7.
 TIPOS_CON_FUNCIONAMIENTO_CONTINUO = {"rendimiento", "reparacion"}
 
+# Las dos pruebas que son parte del nacimiento del equipo y no de su vida posterior (§ 4.2).
+TIPOS_DE_ACEPTACION = ("rendimiento", "terreno")
+
 # Qué campo de la prueba alimenta qué campo de la ficha del equipo, y desde qué tipos.
 #
 # **La regla que decide qué entra acá:** el volcado vale cuando la prueba es el único origen
@@ -54,8 +57,8 @@ SOFTWARE_A_FICHA = {
     "version_controlador_instalada": "mc_version_controlador",
 }
 
-# Los ajustes se confirman en las tres pruebas, así que manda la más reciente sea del tipo
-# que sea.
+# Los ajustes se confirman en las dos pruebas de aceptación, así que manda la más reciente de
+# ésas. En reparación no se miden.
 AJUSTES_A_FICHA = {
     "limitacion_pilot_gain": "mc_limitacion_pilot_gain",
     "ganancia_luz": "mc_ganancia_luz",
@@ -369,15 +372,23 @@ class McRovRevision(models.Model):
 
     # --- Parámetros de trabajo ---
     #
-    # Se miden en las tres. El § 5.4 decía que en reparación solo se mostraban desde la ficha,
-    # y el taller corrigió eso el 2026-08-20: también se vuelven a confirmar al reparar.
+    # Se miden en las dos pruebas de aceptación —rendimiento y terreno— y en reparación NO:
+    # ahí se muestran desde la ficha para ver si cambiaron.
     #
-    # Por eso no hay bloque de comparación: **la ficha recibe el valor de la prueba más
-    # reciente**, igual que las versiones de software. Son ajustes, y el último ajuste es la
-    # verdad — a diferencia del conteo de luces, donde la ficha dice cuántas debería tener el
-    # equipo y la diferencia con lo que encendió ES el hallazgo.
+    # La ficha recibe el valor de la prueba de aceptación más reciente. Son ajustes, y el
+    # último ajuste es la verdad — a diferencia del conteo de luces, donde la ficha dice
+    # cuántas debería tener el equipo y la diferencia con lo que encendió ES el hallazgo.
     limitacion_pilot_gain = fields.Integer(string="Limitación pilot gain (%)")
     ganancia_luz = fields.Integer(string="Ganancia luz (%)")
+
+    # En reparación no se vuelven a medir: se muestran desde la ficha para ver si cambiaron.
+    # Mismo bloque que ya funciona con las versiones de software.
+    limitacion_pilot_gain_ficha = fields.Integer(
+        related="lot_id.mc_limitacion_pilot_gain", string="Pilot gain según ficha", readonly=True
+    )
+    ganancia_luz_ficha = fields.Integer(
+        related="lot_id.mc_ganancia_luz", string="Ganancia luz según ficha", readonly=True
+    )
 
     # Dato interno: se medía, se le entregaba al cliente y el cliente la usó en contra. Vuelve
     # a medirse con la condición de que NO salga en el reporte impreso.
@@ -804,8 +815,9 @@ class McRovRevision(models.Model):
         - **El software lo determina la prueba de rendimiento**, porque es donde se instala. En
           reparación se compara contra la ficha; acá es al revés, y si esto no ocurriera la
           ficha quedaría vacía **y la comparación del lado de reparación no funcionaría nunca**.
-        - **Los ajustes —pilot gain y ganancia luz— se confirman en las tres pruebas**, así que
-          manda la más reciente sea del tipo que sea. Son ajustes: el último es la verdad.
+        - **Los ajustes —pilot gain y ganancia luz— se confirman en las dos pruebas de
+          aceptación**, así que manda la más reciente de ésas. En reparación no se miden: ahí
+          se muestran desde la ficha para ver si cambiaron.
 
         **En los dos casos sobrescribe, y solo desde la prueba más reciente.** Sobrescribir es
         lo correcto: dejar un valor viejo haría que cada revisión posterior registrara una
@@ -821,9 +833,9 @@ class McRovRevision(models.Model):
             return
 
         valores = {}
-        if self._es_la_mas_reciente(tipo="rendimiento"):
+        if self._es_la_mas_reciente(tipos=("rendimiento",)):
             valores.update(self._valores_para_la_ficha(SOFTWARE_A_FICHA))
-        if self._es_la_mas_reciente():
+        if self._es_la_mas_reciente(tipos=TIPOS_DE_ACEPTACION):
             valores.update(self._valores_para_la_ficha(AJUSTES_A_FICHA))
         if not valores:
             return
@@ -832,14 +844,16 @@ class McRovRevision(models.Model):
         nombres = ", ".join(self.lot_id._fields[campo].string for campo in valores)
         self.lot_id.message_post(body=f"Ficha actualizada desde {self.display_name}: {nombres}.")
 
-    def _es_la_mas_reciente(self, tipo=None):
-        """Si esta revisión es la última confirmada del equipo, opcionalmente de un tipo."""
+    def _es_la_mas_reciente(self, tipos):
+        """Si esta revisión es la última confirmada del equipo entre los tipos que se le pasen."""
         self.ensure_one()
-        dominio = [("lot_id", "=", self.lot_id.id), ("estado", "=", "confirmado")]
-        if tipo:
-            dominio.append(("tipo", "=", tipo))
-        elif self.tipo:
-            dominio.append(("tipo", "!=", False))
+        if self.tipo not in tipos:
+            return False
+        dominio = [
+            ("lot_id", "=", self.lot_id.id),
+            ("estado", "=", "confirmado"),
+            ("tipo", "in", list(tipos)),
+        ]
         return self.search(dominio, order="fecha desc, id desc", limit=1) == self
 
     def _valores_para_la_ficha(self, mapa):
