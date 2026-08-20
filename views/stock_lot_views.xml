@@ -123,6 +123,13 @@
                                      número el conteo de luces de la prueba. -->
                                 <field name="mc_cantidad_luces"/>
                             </group>
+                            <!-- Estos cinco los escribe la prueba de rendimiento al confirmarse: en
+                                 fabricación el software se instala, así que la prueba es la que dice qué
+                                 quedó puesto. Van bajo su propio título porque el contador de ficha
+                                 incompleta los cuenta, y sin este aviso alguien los teclea de memoria y
+                                 después la prueba los vuelve a escribir. Siguen editables: la flota
+                                 anterior al sistema no tiene ninguna prueba registrada. -->
+                            <separator string="Lo aporta la prueba de rendimiento — déjalo en blanco"/>
                             <group name="group_especificaciones_right">
                                 <field name="mc_tarjeta_comunicacion_rov" widget="radio" options="{&quot;horizontal&quot;:true}"/>
                                 <field name="mc_tarjeta_comunicacion_consola" widget="radio" options="{&quot;size&quot;:&quot;md&quot;,&quot;horizontal&quot;:true}"/>

@@ -302,6 +302,47 @@ class TestMcRovRevision(RevisionCommon):
 
 
 @tagged("post_install", "-at_install")
+class TestCondicionesHeredadas(RevisionCommon):
+    """Una revisión nueva nace con las condiciones de la anterior del mismo equipo.
+
+    En el taller la fuente es la que es. Un ROV que vuelve cinco veces obligaba a contestar
+    cinco veces lo mismo, y la quinta se contesta de memoria — que es cuando aparecen los
+    datos malos.
+    """
+
+    def test_hereda_las_condiciones_de_la_anterior(self):
+        self._revision(tipo="reparacion", alimentacion="Generador", tension_salida=48)
+
+        nueva = self._revision(tipo="reparacion")
+
+        self.assertEqual(nueva.alimentacion, "Generador")
+        self.assertEqual(nueva.tension_salida, 48)
+
+    def test_no_hereda_resultados(self):
+        """Heredar una medición sería inventar un dato."""
+        self._revision(tipo="reparacion", alimentacion="Generador", subida=95.0)
+
+        nueva = self._revision(tipo="reparacion")
+
+        self.assertEqual(nueva.alimentacion, "Generador")
+        self.assertFalse(nueva.subida)
+
+    def test_lo_que_viene_en_vals_manda(self):
+        self._revision(tipo="reparacion", alimentacion="Generador")
+
+        nueva = self._revision(tipo="reparacion", alimentacion="UPS")
+
+        self.assertEqual(nueva.alimentacion, "UPS")
+
+    def test_terreno_no_hereda_del_taller(self):
+        """La alimentación de un muelle no dice nada de la de un banco."""
+        self._revision(tipo="rendimiento", alimentacion="Transformador")
+
+        nueva = self._revision(tipo="terreno")
+
+        self.assertFalse(nueva.alimentacion)
+
+
 class TestSoftwareALaFicha(RevisionCommon):
     """La prueba de rendimiento escribe en la ficha las versiones que se instalaron.
 

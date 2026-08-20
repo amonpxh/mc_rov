@@ -40,6 +40,27 @@ TIPOS_CON_FUNCIONAMIENTO_CONTINUO = {"rendimiento", "reparacion"}
 # Las dos pruebas que son parte del nacimiento del equipo y no de su vida posterior (§ 4.2).
 TIPOS_DE_ACEPTACION = ("rendimiento", "terreno")
 
+# Las condiciones bajo las que se corrió la prueba, que una revisión nueva hereda de la
+# anterior del mismo equipo. **Solo condiciones, nunca resultados**: heredar una medición
+# sería inventar un dato, mientras que heredar con qué se alimentó es recordar cómo está
+# montado el taller. En el taller la fuente es la que es, y un ROV que vuelve cinco veces
+# obligaba a contestar cinco veces lo mismo — y la quinta se contesta de memoria, que es
+# cuando aparecen los datos malos.
+CONDICIONES_HEREDABLES = (
+    "umbilical",
+    "largo",
+    "alimentacion",
+    "modelo_fuente",
+    "tension_salida",
+)
+
+# De quién hereda cada tipo. Una prueba en terreno **no** hereda de una de taller ni al revés:
+# la alimentación de un muelle no dice nada de la de un banco.
+FAMILIAS_DE_CONDICIONES = (
+    ("rendimiento", "reparacion"),
+    ("terreno",),
+)
+
 # Qué campo de la prueba alimenta qué campo de la ficha del equipo, y desde qué tipos.
 #
 # **La regla que decide qué entra acá:** el volcado vale cuando la prueba es el único origen
@@ -726,6 +747,10 @@ class McRovRevision(models.Model):
         for vals in vals_list:
             if vals.get("name", "/") == "/":
                 vals["name"] = self.env["ir.sequence"].next_by_code("mc.rov.revision") or "/"
+            # Nace con las condiciones de la prueba anterior del mismo equipo. Mismo criterio
+            # que la fecha, que nace con la de hoy: un valor corregible sirve más que un campo
+            # en blanco. Solo rellena lo que no venga ya en `vals`.
+            self._heredar_condiciones(vals)
 
         revisiones = super().create(vals_list)
         for revision in revisiones:
@@ -794,6 +819,28 @@ class McRovRevision(models.Model):
             faltan.append(f"revisar el sello de {len(sellos_sin_ver)} componente(s)")
 
         return faltan
+
+    @api.model
+    def _heredar_condiciones(self, vals):
+        lot_id, tipo = vals.get("lot_id"), vals.get("tipo")
+        familia = next((f for f in FAMILIAS_DE_CONDICIONES if tipo in f), None)
+        if not lot_id or not familia:
+            return
+
+        anterior = self.search(
+            [("lot_id", "=", lot_id), ("tipo", "in", list(familia))],
+            order="fecha desc, id desc",
+            limit=1,
+        )
+        if not anterior:
+            return
+
+        for campo in CONDICIONES_HEREDABLES:
+            if campo in vals:
+                continue
+            valor = anterior[campo]
+            if valor:
+                vals[campo] = valor
 
     def action_confirmar(self):
         """Cierra la revisión. A partir de aquí el registro es evidencia, no borrador."""
