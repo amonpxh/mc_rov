@@ -96,7 +96,7 @@
                                     <field name="componente_id" readonly="1"/>
                                     <field name="estado_sello" widget="radio"
                                            options="{&quot;horizontal&quot;: true}"/>
-                                    <field name="observacion"/>
+                                    <field name="detalle"/>
                                     <field name="manipulacion_externa" optional="hide"/>
                                 </list>
                             </field>
@@ -512,8 +512,8 @@
                         domain="[('tipo', '=', 'reparacion')]"/>
                 <filter name="filtro_terreno" string="Prueba en terreno"
                         domain="[('tipo', '=', 'terreno')]"/>
-                <filter name="filtro_fabricacion" string="Fabricación"
-                        domain="[('tipo', '=', 'fabricacion')]"/>
+                <filter name="filtro_banco" string="Prueba de banco"
+                        domain="[('tipo', '=', 'banco')]"/>
                 <!-- El group va pelado: el schema de vistas de búsqueda de Odoo 19 rechaza
                      expand y string en este elemento. Misma forma que el arch base de
                      repair.view_repair_order_form_filter. -->
@@ -532,23 +532,22 @@
         </field>
     </record>
 
-    <!-- Dos acciones y no una: el taller no tiene por qué mirar las revisiones de
-         fabricación, ni manufactura los de reparación. -->
+    <!-- El taller no tiene por qué mirar las pruebas de banco. Las de terreno sí entran:
+         una prueba en terreno puede pedirse dentro de una reparación —el cliente quiere
+         comprobar que el equipo sigue respetando su profundidad— y en ese caso pertenece a
+         la visita. Ver `designs/fabricacion.md` § 4.2. -->
     <record id="action_mc_rov_revision" model="ir.actions.act_window">
         <field name="name">Revisiones técnicas</field>
         <field name="res_model">mc.rov.revision</field>
         <field name="view_mode">list,form</field>
-        <field name="domain">[('tipo', '!=', 'fabricacion')]</field>
+        <field name="domain">[('tipo', '!=', 'banco')]</field>
         <field name="context">{'default_tipo': 'reparacion'}</field>
     </record>
 
-    <record id="action_mc_rov_revision_fabricacion" model="ir.actions.act_window">
-        <field name="name">Revisiones de fabricación</field>
-        <field name="res_model">mc.rov.revision</field>
-        <field name="view_mode">list,form</field>
-        <field name="domain">[('tipo', '=', 'fabricacion')]</field>
-        <field name="context">{'default_tipo': 'fabricacion'}</field>
-    </record>
+    <!-- Aquí hubo una acción «Revisiones de fabricación», retirada en 19.0.16.0.0. No la
+         referenciaba ningún menú —las pruebas de banco se crean desde el botón del número de
+         serie, que es donde manufactura ya trabaja— así que era un registro muerto, y con
+         el renombre su dominio habría dejado de encontrar nada. -->
 
     <!-- ================= Catálogos ================= -->
 
@@ -561,7 +560,7 @@
                 <field name="seccion"/>
                 <field name="name"/>
                 <field name="por_componente" optional="hide"/>
-                <field name="aplica_fabricacion"/>
+                <field name="aplica_banco"/>
                 <field name="aplica_reparacion"/>
                 <field name="aplica_terreno"/>
                 <field name="active" optional="hide"/>

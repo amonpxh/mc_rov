@@ -139,7 +139,7 @@ digitalizar.
 4. **Se termina la MO y ahí nace el número de serie** (`lot_producing_ids`). Los componentes
    rastreados por lote quedan registrados contra esta unidad.
 5. **Se llena la ficha técnica** del número de serie.
-6. **Prueba de rendimiento**, desde un botón en el número de serie: mediciones de banco, corrida
+6. **Prueba de banco**, desde un botón en el número de serie: mediciones de banco, corrida
    de resistencia, y las versiones de software instaladas — **que son las que alimentan la
    ficha**, porque acá el software se instala, no se compara.
 7. **Prueba en terreno**, desde el mismo lugar: condiciones del sitio y batería reducida.
@@ -156,10 +156,10 @@ digitalizar.
 Una prueba de fabricación no es una revisión de reparación: no lleva sellos, no busca desgaste,
 y no la origina una visita. El instinto correcto es separarlas.
 
-**Pero `mc.rov.revision` ya contiene la prueba de rendimiento.** La sección que llamamos «la
+**Pero `mc.rov.revision` ya contiene la prueba de banco.** La sección que llamamos «la
 corrida» —`esfuerzo_duracion`, `esfuerzo_resultado`, `subida`, `bajada`, `alimentacion`,
 `tension_salida`, `temperatura_interior`, `temperatura_exterior`— **es** una prueba de
-rendimiento, campo por campo. Un modelo nuevo duplicaría ocho campos, y el día que cambie uno
+banco, campo por campo. Un modelo nuevo duplicaría ocho campos, y el día que cambie uno
 habrá que acordarse de los dos.
 
 Se resuelve con **dos vistas filtradas del mismo modelo**: la pestaña del número de serie se
@@ -170,7 +170,7 @@ Es el mismo mecanismo que usan los `chequeo_<seccion>_ids`: un solo `One2many`, 
 dominio.
 
 **El precio, declarado, y contando los dos lados.** Un modelo nuevo duplicaría ocho campos; el
-`tipo` compartido arrastra los que **no** aplican. Una prueba de rendimiento hereda `umbilical`
+`tipo` compartido arrastra los que **no** aplican. Una prueba de banco hereda `umbilical`
 —«del equipo» / «del taller» no significa nada en un ROV recién armado—, `motivo` (re-test /
 comparación de cable), `horas_operacion` (que es 0 en un equipo nuevo), y `repair_id` y
 `partner_id` vacíos. Esconderlos es una visibilidad más que mantener por cada uno.
@@ -184,10 +184,24 @@ no genera inspección de sellos.
 
 ### 4.2 Los tres tipos
 
-`tipo` queda en **`reparacion`**, **`rendimiento`** y **`terreno`**. El valor `fabricacion` se
+`tipo` queda en **`reparacion`**, **`banco`** y **`terreno`**. El valor `fabricacion` se
 retira: era genérico y nunca tuvo justificación escrita, y además dejó de describir una sola
 cosa — lo que pasa al armar son puntos de calidad, lo que pasa después es la prueba de
-rendimiento.
+banco.
+
+**Se llama `banco` y no `rendimiento`, decidido el 2026-08-20 al implementarlo.** El diseño había
+elegido `rendimiento` y tampoco lo justificó, que es exactamente el defecto por el que se retiró
+`fabricacion`. Y el problema no es que sea impreciso —la prueba sí mide rendimiento: ancho de
+banda, consumos, pilot gain— sino que **`rendimiento` y `terreno` no contrastan en el mismo
+eje**: uno nombra qué se mide y el otro dónde se hace, así que el desplegable deja abierta la
+pregunta *«¿y la de terreno no mide rendimiento?»*.
+
+El eje verdadero es el lugar, y este documento lo delata solo: las tablas del § 5.2 definen las
+dos por dónde ocurren, y el caso que ilustra su diferencia es **la presión verificada por dos
+medios según dónde estés**. Se descartaron `laboratorio` —no hay ningún lugar del taller que se
+llame así, sería vocabulario importado— y `taller`, porque la revisión de reparación también se
+hace en el taller y reintroduce la misma colisión. La etiqueta es **«Prueba de banco»** y nunca
+«Banco» a secas, que se leería como *bank*.
 
 **Y `terreno` no es solo prueba de aceptación.** A veces un cliente pide, después de una
 reparación, comprobar que el equipo sigue respetando su profundidad máxima. Es poco frecuente
@@ -208,7 +222,7 @@ conteste igual el día 1 que el día 1.500 es señal de que el modelo quedó en 
 
 | Tipo | Cuándo | Origen | Lleva |
 |---|---|---|---|
-| `rendimiento` | Equipo armado, en banco | Número de serie | Mediciones, esfuerzo, batería de fabricación |
+| `banco` | Equipo armado, en banco | Número de serie | Mediciones, esfuerzo, batería de fabricación |
 | `terreno` | Antes de entregar, en agua | Número de serie | Condiciones del sitio, batería de terreno |
 | `reparacion` | Visita al taller | Orden de reparación | Sellos, batería de reparación, hallazgos |
 
@@ -221,7 +235,7 @@ de Reparaciones, que es donde ya está.
 Una prueba de aceptación no nace de una orden de reparación, así que la crea un botón en la
 pestaña del número de serie.
 
-**El botón es por tipo —«Nueva prueba de rendimiento», «Nueva prueba en terreno»— y no uno
+**El botón es por tipo —«Nueva prueba de banco», «Nueva prueba en terreno»— y no uno
 genérico.** No es cosmética: un «Nueva revisión» genérico dejaría crear revisiones de
 reparación **huérfanas**, sin orden, sin cliente y sin motivo, que después no encuentra nadie.
 La especificidad del botón es lo que impide crear el registro equivocado.
@@ -281,7 +295,7 @@ Las pestañas actuales *Umbilical* y *Prueba en Terreno* se ven como un formular
 registro. La pestaña muestra la lista de pruebas y cada una se abre en su formulario de bloques.
 
 Y la forma corresponde al contenido: **las mediciones se leen mejor en formulario, y los
-pasa/falla en lista.** Por eso la prueba de rendimiento tiene bloques con títulos y la batería
+pasa/falla en lista.** Por eso la prueba de banco tiene bloques con títulos y la batería
 es una lista de chequeos. Cada cosa con su forma.
 
 ### 4.7 Duración y texto libre: un estándar, no dos
@@ -324,7 +338,7 @@ numeradas dentro de la serie de reparaciones: una ficha de equipo nuevo llamada 
 intercalada entre reparaciones de otros equipos, se lee como un trámite interno.
 
 Tres secuencias: **`REV/`** se queda con reparación —los registros existentes no cambian de
-significado— y las de aceptación estrenan **`REN/`** y **`TER/`**.
+significado— y las de aceptación estrenan **`BAN/`** y **`TER/`**.
 
 **Y eso obliga a algo que hace falta igual:** hoy `tipo` es editable después de crear —hay tests
 que cubren que cambiarlo ajusta el checklist—, así que un prefijo asignado al crear podría quedar
@@ -360,7 +374,7 @@ Hay **cuatro**, no tres, porque el armado se verifica en un sistema distinto:
 | Batería | Módulo | Se llena en | Cuándo |
 |---|---|---|---|
 | **Armado** | Calidad | Dentro de la orden de fabricación | Mientras se arma, antes de cerrar el casco |
-| **Rendimiento** | mc_rov | N° de serie → botón | Equipo armado, en el banco |
+| **Banco** | mc_rov | N° de serie → botón | Equipo armado, en el banco |
 | **Terreno** | mc_rov | N° de serie **o** orden de reparación → botón | En agua |
 | **Reparación** | mc_rov | Orden de reparación | Cada vez que el equipo vuelve |
 
@@ -384,7 +398,7 @@ estés:
 
 | | Cómo se presuriza | Qué se mide |
 |---|---|---|
-| **Rendimiento** (taller) | Máquina de presión | bar + tiempo |
+| **Banco** (taller) | Máquina de presión | bar + tiempo |
 | **Terreno** | Descenso real | profundidad alcanzada |
 | **Reparación** (taller) | Máquina de presión | bar + tiempo |
 
@@ -398,7 +412,7 @@ está hoy** — los otros 18 aplican a las cuatro baterías tal como ya están c
 
 | Chequeo | Hoy | Queda en | Por qué |
 |---|---|---|---|
-| Hélices en posición correcta | Fab · Rep · Terr | **Rep** | En rendimiento la posición ya se verifica funcionalmente: si una hélice está al revés, fallan los chequeos de movimiento |
+| Hélices en posición correcta | Fab · Rep · Terr | **Rep** | En banco la posición ya se verifica funcionalmente: si una hélice está al revés, fallan los chequeos de movimiento |
 | Chasis y estructura sin daño visible | Fab · Rep · Terr | **Rep** | Busca daño de uso |
 | Penetradores y conectores sin daño | Fab · Rep · Terr | **Rep** | Ídem |
 | Umbilical sin cortes ni aplastamientos | Fab · Rep · Terr | **Rep** | Ídem |
@@ -406,9 +420,9 @@ está hoy** — los otros 18 aplican a las cuatro baterías tal como ya están c
 | El software de superficie inicia y opera | Rep | **Rend · Terr · Rep** | Se acotó de más en 19.0.15.2.0 |
 | *(nuevos)* Sellos y o-rings · Penetradores apretados · Cableado interno · Foto del interior · Registrar N° de serie | — | **Armado** | Solo verificables antes de cerrar el casco |
 
-**Totales: Armado 5 · Rendimiento 18 · Terreno 17 · Reparación 24.**
+**Totales: Armado 5 · Banco 18 · Terreno 17 · Reparación 24.**
 
-Terreno es rendimiento **menos estanqueidad**, porque no hay máquina de presión en el muelle.
+Terreno es la de banco **menos estanqueidad**, porque no hay máquina de presión en el muelle.
 
 > **Los cinco chequeos de armado no salieron del taller: los escribió el diseño.** Razonados
 > desde el principio de «antes de cerrar el casco», pero sin conocer cómo se arma. **Son la parte
@@ -442,11 +456,11 @@ exterior, lugar, velocidad de la corriente y horómetro.
 
 **Tres cosas que la comparación deja en evidencia**, y ninguna es de diseño — son huecos de hoy:
 
-1. **La prueba de rendimiento no tiene fecha.** No se puede saber cuándo se probó un equipo en el
+1. **La prueba de banco no tiene fecha.** No se puede saber cuándo se probó un equipo en el
    banco. La de terreno sí la tiene.
 2. **La presión no se registra en ninguna parte** —ni bar ni tiempo— aunque el estándar existe:
    2 h a 30 bar, 50 en algunos modelos, eventualmente hasta 100.
-3. **La prueba de rendimiento no guarda la corrida de funcionamiento continuo**, que sí guarda la
+3. **La prueba de banco no guarda la corrida de funcionamiento continuo**, que sí guarda la
    de reparación.
 
 #### Ficha y prueba no compiten: dicen cosas distintas
@@ -460,7 +474,7 @@ Tres campos parecían duplicados y no lo son. La regla que los ordena:
 - Ficha: umbilical de 200 m con su número de serie. Prueba: se usó ése, o uno del taller.
 
 **En fabricación va al revés:** ahí la prueba **determina** el valor y la ficha lo recibe. Por eso
-las versiones de software se anotan en rendimiento y no se comparan.
+las versiones de software se anotan en la de banco y no se comparan.
 
 Y donde dice **ficha**: no se vuelve a medir, se muestra el valor registrado para que el técnico
 vea si cambió — el mismo bloque que ya funciona con las versiones de software desde
@@ -709,12 +723,12 @@ Ya está casi todo modelado. Falta el campo que los une.
 
 ## 7. Qué se retira
 
-- **`tipo = fabricacion`** de la revisión, reemplazado por `rendimiento`.
+- **`tipo = fabricacion`** de la revisión, reemplazado por `banco` — hecho en `19.0.16.0.0`.
 - **La pestaña «Prueba en Terreno»** del número de serie, y sus columnas:
   `mc_fecha_prueba`, `mc_lugar`, `mc_profundidad`, `mc_velocidad_corriente`, `mc_alimentacion`,
   `mc_tiempo_prueba_terreno`, `mc_temperatura_interior_terreno`,
   `mc_temperatura_exterior_terreno`, `mc_observacion`.
-- Las columnas de prueba de laboratorio del lote, una vez que la prueba de rendimiento las
+- Las columnas de prueba de laboratorio del lote, una vez que la prueba de banco las
   reemplace.
 
 Y **`observacion` en la línea de inspección de sellos pasa a `detalle`.** Hoy hay tres nombres
@@ -730,8 +744,14 @@ módulo: en la ficha del lote es **un consumo en kWh bajo carga** —hace pareja
 reposo, por eso están uno debajo del otro—, y en la revisión es **la corrida de resistencia**, el
 ROV andando una hora y media en un bin con agua.
 
-Sin este renombre, una revisión de `tipo = rendimiento` tendría adentro un campo «esfuerzo» que
-significa distinto del «Esfuerzo» que hoy vive dentro de la prueba de rendimiento. Se renombra el
+**Este renombre se aplazó al implementar (2026-08-20), por una razón que el diseño no había
+visto:** «En reposo» y «Esfuerzo» son dos de las columnas de laboratorio del lote, o sea que la
+misma tanda de trabajo las borra. Renombrarlas antes es trabajo que se elimina un PR después, y
+la ambigüedad que evitan solo existe en la ventana entre los dos. **La decisión de vocabulario
+sigue en pie para los campos nuevos de la revisión**, que es donde de verdad importa.
+
+Sin este renombre, una revisión de `tipo = banco` tendría adentro un campo «esfuerzo» que
+significa distinto del «Esfuerzo» que hoy vive dentro de la prueba de banco. Se renombra el
 del lote y no el de la revisión porque *prueba de esfuerzo* es el término estándar para una
 corrida de resistencia, y porque «consumo en reposo / bajo carga» es lo que el par realmente
 mide.
@@ -739,7 +759,7 @@ mide.
 ## 8. Migración
 
 **Cero filas afectadas**, verificado: ningún lote ROV tiene datos de prueba. La migración se
-reduce a borrar columnas y a mapear `tipo = fabricacion` → `rendimiento` si existiera alguna
+reduce a borrar columnas y a mapear `tipo = fabricacion` → `banco` si existiera alguna
 fila.
 
 Eso hace desaparecer tres problemas que había que resolver si hubiera habido datos: dónde poner
@@ -756,7 +776,7 @@ para hacerlo es ahora: con equipos reales cargados, cada una de esas tres pregun
   troubleshooting, y nadie sabe describir su forma. Modelarlo ahora es inventar la forma del
   dato antes de tener el dato — el mismo error que se evitó con el software en `19.0.15.2.0`.
   Mientras tanto cae en su lugar natural: un prototipo se arma con una MO, y las repeticiones
-  son revisiones de rendimiento sucesivas. **Vuelve cuando tres o cuatro rediseños muestren qué
+  son pruebas de banco sucesivas. **Vuelve cuando tres o cuatro rediseños muestren qué
   les falta.**
 - **No se rastrea todo por lote.** La trazabilidad es configuración *por producto*: un BoM de 40
   líneas puede tener 4 rastreadas —o-rings, thrusters, tarjetas, controlador— y el resto
@@ -811,7 +831,7 @@ Todo esto lo revisó y aprobó el supervisor.
 - **Solo se exige a los equipos con MO**; los ROV-MC anteriores a Odoo se dan por buenos.
 - **«Hecha» = confirmada y aprobada**; una prueba rechazada se registra y no cumple el requisito.
 - **No se bloquea nada**: indicador y filtro, como el aviso amarillo de la ficha.
-- **Tres secuencias** `REV/` · `REN/` · `TER/`, y `tipo` congelado al confirmar.
+- **Tres secuencias** `REV/` · `BAN/` · `TER/`, y `tipo` congelado al confirmar.
 - **Las lecciones se muestran en la MO**, filtradas a las cerradas con acción preventiva.
 - **El par «En reposo» / «Esfuerzo» del lote se renombra** para que *esfuerzo* signifique una
   sola cosa.

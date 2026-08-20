@@ -20,7 +20,7 @@ abrir en cada momento y qué queda registrado**, sin entrar en cómo está const
 | Registrar un problema que va a repetirse | Casi nunca hace falta abrir Calidad: al fallar un control la alerta se abre sola, y en reparación hay un botón en la línea |
 | Ver qué se aprendió de un modelo | **Fabricación** → la orden lo muestra sola, pestaña *Lecciones del modelo* |
 | Ver qué alertas afectan a un equipo | **Inventario** → N° de serie → pestaña *Alertas de calidad* |
-| Probar el equipo terminado | **Inventario** → N° de serie → *Nueva prueba de rendimiento* |
+| Probar el equipo terminado | **Inventario** → N° de serie → *Nueva prueba de banco* |
 | Probarlo en agua antes de entregar | **Inventario** → N° de serie → *Nueva prueba en terreno* |
 | Ver o llenar la ficha técnica de un equipo | **Inventario** → Números de serie |
 | Recibir un equipo con falla | **Reparaciones** → Órdenes |
@@ -146,15 +146,15 @@ las que lo nombran.
 tarjetas, controlador y luces.
 
 Las **versiones de software** las aporta el paso siguiente: en fabricación el software se
-instala, así que la prueba de rendimiento es la que dice qué quedó puesto.
+instala, así que la prueba de banco es la que dice qué quedó puesto.
 
 El aviso amarillo de arriba dice cuántos datos faltan de cuántos. **No bloquea** — se puede
 guardar una ficha a medias, y es mejor guardar 12 de 14 datos verdaderos que inventar los 2 que
 faltan. Para encontrarlas después está el filtro **«Ficha incompleta»**.
 
-### Paso 7 — Prueba de rendimiento
+### Paso 7 — Prueba de banco
 
-Desde el número de serie, botón **Nueva prueba de rendimiento**. Es la prueba de banco:
+Desde el número de serie, botón **Nueva prueba de banco**. Es la prueba de banco:
 tensión, consumo en reposo y bajo carga, ancho de banda, corrida de resistencia con sus
 temperaturas, y las versiones de software instaladas.
 
