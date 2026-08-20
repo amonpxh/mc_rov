@@ -242,10 +242,10 @@ class StockLot(models.Model):
                 lambda alerta, equipo=lot: equipo in alerta.lot_ids
             )
 
-    def action_nueva_revision_fabricacion(self):
-        """Abre una revisión de fabricación para este equipo.
+    def action_nueva_revision_banco(self):
+        """Abre una prueba de banco para este equipo.
 
-        Es botón y no automático porque una revisión de fabricación **no siempre ocurre**:
+        Es botón y no automático porque una prueba de banco **no siempre ocurre**:
         un equipo se fabrica una vez y a lo más se le hacen unas pocas modificaciones. Y el
         sistema no puede detectar una modificación — un cambio en la ficha técnica es una
         escritura, y eso también pasa cuando alguien corrige una errata. Crearía revisiones
@@ -255,7 +255,7 @@ class StockLot(models.Model):
         a veces ocurre.
         """
         self.ensure_one()
-        revision = self.env["mc.rov.revision"].create({"lot_id": self.id, "tipo": "fabricacion"})
+        revision = self.env["mc.rov.revision"].create({"lot_id": self.id, "tipo": "banco"})
         return {
             "type": "ir.actions.act_window",
             "name": "Revisión técnica",
@@ -592,26 +592,10 @@ class StockLot(models.Model):
     mc_temperatura_interior_lab = fields.Float(string="Temperatura interior")
     mc_temperatura_exterior_lab = fields.Float(string="Temperatura exterior")
 
-    # --- Prueba en Terreno ---
-
-    mc_fecha_prueba = fields.Date(string="Fecha")
-    mc_lugar = fields.Char(string="Lugar")
-    mc_profundidad = fields.Integer(string="Profundidad")
-    mc_velocidad_corriente = fields.Float(string="Velocidad de la corriente")
-
-    mc_alimentacion = fields.Selection(
-        [
-            ("Transformador", "Transformador"),
-            ("Generador", "Generador"),
-            ("UPS", "UPS"),
-        ],
-        string="Alimentación",
-    )
-
-    mc_tiempo_prueba_terreno = fields.Float(string="Tiempo de prueba")
-    mc_temperatura_interior_terreno = fields.Float(string="Temperatura interior (Prueba)")
-    mc_temperatura_exterior_terreno = fields.Float(string="Temperatura exterior (Prueba)")
-    mc_observacion = fields.Text(string="Observación")
+    # Las columnas de prueba en terreno vivieron aquí hasta 19.0.16.0.0. Eran el resultado
+    # de un evento —fecha, lugar, profundidad, condiciones— guardado como si fuera ficha, y
+    # por eso correr la prueba dos veces pisaba la anterior en silencio. Ahora son una
+    # revisión de tipo `terreno`, que sí lleva historial.
 
     # --- Reparaciones ---
 

@@ -70,7 +70,7 @@ class McRovChequeo(models.Model):
     #
     # `aplica_reparacion` reemplaza en 19.0.12.0.0 al par recepción/entrega, que dejó de
     # existir cuando la visita pasó a llevar una sola revisión.
-    aplica_fabricacion = fields.Boolean(string="En fabricación")
+    aplica_banco = fields.Boolean(string="En prueba de banco")
     aplica_reparacion = fields.Boolean(string="En reparación", default=True)
     aplica_terreno = fields.Boolean(string="En terreno")
 

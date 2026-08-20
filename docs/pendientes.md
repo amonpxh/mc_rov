@@ -129,7 +129,7 @@ Las ideas, por lo que rinden frente a lo que cuestan:
 
 | | Idea | Comentario |
 |---|---|---|
-| **a** | **Botones de siguiente paso** | La más valiosa. *«Ir a la ficha del equipo»* al terminar la MO; *«Nueva prueba de rendimiento»* en el N° de serie; *«Levantar alerta»* en la línea de trabajo — ese último ya resuelve la fricción de que reparación termine en Calidad, porque el usuario nunca tiene que saber que Calidad existe |
+| **a** | **Botones de siguiente paso** | La más valiosa. *«Ir a la ficha del equipo»* al terminar la MO; *«Nueva prueba de banco»* en el N° de serie; *«Levantar alerta»* en la línea de trabajo — ese último ya resuelve la fricción de que reparación termine en Calidad, porque el usuario nunca tiene que saber que Calidad existe |
 | **b** | **Textos de lista vacía** | Gratis: es un atributo de la acción y Odoo lo muestra solo. Va de paso con lo demás, no compite con (a) |
 | **c** | **Tablero de «qué me falta»** | Fichas incompletas, equipos sin pruebas, revisiones sin confirmar, alertas sin acción preventiva |
 | **d** | **Menú propio ordenado por proceso** | *«ROV → 2. Aceptar»* en vez de *«Inventario → Números de serie»*. Resuelve la fricción del nombre de puerta |
@@ -191,7 +191,7 @@ Sin decidir: si eso se modela o queda como convención.
 
 | | Qué | Tamaño | Depende de |
 |---|---|---|---|
-| **A** | Los tres tipos de revisión, la migración de las columnas del lote, las mediciones nuevas, `aplica_fabricacion` → `aplica_rendimiento` | Grande, bump `X` | — |
+| **A** | Las pruebas de aceptación. **No es un bloque: son cuatro con dependencias distintas**, ver abajo | Grande | — |
 | ~~**B**~~ | ~~Los puentes a `quality.alert`~~ — **hecho en `19.0.15.3.0`** | Chico | — |
 | **C** | Los indicadores agregados en el número de serie (§ 4.4), con el presupuesto de **uno por registro** | Chico | A |
 | **D** | Configurar los puntos de calidad del armado y alinear `quality.reason` con `ORIGENES` | Datos, cero código | B |
@@ -199,6 +199,29 @@ Sin decidir: si eso se modela o queda como convención.
 **A y B son independientes.** B se nota antes —son los cuatro campos que cierran el círculo con
 reparación— y no lleva migración, así que sirve de rodaje para el flujo nuevo con staging antes
 de la migración grande.
+
+### A se parte en cuatro, y solo una corre contra el reloj
+
+Al leer el § 4 y el § 5 completos quedó claro que A no es una cosa. **Solo A1 tiene que estar
+antes de que el sistema entre en uso real**, porque es la única con migración — y el § 8 lo dice:
+*«la ventana para hacerlo es ahora; con equipos reales cargados, cada una de esas tres preguntas
+vuelve»*.
+
+| | Qué | Bump | Cuándo |
+|---|---|---|---|
+| **A1** | `fabricacion` → `banco`, `observacion` → `detalle`, se retiran las columnas de terreno del lote, y el arreglo de `_compute_resultado` | `X`, con migración | **Antes de cargar datos reales** |
+| **A2** | Las mediciones nuevas del § 5.4, y con ellas el retiro de las columnas de laboratorio | `Y` | Después |
+| **A3** | Las secuencias `BAN/` y `TER/`, y congelar `tipo` al confirmar | `Y` | Después |
+| **A4** | Las cuatro baterías del § 5.2 y § 5.3 | Datos | Después, y **quiere** equipos reales: los cinco chequeos de armado los escribió el diseño y no el taller |
+
+**A1 está hecho en `19.0.16.0.0`.** Dos cosas que salieron de implementarlo y que el diseño no
+había previsto:
+
+- **El renombre de etiquetas «En reposo» / «Esfuerzo» del lote salió de A1.** Son columnas de
+  laboratorio, o sea que A2 las borra: renombrarlas antes es trabajo que se elimina un PR
+  después. La decisión de vocabulario sigue en pie para los campos nuevos de A2.
+- **Se retiró la acción «Revisiones de fabricación»**, que no referenciaba ningún menú y cuyo
+  dominio, tras el renombre, no habría encontrado nada.
 
 ### Antes de empezar B: una verificación *(hecha el 2026-08-20, pasa)*
 

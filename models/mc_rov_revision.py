@@ -6,8 +6,15 @@ from odoo.exceptions import UserError
 # esto reemplaza es una ficha por equipo reparado, y nadie llena dos fichas por visita. La
 # comparación no se pierde: se hace contra la revisión de la visita ANTERIOR, que es además
 # el intervalo que le interesa al análisis de fallas.
+# `fabricacion` se retiró en 19.0.16.0.0. Era genérico y nunca tuvo justificación escrita,
+# y además había dejado de describir una sola cosa: lo que pasa mientras se arma son puntos
+# de calidad, y lo que pasa después es esta prueba.
+#
+# Se llama `banco` y no `rendimiento` porque tiene que contrastar con `terreno` en el mismo
+# eje —dónde se prueba— o el desplegable deja abierta la pregunta «¿y la de terreno no mide
+# rendimiento?». La etiqueta nunca dice «Banco» a secas por la misma razón.
 TIPOS = [
-    ("fabricacion", "Fabricación"),
+    ("banco", "Prueba de banco"),
     ("reparacion", "Reparación"),
     ("terreno", "Prueba en terreno"),
 ]
@@ -16,10 +23,19 @@ TIPOS = [
 # de encadenar ifs, para que agregar un tipo sea tocar dos listas y no buscar condicionales
 # repartidos por el archivo.
 CAMPO_APLICA = {
-    "fabricacion": "aplica_fabricacion",
+    "banco": "aplica_banco",
     "reparacion": "aplica_reparacion",
     "terreno": "aplica_terreno",
 }
+
+# Dónde el funcionamiento continuo —la corrida de resistencia— es parte de la batería.
+#
+# En terreno no lo es, y el criterio no es la relevancia sino la física: no hay dónde dejar
+# un equipo andando hora y media colgado de un bote. Sin esta lista, `_compute_resultado`
+# exigía su resultado siempre, así que **una revisión de terreno no podía quedar aprobada
+# nunca** — se quedaba en blanco para siempre, que es el mismo modo de falla que
+# `19.0.15.1.0` vino a arreglar del otro lado. Ver `designs/fabricacion.md` § 4.7.
+TIPOS_CON_ESFUERZO = {"banco", "reparacion"}
 
 RESULTADOS_CHEQUEO = [
     ("ok", "OK"),
@@ -409,6 +425,7 @@ class McRovRevision(models.Model):
             )
 
     @api.depends(
+        "tipo",
         "chequeo_ids.resultado",
         "esfuerzo_resultado",
         "hallazgo_ids.severidad",
@@ -427,7 +444,12 @@ class McRovRevision(models.Model):
         """
         for revision in self:
             sin_responder = any(not linea.resultado for linea in revision.chequeo_ids)
-            if sin_responder or not revision.esfuerzo_resultado:
+            # El esfuerzo se exige solo donde es parte de la batería. Exigirlo siempre
+            # dejaba a las revisiones de terreno sin resultado posible.
+            falta_esfuerzo = (
+                revision.tipo in TIPOS_CON_ESFUERZO and not revision.esfuerzo_resultado
+            )
+            if sin_responder or falta_esfuerzo:
                 revision.resultado = False
                 continue
 
@@ -846,7 +868,10 @@ class McRovRevisionInspeccion(models.Model):
     # "al recibir" en el nombre y no solo en la ayuda: es la única cosa que impide que el
     # técnico anote aquí un sello que él mismo rompió al abrir el equipo.
     estado_sello = fields.Selection(ESTADOS_SELLO, string="Estado del sello al recibir")
-    observacion = fields.Char(string="Observación")
+    # Se llamaba `observacion` hasta 19.0.16.0.0. Había tres nombres para la misma idea —
+    # `detalle` en la línea de chequeo, `detalle` en la de hallazgo, y `observacion` acá— y
+    # esta versión lleva migración de todos modos, así que unificarlo salió gratis.
+    detalle = fields.Char(string="Detalle")
 
     tipo = fields.Selection(related="revision_id.tipo", store=True)
     lot_id = fields.Many2one(related="revision_id.lot_id", string="Equipo", store=True)

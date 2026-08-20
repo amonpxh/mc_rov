@@ -81,7 +81,7 @@ class RevisionCommon(TransactionCase):
             {
                 "name": "Chequeo de prueba",
                 "seccion": "otro",
-                "aplica_fabricacion": False,
+                "aplica_banco": False,
                 "aplica_reparacion": False,
                 "aplica_terreno": False,
                 **vals,
@@ -194,14 +194,14 @@ class TestMcRovRevision(RevisionCommon):
         )
 
         self.assertTrue(all(software.mapped("aplica_reparacion")))
-        self.assertFalse(any(software.mapped("aplica_fabricacion")))
+        self.assertFalse(any(software.mapped("aplica_banco")))
         self.assertFalse(any(software.mapped("aplica_terreno")))
 
         reparacion = self._revision(tipo="reparacion").chequeo_ids.mapped("chequeo_id")
-        fabricacion = self._revision(tipo="fabricacion").chequeo_ids.mapped("chequeo_id")
+        banco = self._revision(tipo="banco").chequeo_ids.mapped("chequeo_id")
 
         self.assertFalse(software - reparacion)
-        self.assertFalse(software & fabricacion)
+        self.assertFalse(software & banco)
 
     def test_cambiar_el_tipo_ajusta_el_checklist_sin_borrar_respuestas(self):
         """Cambiar de tipo quita las líneas que ya no corresponden, pero nunca las que
@@ -213,7 +213,7 @@ class TestMcRovRevision(RevisionCommon):
         respondida = propias[0]
         respondida.resultado = "ok"
 
-        revision.tipo = "fabricacion"
+        revision.tipo = "banco"
 
         self.assertIn(respondida, revision.chequeo_ids)
 
@@ -222,7 +222,7 @@ class TestMcRovRevision(RevisionCommon):
         revision = self._revision(tipo="reparacion")
         propias = revision.chequeo_ids.filtered(lambda linea: linea.chequeo_id == solo_reparacion)
 
-        revision.tipo = "fabricacion"
+        revision.tipo = "banco"
 
         self.assertFalse(propias.exists())
 
@@ -304,6 +304,27 @@ class TestMcRovRevision(RevisionCommon):
 @tagged("post_install", "-at_install")
 class TestMcRovRevisionResultado(RevisionCommon):
     """Tests de `resultado`, que se deriva y no se decide."""
+
+    def test_terreno_se_aprueba_sin_corrida_de_resistencia(self):
+        """El esfuerzo se exige solo donde es parte de la batería.
+
+        Hasta `19.0.16.0.0` se exigía siempre, así que **una revisión de terreno no podía
+        quedar aprobada nunca**: se quedaba en blanco para siempre. Y en terreno no hay
+        corrida de resistencia — el criterio no es la relevancia sino la física, no hay dónde
+        dejar un equipo andando hora y media colgado de un bote.
+        """
+        revision = self._revision(tipo="terreno")
+        self._responder_todo(revision)
+
+        self.assertFalse(revision.esfuerzo_resultado, "en terreno no se corre el esfuerzo")
+        self.assertEqual(revision.resultado, "aprobado")
+
+    def test_banco_sigue_exigiendo_la_corrida_de_resistencia(self):
+        """El arreglo no puede convertirse en dejar de pedirlo donde sí corresponde."""
+        revision = self._revision(tipo="banco")
+        self._responder_todo(revision)
+
+        self.assertFalse(revision.resultado, "sin esfuerzo no hay resultado posible")
 
     def test_sin_hallazgos_ni_fallas_el_revision_esta_aprobado(self):
         revision = self._revision()
@@ -659,9 +680,9 @@ class TestMcRovRevisionSellos(RevisionCommon):
         componentes = revision.inspeccion_ids.mapped("componente_id")
         self.assertTrue(all(componentes.mapped("es_inspeccionable")))
 
-    def test_fabricacion_no_lleva_inspeccion_de_sellos(self):
+    def test_la_prueba_de_banco_no_lleva_inspeccion_de_sellos(self):
         """En un equipo recién armado no hay sello previo que mirar."""
-        self.assertFalse(self._revision(tipo="fabricacion").inspeccion_ids)
+        self.assertFalse(self._revision(tipo="banco").inspeccion_ids)
 
     def test_terreno_tampoco_lleva_inspeccion_de_sellos(self):
         """Una prueba en terreno no es una entrada al taller: el equipo no cambió de manos

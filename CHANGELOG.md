@@ -4,6 +4,76 @@ All notable changes to the `mc_rov` Odoo module are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this module adheres to [semantic versioning](https://semver.org/) within the constraints of Odoo's version scheme: `19.0.X.Y.Z` where `19.0` is the Odoo major, `X` is breaking-change/migration, `Y` is feature, `Z` is bugfix.
 
+## [19.0.16.0.0] — 2026-08-20
+
+Block A1 of the fabrication design: the schema move that has to happen **before the system
+goes into real use**, because it is the only one carrying a migration. § 8 puts it plainly —
+*the window is now; with real equipment loaded, each of those three questions comes back*.
+
+### Changed
+
+- **The revision type `fabricacion` becomes `banco`.** The old value was generic and never had
+  a written justification, and it had stopped describing one thing: what happens while
+  assembling are quality points, what happens afterwards is this test.
+
+  **It is `banco` and not `rendimiento`** — the name the design had picked, and equally
+  unjustified, which is precisely the defect that retired `fabricacion`. Not because
+  «rendimiento» is inaccurate: the test does measure performance. Because **`rendimiento` and
+  `terreno` do not contrast on the same axis** — one names what is measured, the other where it
+  happens — so the dropdown leaves open the question *«doesn't the field test measure
+  performance too?»*.
+
+  The real axis is place, and the design gives itself away: its tables define both by where they
+  happen, and the case it uses to illustrate their difference is **pressure verified by two
+  means depending on where you are**. `laboratorio` was rejected — nowhere in the workshop is
+  called that, it would be imported vocabulary — and so was `taller`, since the repair revision
+  also happens there and brings the collision back. The label is always «Prueba de banco», never
+  a bare «Banco».
+
+- **`aplica_fabricacion` becomes `aplica_banco`** across the model, the 24 catalogue records,
+  the view and the tests.
+
+- **`observacion` becomes `detalle` on the seal inspection line.** There were three names for
+  one idea — `detalle` on the check line, `detalle` on the finding line, `observacion` here. This
+  version carries a migration anyway, so unifying it was free.
+
+### Fixed
+
+- **A field revision could never be approved.** `_compute_resultado` demanded
+  `esfuerzo_resultado` before returning any result at all, and the endurance run is not part of
+  the field battery — the criterion is not relevance but physics: there is nowhere to leave a
+  ROV running for ninety minutes off a boat. So a field test sat blank forever, which is the
+  same failure mode `19.0.15.1.0` fixed from the other side. The run is now demanded only where
+  it belongs, driven by a list beside `CAMPO_APLICA` rather than by a condition buried in the
+  compute.
+
+### Removed
+
+- **The field-test columns leave `stock.lot`**, along with their tab: `mc_fecha_prueba`,
+  `mc_lugar`, `mc_profundidad`, `mc_velocidad_corriente`, `mc_alimentacion`,
+  `mc_tiempo_prueba_terreno`, both `_terreno` temperatures and `mc_observacion`.
+
+  They were the result of an *event* stored as if it were a spec sheet, so running the test
+  twice overwrote the first one in silence — `mc_fecha_prueba` even had a date, so somebody
+  understood it was an event, but there was only room for one. It is now a revision of type
+  `terreno`, which keeps history.
+
+  **The migration counts and dumps whatever it is about to drop**, even though § 8 verified zero
+  affected rows: what held on 2026-08-18 may not hold the day it runs, and the lesson of
+  `19.0.15.0.0` is that the warning about what is lost has to arrive *before* the rows go.
+
+  **And rehearsing it on staging immediately proved the dump wrong.** Against a copy of
+  production it reported three serials as losing field-test data; reading the values, the only
+  real one was `mc_alimentacion = 'Generador'` on a test serial. The rest were zeros — because
+  Odoo stores `0`, not `NULL`, in an Integer or Float nobody filled, so `IS NOT NULL` cannot
+  tell an untouched column from a measured zero. It is the same «zero of the numeric fields»
+  the spec sheet already has identified and tested. Emptiness is now judged per type, because
+  **a warning that cries wolf is worse than no warning**: the next time there is real data,
+  nobody will read it.
+
+- **The unused «Revisiones de fabricación» action.** No menu referenced it — bench tests are
+  created from the serial's button — and after the rename its domain would have matched nothing.
+
 ## [19.0.15.5.0] — 2026-08-20
 
 The repair → lesson bridge, redesigned. § 6.1.3 asked for «a button», and that does not

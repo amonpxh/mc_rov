@@ -248,43 +248,10 @@
                         </group>
                     </page>
 
-                    <page string="Prueba en Terreno" name="page_prueba_terreno" invisible="not es_un_rov">
-                        <group name="group_terreno">
-                            <group name="group_terreno_left">
-                                <field name="mc_fecha_prueba"/>
-                                <field name="mc_lugar"/>
-                                <label for="mc_profundidad" string="Profundidad"/>
-                                <div class="o_row">
-                                    <field name="mc_profundidad" nolabel="1" class="o_field_number" style="max-width: 80px;"/>
-                                    <span>m</span>
-                                </div>
-                                <label for="mc_velocidad_corriente" string="Velocidad de la corriente"/>
-                                <div class="o_row">
-                                    <field name="mc_velocidad_corriente" nolabel="1" class="o_field_number" style="max-width: 80px;"/>
-                                    <span>Knots</span>
-                                </div>
-                                <field name="mc_alimentacion" widget="radio" options="{&quot;horizontal&quot;:true}"/>
-                            </group>
-                            <group name="group_terreno_right">
-                                <label for="mc_tiempo_prueba_terreno" string="Tiempo de prueba"/>
-                                <div class="o_row">
-                                    <field name="mc_tiempo_prueba_terreno" nolabel="1" class="o_field_number" style="max-width: 80px;"/>
-                                    <span>h</span>
-                                </div>
-                                <label for="mc_temperatura_interior_terreno" string="Temperatura interior (Prueba)"/>
-                                <div class="o_row">
-                                    <field name="mc_temperatura_interior_terreno" nolabel="1" class="o_field_number" style="max-width: 80px;"/>
-                                    <span>°C</span>
-                                </div>
-                                <label for="mc_temperatura_exterior_terreno" string="Temperatura exterior (Prueba)"/>
-                                <div class="o_row">
-                                    <field name="mc_temperatura_exterior_terreno" nolabel="1" class="o_field_number" style="max-width: 80px;"/>
-                                    <span>°C</span>
-                                </div>
-                                <field name="mc_observacion"/>
-                            </group>
-                        </group>
-                    </page>
+                    <!-- La pestaña «Prueba en Terreno» se retiró en 19.0.16.0.0. Era el
+                         resultado de un evento guardado como ficha, así que repetir la
+                         prueba pisaba la anterior sin avisar. Ahora es una revisión de tipo
+                         `terreno`, con historial y con su propia batería. -->
 
                     <!-- Historial de propiedad. Solo lectura: lo escribe el override de
                          write de stock.lot al cambiar el propietario, no una persona. -->
@@ -340,8 +307,8 @@
                              dentro de un group ocupa una celda suelta y desincroniza los
                              pares etiqueta/campo de todo lo que venga después (PR #10). -->
                         <div class="mb-3">
-                            <button name="action_nueva_revision_fabricacion" type="object"
-                                    string="Nueva revisión de fabricación"
+                            <button name="action_nueva_revision_banco" type="object"
+                                    string="Nueva prueba de banco"
                                     class="btn-primary"/>
                         </div>
                         <field name="revision_ids" readonly="1">
