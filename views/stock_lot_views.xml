@@ -139,6 +139,20 @@
                                 <field name="mc_tiene_horometro" widget="radio" options="{&quot;horizontal&quot;:true}"/>
                             </group>
                         </group>
+
+                        <!-- Configuración del equipo, no resultado de una prueba: por eso
+                             sobrevivieron al retiro de 19.0.17.0.0 y viven acá. La prueba de
+                             banco y la de terreno los miden; la revisión de reparación los
+                             muestra desde aquí para ver si cambiaron. -->
+                        <separator string="Parámetros de trabajo"/>
+                        <group name="group_parametros">
+                            <group>
+                                <field name="mc_limitacion_pilot_gain"/>
+                            </group>
+                            <group>
+                                <field name="mc_ganancia_luz"/>
+                            </group>
+                        </group>
                     </page>
 
                     <page string="Periféricos" name="page_perifericos" invisible="not es_un_rov">
@@ -182,75 +196,19 @@
                              recoge se llama así — la etiqueta se había quedado con la palabra
                              que se retiró. La sección entera desaparece en el bloque A2, cuando
                              la prueba de banco reemplace estas columnas. -->
-                        <separator string="PRUEBA DE BANCO"/>
-                        <group name="group_rendimiento">
-                            <group name="group_rendimiento_left">
-                                <field name="mc_modelo_fuente"/>
-                                <field name="mc_fuente_energia" widget="radio" options="{&quot;horizontal&quot;:true}"/>
-                                <label for="mc_tension_salida" string="Tensión de salida"/>
-                                <div class="o_row">
-                                    <field name="mc_tension_salida" nolabel="1" class="o_field_number" style="max-width: 80px;"/>
-                                    <span>V</span>
-                                </div>
-                            </group>
-                            <group name="group_rendimiento_right">
-                                <field name="mc_consumo_corriente" readonly="1" force_save="1"/>
-                                <label for="mc_en_reposo" string="En reposo"/>
-                                <div class="o_row">
-                                    <field name="mc_en_reposo" nolabel="1" class="o_field_number" style="max-width: 80px;"/>
-                                    <span>kWh</span>
-                                </div>
-                                <label for="mc_esfuerzo" string="Esfuerzo"/>
-                                <div class="o_row">
-                                    <field name="mc_esfuerzo" nolabel="1" class="o_field_number" style="max-width: 80px;"/>
-                                    <span>kWh</span>
-                                </div>
-                            </group>
-                        </group>
-                        <separator string="PARÁMETROS DE TRABAJO"/>
-                        <group name="group_parametros">
-                            <group name="group_parametros_left">
-                                <label for="mc_limitacion_pilot_gain" string="Limitación pilot gain"/>
-                                <div class="o_row">
-                                    <field name="mc_limitacion_pilot_gain" nolabel="1" class="o_field_number" style="max-width: 80px;"/>
-                                    <span>%</span>
-                                </div>
-                                <label for="mc_ganancia_luz" string="Ganancia Luz"/>
-                                <div class="o_row">
-                                    <field name="mc_ganancia_luz" nolabel="1" class="o_field_number" style="max-width: 80px;"/>
-                                    <span>%</span>
-                                </div>
-                                <label for="mc_tiempo_prueba_lab" string="Tiempo de Prueba"/>
-                                <div class="o_row">
-                                    <field name="mc_tiempo_prueba_lab" nolabel="1" class="o_field_number" style="max-width: 80px;"/>
-                                    <span>h</span>
-                                </div>
-                                <field name="mc_prueba_leak"/>
-                            </group>
-                            <group name="group_parametros_right">
-                                <field name="mc_ancho_banda" readonly="1" force_save="1"/>
-                                <label for="mc_subida" string="Subida"/>
-                                <div class="o_row">
-                                    <field name="mc_subida" nolabel="1" class="o_field_number" style="max-width: 80px;"/>
-                                    <span>Mbps</span>
-                                </div>
-                                <label for="mc_bajada" string="Bajada"/>
-                                <div class="o_row">
-                                    <field name="mc_bajada" nolabel="1" class="o_field_number" style="max-width: 80px;"/>
-                                    <span>Mbps</span>
-                                </div>
-                                <label for="mc_temperatura_interior_lab" string="Temperatura interior"/>
-                                <div class="o_row">
-                                    <field name="mc_temperatura_interior_lab" nolabel="1" class="o_field_number" style="max-width: 80px;"/>
-                                    <span>°C</span>
-                                </div>
-                                <label for="mc_temperatura_exterior_lab" string="Temperatura exterior"/>
-                                <div class="o_row">
-                                    <field name="mc_temperatura_exterior_lab" nolabel="1" class="o_field_number" style="max-width: 80px;"/>
-                                    <span>°C</span>
-                                </div>
-                            </group>
-                        </group>
+                        <!-- Aquí vivieron «PRUEBA DE BANCO» y «PARÁMETROS DE TRABAJO»
+                             hasta 19.0.17.0.0, dentro de una pestaña que solo nombraba la
+                             primera de sus tres secciones. Venía de la época de Studio.
+
+                             Las mediciones eran el resultado de un evento guardado como
+                             ficha, y encima estaban duplicadas con la revisión: el mismo dato
+                             se tecleaba dos veces sin ninguna señal de que sobraba. Ahora
+                             viven en una prueba de banco, que lleva historial.
+
+                             Los dos parámetros de trabajo que sí son ficha —pilot gain y
+                             ganancia luz— se movieron a Especificaciones, que es donde
+                             corresponde: describen cómo está configurado el equipo, no cómo
+                             salió una prueba. -->
                     </page>
 
                     <!-- La pestaña «Prueba en Terreno» se retiró en 19.0.16.0.0. Era el
