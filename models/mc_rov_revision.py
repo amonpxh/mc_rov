@@ -37,6 +37,15 @@ CAMPO_APLICA = {
 # `19.0.15.1.0` vino a arreglar del otro lado. Ver `designs/fabricacion.md` § 4.7.
 TIPOS_CON_ESFUERZO = {"banco", "reparacion"}
 
+# Qué campo de la prueba de banco alimenta qué campo de la ficha del equipo.
+SOFTWARE_A_FICHA = {
+    "software_instalado_id": "mc_software_superficie",
+    "version_software_instalada": "mc_version_software",
+    "version_ardusub_instalada": "mc_version_ardusub",
+    "controlador_instalado_id": "mc_controlador_vuelo",
+    "version_controlador_instalada": "mc_version_controlador",
+}
+
 RESULTADOS_CHEQUEO = [
     ("ok", "OK"),
     ("no_ok", "No OK"),
@@ -203,6 +212,22 @@ class McRovRevision(models.Model):
         related="lot_id.mc_version_controlador", string="Versión del controlador", readonly=True
     )
 
+    # --- Software instalado, y va al revés que en reparación ---
+    #
+    # En reparación el software se COMPARA: la ficha es la referencia y la revisión contrasta
+    # (los cinco `related` de arriba). En la prueba de banco no hay contra qué comparar —el
+    # equipo acaba de nacer y su ficha está vacía— así que **la prueba determina el valor y la
+    # ficha lo recibe** (§ 5.4).
+    software_instalado_id = fields.Many2one(
+        "mc.rov.software.superficie", string="Software de superficie instalado"
+    )
+    version_software_instalada = fields.Char(string="Versión del software instalada")
+    version_ardusub_instalada = fields.Char(string="Versión ArduSub instalada")
+    controlador_instalado_id = fields.Many2one(
+        "mc.rov.controlador.vuelo", string="Controlador de vuelo instalado"
+    )
+    version_controlador_instalada = fields.Char(string="Versión del controlador instalada")
+
     # --- La corrida: con qué se probó ---
     #
     # Estos campos vivían en `mc.rov.revision.corrida`, un modelo de línea que permitía varias
@@ -251,8 +276,79 @@ class McRovRevision(models.Model):
     )
 
     # No hay campo "ancho de banda": ese es el nombre de la prueba, no una tercera medición.
-    subida = fields.Float(string="Subida (Mbps)", digits=(6, 2))
-    bajada = fields.Float(string="Bajada (Mbps)", digits=(6, 2))
+    # El «±5%» del nombre viejo de la ficha era una referencia para quien juzga, no un dato,
+    # así que baja al help: el sistema guarda la medición y no opina sobre ella mientras no
+    # tenga con qué (§ 5.6).
+    subida = fields.Float(
+        string="Subida (Mbps)",
+        digits=(6, 2),
+        help="El valor de referencia puede variar ±5%. Lo juzga el técnico.",
+    )
+    bajada = fields.Float(
+        string="Bajada (Mbps)",
+        digits=(6, 2),
+        help="El valor de referencia puede variar ±5%. Lo juzga el técnico.",
+    )
+
+    modelo_fuente = fields.Char(string="Modelo de fuente")
+
+    # Cuánto duró la prueba entera. **No es `funcionamiento_continuo_duracion`**: ésa es la
+    # corrida de resistencia DENTRO de la prueba. Una prueba en terreno de tres horas puede no
+    # llevar corrida; una de banco lleva las dos y son números distintos (§ 4.7).
+    duracion = fields.Float(string="Duración de la prueba (h)", digits=(5, 2))
+
+    # Se llama «Condiciones y notas» y **no «Observaciones»**, y el nombre es parte del
+    # diseño: *observaciones* es una invitación a escribir aquí los hallazgos, y eso mataría
+    # el catálogo que costó dos versiones construir. Acá va lo que hace falta para interpretar
+    # los resultados y no cabe en ningún chequeo — la marea, que el cliente pidió cortar
+    # antes, que el generador andaba justo.
+    condiciones_notas = fields.Text(
+        string="Condiciones y notas de la prueba",
+        help="Lo que hace falta para interpretar los resultados y no cabe en ningún chequeo. "
+        "Los hallazgos van en su pestaña.",
+    )
+
+    # --- Estanqueidad ---
+    #
+    # Son la medición al lado del chequeo, no en su lugar: quien dice si estanco aprobó es el
+    # chequeo «Estanqueidad bajo presión», que responde OK / No OK / No aplica. Estos dos
+    # números lo acompañan y no opinan.
+    #
+    # **Sin umbral, a propósito.** El estándar existe —2 h a 30 bar, 50 en algunos modelos,
+    # eventualmente hasta 100— y aun así no se declara por modelo: los técnicos saben a cuánto
+    # va cada equipo, y exigir el valor por adelantado es agregarle trámite a algo que ya
+    # funciona (§ 5.6). En terreno esta pareja no aplica: ahí la verificación de presión es la
+    # profundidad alcanzada, que es la misma pregunta por otro medio.
+    presion_bar = fields.Float(string="Presión alcanzada (bar)", digits=(6, 1))
+    presion_tiempo = fields.Float(string="Tiempo a presión (h)", digits=(5, 2))
+
+    # --- Bloque eléctrico ---
+    #
+    # Las tres van juntas porque se leen juntas: una fuga alta con consumos normales dice algo
+    # distinto de una fuga alta con el consumo disparado.
+    fuga_corriente = fields.Float(string="Fuga de corriente (A)", digits=(6, 3))
+    consumo_reposo = fields.Float(string="Consumo en reposo (kWh)", digits=(6, 2))
+    # Se llamaba «esfuerzo» en la ficha del lote. La palabra significaba tres cosas a la vez
+    # y se retiró entera (§ 5.5): esto es un consumo, y la corrida de hora y media es otra
+    # cosa que ahora se llama funcionamiento continuo.
+    consumo_carga = fields.Float(string="Consumo bajo carga (kWh)", digits=(6, 2))
+
+    # --- Parámetros de trabajo ---
+    #
+    # Se miden en banco y en terreno; en reparación no se vuelven a medir, se muestran desde
+    # la ficha para ver si cambiaron. Y si se ajustan en terreno, la ficha queda vieja: ahí
+    # rige «quien ajusta, actualiza», que el § 5.4 acepta explícitamente.
+    limitacion_pilot_gain = fields.Integer(string="Limitación pilot gain (%)")
+    ganancia_luz = fields.Integer(string="Ganancia luz (%)")
+
+    # En reparación estos dos no se vuelven a medir: se muestran desde la ficha para que el
+    # técnico vea si cambiaron. Mismo bloque que ya funciona con las versiones de software.
+    limitacion_pilot_gain_ficha = fields.Integer(
+        related="lot_id.mc_limitacion_pilot_gain", string="Pilot gain según ficha", readonly=True
+    )
+    ganancia_luz_ficha = fields.Integer(
+        related="lot_id.mc_ganancia_luz", string="Ganancia luz según ficha", readonly=True
+    )
 
     # Dato interno: se medía, se le entregaba al cliente y el cliente la usó en contra. Vuelve
     # a medirse con la condición de que NO salga en el reporte impreso.
@@ -661,6 +757,61 @@ class McRovRevision(models.Model):
                     f"Falta lo siguiente para confirmar {revision.display_name}:\n\n{detalle}"
                 )
             revision.estado = "confirmado"
+            revision._volcar_software_a_la_ficha()
+
+    def _volcar_software_a_la_ficha(self):
+        """La prueba de banco escribe en la ficha las versiones que se instalaron.
+
+        En reparación el software se compara contra la ficha; acá es al revés, porque el
+        equipo acaba de nacer y no hay contra qué comparar. Si esto no ocurriera, la ficha
+        quedaría vacía **y la comparación del lado de reparación no funcionaría nunca** — sin
+        referencia, cada visita posterior compararía contra la nada, y nada lo avisaría.
+
+        **Sobrescribe, pero solo desde la prueba de banco más reciente del equipo.** Sobre-
+        escribir es lo correcto: si alguien actualiza el software y corre otra prueba, dejar
+        la versión vieja en la ficha haría que cada reparación posterior registrara una
+        diferencia falsa. Lo que no puede pasar es que **corregir una revisión antigua pise la
+        ficha de hoy** — confirmar no ocurre en orden cronológico, y una prueba de hace dos
+        años reconfirmada por una errata escribiría valores de hace dos años. Por eso manda la
+        más reciente y no la que se está confirmando. Mismo criterio que `ultima_mantencion`,
+        que usa la última orden de su tipo y no cualquiera.
+
+        Y queda en el chatter del equipo: escribir en la ficha de otro registro sin dejar
+        rastro es justo lo que este módulo evita.
+        """
+        self.ensure_one()
+        if self.tipo != "banco" or not self.lot_id:
+            return
+
+        mas_reciente = self.search(
+            [
+                ("lot_id", "=", self.lot_id.id),
+                ("tipo", "=", "banco"),
+                ("estado", "=", "confirmado"),
+            ],
+            order="fecha desc, id desc",
+            limit=1,
+        )
+        if mas_reciente != self:
+            return
+
+        valores = {}
+        for campo_prueba, campo_ficha in SOFTWARE_A_FICHA.items():
+            valor = self[campo_prueba]
+            if not valor:
+                continue
+            valor = valor.id if hasattr(valor, "id") else valor
+            if self.lot_id[campo_ficha] != valor:
+                valores[campo_ficha] = valor
+
+        if not valores:
+            return
+
+        self.lot_id.write(valores)
+        nombres = ", ".join(self.lot_id._fields[campo].string for campo in valores)
+        self.lot_id.message_post(
+            body=f"Ficha actualizada desde la prueba de banco {self.display_name}: {nombres}."
+        )
 
     def action_volver_a_borrador(self):
         """Reabre una revisión confirmado. Existe porque las fichas se equivocan.
