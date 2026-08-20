@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- La cola de candidatas a lección.
+
+         El § 6.1.3 del diseño pedía «un botón» en la línea de trabajo, y eso no sobrevive a
+         la pregunta de por qué alguien lo apretaría: el técnico no tiene incentivo, no tiene
+         por qué acordarse, y no tiene por qué saber escribir la conclusión — que es un
+         juicio de ingeniería con consecuencias en repuestos y garantías.
+
+         Lo que sí sabe hacer, y ya hace, es la observación: el origen es obligatorio al
+         cerrar y el «por qué pasó» queda escrito. Así que el conocimiento del momento no se
+         pierde; lo que faltaba era quién lo cosecha.
+
+         **El sistema detecta, la persona concluye o descarta.** Y detecta porque puede: una
+         línea de trabajo no es texto libre —componente, subtipo y origen salen de catálogo—
+         y el propio origen ya descartó al cliente y al desgaste.
+
+         No hay umbral ni parámetro. La lista se agrupa por modelo y componente, y el conteo
+         de cada grupo es la evidencia: cuatro trabajos sobre el mismo componente del mismo
+         modelo son un patrón, y uno solo es una anécdota. Decidir dónde está la línea es un
+         juicio, y por eso no se codifica un número. -->
+    <record id="view_mc_rov_leccion_pendiente_list" model="ir.ui.view">
+        <field name="name">mc.rov.linea.falla.leccion.list</field>
+        <field name="model">mc.rov.linea.falla</field>
+        <field name="arch" type="xml">
+            <list string="Lecciones pendientes"
+                  create="0"
+                  delete="0"
+                  editable="bottom"
+                  default_group_by="mc_product_tmpl_id">
+
+                <!-- Actúa sobre lo seleccionado, no sobre una fila: una lección se escribe
+                     con varios trabajos a la vista, porque leídos de corrido dicen algo que
+                     ninguno dice solo. -->
+                <header>
+                    <button name="action_crear_alerta_calidad"
+                            type="object"
+                            string="Escribir la lección del modelo"
+                            class="btn-primary"/>
+                </header>
+
+                <field name="mc_product_tmpl_id" readonly="1" optional="show"/>
+                <field name="componente_id" readonly="1"/>
+                <field name="subtipo_id" readonly="1" optional="show"/>
+                <field name="accion_id" readonly="1" optional="hide"/>
+                <field name="origen" readonly="1"/>
+                <field name="repair_id" readonly="1"/>
+                <field name="fecha" readonly="1"/>
+                <!-- La evidencia. Es la columna que se lee para decidir, así que va ancha y
+                     visible por defecto aunque sea texto largo. -->
+                <field name="analisis_causa" readonly="1"/>
+                <!-- La única columna editable: escribir aquí saca el trabajo de la lista.
+                     Es un motivo y no una casilla a propósito — ver el campo en el modelo. -->
+                <field name="mc_descarte_motivo"
+                       placeholder="Escriba por qué no es una lección, y sale de la lista"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_mc_rov_leccion_pendiente_search" model="ir.ui.view">
+        <field name="name">mc.rov.linea.falla.leccion.search</field>
+        <field name="model">mc.rov.linea.falla</field>
+        <field name="arch" type="xml">
+            <search string="Lecciones pendientes">
+                <field name="mc_product_tmpl_id"/>
+                <field name="componente_id"/>
+                <field name="repair_id"/>
+                <filter name="origen_diseno"
+                        string="Diseño o especificación"
+                        domain="[('origen', '=', 'diseno')]"/>
+                <filter name="origen_manufactura"
+                        string="Manufactura propia"
+                        domain="[('origen', '=', 'falla_fabricacion')]"/>
+                <filter name="origen_proveedor"
+                        string="Pieza de proveedor"
+                        domain="[('origen', '=', 'pieza_proveedor')]"/>
+                <separator/>
+                <!-- Para volver a mirar lo descartado: un descarte es un juicio, y los
+                     juicios se revisan. Sin este filtro no habría forma de encontrarlos. -->
+                <filter name="descartados"
+                        string="Descartados"
+                        domain="[('mc_descarte_motivo', '!=', False)]"/>
+                <filter name="con_leccion"
+                        string="Ya alimentaron una lección"
+                        domain="[('mc_alerta_id', '!=', False)]"/>
+                <group expand="1" string="Agrupar por">
+                    <filter name="group_modelo"
+                            string="Modelo"
+                            context="{'group_by': 'mc_product_tmpl_id'}"/>
+                    <filter name="group_componente"
+                            string="Componente"
+                            context="{'group_by': 'componente_id'}"/>
+                    <filter name="group_origen"
+                            string="Origen"
+                            context="{'group_by': 'origen'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_mc_rov_leccion_pendiente" model="ir.actions.act_window">
+        <field name="name">Lecciones pendientes</field>
+        <field name="res_model">mc.rov.linea.falla</field>
+        <field name="view_mode">list</field>
+        <field name="search_view_id" ref="view_mc_rov_leccion_pendiente_search"/>
+        <!-- Los tres orígenes que apuntan hacia adentro. `mal_uso`, `desgaste` y
+             `desconocida` no son lecciones de fabricación: son la vida de un equipo.
+
+             No hace falta filtrar por orden cerrada — el origen se contesta al cerrar, así
+             que una orden abierta lo tiene vacío y no entra por su propio peso. -->
+        <field name="domain">[
+            ('origen', 'in', ['diseno', 'falla_fabricacion', 'pieza_proveedor']),
+            ('mc_alerta_id', '=', False),
+            ('mc_descarte_motivo', '=', False)
+        ]</field>
+        <field name="context">{'search_default_group_modelo': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No hay trabajos esperando lección
+            </p>
+            <p>
+                Aquí llegan los trabajos de reparación cuyo origen apunta hacia adentro:
+                <b>diseño</b>, <b>manufactura propia</b> o <b>pieza de proveedor</b>.
+                Cada uno es un problema de fabricación descubierto tarde.
+            </p>
+            <p>
+                Cuando varios coinciden en el mismo modelo y el mismo componente, eso es un
+                patrón: selecciónalos y escribe la lección. Si uno no lo es, anota por qué
+                en la última columna y sale de la lista.
+            </p>
+        </field>
+    </record>
+
+    <menuitem
+        id="menu_mc_rov_lecciones_pendientes"
+        name="Lecciones pendientes"
+        parent="repair.menu_repair_order"
+        action="action_mc_rov_leccion_pendiente"
+        sequence="13"/>
+
+</odoo>
