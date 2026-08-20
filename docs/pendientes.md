@@ -281,10 +281,15 @@ ni el desgaste**.
 El § 6.3 dice que *«los patrones de manufactura sí se detectan, pero en los datos de reparación»*
 y **nunca dice quién detecta**. Ahí estaba el hueco: la respuesta es el sistema, no una persona.
 
-**Regla propuesta:** N unidades **distintas** del mismo modelo con líneas del mismo componente y
-origen en esos tres. `N` en un parámetro de sistema, no en el código —igual que el ciclo de
-mantención—, empezando en 2. *Unidades distintas* importa: el mismo equipo reparado dos veces no
-es un patrón.
+**Regla, corregida el mismo día: no hay umbral.** La primera versión ponía `N` unidades distintas
+en un parámetro de sistema. Sobra. Si la lista se agrupa por modelo, componente y origen y se
+ordena **por cantidad de líneas sin resolver**, arriba queda *«E-pod · manufactura propia — 4»* y
+abajo *«cable · diseño — 1»*. La pregunta «¿es suficiente repetición?» vuelve a ser un juicio, que
+es lo que era — y desaparecen el número arbitrario, el parámetro y toda la lógica de qué pasa
+cuando llega la cuarta unidad.
+
+*Unidades distintas* sí importa para el conteo: el mismo equipo reparado dos veces no es un
+patrón.
 
 **Dónde:** `Reparaciones → Lecciones pendientes`, al lado de *Revisiones técnicas*. En Reparaciones
 y no en Calidad porque **la evidencia que hay que leer para decidir es evidencia de reparación**, y
@@ -302,12 +307,32 @@ lista.
 `mc.rov.linea.falla.mc_alerta_id`, que ya existe desde `19.0.15.3.0`, es lo que hace que un patrón
 deje de estar pendiente: cuando todas sus líneas alimentaron una lección, sale de la cola.
 
-### Lo abierto, y son la misma pregunta
+### La pregunta que estaba abierta, y cómo se resolvió
 
-**¿El patrón es un agrupamiento calculado al vuelo o un registro?** Si es lo primero, no hay dónde
-escribir el descarte **y tampoco a qué colgarle el botón** — Odoo no pone botones en las cabeceras
-de grupo de una lista. Si es un registro, las dos se resuelven y aparece una tercera: quién lo
-crea, cuándo, y qué pasa cuando llega la cuarta unidad.
+Era **¿el patrón es un agrupamiento calculado o un registro?**, y de ella dependían dónde vive el
+descarte y a qué se cuelga el botón.
+
+**Resuelta: no se guarda el patrón, se guarda la decisión humana.** La razón está en el
+`CLAUDE.md` sobre un caso idéntico —*«no existe un booleano "mantención vencida" almacenado, y no
+debe agregarse: un equipo se vence por el paso del tiempo, no porque alguien lo edite, así que
+quedaría desactualizado en silencio»*—. Un patrón existe porque existen las líneas. Materializarlo
+en una tabla es volver a crear el defecto recurrente que este módulo ya identificó: el dato
+derivado que se desincroniza y nada lo detecta.
+
+| Qué | Dónde vive |
+|---|---|
+| El patrón | Agrupamiento calculado. **Nada que guardar** |
+| La lección | La alerta, que ya existe |
+| El descarte, que **sí** es un acto humano | Un campo en la línea, con motivo |
+| «Esta línea ya alimentó una lección» | `mc_alerta_id`, ya construido |
+| Los botones | Acciones sobre líneas seleccionadas, no sobre cabeceras de grupo |
+
+Sin modelo nuevo, sin acción programada, sin tabla derivada. Y con una propiedad que se gana
+gratis: **si se descarta un patrón y vuelve a ocurrir, reaparece arriba de la lista**, porque las
+líneas nuevas no están descartadas.
+
+**Cuándo revisitarlo:** el día que se quiera un responsable por patrón, un plazo, o el historial de
+quién descartó qué. Ahí un registro se justifica.
 
 ### La alternativa que se evaluó y se descartó
 
