@@ -567,6 +567,17 @@ El diseño del 2026-08-17 proponía construir un modelo de lecciones sobre `prod
    fallo queda registrado ahí para siempre, así que **la alerta se vuelve el historial de
    intentos** que el chequeo no guarda (§ 2.1, hallazgo 1).
 
+   **Acotado a los ROV, decidido el 2026-08-20 al implementarlo.** Este párrafo no lo
+   calificaba, y así se implementó primero: cualquier chequeo fallado de la base abría su
+   alerta. Se restringe a los productos de la rama de categorías ROV —la misma que resuelve
+   `es_un_rov`— porque el costo se paga en la dirección equivocada: un punto de calidad en
+   recepción de compras llenaría la lista de borradores vacíos, y **una lista larga de alertas
+   que nadie salda destruye justamente la señal en que se apoya este párrafo**, que una alerta a
+   medio llenar se lee como deuda pendiente.
+
+   Si la raíz de categorías no resuelve, no se crea ninguna alerta y queda un WARNING en el log.
+   Callar es la dirección segura del fallo, pero es silenciosa, así que tiene que avisar.
+
 5. **`lot_ids` no se llena solo.** Es el campo que se destacó como «el alcance del daño», y en la
    prueba quedó vacío: cuando se creó la alerta, la orden todavía no tenía número de serie.
    Poblarlo tiene que ocurrir al terminar la orden, no al crear la alerta.

@@ -22,6 +22,13 @@ Block B of the fabrication design: the bridges to `quality.alert`. See
   move on*, and creating the alert is a detour nobody asks for — and detours are not taken
   at seven in the evening with a half-built ROV on the bench.
 
+  **Restricted to products in the ROV category branch**, the same one `es_un_rov` resolves.
+  § 6.1.4 did not qualify it, and the cost of not qualifying it lands in the wrong direction: a
+  quality point on incoming purchases would fill the list with empty drafts, and a long list of
+  alerts nobody clears destroys the very signal the design leans on — that a half-filled alert
+  reads as a pending debt. If the root category does not resolve, nothing is created and a
+  WARNING goes to the log.
+
   **Idempotent per check, and that is half the value.** Fail → adjust → fail again produces
   one alert with the retry in its chatter, not two alerts. That is what turns the alert into
   the history of attempts the check itself cannot keep. A *closed* alert is never reopened:

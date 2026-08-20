@@ -234,10 +234,9 @@ queda anotado que ése es el costo.
   `quality.group_quality_user`, que es honesto —sin ese grupo la creación de la alerta fallaría
   igual por permisos— pero significa que **un técnico de reparación no lo ve hasta que se le dé
   el grupo**. Es configuración, y va con el bloque D.
-- **El ruido posible de la alerta automática.** Se implementó sin restringir a productos ROV,
-  que es lo que dice el § 6.1.4. Si algún día se configuran puntos de calidad en recepción de
-  compras, cada fallo va a abrir su borrador. La señal para revisitarlo es una lista de alertas
-  vacías que nadie salda.
+- ~~**El ruido posible de la alerta automática.**~~ — **resuelto el 2026-08-20:** se acotó a la
+  rama de categorías ROV. El § 6.1.4 no lo calificaba y se implementó sin restringir; Paulo lo
+  corrigió al revisarlo. El § 6.1.4 quedó actualizado con la razón.
 
 ### Lo que no se va a pedir
 

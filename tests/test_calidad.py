@@ -1,6 +1,8 @@
 from odoo.tests.common import TransactionCase
 from odoo.tests import tagged
 
+from odoo.addons.mc_rov.models.stock_lot import ROV_CATEG_PARAM
+
 
 @tagged("post_install", "-at_install")
 class CalidadCommon(TransactionCase):
@@ -9,9 +11,19 @@ class CalidadCommon(TransactionCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        # El árbol de categorías hace falta de verdad: la alerta automática solo corre
+        # sobre productos de la rama ROV, así que sin esto no se crearía ninguna y los
+        # tests pasarían por el motivo equivocado. Mismo montaje que
+        # StockLotPropiedadCommon en test_stock_lot.py.
+        cls.categoria = cls.env["product.category"].create({"name": "ROV Test - Vehiculos"})
+        cls.env["ir.config_parameter"].sudo().set_param(ROV_CATEG_PARAM, str(cls.categoria.id))
+
         cls.producto = cls.env["product.product"].create(
-            {"name": "ROV MC-300 Test", "tracking": "serial"}
+            {"name": "ROV MC-300 Test", "tracking": "serial", "categ_id": cls.categoria.id}
         )
+        # Fuera de la rama ROV: un o-ring comprado, para comprobar que fallar su chequeo
+        # de recepción no abre nada.
+        cls.producto_ajeno = cls.env["product.product"].create({"name": "O-ring Test"})
         cls.plantilla = cls.producto.product_tmpl_id
         cls.equipo = cls.env["stock.lot"].create(
             {"name": "SN-CALIDAD-1", "product_id": cls.producto.id}
@@ -77,6 +89,30 @@ class TestAlertaAutomatica(CalidadCommon):
     def test_aprobar_no_crea_nada(self):
         chequeo = self._chequeo()
         chequeo.do_pass()
+        self.assertFalse(chequeo.alert_ids)
+
+    def test_un_producto_fuera_de_la_rama_rov_no_abre_alerta(self):
+        """El automatismo es solo para ROVs, y esto es lo que lo mantiene acotado.
+
+        Un punto de calidad en recepción de compras llenaría la lista de borradores
+        vacíos, y una lista que nadie salda destruye la señal en que se apoya el § 6.1.4:
+        que una alerta a medio llenar se lea como deuda pendiente.
+        """
+        chequeo = self._chequeo(product_id=self.producto_ajeno.id)
+        chequeo.do_fail()
+        self.assertFalse(chequeo.alert_ids)
+
+    def test_con_la_raiz_apuntando_a_otra_rama_no_se_crea_nada(self):
+        """El fallo seguro es callar, no inundar — y queda avisado en el log.
+
+        No se afirma que la raíz quede sin resolver: el parámetro roto cae al respaldo del
+        XML ID de importación, que en producción sí existe. Lo que se fija es el
+        comportamiento en las dos ramas de ese respaldo, que es el mismo — si la raíz no
+        es la de este producto, no nace ninguna alerta.
+        """
+        self.env["ir.config_parameter"].sudo().set_param(ROV_CATEG_PARAM, "0")
+        chequeo = self._chequeo()
+        chequeo.do_fail()
         self.assertFalse(chequeo.alert_ids)
 
     def test_fallar_dos_veces_no_duplica(self):

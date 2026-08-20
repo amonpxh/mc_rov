@@ -1,4 +1,8 @@
+import logging
+
 from odoo import _, fields, models
+
+_logger = logging.getLogger(__name__)
 
 
 class QualityCheck(models.Model):
@@ -45,8 +49,18 @@ class QualityCheck(models.Model):
         Una alerta ya cerrada no se reabre. Si el mismo control vuelve a fallar meses
         después, eso es un hallazgo nuevo sobre una lección que ya se dio por aprendida, y
         merece su propia alerta en vez de ensuciar la anterior.
+
+        **Solo para ROVs.** El § 6.1.4 no lo califica, pero el diseño entero habla de
+        fabricación de ROVs y automatizar esto sobre toda la base tiene un costo que se
+        paga en la dirección equivocada: un punto de calidad en recepción de compras
+        llenaría la lista de borradores vacíos, y una lista larga de alertas que nadie
+        salda destruye exactamente la señal en que se apoya el § 6.1.4 — que una alerta a
+        medio llenar se lee como deuda pendiente.
         """
-        for chequeo in self:
+        categorias_rov = self._mc_categorias_rov()
+        for chequeo in self.filtered(
+            lambda chequeo: chequeo.product_id.categ_id in categorias_rov
+        ):
             abierta = chequeo.alert_ids.filtered(lambda alerta: not alerta.stage_id.done)
             if abierta:
                 abierta[0].message_post(
@@ -58,6 +72,27 @@ class QualityCheck(models.Model):
                 )
                 continue
             self.env["quality.alert"].create(chequeo._mc_valores_de_alerta())
+
+    def _mc_categorias_rov(self):
+        """La rama de categorías que cuenta como ROV, resuelta una vez por recordset.
+
+        Reusa `stock.lot._get_rov_root_category()` en vez de repetir la lógica: la raíz
+        sale de un parámetro de sistema con respaldo a un XML ID de importación, y tener
+        dos copias de esa resolución es garantía de que un día digan cosas distintas.
+
+        Si la raíz no resuelve, esto devuelve vacío y **no se crea ninguna alerta**. Es la
+        dirección segura del fallo —callar en vez de inundar— pero es silenciosa, así que
+        queda en el log. Mismo criterio que `_compute_es_un_rov`, que ante lo mismo apaga
+        todos los `es_un_rov` y lo registra como ERROR.
+        """
+        raiz = self.env["stock.lot"]._get_rov_root_category()
+        if not raiz:
+            _logger.warning(
+                "No se pudo resolver la categoría raíz de ROV: los chequeos de calidad "
+                "fallados no abrirán su alerta automáticamente."
+            )
+            return self.env["product.category"]
+        return self.env["product.category"].search([("id", "child_of", raiz.id)])
 
     def _mc_valores_de_alerta(self):
         """Los mismos campos que arma `do_alert`, más el enlace al trabajo que la originó.
