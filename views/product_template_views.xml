@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Qué aprendimos fabricando este modelo. Es consulta de referencia: la lista que
+         importa es la de la orden de fabricación, porque es la única que aparece sin que
+         nadie la busque (§ 6.1.1). Ésta contesta la otra pregunta, la que se hace sin
+         partir de una orden. -->
+    <record id="view_product_template_form_mc_rov_calidad" model="ir.ui.view">
+        <field name="name">product.template.form.mc.rov.calidad</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_form_view"/>
+        <field name="arch" type="xml">
+
+            <div name="button_box" position="inside">
+                <button name="action_mc_ver_alertas"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-graduation-cap"
+                        invisible="mc_leccion_count == 0"
+                        groups="quality.group_quality_user">
+                    <field name="mc_leccion_count" widget="statinfo" string="Lecciones"/>
+                </button>
+            </div>
+
+        </field>
+    </record>
+</odoo>

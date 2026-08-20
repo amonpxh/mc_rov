@@ -3,3 +3,4 @@ from . import test_repair_order
 from . import test_mc_rov_componente
 from . import test_mc_rov_revision
 from . import test_diagnostico_fallas
+from . import test_calidad

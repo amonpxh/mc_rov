@@ -6,7 +6,11 @@ from . import mc_rov_software
 from . import mc_rov_revision
 from . import mc_rov_sintoma
 from . import mc_rov_tipo_intervencion
+from . import mrp_eco
+from . import mrp_production
 from . import product_category
+from . import product_template
+from . import quality_alert
 from . import repair_order
 from . import sale_order_line
 from . import stock_lot

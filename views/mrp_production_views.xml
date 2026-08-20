@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Las lecciones del modelo, dentro de la orden de fabricación.
+
+         Éste es el trabajo más valioso del bloque, y la razón está escrita en el § 6.1.1
+         del diseño: un registro de lecciones que nadie lee mientras arma el equipo es un
+         cementerio, y es peor que el riesgo habitual porque esto sí se va a llenar y no se
+         va a leer. Guardarlas en la ficha del producto no basta — el que arma un ROV no
+         está mirando el producto, está mirando esta pantalla. -->
+    <record id="view_mrp_production_form_mc_rov" model="ir.ui.view">
+        <field name="name">mrp.production.form.mc.rov</field>
+        <field name="model">mrp.production</field>
+        <field name="inherit_id" ref="mrp.mrp_production_form_view"/>
+        <field name="arch" type="xml">
+
+            <!-- El aviso va antes de las pestañas y no adentro de una: una pestaña hay
+                 que abrirla, y la premisa de todo esto es que nadie va a ir a buscarlas.
+                 Mismo patrón que el aviso de "faltan 3 de 16" de la ficha del equipo. -->
+            <xpath expr="//notebook" position="before">
+                <div class="alert alert-info mb-2"
+                     role="alert"
+                     invisible="mc_leccion_count == 0"
+                     groups="quality.group_quality_user">
+                    Este modelo acumula
+                    <field name="mc_leccion_count" class="oe_inline"/>
+                    lección(es) de armados anteriores. Están en la pestaña
+                    <b>Lecciones del modelo</b>: léelas antes de empezar.
+                </div>
+            </xpath>
+
+            <xpath expr="//notebook" position="inside">
+                <page string="Lecciones del modelo"
+                      name="mc_lecciones"
+                      invisible="mc_leccion_count == 0"
+                      groups="quality.group_quality_user">
+                    <!-- Solo las cerradas y con acción preventiva escrita. Todas las
+                         alertas del modelo serían ruido; las que produjeron una acción
+                         preventiva son exactamente las lecciones. -->
+                    <div class="text-muted mb-2">
+                        Lo que se cambió para que no vuelva a pasar, en armados y
+                        reparaciones anteriores de este mismo modelo. Una alerta que se
+                        cerró sin acción preventiva arregló un equipo y no aparece acá.
+                    </div>
+                    <field name="mc_leccion_ids" readonly="1" nolabel="1">
+                        <list>
+                            <field name="name" string="Referencia"/>
+                            <field name="title"/>
+                            <field name="reason_id"/>
+                            <field name="action_preventive" widget="html"/>
+                            <field name="mc_eco_id" optional="show"/>
+                            <field name="lot_ids" widget="many2many_tags" optional="hide"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- El otro extremo del puente: desde el cambio de ingeniería, qué lo motivó.
+         Encadenados en orden —alerta, ECO, alerta— son el historial de maduración de un
+         diseño, que es lo que dice cuándo se puede cotizar un modelo a precio fijo
+         (§ 6.4 del diseño de fabricación). -->
+    <record id="view_mrp_eco_form_mc_rov" model="ir.ui.view">
+        <field name="name">mrp.eco.form.mc.rov</field>
+        <field name="model">mrp.eco</field>
+        <field name="inherit_id" ref="mrp_plm.mrp_eco_view_form"/>
+        <field name="arch" type="xml">
+
+            <div name="button_box" position="inside">
+                <button name="action_mc_ver_alertas"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-exclamation-triangle"
+                        invisible="mc_alerta_count == 0">
+                    <field name="mc_alerta_count" widget="statinfo" string="Lecciones"/>
+                </button>
+            </div>
+
+        </field>
+    </record>
+</odoo>

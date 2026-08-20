@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- El enlace al ECO en la alerta. Es el hueco del § 6.1.2 del diseño de fabricación:
+         verificado en pantalla y en ir_model_fields que mrp.eco y quality.alert no se
+         conocen, así que "cambiamos el BoM por esto" no quedaba registrado en ninguna
+         parte. Se resuelve con un campo. -->
+    <record id="view_quality_alert_form_mc_rov" model="ir.ui.view">
+        <field name="name">quality.alert.form.mc.rov</field>
+        <field name="model">quality.alert</field>
+        <field name="inherit_id" ref="quality_control.quality_alert_view_form"/>
+        <field name="arch" type="xml">
+
+            <!-- Al lado de la causa raíz y no en una pestaña: la pregunta que sigue a
+                 "por qué pasó" es "y qué cambiamos", y separarlas es lo que hace que la
+                 segunda no se conteste. -->
+            <field name="reason_id" position="after">
+                <field name="mc_eco_id"/>
+            </field>
+
+        </field>
+    </record>
+</odoo>

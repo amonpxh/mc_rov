@@ -192,7 +192,7 @@ Sin decidir: si eso se modela o queda como convención.
 | | Qué | Tamaño | Depende de |
 |---|---|---|---|
 | **A** | Los tres tipos de revisión, la migración de las columnas del lote, las mediciones nuevas, `aplica_fabricacion` → `aplica_rendimiento` | Grande, bump `X` | — |
-| **B** | Los puentes a `quality.alert`: alerta automática al fallar, alertas del modelo dentro de la MO, enlace al ECO, botón desde la línea de trabajo | Chico | — |
+| ~~**B**~~ | ~~Los puentes a `quality.alert`~~ — **hecho en `19.0.15.3.0`** | Chico | — |
 | **C** | Los indicadores agregados en el número de serie (§ 4.4), con el presupuesto de **uno por registro** | Chico | A |
 | **D** | Configurar los puntos de calidad del armado y alinear `quality.reason` con `ORIGENES` | Datos, cero código | B |
 
@@ -200,7 +200,7 @@ Sin decidir: si eso se modela o queda como convención.
 reparación— y no lleva migración, así que sirve de rodaje para el flujo nuevo con staging antes
 de la migración grande.
 
-### Antes de empezar B: una verificación
+### Antes de empezar B: una verificación *(hecha el 2026-08-20, pasa)*
 
 B agrega **`mrp`, `quality_control` y `mrp_plm` a las dependencias del módulo**. Eso hace que
 `mc_rov` ya no se pueda instalar sin ellos — en producción están, pero **hay que confirmar que el
@@ -210,6 +210,33 @@ Enterprise. Si no, el primer PR de B rompe CI y no por el código.
 La alternativa sería un módulo puente aparte (`mc_rov_quality`), pero es mucha infraestructura
 para cuatro campos en un módulo de una sola empresa. **Se elige agregar las dependencias**, y
 queda anotado que ése es el costo.
+
+**Resultado, verificado contra el VPS:**
+
+- El `addons_path` de `/etc/odoo/odoo.conf` —el mismo archivo que usa el runner— incluye
+  `/usr/lib/python3/dist-packages/odoo/addons`, y ahí viven `quality`, `quality_control`,
+  `mrp_plm`, `quality_mrp` y `quality_repair`. Enterprise está en el path.
+- En `odoo_test` los cinco salen `installed`. **Eso mata el riesgo mayor**, que no era el addons
+  path sino la instalación primeriza: no hay módulos nuevos que instalar en la primera corrida,
+  así que ni el `timeout-minutes: 30` ni los 189 tests actuales se mueven — ya venían corriendo
+  en una base con `mrp` puesto.
+- **Son cinco dependencias y no tres.** `quality_mrp` y `quality_repair` no estaban en el diseño
+  y hacen falta: son ellos los que definen `quality.alert.production_id` y
+  `quality.alert.repair_id`, que es por donde entran los puentes. Los dos son `auto_install`, así
+  que ya estaban instalados; declararlos fija el orden de carga.
+
+### Lo que queda de B después de `19.0.15.3.0`
+
+- **Confirmar en pantalla el botón inteligente del número de serie.** `stock.lot` ya trae
+  `quality_alert_qty` de `quality_control`, así que el lado del lote del § 6.1.1 probablemente ya
+  existe de fábrica. Si no lo muestra, son diez líneas.
+- **Decidir quién ve el botón de la línea de trabajo.** Está detrás de
+  `quality.group_quality_user`, que es honesto —sin ese grupo la creación de la alerta fallaría
+  igual por permisos— pero significa que **un técnico de reparación no lo ve hasta que se le dé
+  el grupo**. Es configuración, y va con el bloque D.
+- ~~**El ruido posible de la alerta automática.**~~ — **resuelto el 2026-08-20:** se acotó a la
+  rama de categorías ROV. El § 6.1.4 no lo calificaba y se implementó sin restringir; Paulo lo
+  corrigió al revisarlo. El § 6.1.4 quedó actualizado con la razón.
 
 ### Lo que no se va a pedir
 
@@ -241,7 +268,7 @@ que había anotado el 2026-08-17: la mayor parte de lo que íbamos a construir y
 `mrp`, `mrp_plm`, `quality`, `quality_control` y `web_enterprise` salen todos `installed`. Es
 una instancia **Enterprise**, así que PLM y Calidad están sobre la mesa y nadie los usa.
 
-`mrp` asigna el número de serie por su cuenta (`mrp.production.lot_producing_id`); hacen falta
+`mrp` asigna el número de serie por su cuenta (`mrp.production.lot_producing_ids`); hacen falta
 dos configuraciones y ninguna línea de código: *Inventario → Trazabilidad → Lotes y números de
 serie*, y en el producto *Trazabilidad → Por número de serie único*.
 

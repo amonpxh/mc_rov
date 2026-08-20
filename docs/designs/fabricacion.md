@@ -33,7 +33,9 @@ Todo esto se comprobó contra `odoo_prod` el 2026-08-18:
 
 - `mrp`, `mrp_plm`, `quality`, `quality_control` y `web_enterprise` están **instalados**. Es una
   instancia Enterprise y nadie los usa.
-- `mrp` asigna el número de serie por su cuenta (`mrp.production.lot_producing_id`). Hacen falta
+- `mrp` asigna el número de serie por su cuenta (`mrp.production.lot_producing_ids`, **Many2many**
+  y no Many2one: en Odoo 19 una orden puede producir varias series. Esta línea decía
+  `lot_producing_id` hasta el 2026-08-20, y el campo con ese nombre no existe). Hacen falta
   dos configuraciones y cero código: *Inventario → Trazabilidad → Lotes y números de serie*, y
   en el producto *Trazabilidad → Por número de serie único*.
 - Tipos de punto de calidad disponibles: `passfail`, `measure`, `instructions`, `picture`,
@@ -42,7 +44,14 @@ Todo esto se comprobó contra `odoo_prod` el 2026-08-18:
 - `quality.alert` trae `product_tmpl_id`, `lot_ids`, `reason_id`, `action_corrective`,
   `action_preventive`, `check_id`, `production_id`, `stage_id`, `team_id` y chatter.
 - **`mrp.eco` no tiene ningún campo hacia `quality.alert`, ni al revés.**
-- **`product.template` y `stock.lot` no tienen ninguna relación con `quality.alert`.**
+- **`product.template` no tiene ninguna relación con `quality.alert`.** Trae `eco_ids` y los
+  conteos de chequeos, y nada de alertas.
+- **`stock.lot` sí tiene algo, y esta línea decía lo contrario hasta el 2026-08-20.**
+  `quality_control` ya le pone `quality_alert_qty` y `quality_check_qty`, computados y
+  restringidos a `quality.group_quality_user`. No es una relación —son conteos— pero existen
+  para sostener botones inteligentes, así que **el lado del lote probablemente ya está
+  construido de fábrica** y no hay que escribirlo. Queda por confirmar en pantalla, en el
+  ensayo de staging de `19.0.15.3.0`.
 - `repair.order` **sí** tiene `quality_alert_ids` y `quality_check_ids`, nativos.
 - Filas afectadas por la migración de pruebas de terreno: **cero**. Cuatro lotes ROV, ninguno
   con datos de prueba.
@@ -101,7 +110,7 @@ salva.
 | Historial de cambios de la unidad | `mail` | chatter, ya existe |
 | Lista de materiales | `mrp` | `mrp.bom` |
 | Evento de armado | `mrp` | `mrp.production` |
-| N° de serie del equipo armado | `mrp` | `lot_producing_id` |
+| N° de serie del equipo armado | `mrp` | `lot_producing_ids` |
 | Qué piezas entraron en esta unidad | `stock` | `stock.move.line` |
 | Verificación del armado | `quality_control` | `quality.point` → `quality.check` |
 | **Pruebas de aceptación** | **`mc_rov`** | **`mc.rov.revision`** |
@@ -125,7 +134,7 @@ digitalizar.
    penetradores, cableado, foto del interior. **Antes de cerrar el casco**, porque después no se
    ven.
 3. **Se cierra el casco** y se responden estanqueidad y leak.
-4. **Se termina la MO y ahí nace el número de serie** (`lot_producing_id`). Los componentes
+4. **Se termina la MO y ahí nace el número de serie** (`lot_producing_ids`). Los componentes
    rastreados por lote quedan registrados contra esta unidad.
 5. **Se llena la ficha técnica** del número de serie.
 6. **Prueba de rendimiento**, desde un botón en el número de serie: mediciones de banco, corrida
@@ -559,6 +568,17 @@ El diseño del 2026-08-17 proponía construir un modelo de lecciones sobre `prod
    **Y resuelve dos problemas con una sola pieza:** si la alerta nace en el momento del fallo, el
    fallo queda registrado ahí para siempre, así que **la alerta se vuelve el historial de
    intentos** que el chequeo no guarda (§ 2.1, hallazgo 1).
+
+   **Acotado a los ROV, decidido el 2026-08-20 al implementarlo.** Este párrafo no lo
+   calificaba, y así se implementó primero: cualquier chequeo fallado de la base abría su
+   alerta. Se restringe a los productos de la rama de categorías ROV —la misma que resuelve
+   `es_un_rov`— porque el costo se paga en la dirección equivocada: un punto de calidad en
+   recepción de compras llenaría la lista de borradores vacíos, y **una lista larga de alertas
+   que nadie salda destruye justamente la señal en que se apoya este párrafo**, que una alerta a
+   medio llenar se lee como deuda pendiente.
+
+   Si la raíz de categorías no resuelve, no se crea ninguna alerta y queda un WARNING en el log.
+   Callar es la dirección segura del fallo, pero es silenciosa, así que tiene que avisar.
 
 5. **`lot_ids` no se llena solo.** Es el campo que se destacó como «el alcance del daño», y en la
    prueba quedó vacío: cuando se creó la alerta, la orden todavía no tenía número de serie.

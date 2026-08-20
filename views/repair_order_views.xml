@@ -101,6 +101,16 @@
                             <field name="fecha"/>
                             <field name="horas" class="text-start" sum="Total HH."/>
                             <field name="detalle"/>
+                            <!-- El puente por el que un patrón de fabricación descubierto
+                                 tarde vuelve a fabricación. Va acá, en la línea que ya
+                                 estás mirando, y no en la app de Calidad: quien repara
+                                 nunca tiene que enterarse de que Calidad existe. -->
+                            <field name="mc_alerta_id" optional="hide"/>
+                            <button name="action_crear_alerta_calidad"
+                                    type="object"
+                                    icon="fa-graduation-cap"
+                                    title="Levantar la lección de calidad de este trabajo"
+                                    groups="quality.group_quality_user"/>
                         </list>
                     </field>
                 </page>
