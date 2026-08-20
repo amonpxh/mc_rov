@@ -200,6 +200,37 @@ Sin decidir: si eso se modela o queda como convención.
 reparación— y no lleva migración, así que sirve de rodaje para el flujo nuevo con staging antes
 de la migración grande.
 
+### A2 también va antes de la carga, y esto salió de mirar la pantalla *(2026-08-20)*
+
+Estaba dicho que A2 podía esperar. **No puede.** La pestaña «Umbilical» del número de serie
+contiene, además de las especificaciones del cable, **una sección entera de prueba de banco** —
+modelo de fuente, alimentación, tensión, consumos, pilot gain, ancho de banda, temperaturas— que
+son **las mismas mediciones que la revisión ya recoge**. El módulo está a medio mudar y esos
+datos tienen dos casas.
+
+Si se cargan equipos reales con esas secciones todavía en pantalla, **alguien las va a llenar, y
+A2 las borra**. Y peor: entre las dos pruebas y la ficha, un técnico teclearía lo mismo dos o
+tres veces sin ninguna señal de que sobra.
+
+Dos cosas concretas que A2 tiene que resolver, además del retiro:
+
+- **El largo del umbilical se pide siempre y se exige para confirmar.** Si el cable es *del
+  equipo*, ese largo ya está en la ficha. El § 5.4 lo dice —*«umbilical usado y largo solo si es
+  del taller»*— y no está implementado.
+- **La pestaña «Umbilical» se queda solo con el umbilical.** Hoy su título nombra la primera de
+  sus tres secciones, y las otras dos son la prueba de banco. Viene de la época de Studio.
+
+### Catálogos editables en Especificaciones y Periféricos *(pedido 2026-08-20)*
+
+Las listas seleccionables de esas dos pestañas deberían **poder mantenerse sin tocar código**, y
+mejor todavía si se actualizan solas. El patrón ya existe y está probado en el módulo:
+`mc_software_superficie` y `mc_controlador_vuelo` dejaron de ser valores fijos y pasaron a ser
+catálogos con su menú en Configuración.
+
+Aplica al menos a **modelos de motores, periféricos y dispositivos extras**. La razón es la
+misma que en aquellos dos: el día que llegue un modelo nuevo, agregarlo tiene que ser escribir
+una fila, no abrir un PR.
+
 ### A se parte en cuatro, y solo una corre contra el reloj
 
 Al leer el § 4 y el § 5 completos quedó claro que A no es una cosa. **Solo A1 tiene que estar

@@ -4,6 +4,21 @@ All notable changes to the `mc_rov` Odoo module are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this module adheres to [semantic versioning](https://semver.org/) within the constraints of Odoo's version scheme: `19.0.X.Y.Z` where `19.0` is the Odoo major, `X` is breaking-change/migration, `Y` is feature, `Z` is bugfix.
 
+## [19.0.16.1.0] — 2026-08-20
+
+### Changed
+
+- **The serial's «Revisiones» tab is now «Pruebas», and it moves ahead of Propietarios and
+  Alertas de calidad.** The first three tabs say what the equipment *is*; this one says what
+  happened to it; the rest is ancillary. It sat last because the quality-alerts tab was
+  anchored in front of it, which was the anchor talking, not a decision.
+
+  The rename is for **discoverability, not taxonomy**. «Revisiones» is the model's name and the
+  family's name, and the argument for keeping it was that each row already says which kind it
+  is — *Prueba de banco*, *Prueba en terreno*, *Reparación*. But a tab label is the only sign
+  the user gets, and «Revisiones» does not tell anyone that this is where the equipment gets
+  tested. Nobody mistakes a repair row for a test.
+
 ## [19.0.16.0.1] — 2026-08-20
 
 Two things `19.0.16.0.0` left half-done, both found by Paulo asking where the two tests that

@@ -260,52 +260,7 @@
 
                     <!-- Historial de propiedad. Solo lectura: lo escribe el override de
                          write de stock.lot al cambiar el propietario, no una persona. -->
-                    <page string="Propietarios" name="page_propietarios" invisible="not es_un_rov">
-                        <field name="mc_propietario_historial_ids" readonly="1">
-                            <list>
-                                <field name="fecha_desde"/>
-                                <field name="fecha_hasta"/>
-                                <field name="partner_id"/>
-                                <field name="repair_id"/>
-                            </list>
-                        </field>
-                    </page>
-
-                    <!-- El historial de pruebas del equipo. Va como pestaña y no como botón
-                         inteligente porque el formulario de lote no declara un
-                         oe_button_box con nombre estable al que anclarse, y adivinar
-                         internos de una vista heredada es lo que causó los defectos de
-                         19.0.5.0.1 y 19.0.5.1.0.
-
-                         Esta es la serie de tiempo del equipo: dos revisiones separadas por
-                         un año son lo que deja ver que el ancho de banda cayó, o cuántas
-                         horas voló entre visitas. -->
-                    <!-- Las lecciones que tocaron a esta unidad. Va como pestaña por la
-                         misma razón que la de Revisiones y que está escrita arriba: este
-                         formulario no declara un oe_button_box con nombre estable, y
-                         adivinar internos de una vista heredada ya costó dos defectos.
-
-                         Es consulta de referencia, no el lugar principal: la lista que
-                         importa es la de la orden de fabricación, porque es la única que
-                         aparece sin que nadie la busque (fabricacion.md § 6.1.1). Ésta
-                         contesta la otra pregunta — «¿a este equipo qué le pasó que fuera
-                         del modelo y no suyo?». -->
-                    <page string="Alertas de calidad"
-                          name="page_alertas_calidad"
-                          groups="quality.group_quality_user"
-                          invisible="not mc_alerta_ids">
-                        <field name="mc_alerta_ids" readonly="1" nolabel="1">
-                            <list>
-                                <field name="name" string="Referencia"/>
-                                <field name="title"/>
-                                <field name="reason_id"/>
-                                <field name="stage_id"/>
-                                <field name="mc_eco_id" optional="show"/>
-                            </list>
-                        </field>
-                    </page>
-
-                    <page string="Revisiones" name="page_revisiones" invisible="not es_un_rov">
+                    <page string="Pruebas" name="page_revisiones" invisible="not es_un_rov">
                         <!-- El botón que reemplaza al menú de revisiones de
                              fabricación: manufactura las crea desde aquí, que es donde ya
                              trabaja. Va en su propio div y no en un group, porque un botón
@@ -347,6 +302,62 @@
                          Esta página no se oculta para los no-ROV: es el único lugar donde
                          vive el campo, y esconderlo lo volvería inalcanzable en los lotes
                          de componentes. -->
+                    <page string="Propietarios" name="page_propietarios" invisible="not es_un_rov">
+                        <field name="mc_propietario_historial_ids" readonly="1">
+                            <list>
+                                <field name="fecha_desde"/>
+                                <field name="fecha_hasta"/>
+                                <field name="partner_id"/>
+                                <field name="repair_id"/>
+                            </list>
+                        </field>
+                    </page>
+
+                    <!-- El historial de pruebas del equipo, y va **antes** de propietarios y
+                         alertas: las tres primeras pestañas dicen qué ES el equipo, ésta dice
+                         qué le PASÓ, y lo demás es accesorio.
+
+                         Se llamaba «Revisiones» hasta 19.0.16.1.0, que es el nombre del modelo
+                         y de la familia. Se cambió por descubrimiento y no por taxonomía: la
+                         etiqueta de una pestaña es el único cartel que el usuario ve, y
+                         «Revisiones» no dice que ahí se prueba el equipo. Cada fila sigue
+                         diciendo de qué clase es —Prueba de banco, Prueba en terreno,
+                         Reparación—, así que nadie confunde una reparación con una prueba.
+
+                         Va como pestaña y no como botón
+                         inteligente porque el formulario de lote no declara un
+                         oe_button_box con nombre estable al que anclarse, y adivinar
+                         internos de una vista heredada es lo que causó los defectos de
+                         19.0.5.0.1 y 19.0.5.1.0.
+
+                         Esta es la serie de tiempo del equipo: dos revisiones separadas por
+                         un año son lo que deja ver que el ancho de banda cayó, o cuántas
+                         horas voló entre visitas. -->
+                    <!-- Las lecciones que tocaron a esta unidad. Va como pestaña por la
+                         misma razón que la de Revisiones y que está escrita arriba: este
+                         formulario no declara un oe_button_box con nombre estable, y
+                         adivinar internos de una vista heredada ya costó dos defectos.
+
+                         Es consulta de referencia, no el lugar principal: la lista que
+                         importa es la de la orden de fabricación, porque es la única que
+                         aparece sin que nadie la busque (fabricacion.md § 6.1.1). Ésta
+                         contesta la otra pregunta — «¿a este equipo qué le pasó que fuera
+                         del modelo y no suyo?». -->
+                    <page string="Alertas de calidad"
+                          name="page_alertas_calidad"
+                          groups="quality.group_quality_user"
+                          invisible="not mc_alerta_ids">
+                        <field name="mc_alerta_ids" readonly="1" nolabel="1">
+                            <list>
+                                <field name="name" string="Referencia"/>
+                                <field name="title"/>
+                                <field name="reason_id"/>
+                                <field name="stage_id"/>
+                                <field name="mc_eco_id" optional="show"/>
+                            </list>
+                        </field>
+                    </page>
+
                     <page string="Descripción" name="page_descripcion"/>
 
                 </notebook>
