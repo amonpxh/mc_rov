@@ -97,11 +97,15 @@ class MrpProduction(models.Model):
 
         Solo se tocan las alertas sin alcance. Una que ya nombra unidades fue acotada a
         mano, y ese juicio manda sobre el automatismo.
+
+        El campo es `lot_producing_ids` y es Many2many: en Odoo 19 una orden puede producir
+        varias series. Para un ROV normalmente es una sola, pero se agregan todas — el
+        alcance del daño es «qué unidades salieron de este armado», no «la primera».
         """
         for produccion in self:
-            serie = produccion.lot_producing_id
-            if not serie:
+            series = produccion.lot_producing_ids
+            if not series:
                 continue
             sin_alcance = produccion.quality_alert_ids.filtered(lambda alerta: not alerta.lot_ids)
             if sin_alcance:
-                sin_alcance.write({"lot_ids": [(4, serie.id)]})
+                sin_alcance.write({"lot_ids": [(4, serie.id) for serie in series]})

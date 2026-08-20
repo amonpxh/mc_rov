@@ -268,7 +268,7 @@ que había anotado el 2026-08-17: la mayor parte de lo que íbamos a construir y
 `mrp`, `mrp_plm`, `quality`, `quality_control` y `web_enterprise` salen todos `installed`. Es
 una instancia **Enterprise**, así que PLM y Calidad están sobre la mesa y nadie los usa.
 
-`mrp` asigna el número de serie por su cuenta (`mrp.production.lot_producing_id`); hacen falta
+`mrp` asigna el número de serie por su cuenta (`mrp.production.lot_producing_ids`); hacen falta
 dos configuraciones y ninguna línea de código: *Inventario → Trazabilidad → Lotes y números de
 serie*, y en el producto *Trazabilidad → Por número de serie único*.
 

@@ -33,7 +33,9 @@ Todo esto se comprobó contra `odoo_prod` el 2026-08-18:
 
 - `mrp`, `mrp_plm`, `quality`, `quality_control` y `web_enterprise` están **instalados**. Es una
   instancia Enterprise y nadie los usa.
-- `mrp` asigna el número de serie por su cuenta (`mrp.production.lot_producing_id`). Hacen falta
+- `mrp` asigna el número de serie por su cuenta (`mrp.production.lot_producing_ids`, **Many2many**
+  y no Many2one: en Odoo 19 una orden puede producir varias series. Esta línea decía
+  `lot_producing_id` hasta el 2026-08-20, y el campo con ese nombre no existe). Hacen falta
   dos configuraciones y cero código: *Inventario → Trazabilidad → Lotes y números de serie*, y
   en el producto *Trazabilidad → Por número de serie único*.
 - Tipos de punto de calidad disponibles: `passfail`, `measure`, `instructions`, `picture`,
@@ -108,7 +110,7 @@ salva.
 | Historial de cambios de la unidad | `mail` | chatter, ya existe |
 | Lista de materiales | `mrp` | `mrp.bom` |
 | Evento de armado | `mrp` | `mrp.production` |
-| N° de serie del equipo armado | `mrp` | `lot_producing_id` |
+| N° de serie del equipo armado | `mrp` | `lot_producing_ids` |
 | Qué piezas entraron en esta unidad | `stock` | `stock.move.line` |
 | Verificación del armado | `quality_control` | `quality.point` → `quality.check` |
 | **Pruebas de aceptación** | **`mc_rov`** | **`mc.rov.revision`** |
@@ -132,7 +134,7 @@ digitalizar.
    penetradores, cableado, foto del interior. **Antes de cerrar el casco**, porque después no se
    ven.
 3. **Se cierra el casco** y se responden estanqueidad y leak.
-4. **Se termina la MO y ahí nace el número de serie** (`lot_producing_id`). Los componentes
+4. **Se termina la MO y ahí nace el número de serie** (`lot_producing_ids`). Los componentes
    rastreados por lote quedan registrados contra esta unidad.
 5. **Se llena la ficha técnica** del número de serie.
 6. **Prueba de rendimiento**, desde un botón en el número de serie: mediciones de banco, corrida

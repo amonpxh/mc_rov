@@ -174,7 +174,7 @@ class TestAlcanceDeLaAlerta(CalidadCommon):
         )
         self.assertFalse(alerta.lot_ids, "al fallar el chequeo todavía no hay serie")
 
-        self.mo.lot_producing_id = self.equipo
+        self.mo.lot_producing_ids = [(6, 0, self.equipo.ids)]
         self.mo._mc_sellar_alcance()
 
         self.assertEqual(alerta.lot_ids, self.equipo)
@@ -193,7 +193,7 @@ class TestAlcanceDeLaAlerta(CalidadCommon):
             }
         )
 
-        self.mo.lot_producing_id = self.equipo
+        self.mo.lot_producing_ids = [(6, 0, self.equipo.ids)]
         self.mo._mc_sellar_alcance()
 
         self.assertEqual(alerta.lot_ids, otro)
