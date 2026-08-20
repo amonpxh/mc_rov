@@ -254,8 +254,25 @@ class StockLot(models.Model):
         El criterio general del módulo: se crea solo lo que siempre ocurre, y a mano lo que
         a veces ocurre.
         """
+        return self._abrir_revision_nueva("banco")
+
+    def action_nueva_revision_terreno(self):
+        """Abre una prueba en terreno para este equipo.
+
+        Un botón por tipo y no uno genérico con desplegable (§ 4.3 del diseño): quien va a
+        probar sabe cuál de las dos va a hacer, y elegirlo en una pantalla intermedia es un
+        paso que no aporta.
+
+        **La misma prueba se puede pedir dentro de una reparación**, cuando el cliente quiere
+        comprobar que un equipo reparado sigue respetando su profundidad. Ahí se crea desde
+        la orden y `repair_id` la ata a la visita; acá nace sin orden, que es la prueba de
+        aceptación de un equipo nuevo. La batería es la misma en los dos casos.
+        """
+        return self._abrir_revision_nueva("terreno")
+
+    def _abrir_revision_nueva(self, tipo):
         self.ensure_one()
-        revision = self.env["mc.rov.revision"].create({"lot_id": self.id, "tipo": "banco"})
+        revision = self.env["mc.rov.revision"].create({"lot_id": self.id, "tipo": tipo})
         return {
             "type": "ir.actions.act_window",
             "name": "Revisión técnica",

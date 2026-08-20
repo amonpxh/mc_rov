@@ -177,7 +177,12 @@
                                 </div>
                             </group>
                         </group>
-                        <separator string="PRUEBA DE RENDIMIENTO"/>
+                        <!-- Se llamaba «PRUEBA DE RENDIMIENTO» hasta 19.0.16.0.1. Estas mediciones
+                             son las de banco, y desde 19.0.16.0.0 el tipo de revisión que las
+                             recoge se llama así — la etiqueta se había quedado con la palabra
+                             que se retiró. La sección entera desaparece en el bloque A2, cuando
+                             la prueba de banco reemplace estas columnas. -->
+                        <separator string="PRUEBA DE BANCO"/>
                         <group name="group_rendimiento">
                             <group name="group_rendimiento_left">
                                 <field name="mc_modelo_fuente"/>
@@ -310,6 +315,14 @@
                             <button name="action_nueva_revision_banco" type="object"
                                     string="Nueva prueba de banco"
                                     class="btn-primary"/>
+                            <!-- La prueba en terreno vivía como pestaña de este mismo
+                                 formulario hasta 19.0.16.0.0, donde se retiró porque guardaba
+                                 el resultado de un evento como si fuera ficha. Su casa nueva
+                                 es una revisión, y sin este botón se había quedado sin puerta
+                                 desde el número de serie. -->
+                            <button name="action_nueva_revision_terreno" type="object"
+                                    string="Nueva prueba en terreno"
+                                    class="btn-secondary ms-2"/>
                         </div>
                         <field name="revision_ids" readonly="1">
                             <list>

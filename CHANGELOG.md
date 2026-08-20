@@ -4,6 +4,29 @@ All notable changes to the `mc_rov` Odoo module are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this module adheres to [semantic versioning](https://semver.org/) within the constraints of Odoo's version scheme: `19.0.X.Y.Z` where `19.0` is the Odoo major, `X` is breaking-change/migration, `Y` is feature, `Z` is bugfix.
 
+## [19.0.16.0.1] — 2026-08-20
+
+Two things `19.0.16.0.0` left half-done, both found by Paulo asking where the two tests that
+used to live on the serial had gone.
+
+### Added
+
+- **«Nueva prueba en terreno» on the serial number.** `19.0.16.0.0` retired the field-test tab
+  because it stored the result of an *event* as if it were a spec sheet — but its new home,
+  a revision of type `terreno`, **had no door from the serial**. The only button read «Nueva
+  prueba de banco». The old home was removed before the new one had an entrance.
+
+  One button per type rather than a generic one with a dropdown (§ 4.3): whoever is about to
+  test knows which of the two they are running.
+
+### Changed
+
+- **The serial's «PRUEBA DE RENDIMIENTO» section is now «PRUEBA DE BANCO».** `19.0.16.0.0`
+  retired that word from the revision type and the label kept it, so the form showed a section
+  named with a word the module no longer uses, next to a revision type named otherwise. It was
+  claimed during that work that A1 would resolve this; it did not — those are the *lab*
+  columns, and they leave in block A2. The section disappears entirely then.
+
 ## [19.0.16.0.0] — 2026-08-20
 
 Block A1 of the fabrication design: the schema move that has to happen **before the system
