@@ -46,12 +46,14 @@ Todo esto se comprobó contra `odoo_prod` el 2026-08-18:
 - **`mrp.eco` no tiene ningún campo hacia `quality.alert`, ni al revés.**
 - **`product.template` no tiene ninguna relación con `quality.alert`.** Trae `eco_ids` y los
   conteos de chequeos, y nada de alertas.
-- **`stock.lot` sí tiene algo, y esta línea decía lo contrario hasta el 2026-08-20.**
-  `quality_control` ya le pone `quality_alert_qty` y `quality_check_qty`, computados y
-  restringidos a `quality.group_quality_user`. No es una relación —son conteos— pero existen
-  para sostener botones inteligentes, así que **el lado del lote probablemente ya está
-  construido de fábrica** y no hay que escribirlo. Queda por confirmar en pantalla, en el
-  ensayo de staging de `19.0.15.3.0`.
+- **`stock.lot` tiene los conteos y ninguna vista los usa.** `quality_control` le pone
+  `quality_alert_qty` y `quality_check_qty`, computados y restringidos a
+  `quality.group_quality_user`. Se supuso que existían para sostener botones inteligentes
+  nativos; **verificado en pantalla el 2026-08-20 sobre `odoo_prod`: no hay ninguno.** El
+  número de serie muestra «Por reparar / Hecho», «Ubicación» y «Trazabilidad», y nada de
+  calidad. El lado del lote hubo que escribirlo (`19.0.15.4.0`), y quedó como pestaña y no
+  como botón inteligente porque este formulario no declara un `oe_button_box` con nombre
+  estable — la misma razón que ya está escrita en `views/stock_lot_views.xml`.
 - `repair.order` **sí** tiene `quality_alert_ids` y `quality_check_ids`, nativos.
 - Filas afectadas por la migración de pruebas de terreno: **cero**. Cuatro lotes ROV, ninguno
   con datos de prueba.

@@ -199,6 +199,35 @@ class TestAlcanceDeLaAlerta(CalidadCommon):
         self.assertEqual(alerta.lot_ids, otro)
 
 
+class TestAlertasDelEquipo(CalidadCommon):
+    """El número de serie muestra qué lecciones lo tocaron.
+
+    No lo trae Odoo: `quality_control` deja el conteo `quality_alert_qty` y ninguna vista lo
+    usa — verificado en pantalla sobre producción el 2026-08-20.
+    """
+
+    def test_lista_las_alertas_que_nombran_al_equipo(self):
+        alerta = self._leccion(lot_ids=[(6, 0, self.equipo.ids)])
+        self.assertIn(alerta, self.equipo.mc_alerta_ids)
+
+    def test_no_lista_las_de_otro_equipo(self):
+        otro = self.env["stock.lot"].create(
+            {"name": "SN-CALIDAD-3", "product_id": self.producto.id}
+        )
+        self._leccion(lot_ids=[(6, 0, otro.ids)])
+        self.assertFalse(self.equipo.mc_alerta_ids)
+
+    def test_muestra_tambien_las_que_siguen_abiertas(self):
+        """Acá no se filtra por etapa, y es a propósito.
+
+        La pestaña del modelo contesta «qué cambiamos para todos» y por eso solo muestra
+        lecciones cerradas. Ésta contesta «qué le pasó a este equipo», y una alerta abierta
+        que lo nombra es justamente lo que hay que saber antes de entregarlo.
+        """
+        alerta = self._leccion(stage_id=self.etapa_abierta.id, lot_ids=[(6, 0, self.equipo.ids)])
+        self.assertIn(alerta, self.equipo.mc_alerta_ids)
+
+
 class TestLeccionesDelModelo(CalidadCommon):
     """Qué ve el que arma el próximo equipo (§ 6.1.1)."""
 

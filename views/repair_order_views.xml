@@ -81,7 +81,7 @@
                         </group>
                     </group>
                 </page>
-                <page string="Reparación" name="trabajos_realizados">
+                <page string="Trabajos realizados" name="trabajos_realizados">
                     <!-- causa_raiz y responsable bajaron de la orden a la línea: una visita
                          puede tener tres causas distintas —umbilical cortado por accidente
                          y motor gastado por uso— y dos técnicos pueden trabajar la misma
