@@ -17,7 +17,9 @@ abrir en cada momento y qué queda registrado**, sin entrar en cómo está const
 |---|---|
 | Armar un ROV | **Fabricación** → Órdenes de fabricación |
 | Verificar el armado paso a paso | **Calidad** → aparece dentro de la orden |
-| Registrar un problema que va a repetirse | **Calidad** → Alertas |
+| Registrar un problema que va a repetirse | Casi nunca hace falta abrir Calidad: al fallar un control la alerta se abre sola, y en reparación hay un botón en la línea |
+| Ver qué se aprendió de un modelo | **Fabricación** → la orden lo muestra sola, pestaña *Lecciones del modelo* |
+| Ver qué alertas afectan a un equipo | **Inventario** → N° de serie → pestaña *Alertas de calidad* |
 | Probar el equipo terminado | **Inventario** → N° de serie → *Nueva prueba de rendimiento* |
 | Probarlo en agua antes de entregar | **Inventario** → N° de serie → *Nueva prueba en terreno* |
 | Ver o llenar la ficha técnica de un equipo | **Inventario** → Números de serie |
@@ -66,8 +68,10 @@ descubierto dos años después vuelve a la línea del modelo** y cambia cómo se
 
 1. **Aceptar se hace en «Inventario».** El técnico piensa *«voy a probar el equipo»*, no *«voy a
    inventario»*. Es el proceso con peor nombre de puerta de todos.
-2. **Reparar termina en «Calidad»**, un módulo que esa persona no abre nunca. Justo el paso que
-   cierra el círculo con fabricación es el que exige saltar a una app ajena.
+2. ~~**Reparar termina en «Calidad»**~~, un módulo que esa persona no abre nunca. **Resuelto:** el
+   botón de la línea de trabajo levanta la alerta sin salir de la orden de reparación, y en
+   fabricación la alerta se abre sola. Nadie tiene que saber que Calidad existe — aunque el
+   registro siga viviendo ahí.
 
 ## 1. Un ROV nuevo: del armado a la entrega
 
@@ -75,7 +79,21 @@ descubierto dos años después vuelve a la línea del modelo** y cambia cómo se
 
 **Fabricación → Órdenes de fabricación → Nuevo.** Se elige el modelo y su lista de materiales.
 
-### Paso 2 — Se arma, y se verifica mientras se arma
+### Paso 2 — Antes de armar: lo que ya se aprendió de este modelo
+
+Si el modelo tuvo problemas en armados anteriores, **la orden lo dice sola**: un aviso sobre las
+pestañas y una pestaña **«Lecciones del modelo»** con lo que se cambió para que no se repita.
+
+**No hay que ir a buscarlo a ninguna parte**, y ése es el punto — un registro de lecciones al que
+hay que acordarse de entrar es un cementerio.
+
+Solo aparecen las lecciones **cerradas y con acción preventiva escrita**. Una alerta que se cerró
+arreglando un equipo, sin cambiar nada para los que vengan, no es una lección y no sale ahí.
+
+> Entran también las que nacieron **reparando**, no solo armando. Un defecto de fabricación puede
+> tardar dos años en aparecer, y aparece en el taller de reparación.
+
+### Paso 3 — Se arma, y se verifica mientras se arma
 
 Dentro de la orden, el botón **Controles de calidad** trae las verificaciones del armado: sellos
 y o-rings, penetradores, cableado, foto del interior.
@@ -84,9 +102,13 @@ y o-rings, penetradores, cableado, foto del interior.
 responderlos **antes de cerrar el casco**, porque después no se ven — y un control respondido de
 memoria mirando un equipo cerrado no verifica nada.
 
-### Paso 3 — Si algo falla
+### Paso 4 — Si algo falla
 
-El control se marca **Fallido** y se abre una **alerta de calidad**. Ahí se escribe:
+Se marca el control como **Fallido**, y **la alerta de calidad se abre sola** — en borrador, sin
+título, enlazada al control y a la orden. No hay que acordarse de crearla ni saber dónde.
+
+**Nace a medio llenar a propósito.** Una alerta sin título en la lista se lee como algo pendiente
+y alguien la termina; una lección que nunca se escribió no se ve nunca. Lo que hay que completar:
 
 | Campo | Qué va |
 |---|---|
@@ -102,13 +124,23 @@ quedó bien» arregla un equipo. «Subir el cable del E-pod a 40 cm» arregla to
 Un control fallido **no impide cerrar la orden**, a propósito: nadie debería tener que marcar
 «Aprueba» mintiendo para poder avanzar.
 
-### Paso 4 — Nace el número de serie
+**Y si el mismo control se arregla y se vuelve a fallar, no aparece una alerta nueva:** el segundo
+intento queda anotado en la que ya está abierta. Eso importa porque Calidad **pisa** el estado del
+control —si después se marca Aprueba, el fallo desaparece de ahí— así que la alerta es el único
+lugar donde queda el historial de intentos.
+
+### Paso 5 — Nace el número de serie
 
 Al terminar la orden, Odoo crea el número de serie del equipo. **A partir de aquí ese número es
 el equipo**: su ficha, sus pruebas, sus dueños y sus reparaciones cuelgan de él por el resto de
 su vida.
 
-### Paso 5 — La ficha técnica
+Y ese número **se escribe solo en las alertas de esta orden**. Es lo que después contesta *«¿qué
+otras unidades llevan la pieza que salió mala?»* — la lección dice qué cambiamos, y esa lista dice
+a quiénes hay que ir a ver. En cada número de serie hay una pestaña **«Alertas de calidad»** con
+las que lo nombran.
+
+### Paso 6 — La ficha técnica
 
 **Inventario → Números de serie → el que acaba de nacer.** Se llenan chasis, motores, pesos,
 tarjetas, controlador y luces.
@@ -120,18 +152,18 @@ El aviso amarillo de arriba dice cuántos datos faltan de cuántos. **No bloquea
 guardar una ficha a medias, y es mejor guardar 12 de 14 datos verdaderos que inventar los 2 que
 faltan. Para encontrarlas después está el filtro **«Ficha incompleta»**.
 
-### Paso 6 — Prueba de rendimiento
+### Paso 7 — Prueba de rendimiento
 
 Desde el número de serie, botón **Nueva prueba de rendimiento**. Es la prueba de banco:
 tensión, consumo en reposo y bajo carga, ancho de banda, corrida de resistencia con sus
 temperaturas, y las versiones de software instaladas.
 
-### Paso 7 — Prueba en terreno
+### Paso 8 — Prueba en terreno
 
 Botón **Nueva prueba en terreno**. Lugar, profundidad, velocidad de la corriente, alimentación,
 y una batería reducida.
 
-### Paso 8 — Entrega
+### Paso 9 — Entrega
 
 Las dos pruebas anteriores son **obligatorias antes de entregar o arrendar**. El número de serie
 muestra si cada una está hecha, y hay un filtro **«Sin pruebas de aceptación»** con los equipos
@@ -175,8 +207,15 @@ origen es obligatorio al cerrar.
 Si el origen es **«Diseño o especificación»** o **«Manufactura propia»**, eso **no es solo una
 reparación: es una lección de fabricación descubierta tarde**.
 
-Desde la línea de trabajo se levanta una **alerta de calidad** apuntando al modelo, y ahí vuelve
-al circuito del punto 3.
+En la pestaña **Trabajos realizados**, al final de cada línea hay un botón que **levanta la alerta
+de calidad apuntando al modelo**, ya con el equipo, la orden y el «por qué pasó» copiados. Desde
+ahí vuelve al circuito del punto 3: hay que escribirle la acción preventiva y cerrarla para que
+sea una lección.
+
+> **Este botón va a cambiar.** Tal como está, depende de que alguien se acuerde de apretarlo, y
+> quien cierra una reparación no siempre es quien puede decir qué se cambia para todos los equipos
+> del modelo. Lo que viene es que el sistema **detecte la repetición** —varias unidades del mismo
+> modelo con el mismo componente y el mismo origen— y la proponga. Ver `pendientes.md`.
 
 > Ésta es la parte que cierra el círculo. Un defecto de fabricación puede tardar dos años en
 > aparecer, y cuando aparece lo hace en el taller de reparación, no en el de armado. **Si no se
