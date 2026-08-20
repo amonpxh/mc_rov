@@ -4,6 +4,51 @@ All notable changes to the `mc_rov` Odoo module are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this module adheres to [semantic versioning](https://semver.org/) within the constraints of Odoo's version scheme: `19.0.X.Y.Z` where `19.0` is the Odoo major, `X` is breaking-change/migration, `Y` is feature, `Z` is bugfix.
 
+## [19.0.15.5.0] — 2026-08-20
+
+The repair → lesson bridge, redesigned. § 6.1.3 asked for «a button», and that does not
+survive the question that undid it: *how does the user know what it does, and why would they
+press it?*
+
+### Added
+
+- **`Reparaciones → Lecciones pendientes`.** The work lines whose origin points inward —
+  design, own manufacturing, supplier part — that have neither fed a lesson nor been
+  dismissed, grouped by model.
+
+  **No threshold, no parameter.** Each group's count *is* the evidence; where the line falls
+  between anecdote and pattern is a judgement, so no number is hardcoded.
+
+  The technician already does the observation: origin is mandatory at close and «why it
+  happened» is written down. What was missing was who harvests it — and that is not the
+  person closing a repair, because the conclusion is an engineering judgement with
+  consequences in spares and warranties. **The system detects, the person concludes or
+  dismisses.**
+
+- **The lesson is written from several work lines at once**, and that is the substantive
+  change. One line is an anecdote; repetition is what makes it a lesson. All the units land
+  in the alert's damage scope — *«these three carry the old o-ring»*, not just *«we changed
+  the o-ring»* — and every «why it happened» goes into the description with its serial in
+  front, because with several units you need to know which one said what.
+
+  Refuses to mix models in one lesson, and only proposes a root cause when the lines agree on
+  the origin: picking one of two would be inventing the datum.
+
+- **Dismissing is writing why**, in an editable column of the same list, with a filter to
+  revisit what was dismissed — a judgement gets reviewed.
+
+  **This is the only thing stored of the whole mechanism.** The pattern is not: it exists
+  because the lines exist, and materialising it would recreate the defect `CLAUDE.md` already
+  named — *no stored «maintenance overdue» boolean, because it would go stale in silence*.
+  What is stored is the human decision, which derives from nothing.
+
+### Removed
+
+- **The button on the repair order's work line**, added in `19.0.15.3.0`. Not for noise: it
+  did harm. The queue lists lines with an empty `mc_alerta_id`, so **a technician's stray
+  click hid the evidence from the supervisor, silently.** The field stays as a read-only
+  column showing which lesson a work fed.
+
 ## [19.0.15.4.0] — 2026-08-20
 
 Corrections found by walking `19.0.15.3.0` on screen in production.

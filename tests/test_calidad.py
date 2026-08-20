@@ -306,7 +306,12 @@ class TestPuenteAlEco(CalidadCommon):
 
 
 class TestAlertaDesdeLineaDeTrabajo(CalidadCommon):
-    """El botón de la línea de reparación (§ 6.1.3)."""
+    """La lección escrita desde un solo trabajo.
+
+    Es el caso de seleccionar una fila sola en la cola. Hasta `19.0.15.5.0` era además un
+    botón en la orden de reparación, y se retiró: la cola filtra por `mc_alerta_id` vacío,
+    así que un clic distraído del técnico le escondía la evidencia al supervisor.
+    """
 
     def setUp(self):
         super().setUp()

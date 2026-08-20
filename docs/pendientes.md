@@ -316,7 +316,16 @@ porque un juicio se revisa.
 **No se mezclan modelos en una lección** — se rechaza con un error que los nombra. Y la causa raíz
 solo se propone si los trabajos coinciden en el origen: elegir uno de dos sería inventar el dato.
 
-### En qué se convierte el botón
+### El botón se retiró de la línea de trabajo
+
+Quedaba en la pantalla de la persona que ya habíamos concluido que no lo iba a apretar. Y hacía
+daño, no solo ruido: **la cola filtra por `mc_alerta_id` vacío, así que un clic distraído del
+técnico le escondía la evidencia al supervisor**, en silencio y sin que nadie pudiera notarlo.
+Condicionarlo a ciertos orígenes habría arreglado el ruido y no eso.
+
+El campo se queda como columna de solo lectura: qué lección alimentó ese trabajo.
+
+### En qué se convierte la acción
 
 De mecanismo de descubrimiento a acción sobre un patrón ya detectado. Cambia de **sujeto** (un
 patrón, no una línea), de **dueño** (quien tiene el criterio, no el técnico), de **pre-llenado**
