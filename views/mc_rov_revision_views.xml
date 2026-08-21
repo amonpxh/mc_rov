@@ -134,11 +134,11 @@
                                          se muestra, no se vuelve a teclear. El peso no, que no
                                          dice nada de la prueba. Solo cuando el cable es del
                                          taller se pide el largo a mano. -->
-                                    <field name="umbilical_ficha"
+                                    <field name="umbilical_ficha" readonly="estado == 'confirmado'"
                                            invisible="umbilical != 'equipo' or tipo == 'reparacion'"/>
-                                    <field name="largo_ficha"
+                                    <field name="largo_ficha" readonly="estado == 'confirmado'"
                                            invisible="umbilical != 'equipo' or tipo == 'reparacion'"/>
-                                    <field name="diametro_ficha"
+                                    <field name="diametro_ficha" readonly="estado == 'confirmado'"
                                            invisible="umbilical != 'equipo' or tipo == 'reparacion'"/>
                                     <label for="largo" invisible="umbilical != 'prueba'"/>
                                     <div class="o_row" invisible="umbilical != 'prueba'">
@@ -427,9 +427,14 @@
                                  Se esconde cuando la ficha no declara nada —todos los equipos
                                  anteriores a Odoo— porque cinco etiquetas vacías se leen como
                                  algo roto y no como "esto todavía no se llenó". -->
+                            <!-- Solo en reparación: ahí el software se compara contra la
+                                 ficha. En la prueba de rendimiento se anota lo instalado, más
+                                 arriba, y mostrar los dos bloques a la vez era una invitación
+                                 a llenar el equivocado. -->
                             <group string="Software según la ficha"
-                                   invisible="not software_ficha_id and not version_ardusub_ficha
-                                              and not controlador_ficha_id">
+                                   invisible="tipo != 'reparacion' or (not software_ficha_id
+                                              and not version_ardusub_ficha
+                                              and not controlador_ficha_id)">
                                 <group>
                                     <field name="software_ficha_id" readonly="1"/>
                                     <field name="version_software_ficha" readonly="1"/>
