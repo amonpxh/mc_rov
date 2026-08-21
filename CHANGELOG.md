@@ -8,8 +8,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ### Added
 
-- **The acceptance tests get their own numbering: `REN/` and `TER/`.** `REV/` stays with
-  repairs, so no existing record changes its number or its meaning. The reason is that
+- **The acceptance tests get their own numbering: `RND/` and `TRN/`.** `REV/` stays with
+  repairs, so no existing record changes its number or its meaning. Three consonants, no
+  vowels, in both: `REN/` reads just as well as *renting*, and this company rents equipment —
+  an ambiguous prefix on a document the customer sees is the exact thing type-based numbering
+  is meant to prevent. `TRN/` follows for symmetry, so the two read as a family. The reason is that
   acceptance tests are **documents the customer sees**: a spec sheet for a brand-new unit
   called `REV/00042`, interleaved with other machines' breakdowns, reads as internal
   paperwork — numbering a machine's birth inside the series of its failures says the opposite
@@ -26,7 +29,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
   because the serial's button creates the test and only then does the technician see which
   kind it was — so a prefix assigned at creation would still end up lying. The old counter is
   left with a gap, which is what already happens when a draft is deleted, and is far better
-  than a `TER/` that is actually a repair.
+  than a `TRN/` that is actually a repair.
 
 - **The type of an issued document cannot be changed**, in the model and not only in the view:
   an import, a server action or a `write` from another module never passes through the view.

@@ -242,7 +242,7 @@ vuelve»*.
 |---|---|---|---|
 | **A1** | `fabricacion` → `rendimiento`, `observacion` → `detalle`, se retiran las columnas de terreno del lote, y el arreglo de `_compute_resultado` | `X`, con migración | **Antes de cargar datos reales** |
 | **A2** | Las mediciones nuevas del § 5.4, y con ellas el retiro de las columnas de laboratorio | `Y` | Después |
-| **A3** | Las secuencias `REN/` y `TER/`, y congelar `tipo` una vez emitido | `X`, con migración | **Hecho en `19.0.19.0.0`** |
+| **A3** | Las secuencias `RND/` y `TRN/`, y congelar `tipo` una vez emitido | `X`, con migración | **Hecho en `19.0.19.0.0`** |
 | **A4** | Las cuatro baterías del § 5.2 y § 5.3 | Datos | Después, y **quiere** equipos reales: los cinco chequeos de armado los escribió el diseño y no el taller |
 
 **A3 está hecho en `19.0.19.0.0`, y resultó ser `X` y no `Y`.** Lo que el diseño no había

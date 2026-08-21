@@ -338,17 +338,21 @@ numeradas dentro de la serie de reparaciones: una ficha de equipo nuevo llamada 
 intercalada entre reparaciones de otros equipos, se lee como un trámite interno.
 
 Tres secuencias: **`REV/`** se queda con reparación —los registros existentes no cambian de
-significado— y las de aceptación estrenan **`REN/`** y **`TER/`**.
+significado— y las de aceptación estrenan **`RND/`** y **`TRN/`**.
 
-> **`REN/` y no `BAN/`**, que es lo que decía este párrafo: el tipo se llamaba `banco` cuando
-> se escribió y volvió a llamarse `rendimiento` en `19.0.18.0.0`.
+> **`RND/` y `TRN/`, y no `BAN/` y `TER/`**, que es lo que decía este párrafo. `BAN/` cayó
+> con el nombre del tipo: se llamaba `banco` cuando esto se escribió y volvió a llamarse
+> `rendimiento` en `19.0.18.0.0`. Y las tres letras son sin vocales a propósito: `REN/` se
+> lee tan bien como *renting*, y esta empresa arrienda equipos — un prefijo ambiguo en un
+> documento que ve el cliente es exactamente lo que la numeración por tipo viene a evitar.
+> `TER/` cambió por simetría: tres consonantes las tres, para que se lean como una familia.
 
 **Implementado en `19.0.19.0.0`, y con una corrección de este § :** congelar el tipo al
 confirmar **no alcanza**. Entre crear y confirmar, el tipo se cambia —es lo corriente, porque
 el botón del número de serie crea la prueba y recién ahí el técnico ve cuál era— y ahí el
 prefijo asignado al crear queda mintiendo igual. Así que **el número se rehace cuando el tipo
 cambia en borrador**, con nota en el chatter, y el correlativo viejo queda con un hueco: lo
-mismo que ya pasa al borrar un borrador, y mucho mejor que un `TER/` que es una reparación.
+mismo que ya pasa al borrar un borrador, y mucho mejor que un `TRN/` que es una reparación.
 
 Y el candado no cuelga de `estado` sino de un campo propio, **`documento_emitido`**, que se
 enciende al confirmar por primera vez y no se apaga. Colgarlo de `estado` dejaba abierta la
@@ -845,7 +849,7 @@ Todo esto lo revisó y aprobó el supervisor.
 - **Solo se exige a los equipos con MO**; los ROV-MC anteriores a Odoo se dan por buenos.
 - **«Hecha» = confirmada y aprobada**; una prueba rechazada se registra y no cumple el requisito.
 - **No se bloquea nada**: indicador y filtro, como el aviso amarillo de la ficha.
-- **Tres secuencias** `REV/` · `REN/` · `TER/`, y `tipo` congelado una vez emitido el documento.
+- **Tres secuencias** `REV/` · `RND/` · `TRN/`, y `tipo` congelado una vez emitido el documento.
 - **Las lecciones se muestran en la MO**, filtradas a las cerradas con acción preventiva.
 - **El par «En reposo» / «Esfuerzo» del lote se renombra** para que *esfuerzo* signifique una
   sola cosa.

@@ -1300,10 +1300,10 @@ class TestNumeracionPorTipo(RevisionCommon):
         self.assertTrue(self._revision(tipo="reparacion").name.startswith("REV/"))
 
     def test_una_prueba_de_rendimiento_estrena_prefijo(self):
-        self.assertTrue(self._revision(tipo="rendimiento").name.startswith("REN/"))
+        self.assertTrue(self._revision(tipo="rendimiento").name.startswith("RND/"))
 
     def test_una_prueba_en_terreno_estrena_prefijo(self):
-        self.assertTrue(self._revision(tipo="terreno").name.startswith("TER/"))
+        self.assertTrue(self._revision(tipo="terreno").name.startswith("TRN/"))
 
     def test_cambiar_el_tipo_en_borrador_renumera(self):
         """El botón del número de serie crea la prueba y recién ahí el técnico ve el tipo.
@@ -1316,7 +1316,7 @@ class TestNumeracionPorTipo(RevisionCommon):
 
         revision.tipo = "terreno"
 
-        self.assertTrue(revision.name.startswith("TER/"))
+        self.assertTrue(revision.name.startswith("TRN/"))
         self.assertNotEqual(revision.name, anterior)
 
     def test_la_renumeracion_queda_en_el_chatter(self):
@@ -1370,4 +1370,4 @@ class TestNumeracionPorTipo(RevisionCommon):
 
         self.assertFalse(copia.documento_emitido)
         copia.tipo = "terreno"
-        self.assertTrue(copia.name.startswith("TER/"))
+        self.assertTrue(copia.name.startswith("TRN/"))

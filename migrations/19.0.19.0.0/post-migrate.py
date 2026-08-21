@@ -1,7 +1,7 @@
 """19.0.19.0.0 — las pruebas de aceptación estrenan numeración propia.
 
 `REV/` se queda con las reparaciones; las pruebas de rendimiento y de terreno pasan a
-numerarse `REN/` y `TER/`. **Las revisiones que ya existen conservan su número**: renumerar
+numerarse `RND/` y `TRN/`. **Las revisiones que ya existen conservan su número**: renumerar
 un documento entregado rompe la referencia que el cliente tiene en la mano, y ése es
 exactamente el daño que la numeración por tipo viene a evitar. Ver `designs/fabricacion.md`
 § 4.8.

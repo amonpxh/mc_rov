@@ -921,7 +921,7 @@ class McRovRevision(models.Model):
         Cambiar el tipo en borrador es corriente —el botón del número de serie crea la prueba
         y recién ahí el técnico ve cuál era—, y el prefijo tiene que seguirlo o miente. El
         correlativo viejo queda con un hueco, que es lo mismo que ya pasa cuando se borra un
-        borrador, y es preferible a un `TER/` que en realidad es una reparación.
+        borrador, y es preferible a un `TRN/` que en realidad es una reparación.
         """
         anterior = revision.name
         revision.name = self._siguiente_numero(revision.tipo)
