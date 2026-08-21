@@ -4,6 +4,46 @@ All notable changes to the `mc_rov` Odoo module are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this module adheres to [semantic versioning](https://semver.org/) within the constraints of Odoo's version scheme: `19.0.X.Y.Z` where `19.0` is the Odoo major, `X` is breaking-change/migration, `Y` is feature, `Z` is bugfix.
 
+## [19.0.19.0.0] — 2026-08-21
+
+### Added
+
+- **The acceptance tests get their own numbering: `RND/` and `TRN/`.** `REV/` stays with
+  repairs, so no existing record changes its number or its meaning. Three consonants, no
+  vowels, in both: `REN/` reads just as well as *renting*, and this company rents equipment —
+  an ambiguous prefix on a document the customer sees is the exact thing type-based numbering
+  is meant to prevent. `TRN/` follows for symmetry, so the two read as a family. The reason is that
+  acceptance tests are **documents the customer sees**: a spec sheet for a brand-new unit
+  called `REV/00042`, interleaved with other machines' breakdowns, reads as internal
+  paperwork — numbering a machine's birth inside the series of its failures says the opposite
+  of what the document is for. Design in `designs/fabricacion.md` § 4.8.
+
+- **`documento_emitido`**, a flag that turns on the first time a revision is confirmed and
+  never turns off. It is what freezes `tipo`.
+
+### Changed
+
+- **A draft that changes type is renumbered**, with a note in the chatter naming the old
+  number and the new one. The design said freezing the type at confirmation was enough, and
+  it isn't: the type gets changed *between* create and confirm — that is the normal case,
+  because the serial's button creates the test and only then does the technician see which
+  kind it was — so a prefix assigned at creation would still end up lying. The old counter is
+  left with a gap, which is what already happens when a draft is deleted, and is far better
+  than a `TRN/` that is actually a repair.
+
+- **The type of an issued document cannot be changed**, in the model and not only in the view:
+  an import, a server action or a `write` from another module never passes through the view.
+
+  The lock hangs on `documento_emitido` and **not on `estado`**, and that distinction is the
+  whole point. A confirmed revision sent back to draft to fix a typo has already gone out with
+  its number on it; if the type reopened there, the document the customer is holding would be
+  renumbered.
+
+### Migration
+
+`19.0.19.0.0/post-migrate.py` backfills `documento_emitido` on everything already confirmed.
+Without it, every existing confirmed revision would come back with its type unlocked.
+
 ## [19.0.16.1.0] — 2026-08-20
 
 ### Changed
