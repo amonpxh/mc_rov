@@ -351,6 +351,42 @@ class TestFichaCongelada(RevisionCommon):
     de marcar una diferencia que sí marcó el día de la prueba.
     """
 
+    def test_los_nueve_campos_se_llenan_de_verdad(self):
+        """Recorre los nueve, y ésa es la gracia.
+
+        La primera versión de esto dejó siete apuntando a un `compute` que ya no existía —
+        sin `store`, o sea sin columna— y **CI pasó igual**, porque los tests solo leían
+        `luces_ficha`. El defecto apareció recién en producción, con la actualización del
+        módulo fallando en silencio y la tabla sin las columnas.
+
+        Un test que ejercita uno de nueve no cubre nueve.
+        """
+        self.lot.write(
+            {
+                "mc_cantidad_luces": 6,
+                "mc_version_software": "ROVControl 2.3",
+                "mc_version_ardusub": "4.1.0",
+                "mc_version_controlador": "1.2",
+                "mc_n_serie_umbilical": "UMB-77",
+                "mc_longitud": 200.0,
+                "mc_diametro": 8.0,
+            }
+        )
+
+        revision = self._revision(tipo="rendimiento")
+
+        self.assertEqual(revision.luces_ficha, 6)
+        self.assertEqual(revision.version_software_ficha, "ROVControl 2.3")
+        self.assertEqual(revision.version_ardusub_ficha, "4.1.0")
+        self.assertEqual(revision.version_controlador_ficha, "1.2")
+        self.assertEqual(revision.umbilical_ficha, "UMB-77")
+        self.assertEqual(revision.largo_ficha, 200.0)
+        self.assertEqual(revision.diametro_ficha, 8.0)
+        # Los dos Many2one se leen aunque estén vacíos: lo que se comprueba es que el campo
+        # exista y sea escribible, que es justo lo que fallaba.
+        self.assertFalse(revision.software_ficha_id)
+        self.assertFalse(revision.controlador_ficha_id)
+
     def test_la_foto_se_toma_al_crear(self):
         """Para que el técnico vea contra qué compara desde el primer minuto."""
         self.lot.mc_cantidad_luces = 6
