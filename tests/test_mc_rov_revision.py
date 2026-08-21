@@ -311,28 +311,41 @@ class TestCondicionesHeredadas(RevisionCommon):
     """
 
     def test_hereda_las_condiciones_de_la_anterior(self):
-        self._revision(tipo="reparacion", alimentacion="Generador", tension_salida=48)
+        self._revision(tipo="rendimiento", alimentacion="Generador", tension_salida=48)
 
-        nueva = self._revision(tipo="reparacion")
+        nueva = self._revision(tipo="rendimiento")
 
         self.assertEqual(nueva.alimentacion, "Generador")
         self.assertEqual(nueva.tension_salida, 48)
 
     def test_no_hereda_resultados(self):
         """Heredar una medición sería inventar un dato."""
-        self._revision(tipo="reparacion", alimentacion="Generador", subida=95.0)
+        self._revision(tipo="rendimiento", alimentacion="Generador", subida=95.0)
 
-        nueva = self._revision(tipo="reparacion")
+        nueva = self._revision(tipo="rendimiento")
 
         self.assertEqual(nueva.alimentacion, "Generador")
         self.assertFalse(nueva.subida)
 
     def test_lo_que_viene_en_vals_manda(self):
-        self._revision(tipo="reparacion", alimentacion="Generador")
+        self._revision(tipo="rendimiento", alimentacion="Generador")
 
-        nueva = self._revision(tipo="reparacion", alimentacion="UPS")
+        nueva = self._revision(tipo="rendimiento", alimentacion="UPS")
 
         self.assertEqual(nueva.alimentacion, "UPS")
+
+    def test_una_reparacion_no_hereda_nada(self):
+        """En reparación esas condiciones son parte de lo que hay que comprobar.
+
+        Precargarlas contestaría por el técnico justo la pregunta que vino a responder: con
+        qué cable llegó el equipo y qué entrega su fuente.
+        """
+        self._revision(tipo="reparacion", alimentacion="Generador", tension_salida=48)
+
+        nueva = self._revision(tipo="reparacion")
+
+        self.assertFalse(nueva.alimentacion)
+        self.assertFalse(nueva.tension_salida)
 
     def test_terreno_no_hereda_del_taller(self):
         """La alimentación de un muelle no dice nada de la de un banco."""
@@ -426,6 +439,80 @@ class TestFichaCongelada(RevisionCommon):
         revision.invalidate_recordset()
 
         self.assertTrue(revision.luces_difieren, "la diferencia que se entregó sigue marcada")
+
+
+class TestUmbilicalDifiere(RevisionCommon):
+    """Con qué cable llegó el equipo contra el que su ficha declara.
+
+    La tercera comparación de la misma familia que el conteo de luces y el software, y la
+    última que faltaba: hasta 19.0.18.3.0 la revisión solo sabía «del equipo / del taller».
+    """
+
+    def test_otro_cable_marca_diferencia(self):
+        self.lot.mc_n_serie_umbilical = "UMB-100"
+        revision = self._revision(tipo="reparacion")
+        revision.umbilical_serie = "UMB-207"
+
+        self.assertTrue(revision.umbilical_difiere)
+
+    def test_el_mismo_cable_no_marca_nada(self):
+        self.lot.mc_n_serie_umbilical = "UMB-100"
+        revision = self._revision(tipo="reparacion")
+        revision.umbilical_serie = "UMB-100"
+
+        self.assertFalse(revision.umbilical_difiere)
+
+    def test_el_cable_del_taller_no_se_compara(self):
+        """Ya se sabe que no es el suyo: marcarlo como diferencia sería ruido."""
+        self.lot.mc_n_serie_umbilical = "UMB-100"
+        revision = self._revision(tipo="reparacion", umbilical="prueba")
+        revision.umbilical_serie = "UMB-999"
+
+        self.assertFalse(revision.umbilical_difiere)
+
+    def test_sin_numero_anotado_no_afirma_nada(self):
+        self.lot.mc_n_serie_umbilical = "UMB-100"
+
+        revision = self._revision(tipo="reparacion")
+
+        self.assertFalse(revision.umbilical_difiere)
+
+
+class TestSoftwareDifiere(RevisionCommon):
+    """Lo encontrado contra lo que la ficha declara — la misma idea que el conteo de luces."""
+
+    def test_una_version_distinta_marca_diferencia(self):
+        self.lot.mc_version_ardusub = "4.1.0"
+        revision = self._revision(tipo="reparacion")
+        revision.version_ardusub_instalada = "4.0.2"
+
+        self.assertTrue(revision.software_difiere)
+
+    def test_la_misma_version_no_marca_nada(self):
+        self.lot.mc_version_ardusub = "4.1.0"
+        revision = self._revision(tipo="reparacion")
+        revision.version_ardusub_instalada = "4.1.0"
+
+        self.assertFalse(revision.software_difiere)
+
+    def test_un_campo_vacio_no_afirma_nada(self):
+        """Una revisión a medio llenar no puede marcar diferencia contra toda la ficha."""
+        self.lot.mc_version_ardusub = "4.1.0"
+
+        revision = self._revision(tipo="reparacion")
+
+        self.assertFalse(revision.software_difiere)
+
+    def test_no_se_vuelca_a_la_ficha(self):
+        """Encontrar otra versión no es haberla cambiado: es un hallazgo, no una corrección."""
+        self.lot.mc_version_ardusub = "4.1.0"
+        revision = self._revision(tipo="reparacion")
+        revision.version_ardusub_instalada = "4.0.2"
+        revision.estado = "confirmado"
+
+        revision._volcar_a_la_ficha()
+
+        self.assertEqual(self.lot.mc_version_ardusub, "4.1.0")
 
 
 class TestPrecargaDesdeLaFicha(RevisionCommon):
