@@ -376,6 +376,36 @@ class McRovRevision(models.Model):
     # umbilical propio, así que estos tres datos ya están definidos y no hay por qué volver a
     # teclearlos — se muestran para saber con qué se probó. El peso no: no dice nada de la
     # prueba. Si el cable es del taller, esto no aplica y el largo se pide a mano.
+    # Con qué cable llegó el equipo, para contrastarlo con el que su ficha declara. Es la
+    # tercera comparación de la misma familia —la ficha dice lo que el equipo debería tener,
+    # la visita dice lo que llegó— y era la única que faltaba: hasta 19.0.18.3.0 la revisión
+    # solo sabía «del equipo / del taller», nunca cuál.
+    #
+    # Un ROV que llega con otro umbilical es un hallazgo: se lo cambiaron, lo perdieron, o
+    # pusieron uno prestado. Sin este campo eso no se veía nunca.
+    umbilical_serie = fields.Char(string="N° de serie del umbilical recibido")
+
+    umbilical_difiere = fields.Boolean(
+        string="El umbilical no cuadra con la ficha",
+        compute="_compute_umbilical_difiere",
+        store=True,
+    )
+
+    @api.depends("umbilical", "umbilical_serie", "umbilical_ficha")
+    def _compute_umbilical_difiere(self):
+        """Solo compara cuando hay contra qué, y cuando el cable es el del equipo.
+
+        Con el del taller no hay nada que comparar —ya se sabe que no es el suyo— y con
+        cualquiera de los dos números vacío tampoco: un campo sin llenar no afirma nada.
+        """
+        for revision in self:
+            revision.umbilical_difiere = bool(
+                revision.umbilical == "equipo"
+                and revision.umbilical_serie
+                and revision.umbilical_ficha
+                and revision.umbilical_serie != revision.umbilical_ficha
+            )
+
     umbilical_ficha = fields.Char(
         string="N° de serie del umbilical",
         readonly=True,

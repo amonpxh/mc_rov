@@ -140,8 +140,17 @@
                                          se muestra, no se vuelve a teclear. El peso no, que no
                                          dice nada de la prueba. Solo cuando el cable es del
                                          taller se pide el largo a mano. -->
+                                    <!-- En una reparación se anota con qué cable LLEGÓ el
+                                         equipo, y al lado lo que su ficha declara. Es la
+                                         tercera comparación de la misma familia que el conteo
+                                         de luces y el software. En las pruebas de aceptación
+                                         no se pregunta: el equipo es nuevo y el cable es el
+                                         suyo por definición. -->
+                                    <field name="umbilical_serie"
+                                           readonly="estado == 'confirmado'"
+                                           invisible="umbilical != 'equipo' or tipo != 'reparacion'"/>
                                     <field name="umbilical_ficha" readonly="estado == 'confirmado'"
-                                           invisible="umbilical != 'equipo' or tipo == 'reparacion'"/>
+                                           invisible="umbilical != 'equipo'"/>
                                     <field name="largo_ficha" readonly="estado == 'confirmado'"
                                            invisible="umbilical != 'equipo' or tipo == 'reparacion'"/>
                                     <field name="diametro_ficha" readonly="estado == 'confirmado'"
@@ -322,6 +331,12 @@
                                  se compara: había que cambiar de pestaña para ver contra qué.
                                  Una comparación repartida en dos pantallas no es una
                                  comparación. -->
+                            <div class="alert alert-warning" role="alert"
+                                 invisible="not umbilical_difiere">
+                                El umbilical con el que llegó el equipo no es el que declara su
+                                ficha. O se lo cambiaron, o la ficha está desactualizada.
+                            </div>
+
                             <div class="alert alert-warning" role="alert"
                                  invisible="not software_difiere">
                                 El software encontrado no coincide con lo que declara la ficha

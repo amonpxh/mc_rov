@@ -441,6 +441,43 @@ class TestFichaCongelada(RevisionCommon):
         self.assertTrue(revision.luces_difieren, "la diferencia que se entregó sigue marcada")
 
 
+class TestUmbilicalDifiere(RevisionCommon):
+    """Con qué cable llegó el equipo contra el que su ficha declara.
+
+    La tercera comparación de la misma familia que el conteo de luces y el software, y la
+    última que faltaba: hasta 19.0.18.3.0 la revisión solo sabía «del equipo / del taller».
+    """
+
+    def test_otro_cable_marca_diferencia(self):
+        self.lot.mc_n_serie_umbilical = "UMB-100"
+        revision = self._revision(tipo="reparacion")
+        revision.umbilical_serie = "UMB-207"
+
+        self.assertTrue(revision.umbilical_difiere)
+
+    def test_el_mismo_cable_no_marca_nada(self):
+        self.lot.mc_n_serie_umbilical = "UMB-100"
+        revision = self._revision(tipo="reparacion")
+        revision.umbilical_serie = "UMB-100"
+
+        self.assertFalse(revision.umbilical_difiere)
+
+    def test_el_cable_del_taller_no_se_compara(self):
+        """Ya se sabe que no es el suyo: marcarlo como diferencia sería ruido."""
+        self.lot.mc_n_serie_umbilical = "UMB-100"
+        revision = self._revision(tipo="reparacion", umbilical="prueba")
+        revision.umbilical_serie = "UMB-999"
+
+        self.assertFalse(revision.umbilical_difiere)
+
+    def test_sin_numero_anotado_no_afirma_nada(self):
+        self.lot.mc_n_serie_umbilical = "UMB-100"
+
+        revision = self._revision(tipo="reparacion")
+
+        self.assertFalse(revision.umbilical_difiere)
+
+
 class TestSoftwareDifiere(RevisionCommon):
     """Lo encontrado contra lo que la ficha declara — la misma idea que el conteo de luces."""
 
