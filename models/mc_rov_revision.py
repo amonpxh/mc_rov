@@ -263,28 +263,20 @@ class McRovRevision(models.Model):
     software_ficha_id = fields.Many2one(
         "mc.rov.software.superficie",
         string="Software de superficie",
-        compute="_compute_ficha_congelada",
-        store=True,
         readonly=True,
     )
     version_software_ficha = fields.Char(
         string="Versión del software",
-        compute="_compute_ficha_congelada",
-        store=True,
         readonly=True,
     )
     version_ardusub_ficha = fields.Char(string="Versión ArduSub", readonly=True)
     controlador_ficha_id = fields.Many2one(
         "mc.rov.controlador.vuelo",
         string="Controlador de vuelo",
-        compute="_compute_ficha_congelada",
-        store=True,
         readonly=True,
     )
     version_controlador_ficha = fields.Char(
         string="Versión del controlador",
-        compute="_compute_ficha_congelada",
-        store=True,
         readonly=True,
     )
 
@@ -344,20 +336,14 @@ class McRovRevision(models.Model):
     # prueba. Si el cable es del taller, esto no aplica y el largo se pide a mano.
     umbilical_ficha = fields.Char(
         string="N° de serie del umbilical",
-        compute="_compute_ficha_congelada",
-        store=True,
         readonly=True,
     )
     largo_ficha = fields.Float(
         string="Largo según ficha (m)",
-        compute="_compute_ficha_congelada",
-        store=True,
         readonly=True,
     )
     diametro_ficha = fields.Float(
         string="Diámetro según ficha (mm)",
-        compute="_compute_ficha_congelada",
-        store=True,
         readonly=True,
     )
 
