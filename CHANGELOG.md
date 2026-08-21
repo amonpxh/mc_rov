@@ -44,6 +44,183 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 `19.0.19.0.0/post-migrate.py` backfills `documento_emitido` on everything already confirmed.
 Without it, every existing confirmed revision would come back with its type unlocked.
 
+## [19.0.18.3.0] — 2026-08-21
+
+Seventh screen review. What Paulo found by walking the forms in production.
+
+### Added
+
+- **The revision records which umbilical the equipment arrived with.** It was the third
+  comparison of the same family and the only one missing: the spec sheet says what the machine
+  *should* have, the visit says what turned up. Until now the revision only knew «the
+  equipment's / the workshop's», never *which one* — so a ROV arriving with a different
+  umbilical (swapped, lost, borrowed) was invisible.
+
+  Asked only in repairs: on an acceptance test the machine is new and the cable is its own by
+  definition. Compared only when the cable is the equipment's own — with a workshop cable it
+  is already known not to be its own, and flagging it would be noise.
+
+- **The software found is compared against the spec sheet**, with the same shape as the light
+  count: the two blocks side by side and a warning when they disagree. **It is not written back
+  to the spec sheet**, and that is deliberate — finding a different version is not the same as
+  having changed it; the machine was reverted, or updated somewhere else, and that gets recorded,
+  not normalised.
+
+### Changed
+
+- **A repair no longer inherits the previous revision's conditions.** On a repeated acceptance
+  test, the power supply and the cable are the workshop's rig and retyping them is paperwork;
+  in a repair they are **part of what has to be checked**, and preloading them answered for the
+  technician the very question they came to answer. Same reasoning that kept software from ever
+  preloading in a repair.
+
+- **The verdict shows only once the revision is confirmed.** Sending one back to draft left it
+  announcing «Aprobado» while it was being edited. The verdict belongs to the issued
+  document, not to the draft that is about to replace it.
+
+- **Revisions can no longer be deleted from the equipment's list.** The model already refused to
+  delete a confirmed one, but the button was offered anyway and failed only on save.
+
+### Fixed
+
+- **The software comparison was split across two tabs.** Splitting the page into Mediciones and
+  Chequeos left the fields where the technician records what was found in one tab, and the
+  «según la ficha» block with its warning in the other — because that block had lived
+  down among the checklists since `19.0.15.2.0` and the split left it there. **A comparison
+  spread over two screens is not a comparison.**
+
+## [19.0.18.2.1] — 2026-08-21
+
+### Fixed
+
+- **Seven of the nine frozen spec-sheet fields had no column.** `19.0.18.2.0` left them pointing
+  at a compute that had been deleted, and without `store=True` — that is, with no column in the
+  database. The module update created nothing and production ended up with zero of nine. The
+  cause was a regular expression of mine that only matched the single-line form; black had split
+  the other seven across several lines.
+
+  **And CI passed, which is the part that actually needed fixing:** the tests only read
+  `luces_ficha`, the one field that had survived. A test that exercises one of nine does not
+  cover nine. The test that walks all nine was added, with the reason in its docstring.
+
+## [19.0.18.2.0] — 2026-08-21
+
+### Changed
+
+- **The spec sheet is frozen at confirmation.** The most serious finding of the day, and Paulo
+  found it: the «según la ficha» fields were live `related` fields, not snapshots. A
+  revision from six months ago displayed today's spec sheet — and worse, `luces_difieren` was
+  recomputed, so a document already handed to the customer could **stop flagging the discrepancy
+  it had flagged**, because somebody corrected the spec sheet afterwards.
+
+  They now follow the spec sheet while the revision is a draft — that is correct, it is being
+  compared against the current specification — and are fixed at confirmation, which is when the
+  revision becomes a document. **Any field that appears on a deliverable and comes from another
+  record has this same problem.**
+
+- **Pilot gain and light gain are measured in all three test types**, because the workshop
+  adjusts them during repairs too. Both gain `tracking`, so every change is dated in the
+  equipment's history whether it came from a test or from someone's hand. **That is the spec
+  sheet history that was missing, with no new model.**
+
+- **Checks and measurements split into two tabs** — they shared one and the page was enormous
+  — and the light count moves up with the measurements, which is what it is: two numbers that
+  get counted, not a box that gets ticked.
+
+### Fixed
+
+- **The freeze did not work, and could not have worked.** Reading a field inside its own compute
+  does not return the stored value: Odoo has it marked "to compute" and the recursion guard
+  returns empty, so the "keep it" branch never ran and the snapshot was overwritten with the
+  current spec sheet. CI caught it. Rewritten without a compute: the nine fields are plain and
+  are written at two moments — creating the revision and confirming it — and never touched
+  again.
+
+## [19.0.18.1.0] — 2026-08-21
+
+### Fixed
+
+- **The spec sheet and the tests stop fighting.** Seven things from walking it in production, and
+  three were bugs. The «Software según la ficha» block appeared in the performance test,
+  where it does not belong — there you record what was installed, you do not compare — which
+  is why there was nowhere to write and why nothing was being written back. Previous tests on the
+  serial were read-only, so a half-filled test could not be reopened. And there was no way to
+  undo one created by mistake: drafts can now be deleted, a confirmed one never.
+
+- **Software now travels in both directions:** the performance test is born with what the spec
+  sheet declares and hands back what was found on confirmation. With that, **the order of work
+  stops mattering**, and the heading that asked people to leave fields blank falls away — it
+  was a patch, not a solution.
+
+### Changed
+
+- **Periféricos and Umbilical become sections of Especificaciones.** Four fields each was too
+  little to spend a tab on, and splitting the spec sheet across three of them forced a tour to
+  answer a single question: what is this machine.
+
+## [19.0.18.0.0] — 2026-08-20
+
+### Changed
+
+- **It is called «prueba de rendimiento» again.** Third name in one day, and the one with
+  the soundest reason of the three: **it is what the workshop calls it.** `fabricacion` was
+  retired as generic and unjustified; `banco` replaced it because it contrasts with `terreno` on
+  the same axis — where the test happens — and that argument is still true, but it loses
+  anyway, because **real vocabulary beats taxonomy.** Same criterion that took the tab from
+  «Revisiones» to «Pruebas». What is gained is not going back: it is that the name
+  now has its reason written down, which is exactly what got `fabricacion` retired.
+
+- **The spec sheet receives pilot gain and light gain from the most recent test**, of whatever
+  type. They are adjustments, and the latest one is the truth. This reverses the previous
+  version's restriction, after the workshop corrected it.
+
+- **Writing back to the spec sheet is generalised with the rule that orders it:** it applies when
+  the test is the only source of the value, and does not apply when the spec sheet is the
+  reference being compared against. The light count is the counterexample and has its own test —
+  if the test wrote to the spec sheet, a burnt-out lamp would become the new specification.
+
+## [19.0.17.0.0] — 2026-08-20
+
+### Removed
+
+- **Thirteen bench-test columns leave the serial number.** Block A2b, closing what `19.0.16.0.0`
+  started with the field-test ones. They had two defects at once: they stored the result of an
+  *event* as if it were a spec sheet, so running the test twice overwrote the previous run in
+  silence; and since `19.0.15.0.0` they duplicated the revision — the same datum typed twice
+  with no sign that one was redundant.
+
+  **Two of the fifteen survive:** pilot gain and light gain are not measurements but equipment
+  configuration, so they are spec sheet, and they move to Especificaciones.
+
+- **The word «esfuerzo» is retired.** It meant three different things at once: the
+  ninety-minute run becomes «funcionamiento continuo», and the spec sheet's load
+  consumption had already been named that since A2a.
+
+### Migration
+
+`19.0.17.0.0/post-migrate.py` counts and dumps to the log before dropping, and **judges emptiness
+per type** — unlike the field-test columns, real measurements could exist here.
+
+## [19.0.16.2.0] — 2026-08-20
+
+### Added
+
+- **The measurements § 5.4 asks for.** Block A2a, purely additive — the columns are removed
+  in A2b, which is the one carrying a migration. Pressure reached in bar plus its time, current
+  leakage, idle and load consumption, power-supply model, the duration of the whole test — which
+  is not the continuous-running run — and «Condiciones y notas de la prueba», named that
+  and not «Observaciones» because that word invites people to write findings there.
+
+  **Pressure ships without a threshold on purpose:** the standard exists but the technicians know
+  what each machine is rated for, and demanding it up front is paperwork. Same treatment as
+  bandwidth.
+
+- **Software goes the other way round from a repair:** the performance test records what was
+  installed and the spec sheet receives it on confirmation. It overwrites, because leaving the
+  old version would make every later repair register a false discrepancy — but **only from the
+  equipment's most recent test**, or fixing a typo on one from two years ago would write
+  two-year-old values. It is recorded in the equipment's chatter.
+
 ## [19.0.16.1.0] — 2026-08-20
 
 ### Changed
