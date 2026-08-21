@@ -62,11 +62,13 @@ conversación, todavía sin spec.
    la única fuente que hoy tiene datos y no calzaría cuando llegue el hallazgo de fabricación.
    El orden de implementación se decide con el diseño entero a la vista, no antes.
 
-4. **La pregunta abierta que define el ancla: ¿se usa `mrp`?** Si fabricación se maneja con
-   órdenes de fabricación de Odoo, el evento de armado cuelga de ahí y no del lote —el lote es
-   el *resultado* del armado, no el armado—. Y además resuelve gratis el riesgo del punto 5,
-   porque una orden de fabricación es un momento en que alguien tiene que mirar la pantalla.
-   Hoy `mrp` **no** es dependencia del módulo.
+4. ~~**La pregunta abierta que define el ancla: ¿se usa `mrp`?**~~ **Contestada, y que sí.**
+   `mrp` es dependencia del módulo desde `19.0.15.3.0` y el bloque B ya cuelga de ahí: la orden
+   de fabricación **crea el número de serie** (`lot_producing_ids`, Many2many en Odoo 19) y
+   `_mc_sellar_alcance()` lo escribe en las alertas de la orden al cerrarla. PLM también está
+   conectado, vía `quality.alert.mc_eco_id`. **Verificado en producción el 2026-08-21: 11
+   órdenes de fabricación, 1 lista de materiales, 0 operaciones.** El lote es el *resultado* del
+   armado, no el armado, y eso sigue siendo cierto.
 
 5. **El riesgo a resolver antes de escribir código: un registro de lecciones que nadie lee
    mientras arma el equipo es un cementerio.** Y es peor que el riesgo habitual: esto *sí* se
@@ -194,7 +196,7 @@ Sin decidir: si eso se modela o queda como convención.
 | **A** | Las pruebas de aceptación. **No es un bloque: son cuatro con dependencias distintas**, ver abajo | Grande | — |
 | ~~**B**~~ | ~~Los puentes a `quality.alert`~~ — **hecho en `19.0.15.3.0`** | Chico | — |
 | **C** | Los indicadores agregados en el número de serie (§ 4.4), con el presupuesto de **uno por registro** | Chico | A |
-| **D** | Configurar los puntos de calidad del armado y alinear `quality.reason` con `ORIGENES` | Datos, cero código | B |
+| **D** | Alinear `quality.reason` con `ORIGENES`. **La batería de armado se cayó** — ver abajo | Datos, cero código | B |
 
 **A y B son independientes.** B se nota antes —son los cuatro campos que cierran el círculo con
 reparación— y no lleva migración, así que sirve de rodaje para el flujo nuevo con staging antes
@@ -586,6 +588,33 @@ nueva: son esas columnas convertidas en un evento con umbrales.
 **Arreglo gratis que viene con esto:** `mc_ancho_banda` y `mc_consumo_corriente` hoy son `Char`,
 así que no se pueden promediar, comparar ni graficar. Como puntos `measure` pasan a ser números
 con unidad, y recién ahí sirven para el pipeline.
+
+### La batería de armado no se hace *(decidido 2026-08-21)*
+
+**Los cinco chequeos del interior se caen, y con ellos la ruta de fabricación.** Un punto de
+calidad se engancha a una **operación**, y producción tiene **0 operaciones**: las órdenes de
+fabricación son planas. Sin ruta, los cinco aparecen con el casco ya cerrado — que es
+exactamente el modo de falla que ponerlos en calidad venía a evitar.
+
+Crear la ruta era la otra salida y se descartó. Palabras de Paulo: *« aún no somos lo
+suficientemente grandes para justificar ese proceso »*. **Y el argumento técnico va en la misma
+dirección: la prueba de presión — 2 h a 30 bar — ya caza el modo de falla que esos cinco
+persiguen.** Un o-ring mal puesto o un penetrador flojo se ven ahí. Lo que los checks agregan es
+saber *en qué paso* falló, y con 11 órdenes y una sola lista de materiales eso no paga tres
+órdenes de trabajo que alguien tiene que abrir y cerrar.
+
+**Lo único que se pierde de verdad es la foto del interior armado**, porque después del cierre ya
+no se puede tomar. No necesita ruta ni puntos de calidad: se adjunta al chatter de la orden de
+fabricación, cero configuración.
+
+> **Cuándo reabrirlo:** cuando una filtración llegue a un cliente, o cuando armen lo suficiente
+> como para que *«¿en qué paso falló?»* sea una pregunta real. Ahí los cinco vuelven a tener
+> sentido, y con ellos la ruta mínima de tres operaciones — armado interno, cierre, pruebas.
+
+**Y ojo con la duplicación que esto evita de paso:** la tabla de puntos de más abajo repite casi
+entera la batería de rendimiento — banco eléctrico, comunicación, propulsión, video, esfuerzo—,
+que `mc.rov.revision` ya recoge. Configurarlos como puntos de calidad habría pedido las mismas
+mediciones dos veces.
 
 ### Lo que sigue sin decidir
 
