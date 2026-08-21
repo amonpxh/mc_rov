@@ -112,7 +112,7 @@
          le faltara un chequeo, que es exactamente lo que le faltaba.
 
          Lo que NO se agrega, y conviene que quede dicho: nada que la corrida ya mida. Que se
-         apague solo lo dice `esfuerzo_resultado` con su duración, que se caliente lo dicen
+         apague solo lo dice `funcionamiento_continuo_resultado` con su duración, que se caliente lo dicen
          las temperaturas, y el ancho de banda son `subida` y `bajada`. Registrar el mismo
          hecho como número y como casilla deja dos versiones y ninguna confiable. -->
 
