@@ -167,9 +167,13 @@
                                 </div>
                             </group>
                         </group>
-                    </page>
 
-                    <page string="Periféricos" name="page_perifericos" invisible="not es_un_rov">
+                        <!-- Periféricos y Umbilical fueron pestañas propias hasta 19.0.18.1.0.
+                             Eran cuatro campos cada una: demasiado poco para gastar una pestaña,
+                             y repartir la ficha en tres obligaba a pasearse por ellas para
+                             contestar una sola pregunta —qué es este equipo—. Entran como
+                             secciones, que es lo que siempre fueron. -->
+                        <separator string="Periféricos"/>
                         <group name="group_perifericos">
                             <group name="group_perifericos_left">
                                 <field name="mc_salida_brazo"/>
@@ -179,10 +183,8 @@
                                 <field name="mc_dispositivos_extra"/>
                             </group>
                         </group>
-                    </page>
 
-                    <page string="Umbilical" name="page_umbilical" invisible="not es_un_rov">
-                        <separator string="Especificaciones Umbilical"/>
+                        <separator string="Umbilical"/>
                         <group name="group_umbilical">
                             <group name="group_umbilical_left">
                                 <field name="mc_n_serie_umbilical"/>
