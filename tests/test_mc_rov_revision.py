@@ -178,31 +178,31 @@ class TestMcRovRevision(RevisionCommon):
         )
         self.assertEqual(reordenados.mapped("chequeo_id"), ultimo | primero)
 
-    def test_los_chequeos_de_software_son_solo_de_reparacion(self):
-        """`19.0.15.2.0` los agrega **solo** a la batería de reparación, y eso es una decisión,
-        no un olvido.
+    def test_comparar_el_software_contra_la_ficha_es_solo_de_reparacion(self):
+        """Y es una decisión, no un olvido.
 
-        En fabricación el software lo instala uno mismo, así que compararlo contra la ficha no
-        afirma lo mismo. Y encender las tres casillas por costumbre es exactamente la omisión
-        que dejó la batería de fabricación sin definir — ver `docs/pendientes.md`.
+        **Los dos chequeos de software no son el mismo caso**, y `19.0.15.2.0` los trató como
+        si lo fueran: acotó los dos a reparación. *Que el software de superficie inicie y
+        opere* hace falta en las tres —A4 lo devuelve, y eso se cubre en
+        `test_baterias.py`—; *que el instalado corresponda a la ficha* no, porque en una
+        prueba de rendimiento el software lo acaba de instalar el mismo que responde el
+        chequeo. Ahí la prueba **es la fuente** de la ficha, no su contraste.
 
-        Este test existe porque el error se ve idéntico a un descuido: alguien "completa" los
-        dos registros del XML y nadie lo nota hasta que un ROV recién armado pide software que
-        acaba de instalar.
+        Este test existe porque el error se ve idéntico a un descuido: alguien "completa" las
+        tres casillas del registro y nadie lo nota hasta que un ROV recién armado pide
+        comparar contra una ficha que él mismo va a escribir.
         """
-        software = self.env.ref("mc_rov.chequeo_software_opera") | self.env.ref(
-            "mc_rov.chequeo_software_ficha"
-        )
+        contra_la_ficha = self.env.ref("mc_rov.chequeo_software_ficha")
 
-        self.assertTrue(all(software.mapped("aplica_reparacion")))
-        self.assertFalse(any(software.mapped("aplica_rendimiento")))
-        self.assertFalse(any(software.mapped("aplica_terreno")))
+        self.assertTrue(contra_la_ficha.aplica_reparacion)
+        self.assertFalse(contra_la_ficha.aplica_rendimiento)
+        self.assertFalse(contra_la_ficha.aplica_terreno)
 
         reparacion = self._revision(tipo="reparacion").chequeo_ids.mapped("chequeo_id")
         rendimiento = self._revision(tipo="rendimiento").chequeo_ids.mapped("chequeo_id")
 
-        self.assertFalse(software - reparacion)
-        self.assertFalse(software & rendimiento)
+        self.assertIn(contra_la_ficha, reparacion)
+        self.assertNotIn(contra_la_ficha, rendimiento)
 
     def test_cambiar_el_tipo_ajusta_el_checklist_sin_borrar_respuestas(self):
         """Cambiar de tipo quita las líneas que ya no corresponden, pero nunca las que
