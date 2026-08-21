@@ -312,6 +312,37 @@
                                 </group>
                             </group>
 
+                            <!-- Va pegado a «Software encontrado», y ésa es toda la gracia:
+                                 lo anotado y lo declarado uno al lado del otro, con el aviso
+                                 en medio — la misma forma que el conteo de luces.
+
+                                 Hasta 19.0.18.3.0 este bloque vivía abajo entre los chequeos,
+                                 donde lo había puesto 19.0.15.2.0, y al partir la pestaña en
+                                 Mediciones y Chequeos quedó separado de los campos con los que
+                                 se compara: había que cambiar de pestaña para ver contra qué.
+                                 Una comparación repartida en dos pantallas no es una
+                                 comparación. -->
+                            <div class="alert alert-warning" role="alert"
+                                 invisible="not software_difiere">
+                                El software encontrado no coincide con lo que declara la ficha
+                                del equipo. O el equipo revirtió, o la ficha está desactualizada.
+                            </div>
+
+                            <group string="Software según la ficha"
+                                   invisible="tipo == 'terreno' or (not software_ficha_id
+                                              and not version_ardusub_ficha
+                                              and not controlador_ficha_id)">
+                                <group>
+                                    <field name="software_ficha_id" readonly="1"/>
+                                    <field name="version_software_ficha" readonly="1"/>
+                                    <field name="version_ardusub_ficha" readonly="1"/>
+                                </group>
+                                <group>
+                                    <field name="controlador_ficha_id" readonly="1"/>
+                                    <field name="version_controlador_ficha" readonly="1"/>
+                                </group>
+                            </group>
+
                             <!-- Las condiciones del terreno van junto a las de la prueba
                                  por lo mismo: describen bajo qué se probó, no qué resultó.
                                  Solo aparecen cuando la revisión es de terreno. -->
@@ -477,30 +508,6 @@
                                  Se esconde cuando la ficha no declara nada —todos los equipos
                                  anteriores a Odoo— porque cinco etiquetas vacías se leen como
                                  algo roto y no como "esto todavía no se llenó". -->
-                            <!-- Solo en reparación: ahí el software se compara contra la
-                                 ficha. En la prueba de rendimiento se anota lo instalado, más
-                                 arriba, y mostrar los dos bloques a la vez era una invitación
-                                 a llenar el equivocado. -->
-                            <div class="alert alert-warning" role="alert"
-                                 invisible="not software_difiere">
-                                El software encontrado no coincide con lo que declara la ficha
-                                del equipo. O el equipo revirtió, o la ficha está desactualizada.
-                            </div>
-
-                            <group string="Software según la ficha"
-                                   invisible="tipo == 'terreno' or (not software_ficha_id
-                                              and not version_ardusub_ficha
-                                              and not controlador_ficha_id)">
-                                <group>
-                                    <field name="software_ficha_id" readonly="1"/>
-                                    <field name="version_software_ficha" readonly="1"/>
-                                    <field name="version_ardusub_ficha" readonly="1"/>
-                                </group>
-                                <group>
-                                    <field name="controlador_ficha_id" readonly="1"/>
-                                    <field name="version_controlador_ficha" readonly="1"/>
-                                </group>
-                            </group>
 
                             <group string="Prueba de navegación"
                                    invisible="not chequeo_navegacion_ids">
