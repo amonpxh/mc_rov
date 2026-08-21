@@ -58,294 +58,315 @@
         <field name="es_inspeccionable" eval="True"/>
     </record>
 
-    <!-- ================= Pasos de testeo estándar =================
-         Los nombres y el agrupamiento por sección salen de la hoja de papel del taller, que
-         es el documento que la gente ya sabe llenar. La sección "Inspección física" queda
-         sin chequeos: lo que había ahí eran las marcas de plumón, que salieron de la
-         batería en 19.0.12.0.0 —preguntarlas en cinco componentes de toda revisión costaba
-         cinco respuestas por ficha y casi nunca decía nada—. Ver una marca sigue siendo un
-         hallazgo registrable, y para eso está `hallazgo_marca_plumon` más abajo. -->
+    <!-- **El catálogo de chequeos es del usuario, no del código** (`noupdate="1"`, desde
+         19.0.20.0.0). Sin esto, cada actualización del módulo reescribía las tres casillas
+         `aplica_*` y revertía en silencio cualquier ajuste hecho desde Configuración — que es
+         justo lo que el taller tiene que poder hacer cuando una batería no le calza. Los
+         registros nuevos SÍ se siguen creando: `noupdate` solo protege lo que ya existe.
 
-    <record id="chequeo_estanqueidad" model="mc.rov.chequeo">
-        <field name="name">Estanqueidad bajo presión</field>
-        <field name="seccion">presion</field>
-        <field name="sequence">40</field>
-        <field name="aplica_rendimiento" eval="True"/>
-        <field name="aplica_reparacion" eval="True"/>
-        <field name="aplica_terreno" eval="True"/>
-    </record>
+         El reparto de abajo es el del § 5.3 del diseño de fabricación: **rendimiento 18 ·
+         terreno 17 · reparación 24**, y hay un test que lo cuenta. El criterio que lo ordena
+         es que un equipo recién armado no tiene desgaste, así que los chequeos que buscan
+         daño de uso son de reparación; y que en terreno vale solo lo que se puede medir
+         estando ahí. -->
+    <data noupdate="1">
 
-    <record id="chequeo_sensor_leak" model="mc.rov.chequeo">
-        <field name="name">El sensor de leak responde</field>
-        <field name="seccion">leak</field>
-        <field name="sequence">50</field>
-        <field name="aplica_rendimiento" eval="True"/>
-        <field name="aplica_reparacion" eval="True"/>
-        <field name="aplica_terreno" eval="True"/>
-    </record>
+        <!-- ================= Pasos de testeo estándar =================
+             Los nombres y el agrupamiento por sección salen de la hoja de papel del taller, que
+             es el documento que la gente ya sabe llenar. La sección "Inspección física" queda
+             sin chequeos: lo que había ahí eran las marcas de plumón, que salieron de la
+             batería en 19.0.12.0.0 —preguntarlas en cinco componentes de toda revisión costaba
+             cinco respuestas por ficha y casi nunca decía nada—. Ver una marca sigue siendo un
+             hallazgo registrable, y para eso está `hallazgo_marca_plumon` más abajo. -->
 
-    <record id="chequeo_helices" model="mc.rov.chequeo">
-        <field name="name">Hélices en posición correcta</field>
-        <field name="seccion">navegacion</field>
-        <field name="sequence">60</field>
-        <field name="aplica_rendimiento" eval="True"/>
-        <field name="aplica_reparacion" eval="True"/>
-        <field name="aplica_terreno" eval="True"/>
-    </record>
-    <record id="chequeo_mov_vertical" model="mc.rov.chequeo">
-        <field name="name">Movimiento vertical</field>
-        <field name="seccion">navegacion</field>
-        <field name="sequence">64</field>
-        <field name="aplica_rendimiento" eval="True"/>
-        <field name="aplica_reparacion" eval="True"/>
-        <field name="aplica_terreno" eval="True"/>
-    </record>
-    <record id="chequeo_mov_horizontal" model="mc.rov.chequeo">
-        <field name="name">Movimiento horizontal</field>
-        <field name="seccion">navegacion</field>
-        <field name="sequence">66</field>
-        <field name="aplica_rendimiento" eval="True"/>
-        <field name="aplica_reparacion" eval="True"/>
-        <field name="aplica_terreno" eval="True"/>
-    </record>
+        <!-- En terreno no hay máquina de presión en el muelle. La misma pregunta se contesta ahí con la profundidad alcanzada, que es la verificación de presión hecha por otro medio. -->
+        <record id="chequeo_estanqueidad" model="mc.rov.chequeo">
+            <field name="name">Estanqueidad bajo presión</field>
+            <field name="seccion">presion</field>
+            <field name="sequence">40</field>
+            <field name="aplica_rendimiento" eval="True"/>
+            <field name="aplica_reparacion" eval="True"/>
+            <field name="aplica_terreno" eval="False"/>
+        </record>
 
-    <record id="chequeo_camara" model="mc.rov.chequeo">
-        <field name="name">Imagen de cámara</field>
-        <field name="seccion">video</field>
-        <field name="sequence">90</field>
-        <field name="aplica_rendimiento" eval="True"/>
-        <field name="aplica_reparacion" eval="True"/>
-        <field name="aplica_terreno" eval="True"/>
-    </record>
-    <record id="chequeo_tilt" model="mc.rov.chequeo">
-        <field name="name">Tilt</field>
-        <field name="seccion">video</field>
-        <field name="sequence">100</field>
-        <field name="aplica_rendimiento" eval="True"/>
-        <field name="aplica_reparacion" eval="True"/>
-        <field name="aplica_terreno" eval="True"/>
-    </record>
+        <record id="chequeo_sensor_leak" model="mc.rov.chequeo">
+            <field name="name">El sensor de leak responde</field>
+            <field name="seccion">leak</field>
+            <field name="sequence">50</field>
+            <field name="aplica_rendimiento" eval="True"/>
+            <field name="aplica_reparacion" eval="True"/>
+            <field name="aplica_terreno" eval="True"/>
+        </record>
 
-    <!-- ========== Ampliación de la batería, 19.0.14.1.0 ==========
-         Los siete chequeos de arriba salieron de la hoja de papel. Estos nueve salieron de
-         contar esa batería contra el catálogo de síntomas, y de ahí salió el hueco: un ROV
-         que no enciende, que pierde conexión o al que no le responde una luz no tenía
-         ninguna prueba que lo verificara. El técnico lo iba a encontrar mirando, y el
-         hallazgo quedaría sin «Prueba que lo detectó» — o sea marcado como si a la batería
-         le faltara un chequeo, que es exactamente lo que le faltaba.
+        <!-- Busca posición de armado, y en rendimiento la posición ya se verifica funcionalmente: si una hélice está al revés, fallan los chequeos de movimiento. -->
+        <record id="chequeo_helices" model="mc.rov.chequeo">
+            <field name="name">Hélices en posición correcta</field>
+            <field name="seccion">navegacion</field>
+            <field name="sequence">60</field>
+            <field name="aplica_rendimiento" eval="False"/>
+            <field name="aplica_reparacion" eval="True"/>
+            <field name="aplica_terreno" eval="False"/>
+        </record>
+        <record id="chequeo_mov_vertical" model="mc.rov.chequeo">
+            <field name="name">Movimiento vertical</field>
+            <field name="seccion">navegacion</field>
+            <field name="sequence">64</field>
+            <field name="aplica_rendimiento" eval="True"/>
+            <field name="aplica_reparacion" eval="True"/>
+            <field name="aplica_terreno" eval="True"/>
+        </record>
+        <record id="chequeo_mov_horizontal" model="mc.rov.chequeo">
+            <field name="name">Movimiento horizontal</field>
+            <field name="seccion">navegacion</field>
+            <field name="sequence">66</field>
+            <field name="aplica_rendimiento" eval="True"/>
+            <field name="aplica_reparacion" eval="True"/>
+            <field name="aplica_terreno" eval="True"/>
+        </record>
 
-         Lo que NO se agrega, y conviene que quede dicho: nada que la corrida ya mida. Que se
-         apague solo lo dice `funcionamiento_continuo_resultado` con su duración, que se caliente lo dicen
-         las temperaturas, y el ancho de banda son `subida` y `bajada`. Registrar el mismo
-         hecho como número y como casilla deja dos versiones y ninguna confiable. -->
+        <record id="chequeo_camara" model="mc.rov.chequeo">
+            <field name="name">Imagen de cámara</field>
+            <field name="seccion">video</field>
+            <field name="sequence">90</field>
+            <field name="aplica_rendimiento" eval="True"/>
+            <field name="aplica_reparacion" eval="True"/>
+            <field name="aplica_terreno" eval="True"/>
+        </record>
+        <record id="chequeo_tilt" model="mc.rov.chequeo">
+            <field name="name">Tilt</field>
+            <field name="seccion">video</field>
+            <field name="sequence">100</field>
+            <field name="aplica_rendimiento" eval="True"/>
+            <field name="aplica_reparacion" eval="True"/>
+            <field name="aplica_terreno" eval="True"/>
+        </record>
 
-    <!-- Energía -->
-    <record id="chequeo_enciende" model="mc.rov.chequeo">
-        <field name="name">Enciende y arranca correctamente</field>
-        <field name="seccion">energia</field>
-        <field name="sequence">15</field>
-        <field name="aplica_rendimiento" eval="True"/>
-        <field name="aplica_reparacion" eval="True"/>
-        <field name="aplica_terreno" eval="True"/>
-    </record>
+        <!-- ========== Ampliación de la batería, 19.0.14.1.0 ==========
+             Los siete chequeos de arriba salieron de la hoja de papel. Estos nueve salieron de
+             contar esa batería contra el catálogo de síntomas, y de ahí salió el hueco: un ROV
+             que no enciende, que pierde conexión o al que no le responde una luz no tenía
+             ninguna prueba que lo verificara. El técnico lo iba a encontrar mirando, y el
+             hallazgo quedaría sin «Prueba que lo detectó» — o sea marcado como si a la batería
+             le faltara un chequeo, que es exactamente lo que le faltaba.
 
-    <!-- Inspección física. La sección quedó sin chequeos en 19.0.12.0.0 al salir las marcas
-         de plumón, y sin nada adentro no se miraba nada al recibir de forma registrable. -->
-    <record id="chequeo_chasis" model="mc.rov.chequeo">
-        <field name="name">Chasis y estructura sin daño visible</field>
-        <field name="seccion">inspeccion_fisica</field>
-        <field name="sequence">20</field>
-        <field name="aplica_rendimiento" eval="True"/>
-        <field name="aplica_reparacion" eval="True"/>
-        <field name="aplica_terreno" eval="True"/>
-    </record>
-    <record id="chequeo_penetradores" model="mc.rov.chequeo">
-        <field name="name">Penetradores y conectores sin daño</field>
-        <field name="seccion">inspeccion_fisica</field>
-        <field name="sequence">25</field>
-        <field name="aplica_rendimiento" eval="True"/>
-        <field name="aplica_reparacion" eval="True"/>
-        <field name="aplica_terreno" eval="True"/>
-    </record>
-    <record id="chequeo_helices_dano" model="mc.rov.chequeo">
-        <field name="name">Hélices sin daño ni desgaste</field>
-        <field name="seccion">inspeccion_fisica</field>
-        <field name="sequence">30</field>
-        <field name="aplica_rendimiento" eval="True"/>
-        <field name="aplica_reparacion" eval="True"/>
-        <field name="aplica_terreno" eval="True"/>
-    </record>
+             Lo que NO se agrega, y conviene que quede dicho: nada que la corrida ya mida. Que se
+             apague solo lo dice `funcionamiento_continuo_resultado` con su duración, que se caliente lo dicen
+             las temperaturas, y el ancho de banda son `subida` y `bajada`. Registrar el mismo
+             hecho como número y como casilla deja dos versiones y ninguna confiable. -->
 
-    <!-- Comunicación. "Responde a comandos" no es lo mismo que tener ancho de banda: el
-         síntoma "conectado pero no responde" existe justamente porque son dos fallas
-         distintas.
+        <!-- Energía -->
+        <record id="chequeo_enciende" model="mc.rov.chequeo">
+            <field name="name">Enciende y arranca correctamente</field>
+            <field name="seccion">energia</field>
+            <field name="sequence">15</field>
+            <field name="aplica_rendimiento" eval="True"/>
+            <field name="aplica_reparacion" eval="True"/>
+            <field name="aplica_terreno" eval="True"/>
+        </record>
 
-         El ancho de banda se contesta a mano y no se deriva de `subida`/`bajada`: decir si 8
-         Mbps está bien exige un umbral que hoy nadie definió, y un umbral inventado en el
-         código marcaría "No OK" según un número que no significa nada. El técnico sabe qué da
-         su modelo. El día que la ficha técnica declare el valor esperado, esto puede pasar a
-         derivarse solo, igual que ya lo hace `luces_difieren` contra la cantidad de luces. -->
-    <record id="chequeo_responde_comandos" model="mc.rov.chequeo">
-        <field name="name">Responde a comandos desde superficie</field>
-        <field name="seccion">comunicacion</field>
-        <field name="sequence">55</field>
-        <field name="aplica_rendimiento" eval="True"/>
-        <field name="aplica_reparacion" eval="True"/>
-        <field name="aplica_terreno" eval="True"/>
-    </record>
-    <record id="chequeo_ancho_banda" model="mc.rov.chequeo">
-        <field name="name">El ancho de banda es el esperado para este equipo y este cable</field>
-        <field name="seccion">comunicacion</field>
-        <field name="sequence">57</field>
-        <field name="aplica_rendimiento" eval="True"/>
-        <field name="aplica_reparacion" eval="True"/>
-        <field name="aplica_terreno" eval="True"/>
-    </record>
+        <!-- Inspección física. La sección quedó sin chequeos en 19.0.12.0.0 al salir las marcas
+             de plumón, y sin nada adentro no se miraba nada al recibir de forma registrable. -->
+        <!-- Busca daño de uso, y un equipo recién armado no lo tiene. -->
+        <record id="chequeo_chasis" model="mc.rov.chequeo">
+            <field name="name">Chasis y estructura sin daño visible</field>
+            <field name="seccion">inspeccion_fisica</field>
+            <field name="sequence">20</field>
+            <field name="aplica_rendimiento" eval="False"/>
+            <field name="aplica_reparacion" eval="True"/>
+            <field name="aplica_terreno" eval="False"/>
+        </record>
+        <!-- Busca daño de uso. -->
+        <record id="chequeo_penetradores" model="mc.rov.chequeo">
+            <field name="name">Penetradores y conectores sin daño</field>
+            <field name="seccion">inspeccion_fisica</field>
+            <field name="sequence">25</field>
+            <field name="aplica_rendimiento" eval="False"/>
+            <field name="aplica_reparacion" eval="True"/>
+            <field name="aplica_terreno" eval="False"/>
+        </record>
+        <!-- Busca desgaste. -->
+        <record id="chequeo_helices_dano" model="mc.rov.chequeo">
+            <field name="name">Hélices sin daño ni desgaste</field>
+            <field name="seccion">inspeccion_fisica</field>
+            <field name="sequence">30</field>
+            <field name="aplica_rendimiento" eval="False"/>
+            <field name="aplica_reparacion" eval="True"/>
+            <field name="aplica_terreno" eval="False"/>
+        </record>
 
-    <!-- Software, en 19.0.15.2.0. Había un síntoma —"El software de superficie falla"— y
-         ninguna prueba que lo verificara, así que el técnico lo encontraba mirando y el
-         hallazgo quedaba sin chequeo de origen.
+        <!-- Comunicación. "Responde a comandos" no es lo mismo que tener ancho de banda: el
+             síntoma "conectado pero no responde" existe justamente porque son dos fallas
+             distintas.
 
-         Van en `comunicacion` y no en una sección propia porque el catálogo de síntomas ya
-         clasificó ahí esa falla. Una sección nueva habría costado un valor de Selection, un
-         one2many filtrado y un bloque de vista para dos preguntas.
+             El ancho de banda se contesta a mano y no se deriva de `subida`/`bajada`: decir si 8
+             Mbps está bien exige un umbral que hoy nadie definió, y un umbral inventado en el
+             código marcaría "No OK" según un número que no significa nada. El técnico sabe qué da
+             su modelo. El día que la ficha técnica declare el valor esperado, esto puede pasar a
+             derivarse solo, igual que ya lo hace `luces_difieren` contra la cantidad de luces. -->
+        <record id="chequeo_responde_comandos" model="mc.rov.chequeo">
+            <field name="name">Responde a comandos desde superficie</field>
+            <field name="seccion">comunicacion</field>
+            <field name="sequence">55</field>
+            <field name="aplica_rendimiento" eval="True"/>
+            <field name="aplica_reparacion" eval="True"/>
+            <field name="aplica_terreno" eval="True"/>
+        </record>
+        <record id="chequeo_ancho_banda" model="mc.rov.chequeo">
+            <field name="name">El ancho de banda es el esperado para este equipo y este cable</field>
+            <field name="seccion">comunicacion</field>
+            <field name="sequence">57</field>
+            <field name="aplica_rendimiento" eval="True"/>
+            <field name="aplica_reparacion" eval="True"/>
+            <field name="aplica_terreno" eval="True"/>
+        </record>
 
-         **El segundo caza una falla concreta y observada:** el equipo se autoformatea y vuelve
-         al software instalado de fábrica —normalmente ROVControl vuelve a QGroundControl, o
-         QGroundControl baja a una versión más vieja—. Se responde comparando contra la ficha,
-         que ya guarda las tres versiones con `tracking`, y por eso la pantalla las muestra al
-         lado: un chequeo que obliga a salir a otra vista para contestarlo se contesta "OK".
+        <!-- Software, en 19.0.15.2.0. Había un síntoma —"El software de superficie falla"— y
+             ninguna prueba que lo verificara, así que el técnico lo encontraba mirando y el
+             hallazgo quedaba sin chequeo de origen.
 
-         **Deliberadamente NO se estructura más que esto.** Cuál software revierte y con qué
-         frecuencia no se sabe todavía, y `detalle` acepta cualquier combinación sin
-         casilleros. Cuando estas líneas muestren un patrón —qué ranura, cada cuánto— se puede
-         decidir si vale un modelo con comparación automática. Estructurarlo ahora sería
-         inventar la forma del dato antes de tener el dato.
+             Van en `comunicacion` y no en una sección propia porque el catálogo de síntomas ya
+             clasificó ahí esa falla. Una sección nueva habría costado un valor de Selection, un
+             one2many filtrado y un bloque de vista para dos preguntas.
 
-         Solo `aplica_reparacion`. Encender las otras dos por costumbre es exactamente la
-         omisión que dejó la batería de fabricación sin definir (ver docs/pendientes.md): en
-         fabricación el software lo instala uno mismo, así que compararlo contra la ficha no
-         significa lo mismo. -->
-    <record id="chequeo_software_opera" model="mc.rov.chequeo">
-        <field name="name">El software de superficie inicia y opera</field>
-        <field name="seccion">comunicacion</field>
-        <field name="sequence">58</field>
-        <field name="aplica_rendimiento" eval="False"/>
-        <field name="aplica_reparacion" eval="True"/>
-        <field name="aplica_terreno" eval="False"/>
-    </record>
-    <record id="chequeo_software_ficha" model="mc.rov.chequeo">
-        <field name="name">El software instalado corresponde a la ficha</field>
-        <field name="seccion">comunicacion</field>
-        <field name="sequence">59</field>
-        <field name="aplica_rendimiento" eval="False"/>
-        <field name="aplica_reparacion" eval="True"/>
-        <field name="aplica_terreno" eval="False"/>
-    </record>
+             **El segundo caza una falla concreta y observada:** el equipo se autoformatea y vuelve
+             al software instalado de fábrica —normalmente ROVControl vuelve a QGroundControl, o
+             QGroundControl baja a una versión más vieja—. Se responde comparando contra la ficha,
+             que ya guarda las tres versiones con `tracking`, y por eso la pantalla las muestra al
+             lado: un chequeo que obliga a salir a otra vista para contestarlo se contesta "OK".
 
-    <!-- Navegación. Depth hold y stabilize van separados por la misma razón que están
-         separados como síntomas: apuntan a lugares distintos —el sensor de presión y el IMU o
-         el compás— y de tenerlos separados sale una deducción que no existe de otro modo: si
-         depth hold falla pero stabilize funciona, el problema es el sensor de profundidad,
-         porque uno depende del otro. Hasta ahora esa deducción se podía reportar como síntoma
-         pero no comprobar, porque no había prueba que la midiera.
+             **Deliberadamente NO se estructura más que esto.** Cuál software revierte y con qué
+             frecuencia no se sabe todavía, y `detalle` acepta cualquier combinación sin
+             casilleros. Cuando estas líneas muestren un patrón —qué ranura, cada cuánto— se puede
+             decidir si vale un modelo con comparación automática. Estructurarlo ahora sería
+             inventar la forma del dato antes de tener el dato.
 
-         Por eso tampoco hace falta una sección "Sensores": el sensor de profundidad se
-         verifica probando depth hold. -->
-    <record id="chequeo_depth_hold" model="mc.rov.chequeo">
-        <field name="name">Mantiene profundidad (depth hold)</field>
-        <field name="seccion">navegacion</field>
-        <field name="sequence">77</field>
-        <field name="aplica_rendimiento" eval="True"/>
-        <field name="aplica_reparacion" eval="True"/>
-        <field name="aplica_terreno" eval="True"/>
-    </record>
-    <record id="chequeo_stabilize" model="mc.rov.chequeo">
-        <field name="name">Se estabiliza (stabilize)</field>
-        <field name="seccion">navegacion</field>
-        <field name="sequence">75</field>
-        <field name="aplica_rendimiento" eval="True"/>
-        <field name="aplica_reparacion" eval="True"/>
-        <field name="aplica_terreno" eval="True"/>
-    </record>
+             Solo `aplica_reparacion`. Encender las otras dos por costumbre es exactamente la
+             omisión que dejó la batería de fabricación sin definir (ver docs/pendientes.md): en
+             fabricación el software lo instala uno mismo, así que compararlo contra la ficha no
+             significa lo mismo. -->
+        <!-- Estaba acotado a reparación desde 19.0.15.2.0 y se acotó de más: que el software de superficie arranque y opere hace falta en las tres. -->
+        <record id="chequeo_software_opera" model="mc.rov.chequeo">
+            <field name="name">El software de superficie inicia y opera</field>
+            <field name="seccion">comunicacion</field>
+            <field name="sequence">58</field>
+            <field name="aplica_rendimiento" eval="True"/>
+            <field name="aplica_reparacion" eval="True"/>
+            <field name="aplica_terreno" eval="True"/>
+        </record>
+        <record id="chequeo_software_ficha" model="mc.rov.chequeo">
+            <field name="name">El software instalado corresponde a la ficha</field>
+            <field name="seccion">comunicacion</field>
+            <field name="sequence">59</field>
+            <field name="aplica_rendimiento" eval="False"/>
+            <field name="aplica_reparacion" eval="True"/>
+            <field name="aplica_terreno" eval="False"/>
+        </record>
 
-    <!-- Luces. Contar cuántas encienden —que es lo que ya hacen `luces_internas` y
-         `luces_externas`— no es lo mismo que verificar que se controlan desde superficie. -->
-    <record id="chequeo_luces_control" model="mc.rov.chequeo">
-        <field name="name">Las luces responden al control desde superficie</field>
-        <field name="seccion">luces</field>
-        <field name="sequence">120</field>
-        <field name="aplica_rendimiento" eval="True"/>
-        <field name="aplica_reparacion" eval="True"/>
-        <field name="aplica_terreno" eval="True"/>
-    </record>
+        <!-- Navegación. Depth hold y stabilize van separados por la misma razón que están
+             separados como síntomas: apuntan a lugares distintos —el sensor de presión y el IMU o
+             el compás— y de tenerlos separados sale una deducción que no existe de otro modo: si
+             depth hold falla pero stabilize funciona, el problema es el sensor de profundidad,
+             porque uno depende del otro. Hasta ahora esa deducción se podía reportar como síntoma
+             pero no comprobar, porque no había prueba que la midiera.
 
-    <!-- ========== Segunda pasada, 19.0.14.2.0 ==========
-         La primera ampliación cerró los huecos por familia de síntoma. Esta cierra los que
-         quedaron adentro de familias que ya tenían alguna prueba, que son los que no se ven
-         contando familias. -->
+             Por eso tampoco hace falta una sección "Sensores": el sensor de profundidad se
+             verifica probando depth hold. -->
+        <record id="chequeo_depth_hold" model="mc.rov.chequeo">
+            <field name="name">Mantiene profundidad (depth hold)</field>
+            <field name="seccion">navegacion</field>
+            <field name="sequence">77</field>
+            <field name="aplica_rendimiento" eval="True"/>
+            <field name="aplica_reparacion" eval="True"/>
+            <field name="aplica_terreno" eval="True"/>
+        </record>
+        <record id="chequeo_stabilize" model="mc.rov.chequeo">
+            <field name="name">Se estabiliza (stabilize)</field>
+            <field name="seccion">navegacion</field>
+            <field name="sequence">75</field>
+            <field name="aplica_rendimiento" eval="True"/>
+            <field name="aplica_reparacion" eval="True"/>
+            <field name="aplica_terreno" eval="True"/>
+        </record>
 
-    <!-- Movimiento. "Un motor no gira" es de los síntomas que más se reportan y no tenía
-         ninguna prueba: "Hélices en posición correcta" mira la posición, no que giren.
+        <!-- Luces. Contar cuántas encienden —que es lo que ya hacen `luces_internas` y
+             `luces_externas`— no es lo mismo que verificar que se controlan desde superficie. -->
+        <record id="chequeo_luces_control" model="mc.rov.chequeo">
+            <field name="name">Las luces responden al control desde superficie</field>
+            <field name="seccion">luces</field>
+            <field name="sequence">120</field>
+            <field name="aplica_rendimiento" eval="True"/>
+            <field name="aplica_reparacion" eval="True"/>
+            <field name="aplica_terreno" eval="True"/>
+        </record>
 
-         Y acro va aparte de stabilize por el mismo criterio que separó depth hold: acro
-         mantiene la velocidad angular con el giróscopo, stabilize nivela con acelerómetro y
-         compás. Si acro responde y stabilize no, el giro está sano y el problema es la parte
-         que nivela. No todos los equipos lo tienen, y para eso está "No aplica". -->
-    <record id="chequeo_thrusters" model="mc.rov.chequeo">
-        <field name="name">Todos los thrusters responden</field>
-        <field name="seccion">navegacion</field>
-        <field name="sequence">62</field>
-        <field name="aplica_rendimiento" eval="True"/>
-        <field name="aplica_reparacion" eval="True"/>
-        <field name="aplica_terreno" eval="True"/>
-    </record>
-    <record id="chequeo_acro" model="mc.rov.chequeo">
-        <field name="name">Responde en modo acrobático (acro)</field>
-        <field name="seccion">navegacion</field>
-        <field name="sequence">73</field>
-        <field name="aplica_rendimiento" eval="True"/>
-        <field name="aplica_reparacion" eval="True"/>
-        <field name="aplica_terreno" eval="True"/>
-    </record>
-    <!-- Se observa con el equipo andando, por eso va en navegación y no en la inspección. -->
-    <record id="chequeo_ruido_vibracion" model="mc.rov.chequeo">
-        <field name="name">Sin ruido ni vibración anormal</field>
-        <field name="seccion">navegacion</field>
-        <field name="sequence">79</field>
-        <field name="aplica_rendimiento" eval="True"/>
-        <field name="aplica_reparacion" eval="True"/>
-        <field name="aplica_terreno" eval="True"/>
-    </record>
+        <!-- ========== Segunda pasada, 19.0.14.2.0 ==========
+             La primera ampliación cerró los huecos por familia de síntoma. Esta cierra los que
+             quedaron adentro de familias que ya tenían alguna prueba, que son los que no se ven
+             contando familias. -->
 
-    <!-- El umbilical es el componente del que más se sospecha y la inspección no lo miraba:
-         se revisaban chasis, penetradores y hélices, o sea el vehículo, no el cable. -->
-    <record id="chequeo_umbilical_estado" model="mc.rov.chequeo">
-        <field name="name">Umbilical sin cortes ni aplastamientos</field>
-        <field name="seccion">inspeccion_fisica</field>
-        <field name="sequence">27</field>
-        <field name="aplica_rendimiento" eval="True"/>
-        <field name="aplica_reparacion" eval="True"/>
-        <field name="aplica_terreno" eval="True"/>
-    </record>
+        <!-- Movimiento. "Un motor no gira" es de los síntomas que más se reportan y no tenía
+             ninguna prueba: "Hélices en posición correcta" mira la posición, no que giren.
 
-    <!-- Accesorios -->
-    <record id="chequeo_manipulador" model="mc.rov.chequeo">
-        <field name="name">Manipulador responde</field>
-        <field name="seccion">accesorios</field>
-        <field name="sequence">110</field>
-        <field name="aplica_rendimiento" eval="True"/>
-        <field name="aplica_reparacion" eval="True"/>
-        <field name="aplica_terreno" eval="True"/>
-    </record>
-    <record id="chequeo_sonar" model="mc.rov.chequeo">
-        <field name="name">Sonar funciona</field>
-        <field name="seccion">accesorios</field>
-        <field name="sequence">115</field>
-        <field name="aplica_rendimiento" eval="True"/>
-        <field name="aplica_reparacion" eval="True"/>
-        <field name="aplica_terreno" eval="True"/>
-    </record>
+             Y acro va aparte de stabilize por el mismo criterio que separó depth hold: acro
+             mantiene la velocidad angular con el giróscopo, stabilize nivela con acelerómetro y
+             compás. Si acro responde y stabilize no, el giro está sano y el problema es la parte
+             que nivela. No todos los equipos lo tienen, y para eso está "No aplica". -->
+        <record id="chequeo_thrusters" model="mc.rov.chequeo">
+            <field name="name">Todos los thrusters responden</field>
+            <field name="seccion">navegacion</field>
+            <field name="sequence">62</field>
+            <field name="aplica_rendimiento" eval="True"/>
+            <field name="aplica_reparacion" eval="True"/>
+            <field name="aplica_terreno" eval="True"/>
+        </record>
+        <record id="chequeo_acro" model="mc.rov.chequeo">
+            <field name="name">Responde en modo acrobático (acro)</field>
+            <field name="seccion">navegacion</field>
+            <field name="sequence">73</field>
+            <field name="aplica_rendimiento" eval="True"/>
+            <field name="aplica_reparacion" eval="True"/>
+            <field name="aplica_terreno" eval="True"/>
+        </record>
+        <!-- Se observa con el equipo andando, por eso va en navegación y no en la inspección. -->
+        <record id="chequeo_ruido_vibracion" model="mc.rov.chequeo">
+            <field name="name">Sin ruido ni vibración anormal</field>
+            <field name="seccion">navegacion</field>
+            <field name="sequence">79</field>
+            <field name="aplica_rendimiento" eval="True"/>
+            <field name="aplica_reparacion" eval="True"/>
+            <field name="aplica_terreno" eval="True"/>
+        </record>
+
+        <!-- El umbilical es el componente del que más se sospecha y la inspección no lo miraba:
+             se revisaban chasis, penetradores y hélices, o sea el vehículo, no el cable. -->
+        <!-- Busca daño de uso. -->
+        <record id="chequeo_umbilical_estado" model="mc.rov.chequeo">
+            <field name="name">Umbilical sin cortes ni aplastamientos</field>
+            <field name="seccion">inspeccion_fisica</field>
+            <field name="sequence">27</field>
+            <field name="aplica_rendimiento" eval="False"/>
+            <field name="aplica_reparacion" eval="True"/>
+            <field name="aplica_terreno" eval="False"/>
+        </record>
+
+        <!-- Accesorios -->
+        <record id="chequeo_manipulador" model="mc.rov.chequeo">
+            <field name="name">Manipulador responde</field>
+            <field name="seccion">accesorios</field>
+            <field name="sequence">110</field>
+            <field name="aplica_rendimiento" eval="True"/>
+            <field name="aplica_reparacion" eval="True"/>
+            <field name="aplica_terreno" eval="True"/>
+        </record>
+        <record id="chequeo_sonar" model="mc.rov.chequeo">
+            <field name="name">Sonar funciona</field>
+            <field name="seccion">accesorios</field>
+            <field name="sequence">115</field>
+            <field name="aplica_rendimiento" eval="True"/>
+            <field name="aplica_reparacion" eval="True"/>
+            <field name="aplica_terreno" eval="True"/>
+        </record>
+    </data>
 
     <!-- La sección "luces" no lleva chequeos de OK / No OK: la prueba de luces es contar
          cuántas encienden, y eso ya son los tres campos de la revisión —internas, externas

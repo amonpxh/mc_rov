@@ -4,6 +4,52 @@ All notable changes to the `mc_rov` Odoo module are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this module adheres to [semantic versioning](https://semver.org/) within the constraints of Odoo's version scheme: `19.0.X.Y.Z` where `19.0` is the Odoo major, `X` is breaking-change/migration, `Y` is feature, `Z` is bugfix.
 
+## [19.0.20.0.0] — 2026-08-21
+
+### Changed
+
+- **The three batteries stop asking the same 24 questions.** Block A4, per design section 5.3:
+  **rendimiento 18 · terreno 17 · reparación 24**, where before it was 22 · 22 · 24. Two
+  criteria order the split. A freshly built machine **has no wear**, so the checks that hunt
+  for damage from use — chassis, penetrators, umbilical, propellers — belong to repairs. And in
+  the field, only **what can actually be measured while standing there** counts: there is no
+  pressure rig on a jetty, so `Estanqueidad bajo presión` drops out and the same question is
+  answered by the depth reached, which is the pressure check done by other means.
+
+- **`El software de superficie inicia y opera` returns to all three.** It had been narrowed to
+  repairs in `19.0.15.2.0`, and that was too far.
+
+- **The checklist catalogue now belongs to the user** (`noupdate="1"`). Without it, every module
+  update rewrote the three `aplica_*` boxes and silently reverted any adjustment made from
+  Configuracion — which is exactly what the workshop has to be able to do when a battery does
+  not fit. New records are still created: `noupdate` only protects what already exists.
+
+### Removed
+
+- **The assembly battery is not built, and neither is the manufacturing routing.** A quality
+  point anchors to an **operation**, and production has zero of them: manufacturing orders are
+  flat. Without a routing the five interior checks appear once the hull is already closed —
+  the exact failure mode putting them in Quality was meant to avoid.
+
+  Creating the routing was the other way out and was dropped. Paulo: *«aún no somos lo
+  suficientemente grandes para justificar ese proceso»* — and the technical argument points the
+  same way: **the pressure test (2 h at 30 bar) already catches the failure mode those five
+  hunt.** A badly seated o-ring or a loose penetrator shows up there. What the checks add is
+  knowing *which step* failed, and with 11 manufacturing orders and a single bill of materials
+  that does not pay for three work orders somebody has to open and close.
+
+  What is genuinely lost is the photo of the assembled interior, which cannot be taken once the
+  hull is shut — and that needs no routing and no quality points: it goes in the manufacturing
+  order's chatter. **Reopen when a leak reaches a customer, or when «which step failed?» becomes
+  a real question.**
+
+### Migration
+
+`19.0.20.0.0/post-migrate.py` applies the split to existing records. It is needed precisely
+because the catalogue became `noupdate` in the same version: Odoo stops applying XML values to
+records that already exist, so without the script the new split would only reach clean installs.
+It is the only time this is needed — from here the catalogue is adjusted on screen.
+
 ## [19.0.19.0.0] — 2026-08-21
 
 ### Added
