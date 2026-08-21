@@ -80,8 +80,14 @@ CONDICIONES_HEREDABLES = (
 
 # De quién hereda cada tipo. Una prueba en terreno **no** hereda de una de taller ni al revés:
 # la alimentación de un muelle no dice nada de la de un banco.
+# **La reparación no hereda de nadie.** En una prueba de aceptación repetida sobre el mismo
+# equipo, la alimentación y el cable son el montaje del taller y volver a teclearlos es
+# trámite. En una reparación no: ahí esas condiciones son **parte de lo que hay que
+# comprobar** —con qué cable llegó, qué entrega su fuente— y precargarlas sería contestar por
+# el técnico justo la pregunta que vino a responder. Mismo criterio por el que el software
+# tampoco se precarga en reparación.
 FAMILIAS_DE_CONDICIONES = (
-    ("rendimiento", "reparacion"),
+    ("rendimiento",),
     ("terreno",),
 )
 
@@ -279,6 +285,42 @@ class McRovRevision(models.Model):
         string="Versión del controlador",
         readonly=True,
     )
+
+    # La misma idea que `luces_difieren`: la ficha dice lo que el equipo DEBERÍA tener, la
+    # revisión anota lo que se encontró, y la diferencia es el hallazgo. **No se vuelca a la
+    # ficha**: encontrar otra versión no es haberla cambiado — es que el equipo revirtió o lo
+    # actualizaron fuera, y eso se registra, no se normaliza.
+    software_difiere = fields.Boolean(
+        string="El software no cuadra con la ficha",
+        compute="_compute_software_difiere",
+        store=True,
+    )
+
+    @api.depends(
+        "version_software_instalada",
+        "version_ardusub_instalada",
+        "version_controlador_instalada",
+        "version_software_ficha",
+        "version_ardusub_ficha",
+        "version_controlador_ficha",
+    )
+    def _compute_software_difiere(self):
+        """Solo compara lo que la revisión anotó: un campo vacío no afirma nada.
+
+        Sin esa condición, una revisión a medio llenar marcaría diferencia contra todo lo que
+        la ficha declara — el mismo vacío-indistinguible-de-dato que el módulo persigue en
+        todas partes.
+        """
+        pares = (
+            ("version_software_instalada", "version_software_ficha"),
+            ("version_ardusub_instalada", "version_ardusub_ficha"),
+            ("version_controlador_instalada", "version_controlador_ficha"),
+        )
+        for revision in self:
+            revision.software_difiere = any(
+                revision[encontrado] and revision[encontrado] != revision[ficha]
+                for encontrado, ficha in pares
+            )
 
     # --- Software instalado, y va al revés que en reparación ---
     #

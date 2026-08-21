@@ -334,6 +334,19 @@ class TestCondicionesHeredadas(RevisionCommon):
 
         self.assertEqual(nueva.alimentacion, "UPS")
 
+    def test_una_reparacion_no_hereda_nada(self):
+        """En reparación esas condiciones son parte de lo que hay que comprobar.
+
+        Precargarlas contestaría por el técnico justo la pregunta que vino a responder: con
+        qué cable llegó el equipo y qué entrega su fuente.
+        """
+        self._revision(tipo="reparacion", alimentacion="Generador", tension_salida=48)
+
+        nueva = self._revision(tipo="reparacion")
+
+        self.assertFalse(nueva.alimentacion)
+        self.assertFalse(nueva.tension_salida)
+
     def test_terreno_no_hereda_del_taller(self):
         """La alimentación de un muelle no dice nada de la de un banco."""
         self._revision(tipo="rendimiento", alimentacion="Transformador")
@@ -426,6 +439,43 @@ class TestFichaCongelada(RevisionCommon):
         revision.invalidate_recordset()
 
         self.assertTrue(revision.luces_difieren, "la diferencia que se entregó sigue marcada")
+
+
+class TestSoftwareDifiere(RevisionCommon):
+    """Lo encontrado contra lo que la ficha declara — la misma idea que el conteo de luces."""
+
+    def test_una_version_distinta_marca_diferencia(self):
+        self.lot.mc_version_ardusub = "4.1.0"
+        revision = self._revision(tipo="reparacion")
+        revision.version_ardusub_instalada = "4.0.2"
+
+        self.assertTrue(revision.software_difiere)
+
+    def test_la_misma_version_no_marca_nada(self):
+        self.lot.mc_version_ardusub = "4.1.0"
+        revision = self._revision(tipo="reparacion")
+        revision.version_ardusub_instalada = "4.1.0"
+
+        self.assertFalse(revision.software_difiere)
+
+    def test_un_campo_vacio_no_afirma_nada(self):
+        """Una revisión a medio llenar no puede marcar diferencia contra toda la ficha."""
+        self.lot.mc_version_ardusub = "4.1.0"
+
+        revision = self._revision(tipo="reparacion")
+
+        self.assertFalse(revision.software_difiere)
+
+    def test_no_se_vuelca_a_la_ficha(self):
+        """Encontrar otra versión no es haberla cambiado: es un hallazgo, no una corrección."""
+        self.lot.mc_version_ardusub = "4.1.0"
+        revision = self._revision(tipo="reparacion")
+        revision.version_ardusub_instalada = "4.0.2"
+        revision.estado = "confirmado"
+
+        revision._volcar_a_la_ficha()
+
+        self.assertEqual(self.lot.mc_version_ardusub, "4.1.0")
 
 
 class TestPrecargaDesdeLaFicha(RevisionCommon):

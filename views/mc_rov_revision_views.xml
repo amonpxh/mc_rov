@@ -23,11 +23,17 @@
                 </header>
                 <sheet>
                     <!-- El resultado es lo primero que alguien quiere saber al abrir una
-                         ficha, y es derivado: se lee, no se decide. -->
+                         ficha, y es derivado: se lee, no se decide.
+
+                         **Solo se muestra cuando está confirmada**, desde 19.0.18.3.0. Un
+                         borrador con todo respondido calculaba "Aprobado" y lo anunciaba con
+                         su cinta, así que devolver una revisión a borrador para corregirla la
+                         dejaba diciendo aprobado mientras se editaba. El veredicto pertenece
+                         al documento emitido, no al borrador que lo va a reemplazar. -->
                     <widget name="web_ribbon" title="Rechazado" bg_color="text-bg-danger"
-                            invisible="resultado != 'rechazado'"/>
+                            invisible="resultado != 'rechazado' or estado != 'confirmado'"/>
                     <widget name="web_ribbon" title="Con observaciones" bg_color="text-bg-warning"
-                            invisible="resultado != 'aprobado_con_observaciones'"/>
+                            invisible="resultado != 'aprobado_con_observaciones' or estado != 'confirmado'"/>
 
                     <div class="oe_title">
                         <h1><field name="name" readonly="1"/></h1>
@@ -66,7 +72,7 @@
                             <field name="motivo" readonly="estado == 'confirmado'"
                                    invisible="not repair_id" required="repair_id"/>
                             <field name="horas_operacion" readonly="estado == 'confirmado'"/>
-                            <field name="resultado" readonly="1"/>
+                            <field name="resultado" readonly="1" invisible="estado != 'confirmado'"/>
                         </group>
                     </group>
 
@@ -269,7 +275,12 @@
                                  reparación: no se compara contra la ficha, se anota lo que se
                                  instaló y la ficha lo recibe al confirmar. El equipo acaba de
                                  nacer y no hay contra qué comparar. -->
-                            <group string="Software instalado" invisible="tipo != 'rendimiento'">
+                            <!-- En rendimiento se anota lo que se instaló; en reparación,
+                                 lo que se encontró — y ahí al lado va lo que la ficha declara,
+                                 igual que el conteo de luces. La diferencia es el hallazgo, y
+                                 por eso NO se vuelca a la ficha: encontrar otra versión no es
+                                 haberla cambiado. -->
+                            <group string="Software encontrado" invisible="tipo == 'terreno'">
                                 <group>
                                     <!-- Radio y no desplegable: el catálogo tiene dos o tres entradas y se elige de un
                                          vistazo. **Cuando pase de unas cinco, quita la palabra
@@ -470,8 +481,14 @@
                                  ficha. En la prueba de rendimiento se anota lo instalado, más
                                  arriba, y mostrar los dos bloques a la vez era una invitación
                                  a llenar el equivocado. -->
+                            <div class="alert alert-warning" role="alert"
+                                 invisible="not software_difiere">
+                                El software encontrado no coincide con lo que declara la ficha
+                                del equipo. O el equipo revirtió, o la ficha está desactualizada.
+                            </div>
+
                             <group string="Software según la ficha"
-                                   invisible="tipo != 'reparacion' or (not software_ficha_id
+                                   invisible="tipo == 'terreno' or (not software_ficha_id
                                               and not version_ardusub_ficha
                                               and not controlador_ficha_id)">
                                 <group>

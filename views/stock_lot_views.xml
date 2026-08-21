@@ -167,6 +167,28 @@
                             </group>
                         </group>
 
+                        <!-- Configuración, no resultado de una prueba, y por eso viven en la
+                             ficha. Las tres revisiones los miden y la más reciente los escribe
+                             aquí; también llevan `tracking`. -->
+                        <separator string="Parámetros de trabajo"/>
+                        <group name="group_parametros">
+                            <group>
+                                <label for="mc_limitacion_pilot_gain"/>
+                                <div class="o_row">
+                                    <field name="mc_limitacion_pilot_gain" nolabel="1"
+                                           class="o_field_number" style="max-width: 80px;"/>
+                                    <span>%</span>
+                                </div>
+                            </group>
+                            <group>
+                                <label for="mc_ganancia_luz"/>
+                                <div class="o_row">
+                                    <field name="mc_ganancia_luz" nolabel="1"
+                                           class="o_field_number" style="max-width: 80px;"/>
+                                    <span>%</span>
+                                </div>
+                            </group>
+                        </group>
                         <separator string="Sensores e instrumentos"/>
                         <group name="group_sensores">
                             <group name="group_sensores_left">
@@ -209,28 +231,6 @@
                             </group>
                         </group>
 
-                        <!-- Configuración, no resultado de una prueba, y por eso viven en la
-                             ficha. Las tres revisiones los miden y la más reciente los escribe
-                             aquí; también llevan `tracking`. -->
-                        <separator string="Parámetros de trabajo"/>
-                        <group name="group_parametros">
-                            <group>
-                                <label for="mc_limitacion_pilot_gain"/>
-                                <div class="o_row">
-                                    <field name="mc_limitacion_pilot_gain" nolabel="1"
-                                           class="o_field_number" style="max-width: 80px;"/>
-                                    <span>%</span>
-                                </div>
-                            </group>
-                            <group>
-                                <label for="mc_ganancia_luz"/>
-                                <div class="o_row">
-                                    <field name="mc_ganancia_luz" nolabel="1"
-                                           class="o_field_number" style="max-width: 80px;"/>
-                                    <span>%</span>
-                                </div>
-                            </group>
-                        </group>
                     </page>
 
                     <page string="Pruebas" name="page_revisiones" invisible="not es_un_rov">
@@ -258,7 +258,7 @@
                              botón crea al primer clic y hace falta deshacer un clic equivocado.
                              Una revisión confirmada no se deja borrar: eso lo impide el modelo. -->
                         <field name="revision_ids">
-                            <list create="0">
+                            <list create="0" delete="0">
                                 <field name="name"/>
                                 <field name="fecha"/>
                                 <field name="tipo"/>
