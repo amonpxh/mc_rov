@@ -74,6 +74,26 @@ actually happened:
 sudo grep "mc_rov:" /var/log/odoo/odoo-server.log | tail -20
 ```
 
+### And "prints nothing" can also mean "did not run" — verify the outcome, not the log
+
+**Learned the hard way on 2026-08-21.** Step 3 was run three times, printed nothing each time
+as documented, and **never applied**: the module's new columns were simply not there. The log
+gave no error, and the `Modules loaded.` line that did appear belonged to a worker of the
+restarted service, not to the update — the giveaway is the database name, which is `?` for a
+worker and the real name for an update.
+
+Chasing that through the log wasted twenty minutes. **One query settled it in a second:**
+
+```bash
+sudo -u postgres psql -d odoo_prod -tA -c "select count(*) from information_schema.columns   where table_name = '<tabla>' and column_name like '<patrón>';"
+```
+
+> **The rule that comes out of this: when a deploy adds or removes fields, verify the schema,
+> not the output.** The log is a narration of what the process believed it did; the columns are
+> what happened. And a restart does **not** apply pending schema changes — Odoo only touches the
+> schema under `-i`/`-u`, so a service that boots cleanly proves nothing about whether the
+> update ran.
+
 ### Step 4 is the one people skip, and it fails in a confusing way
 
 Step 3 runs a **separate** Odoo process that updates the database and exits. The live
