@@ -311,26 +311,26 @@ class TestCondicionesHeredadas(RevisionCommon):
     """
 
     def test_hereda_las_condiciones_de_la_anterior(self):
-        self._revision(tipo="reparacion", alimentacion="Generador", tension_salida=48)
+        self._revision(tipo="rendimiento", alimentacion="Generador", tension_salida=48)
 
-        nueva = self._revision(tipo="reparacion")
+        nueva = self._revision(tipo="rendimiento")
 
         self.assertEqual(nueva.alimentacion, "Generador")
         self.assertEqual(nueva.tension_salida, 48)
 
     def test_no_hereda_resultados(self):
         """Heredar una medición sería inventar un dato."""
-        self._revision(tipo="reparacion", alimentacion="Generador", subida=95.0)
+        self._revision(tipo="rendimiento", alimentacion="Generador", subida=95.0)
 
-        nueva = self._revision(tipo="reparacion")
+        nueva = self._revision(tipo="rendimiento")
 
         self.assertEqual(nueva.alimentacion, "Generador")
         self.assertFalse(nueva.subida)
 
     def test_lo_que_viene_en_vals_manda(self):
-        self._revision(tipo="reparacion", alimentacion="Generador")
+        self._revision(tipo="rendimiento", alimentacion="Generador")
 
-        nueva = self._revision(tipo="reparacion", alimentacion="UPS")
+        nueva = self._revision(tipo="rendimiento", alimentacion="UPS")
 
         self.assertEqual(nueva.alimentacion, "UPS")
 
