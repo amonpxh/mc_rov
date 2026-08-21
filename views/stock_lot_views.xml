@@ -123,13 +123,10 @@
                                      número el conteo de luces de la prueba. -->
                                 <field name="mc_cantidad_luces"/>
                             </group>
-                            <!-- Estos cinco los escribe la prueba de rendimiento al confirmarse: en
-                                 fabricación el software se instala, así que la prueba es la que dice qué
-                                 quedó puesto. Van bajo su propio título porque el contador de ficha
-                                 incompleta los cuenta, y sin este aviso alguien los teclea de memoria y
-                                 después la prueba los vuelve a escribir. Siguen editables: la flota
-                                 anterior al sistema no tiene ninguna prueba registrada. -->
-                            <separator string="Lo aporta la prueba de rendimiento — déjalo en blanco"/>
+                            <!-- Estos cinco viajan en los dos sentidos con la prueba de rendimiento: la
+                                 prueba nace con lo que aquí esté declarado, y al confirmarse devuelve lo que
+                                 se encontró. Por eso da igual qué se llene primero y no hace falta pedirle a
+                                 nadie que deje campos en blanco. -->
                             <group name="group_especificaciones_right">
                                 <field name="mc_tarjeta_comunicacion_rov" widget="radio" options="{&quot;horizontal&quot;:true}"/>
                                 <field name="mc_tarjeta_comunicacion_consola" widget="radio" options="{&quot;size&quot;:&quot;md&quot;,&quot;horizontal&quot;:true}"/>
@@ -154,15 +151,29 @@
                         <separator string="Parámetros de trabajo"/>
                         <group name="group_parametros">
                             <group>
-                                <field name="mc_limitacion_pilot_gain"/>
+                                <label for="mc_limitacion_pilot_gain"/>
+                                <div class="o_row">
+                                    <field name="mc_limitacion_pilot_gain" nolabel="1"
+                                           class="o_field_number" style="max-width: 80px;"/>
+                                    <span>%</span>
+                                </div>
                             </group>
                             <group>
-                                <field name="mc_ganancia_luz"/>
+                                <label for="mc_ganancia_luz"/>
+                                <div class="o_row">
+                                    <field name="mc_ganancia_luz" nolabel="1"
+                                           class="o_field_number" style="max-width: 80px;"/>
+                                    <span>%</span>
+                                </div>
                             </group>
                         </group>
-                    </page>
 
-                    <page string="Periféricos" name="page_perifericos" invisible="not es_un_rov">
+                        <!-- Periféricos y Umbilical fueron pestañas propias hasta 19.0.18.1.0.
+                             Eran cuatro campos cada una: demasiado poco para gastar una pestaña,
+                             y repartir la ficha en tres obligaba a pasearse por ellas para
+                             contestar una sola pregunta —qué es este equipo—. Entran como
+                             secciones, que es lo que siempre fueron. -->
+                        <separator string="Periféricos"/>
                         <group name="group_perifericos">
                             <group name="group_perifericos_left">
                                 <field name="mc_salida_brazo"/>
@@ -172,10 +183,8 @@
                                 <field name="mc_dispositivos_extra"/>
                             </group>
                         </group>
-                    </page>
 
-                    <page string="Umbilical" name="page_umbilical" invisible="not es_un_rov">
-                        <separator string="Especificaciones Umbilical"/>
+                        <separator string="Umbilical"/>
                         <group name="group_umbilical">
                             <group name="group_umbilical_left">
                                 <field name="mc_n_serie_umbilical"/>
@@ -244,8 +253,13 @@
                                     string="Nueva prueba en terreno"
                                     class="btn-secondary ms-2"/>
                         </div>
-                        <field name="revision_ids" readonly="1">
-                            <list>
+                        <!-- Ya no es `readonly`: una prueba a medio llenar hay que poder volver a
+                             abrirla y terminarla. No se crean desde aquí —para eso están los dos
+                             botones de arriba, que fijan el tipo— pero sí se borran, porque el
+                             botón crea al primer clic y hace falta deshacer un clic equivocado.
+                             Una revisión confirmada no se deja borrar: eso lo impide el modelo. -->
+                        <field name="revision_ids">
+                            <list create="0">
                                 <field name="name"/>
                                 <field name="fecha"/>
                                 <field name="tipo"/>

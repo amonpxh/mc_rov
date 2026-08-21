@@ -343,6 +343,53 @@ class TestCondicionesHeredadas(RevisionCommon):
         self.assertFalse(nueva.alimentacion)
 
 
+class TestPrecargaDesdeLaFicha(RevisionCommon):
+    """La otra mitad del volcado: la prueba nace con lo que la ficha ya declara.
+
+    Junto con el volcado hace que **el orden de trabajo deje de importar**: se llene primero
+    la ficha o primero la prueba, nadie teclea lo mismo dos veces.
+    """
+
+    def test_la_prueba_de_rendimiento_nace_con_el_software_de_la_ficha(self):
+        self.lot.mc_version_ardusub = "4.1.0"
+
+        revision = self._revision(tipo="rendimiento")
+
+        self.assertEqual(revision.version_ardusub_instalada, "4.1.0")
+
+    def test_una_reparacion_no_se_precarga(self):
+        """Ahí el software se compara: precargarlo borraría la diferencia que se busca."""
+        self.lot.mc_version_ardusub = "4.1.0"
+
+        revision = self._revision(tipo="reparacion")
+
+        self.assertFalse(revision.version_ardusub_instalada)
+
+    def test_lo_que_viene_en_vals_manda(self):
+        self.lot.mc_version_ardusub = "4.1.0"
+
+        revision = self._revision(tipo="rendimiento", version_ardusub_instalada="4.0.2")
+
+        self.assertEqual(revision.version_ardusub_instalada, "4.0.2")
+
+
+class TestBorradoDeRevisiones(RevisionCommon):
+    """El botón crea al primer clic, así que hay que poder deshacerlo."""
+
+    def test_un_borrador_se_puede_borrar(self):
+        revision = self._revision(tipo="rendimiento")
+        revision.unlink()
+        self.assertFalse(revision.exists())
+
+    def test_una_confirmada_no(self):
+        """Es evidencia, y un entregable al cliente."""
+        revision = self._revision(tipo="rendimiento")
+        revision.estado = "confirmado"
+
+        with self.assertRaises(UserError):
+            revision.unlink()
+
+
 class TestSoftwareALaFicha(RevisionCommon):
     """La prueba de rendimiento escribe en la ficha las versiones que se instalaron.
 

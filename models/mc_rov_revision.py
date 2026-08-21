@@ -69,7 +69,10 @@ FAMILIAS_DE_CONDICIONES = (
 # de luces no está en esta tabla y no debe agregarse: la ficha dice cuántas luces debería
 # tener el equipo, y una luz quemada se volvería la nueva especificación.
 
-# El software solo lo determina la prueba de rendimiento: es donde se instala.
+# El software solo lo determina la prueba de rendimiento: es donde se instala. **Y viaja en
+# los dos sentidos**: la prueba nace con lo que la ficha ya declara, y al confirmarse le
+# devuelve lo que se encontró. Así el orden de trabajo deja de importar — se llene primero la
+# ficha o primero la prueba, nadie teclea lo mismo dos veces.
 SOFTWARE_A_FICHA = {
     "software_instalado_id": "mc_software_superficie",
     "version_software_instalada": "mc_version_software",
@@ -326,7 +329,7 @@ class McRovRevision(models.Model):
     # comparable. "Aguantó 90 minutos" y "falló a los 15" quedarían registrados igual sin la
     # duración. Si falló, es tiempo hasta la falla; si pasó, es la fuerza de la evidencia.
     funcionamiento_continuo_duracion = fields.Float(
-        string="Duración del funcionamiento continuo (h)", digits=(5, 2)
+        string="Duración de la corrida (h)", digits=(5, 2)
     )
     funcionamiento_continuo_resultado = fields.Selection(
         [("ok", "Sin problemas"), ("con_problemas", "Presentó problemas")],
@@ -353,7 +356,7 @@ class McRovRevision(models.Model):
     # Cuánto duró la prueba entera. **No es `funcionamiento_continuo_duracion`**: ésa es la
     # corrida de resistencia DENTRO de la prueba. Una prueba en terreno de tres horas puede no
     # llevar corrida; una de rendimiento lleva las dos y son números distintos (§ 4.7).
-    duracion = fields.Float(string="Duración de la prueba (h)", digits=(5, 2))
+    duracion = fields.Float(string="Duración total (h)", digits=(5, 2))
 
     # Se llama «Condiciones y notas» y **no «Observaciones»**, y el nombre es parte del
     # diseño: *observaciones* es una invitación a escribir aquí los hallazgos, y eso mataría
@@ -751,12 +754,29 @@ class McRovRevision(models.Model):
             # que la fecha, que nace con la de hoy: un valor corregible sirve más que un campo
             # en blanco. Solo rellena lo que no venga ya en `vals`.
             self._heredar_condiciones(vals)
+            self._precargar_desde_la_ficha(vals)
 
         revisiones = super().create(vals_list)
         for revision in revisiones:
             self._generar_chequeos(revision)
             self._generar_inspeccion(revision)
         return revisiones
+
+    def unlink(self):
+        """Una revisión confirmada no se borra: es evidencia, y un entregable al cliente.
+
+        Los borradores sí, porque el botón del número de serie crea al primer clic y hace
+        falta poder deshacer un clic equivocado.
+        """
+        confirmadas = self.filtered(lambda revision: revision.estado == "confirmado")
+        if confirmadas:
+            nombres = ", ".join(confirmadas.mapped("display_name"))
+            raise UserError(
+                "Estas revisiones están confirmadas y no se pueden borrar:\n\n"
+                f"{nombres}\n\n"
+                "Vuélvelas a borrador si hay que corregirlas."
+            )
+        return super().unlink()
 
     def write(self, vals):
         res = super().write(vals)
@@ -841,6 +861,28 @@ class McRovRevision(models.Model):
             valor = anterior[campo]
             if valor:
                 vals[campo] = valor
+
+    @api.model
+    def _precargar_desde_la_ficha(self, vals):
+        """La prueba de rendimiento nace con lo que la ficha ya declara.
+
+        Es la otra mitad del volcado, y junta con él hace que **el orden de trabajo deje de
+        importar**: si alguien llena la ficha primero, la prueba llega con esos valores y no
+        los vuelve a pedir; si hace la prueba primero, la ficha los recibe al confirmar.
+
+        Solo para la prueba de rendimiento, que es la que determina el software. En
+        reparación estos campos son de comparación y precargarlos borraría la diferencia que
+        se quiere ver.
+        """
+        if vals.get("tipo") != "rendimiento" or not vals.get("lot_id"):
+            return
+        lot = self.env["stock.lot"].browse(vals["lot_id"])
+        for campo_prueba, campo_ficha in SOFTWARE_A_FICHA.items():
+            if campo_prueba in vals:
+                continue
+            valor = lot[campo_ficha]
+            if valor:
+                vals[campo_prueba] = valor.id if hasattr(valor, "id") else valor
 
     def action_confirmar(self):
         """Cierra la revisión. A partir de aquí el registro es evidencia, no borrador."""
