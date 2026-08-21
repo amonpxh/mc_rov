@@ -240,9 +240,7 @@ class McRovRevision(models.Model):
     luces_externas = fields.Integer(string="Luces externas")
 
     luces_total = fields.Integer(string="Total luces", compute="_compute_luces", store=True)
-    luces_ficha = fields.Integer(
-        string="Luces según ficha", compute="_compute_ficha_congelada", store=True, readonly=True
-    )
+    luces_ficha = fields.Integer(string="Luces según ficha", readonly=True)
     luces_difieren = fields.Boolean(
         string="El conteo no cuadra", compute="_compute_luces", store=True
     )
@@ -275,9 +273,7 @@ class McRovRevision(models.Model):
         store=True,
         readonly=True,
     )
-    version_ardusub_ficha = fields.Char(
-        string="Versión ArduSub", compute="_compute_ficha_congelada", store=True, readonly=True
-    )
+    version_ardusub_ficha = fields.Char(string="Versión ArduSub", readonly=True)
     controlador_ficha_id = fields.Many2one(
         "mc.rov.controlador.vuelo",
         string="Controlador de vuelo",
@@ -795,6 +791,7 @@ class McRovRevision(models.Model):
             self._precargar_desde_la_ficha(vals)
 
         revisiones = super().create(vals_list)
+        revisiones._refrescar_ficha()
         for revision in revisiones:
             self._generar_chequeos(revision)
             self._generar_inspeccion(revision)
@@ -922,39 +919,28 @@ class McRovRevision(models.Model):
             if valor:
                 vals[campo_prueba] = valor.id if hasattr(valor, "id") else valor
 
-    @api.depends(
-        "estado",
-        "lot_id",
-        "lot_id.mc_cantidad_luces",
-        "lot_id.mc_software_superficie",
-        "lot_id.mc_version_software",
-        "lot_id.mc_version_ardusub",
-        "lot_id.mc_controlador_vuelo",
-        "lot_id.mc_version_controlador",
-        "lot_id.mc_n_serie_umbilical",
-        "lot_id.mc_longitud",
-        "lot_id.mc_diametro",
-    )
-    def _compute_ficha_congelada(self):
-        """Sigue a la ficha mientras es borrador; queda fija al confirmar.
+    def _refrescar_ficha(self):
+        """Toma la foto de lo que la ficha declara ahora.
 
-        Una revisión confirmada es un documento entregado, y un documento no puede cambiar
-        de contenido después de emitirse. Antes estos campos eran `related` en vivo: una
-        revisión de hace seis meses mostraba la ficha de hoy, y `luces_difieren` llegaba a
-        dejar de marcar una diferencia que sí marcó el día de la prueba.
+        Se llama en dos momentos y solo en dos: **al crear la revisión** —para que el técnico
+        vea contra qué está comparando desde el primer minuto— y **al confirmar**, que es
+        cuando la revisión deja de ser un borrador y pasa a ser un documento.
+
+        A partir de ahí no se toca nunca más, y ésa es toda la razón de que estos campos
+        existan. Hasta 19.0.18.2.0 eran `related` en vivo: una revisión de hace seis meses
+        mostraba la ficha de hoy, y `luces_difieren` se recalculaba — o sea que un documento
+        ya entregado al cliente podía dejar de marcar la diferencia que marcó el día de la
+        prueba. Un entregable no puede contradecirse a sí mismo.
         """
         for revision in self:
-            congelada = revision.estado == "confirmado"
-            for campo, campo_lote in CAMPOS_FICHA_CONGELADOS.items():
-                # Congelada conserva lo suyo. La excepción es que no tenga nada: estas
-                # columnas nacieron en 19.0.18.2.0, así que las revisiones confirmadas antes
-                # de esa versión llegan vacías, y dejarlas así les borraría la comparación
-                # que sí mostraban. En ese caso toma la ficha, que es la mejor aproximación
-                # que queda — el valor de entonces ya no existe en ninguna parte.
-                if congelada and revision[campo]:
-                    revision[campo] = revision[campo]
-                else:
-                    revision[campo] = revision.lot_id[campo_lote]
+            if not revision.lot_id:
+                continue
+            revision.write(
+                {
+                    campo: revision.lot_id[campo_lote]
+                    for campo, campo_lote in CAMPOS_FICHA_CONGELADOS.items()
+                }
+            )
 
     def action_confirmar(self):
         """Cierra la revisión. A partir de aquí el registro es evidencia, no borrador."""
@@ -965,6 +951,9 @@ class McRovRevision(models.Model):
                 raise UserError(
                     f"Falta lo siguiente para confirmar {revision.display_name}:\n\n{detalle}"
                 )
+            # La foto de la ficha se refresca ANTES de marcar confirmado: después ya no
+            # se toca, y lo que quede aquí es lo que el documento va a decir para siempre.
+            revision._refrescar_ficha()
             revision.estado = "confirmado"
             revision._volcar_a_la_ficha()
 

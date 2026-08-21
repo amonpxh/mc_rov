@@ -351,15 +351,23 @@ class TestFichaCongelada(RevisionCommon):
     de marcar una diferencia que sí marcó el día de la prueba.
     """
 
-    def test_en_borrador_sigue_a_la_ficha(self):
+    def test_la_foto_se_toma_al_crear(self):
+        """Para que el técnico vea contra qué compara desde el primer minuto."""
         self.lot.mc_cantidad_luces = 6
+
         revision = self._revision(tipo="rendimiento")
+
         self.assertEqual(revision.luces_ficha, 6)
 
+    def test_confirmar_refresca_la_foto_una_ultima_vez(self):
+        """Si la ficha se corrigió mientras la prueba estaba a medio llenar, manda lo corregido."""
+        self.lot.mc_cantidad_luces = 6
+        revision = self._revision(tipo="rendimiento")
         self.lot.mc_cantidad_luces = 4
-        revision.invalidate_recordset()
 
-        self.assertEqual(revision.luces_ficha, 4, "en borrador todavía compara contra la ficha")
+        revision._refrescar_ficha()
+
+        self.assertEqual(revision.luces_ficha, 4)
 
     def test_confirmada_no_cambia_aunque_cambie_la_ficha(self):
         self.lot.mc_cantidad_luces = 6
@@ -500,15 +508,19 @@ class TestSoftwareALaFicha(RevisionCommon):
 
         self.assertEqual(self.lot.mc_limitacion_pilot_gain, 80)
 
-    def test_una_reparacion_no_vuelca_los_ajustes(self):
-        """En reparación no se miden: se muestran desde la ficha para ver si cambiaron."""
+    def test_una_reparacion_tambien_vuelca_los_ajustes(self):
+        """El taller ajusta el pilot gain al reparar, no solo en las pruebas de aceptación.
+
+        Lo confirmó Paulo el 2026-08-21 y corrige lo que decía el § 5.4. Por eso manda la
+        revisión más reciente del equipo sea del tipo que sea.
+        """
         self.lot.mc_limitacion_pilot_gain = 60
         revision = self._revision(tipo="reparacion", limitacion_pilot_gain=80)
         revision.estado = "confirmado"
 
         revision._volcar_a_la_ficha()
 
-        self.assertEqual(self.lot.mc_limitacion_pilot_gain, 60)
+        self.assertEqual(self.lot.mc_limitacion_pilot_gain, 80)
 
     def test_el_conteo_de_luces_nunca_se_vuelca(self):
         """El contraejemplo de la regla, y por eso tiene test propio.
