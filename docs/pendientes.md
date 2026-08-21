@@ -434,6 +434,25 @@ omisión sea visible y que actuar cueste poco, y ahí se acaba. El día que se q
 el lugar no es más automatismo sino un indicador donde el supervisor ya mira — y eso cae en «el
 presupuesto de indicadores» de más arriba, que pide diseñarlos todos juntos.
 
+## Un historial de la ficha técnica: evaluado y descartado *(2026-08-21)*
+
+**No se construye, y la razón es que ya existe.** Cada revisión confirmada guarda, congelada, la
+ficha tal como estaba ese día — software, umbilical y conteo de luces (`19.0.18.2.0`). **La
+secuencia de revisiones de un equipo es su historial de ficha**, y se consulta abriendo la
+revisión más cercana a la fecha que interese.
+
+Un modelo aparte duplicaría eso y repetiría el defecto que este módulo ya identificó dos veces:
+el dato derivado que se guarda a mano y se desincroniza sin que nada lo detecte.
+
+Los cambios hechos **directo en la ficha, sin correr ninguna prueba**, quedan en el chatter del
+equipo con valor viejo, valor nuevo, fecha y autor — todos esos campos llevan `tracking`. Para
+«quién tocó esto» alcanza; lo que no permite es preguntar *«¿qué decía la ficha el 3 de marzo?»*
+cuando no hay revisión cerca.
+
+**Cuándo vuelve:** el día que haya que reconstruir el estado de un equipo en una fecha sin
+revisión cercana — típicamente por una discusión de garantía. **Si eso ocurre dos veces, el
+modelo se gana su lugar.** Antes de eso es un registro que se llena solo y no lo consulta nadie.
+
 ## Fabricación — el diseño está escrito
 
 **Ver [`designs/fabricacion.md`](designs/fabricacion.md).** Recoge todo lo discutido el

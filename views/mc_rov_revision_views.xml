@@ -102,7 +102,7 @@
                             </field>
                         </page>
 
-                        <page string="Pruebas" name="page_chequeos">
+                        <page string="Mediciones" name="page_mediciones">
                             <!-- La corrida abre la pestaña porque es la CONDICIÓN de todo lo
                                  que viene abajo: con qué cable, con qué alimentación, y cuánto
                                  aguantó el funcionamiento continuo.
@@ -157,8 +157,14 @@
                                     <!-- Cuánto duró la prueba entera, que no es la corrida de
                                          funcionamiento continuo de al lado: una prueba en
                                          terreno de tres horas puede no llevar corrida. -->
-                                    <label for="duracion"/>
-                                    <div class="o_row">
+                                    <!-- Solo en terreno: es el único tipo sin corrida de
+                                         funcionamiento continuo, así que ahí este número es la
+                                         única duración que hay. En los otros dos, la corrida ya
+                                         se cronometra y su largo varía —el estándar del taller
+                                         se cambia al vuelo— de modo que el total sobraba y
+                                         dejaba dos campos de tiempo casi iguales. -->
+                                    <label for="duracion" invisible="tipo != 'terreno'"/>
+                                    <div class="o_row" invisible="tipo != 'terreno'">
                                         <field name="duracion" readonly="estado == 'confirmado'"/>
                                         <span>h</span>
                                     </div>
@@ -245,7 +251,7 @@
                                 <!-- Se miden en las dos pruebas de aceptación. En reparación
                                      no: ahí se muestran desde la ficha para ver si cambiaron,
                                      igual que las versiones de software. -->
-                                <group string="Parámetros de trabajo" invisible="tipo == 'reparacion'">
+                                <group string="Parámetros de trabajo">
                                     <label for="limitacion_pilot_gain"/>
                                     <div class="o_row">
                                         <field name="limitacion_pilot_gain" readonly="estado == 'confirmado'"/>
@@ -257,10 +263,6 @@
                                         <span>%</span>
                                     </div>
                                 </group>
-                                <group string="Parámetros según la ficha" invisible="tipo != 'reparacion'">
-                                    <field name="limitacion_pilot_gain_ficha"/>
-                                    <field name="ganancia_luz_ficha"/>
-                                </group>
                             </group>
 
                             <!-- En la prueba de rendimiento el software va al revés que en
@@ -269,7 +271,11 @@
                                  nacer y no hay contra qué comparar. -->
                             <group string="Software instalado" invisible="tipo != 'rendimiento'">
                                 <group>
-                                    <field name="software_instalado_id" readonly="estado == 'confirmado'"/>
+                                    <!-- Radio y no desplegable: el catálogo tiene dos o tres entradas y se elige de un
+                                         vistazo. **Cuando pase de unas cinco, quita la palabra
+                                         `widget` y vuelve a ser lista** — el radio las muestra
+                                         todas siempre y no deja crear una al vuelo. -->
+                                    <field name="software_instalado_id" widget="radio" readonly="estado == 'confirmado'"/>
                                     <label for="version_software_instalada"/>
                                     <div class="o_row">
                                         <span>v</span>
@@ -282,7 +288,11 @@
                                     </div>
                                 </group>
                                 <group>
-                                    <field name="controlador_instalado_id" readonly="estado == 'confirmado'"/>
+                                    <!-- Radio y no desplegable: el catálogo tiene dos o tres entradas y se elige de un
+                                         vistazo. **Cuando pase de unas cinco, quita la palabra
+                                         `widget` y vuelve a ser lista** — el radio las muestra
+                                         todas siempre y no deja crear una al vuelo. -->
+                                    <field name="controlador_instalado_id" widget="radio" readonly="estado == 'confirmado'"/>
                                     <label for="version_controlador_instalada"/>
                                     <div class="o_row">
                                         <span>v</span>
@@ -307,8 +317,37 @@
                             <!-- «Condiciones y notas» y no «Observaciones», a propósito: esa
                                  palabra invita a escribir aquí los hallazgos, y eso mataría el
                                  catálogo que costó dos versiones construir (§ 4.7). -->
+                            <!-- El conteo de luces vive con las mediciones y no con los
+                                 chequeos, aunque haya un chequeo de luces: son dos números que
+                                 se cuentan, no una casilla que se marca. Estaba enterrado en
+                                 medio de la batería hasta 19.0.18.2.0. -->
+                            <group>
+                                <group string="Conteo de luces">
+                                    <field name="luces_internas" readonly="estado == 'confirmado'"/>
+                                    <field name="luces_externas" readonly="estado == 'confirmado'"/>
+                                </group>
+                                <group>
+                                    <field name="luces_total"/>
+                                    <field name="luces_ficha"/>
+                                    <field name="luces_difieren" invisible="1"/>
+                                </group>
+                            </group>
+                            <div class="alert alert-warning" role="alert"
+                                 invisible="not luces_difieren">
+                                El conteo de luces de la prueba no coincide con la ficha del
+                                equipo. O el equipo perdió luces, o la ficha está mal.
+                            </div>
+
                             <field name="condiciones_notas" readonly="estado == 'confirmado'"
                                    placeholder="La marea, que el cliente pidió cortar antes, que el generador andaba justo. Los hallazgos van en su pestaña."/>
+                        </page>
+
+                        <!-- Chequeos y mediciones en pestañas separadas desde 19.0.18.2.0.
+                             Estaban en la misma y la página quedaba larguísima: veintitantas
+                             casillas debajo de los números, y había que bajar por toda la
+                             batería para llegar a las notas. Son dos actos distintos —medir y
+                             verificar— y se hacen en momentos distintos. -->
+                        <page string="Chequeos" name="page_chequeos">
 
                             <!-- Un bloque por sección, como la hoja de papel: "Prueba de
                                  video" con cámara y tilt, "Prueba de navegación" con las
@@ -336,7 +375,7 @@
                                 <field name="chequeo_inspeccion_fisica_ids" nolabel="1" class="mc_rov_pruebas"
                                        colspan="2" readonly="estado == 'confirmado'">
                                     <list editable="bottom" create="0" delete="0">
-                                        <field name="chequeo_id" readonly="1"/>
+                                        <field name="chequeo_id" readonly="1" options="{&quot;no_open&quot;: true}"/>
                                         <!-- Oculta como en las demás secciones desde
                                              19.0.15.2.1. Ningún chequeo del catálogo es
                                              `por_componente` —hay un test que lo fija— así
@@ -366,7 +405,7 @@
                                 <field name="chequeo_energia_ids" nolabel="1" class="mc_rov_pruebas"
                                        colspan="2" readonly="estado == 'confirmado'">
                                     <list editable="bottom" create="0" delete="0">
-                                        <field name="chequeo_id" readonly="1"/>
+                                        <field name="chequeo_id" readonly="1" options="{&quot;no_open&quot;: true}"/>
                                         <field name="componente_id" readonly="1" optional="hide"/>
                                         <field name="resultado" widget="radio"
                                                options="{&quot;horizontal&quot;: true}"/>
@@ -379,7 +418,7 @@
                                 <field name="chequeo_presion_ids" nolabel="1" class="mc_rov_pruebas"
                                        colspan="2" readonly="estado == 'confirmado'">
                                     <list editable="bottom" create="0" delete="0">
-                                        <field name="chequeo_id" readonly="1"/>
+                                        <field name="chequeo_id" readonly="1" options="{&quot;no_open&quot;: true}"/>
                                         <field name="resultado" widget="radio"
                                                options="{&quot;horizontal&quot;: true}"/>
                                         <field name="detalle"/>
@@ -391,7 +430,7 @@
                                 <field name="chequeo_leak_ids" nolabel="1" class="mc_rov_pruebas"
                                        colspan="2" readonly="estado == 'confirmado'">
                                     <list editable="bottom" create="0" delete="0">
-                                        <field name="chequeo_id" readonly="1"/>
+                                        <field name="chequeo_id" readonly="1" options="{&quot;no_open&quot;: true}"/>
                                         <field name="resultado" widget="radio"
                                                options="{&quot;horizontal&quot;: true}"/>
                                         <field name="detalle"/>
@@ -404,7 +443,7 @@
                                 <field name="chequeo_comunicacion_ids" nolabel="1" class="mc_rov_pruebas"
                                        colspan="2" readonly="estado == 'confirmado'">
                                     <list editable="bottom" create="0" delete="0">
-                                        <field name="chequeo_id" readonly="1"/>
+                                        <field name="chequeo_id" readonly="1" options="{&quot;no_open&quot;: true}"/>
                                         <field name="componente_id" readonly="1" optional="hide"/>
                                         <field name="resultado" widget="radio"
                                                options="{&quot;horizontal&quot;: true}"/>
@@ -451,7 +490,7 @@
                                 <field name="chequeo_navegacion_ids" nolabel="1" class="mc_rov_pruebas"
                                        colspan="2" readonly="estado == 'confirmado'">
                                     <list editable="bottom" create="0" delete="0">
-                                        <field name="chequeo_id" readonly="1"/>
+                                        <field name="chequeo_id" readonly="1" options="{&quot;no_open&quot;: true}"/>
                                         <field name="resultado" widget="radio"
                                                options="{&quot;horizontal&quot;: true}"/>
                                         <field name="detalle"/>
@@ -463,7 +502,7 @@
                                 <field name="chequeo_video_ids" nolabel="1" class="mc_rov_pruebas"
                                        colspan="2" readonly="estado == 'confirmado'">
                                     <list editable="bottom" create="0" delete="0">
-                                        <field name="chequeo_id" readonly="1"/>
+                                        <field name="chequeo_id" readonly="1" options="{&quot;no_open&quot;: true}"/>
                                         <field name="resultado" widget="radio"
                                                options="{&quot;horizontal&quot;: true}"/>
                                         <field name="detalle"/>
@@ -481,7 +520,7 @@
                                 <field name="chequeo_accesorios_ids" nolabel="1" class="mc_rov_pruebas"
                                        colspan="2" readonly="estado == 'confirmado'">
                                     <list editable="bottom" create="0" delete="0">
-                                        <field name="chequeo_id" readonly="1"/>
+                                        <field name="chequeo_id" readonly="1" options="{&quot;no_open&quot;: true}"/>
                                         <field name="componente_id" readonly="1" optional="hide"/>
                                         <field name="resultado" widget="radio"
                                                options="{&quot;horizontal&quot;: true}"/>
@@ -505,33 +544,19 @@
                                        invisible="not chequeo_luces_ids"
                                        readonly="estado == 'confirmado'">
                                     <list editable="bottom" create="0" delete="0">
-                                        <field name="chequeo_id" readonly="1"/>
+                                        <field name="chequeo_id" readonly="1" options="{&quot;no_open&quot;: true}"/>
                                         <field name="resultado" widget="radio"
                                                options="{&quot;horizontal&quot;: true}"/>
                                         <field name="detalle"/>
                                     </list>
                                 </field>
-                                <group>
-                                    <field name="luces_internas" readonly="estado == 'confirmado'"/>
-                                    <field name="luces_externas" readonly="estado == 'confirmado'"/>
-                                </group>
-                                <group>
-                                    <field name="luces_total"/>
-                                    <field name="luces_ficha"/>
-                                    <field name="luces_difieren" invisible="1"/>
-                                </group>
                             </group>
-                            <div class="alert alert-warning" role="alert"
-                                 invisible="not luces_difieren">
-                                El conteo de luces de la prueba no coincide con la ficha del
-                                equipo. O el equipo perdió luces, o la ficha está mal.
-                            </div>
 
                             <group string="Otras pruebas" invisible="not chequeo_otro_ids">
                                 <field name="chequeo_otro_ids" nolabel="1" class="mc_rov_pruebas"
                                        colspan="2" readonly="estado == 'confirmado'">
                                     <list editable="bottom" create="0" delete="0">
-                                        <field name="chequeo_id" readonly="1"/>
+                                        <field name="chequeo_id" readonly="1" options="{&quot;no_open&quot;: true}"/>
                                         <field name="componente_id" readonly="1"
                                                optional="hide"/>
                                         <field name="resultado" widget="radio"

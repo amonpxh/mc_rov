@@ -117,6 +117,16 @@
                     </field>
                 </page>
                 <page string="Revisiones" name="revisiones">
+                    <!-- El historial completo del equipo, que esta pestaña no muestra: aquí
+                         viven las revisiones de ESTA visita. La comparación que el diseño
+                         pide —contra la visita anterior— necesitaba salir a buscar el número
+                         de serie a mano. -->
+                    <div class="mb-2">
+                        <button name="action_ver_revisiones_del_equipo" type="object"
+                                string="Ver todas las revisiones del equipo"
+                                class="btn-link" icon="fa-history"
+                                invisible="not lot_id"/>
+                    </div>
                     <!-- Se llamó "Diagnóstico" un rato, para que la barra de pestañas se
                          leyera como el proceso. Se revirtió porque dejaba dos nombres para
                          una misma cosa: la pestaña decía Diagnóstico y adentro cada registro

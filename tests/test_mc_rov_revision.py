@@ -343,6 +343,55 @@ class TestCondicionesHeredadas(RevisionCommon):
         self.assertFalse(nueva.alimentacion)
 
 
+class TestFichaCongelada(RevisionCommon):
+    """Una revisión confirmada es un documento: su contenido no puede cambiar después.
+
+    Los campos «según la ficha» eran `related` en vivo hasta 19.0.18.2.0, así que una
+    revisión de hace seis meses mostraba la ficha de hoy — y `luces_difieren` llegaba a dejar
+    de marcar una diferencia que sí marcó el día de la prueba.
+    """
+
+    def test_la_foto_se_toma_al_crear(self):
+        """Para que el técnico vea contra qué compara desde el primer minuto."""
+        self.lot.mc_cantidad_luces = 6
+
+        revision = self._revision(tipo="rendimiento")
+
+        self.assertEqual(revision.luces_ficha, 6)
+
+    def test_confirmar_refresca_la_foto_una_ultima_vez(self):
+        """Si la ficha se corrigió mientras la prueba estaba a medio llenar, manda lo corregido."""
+        self.lot.mc_cantidad_luces = 6
+        revision = self._revision(tipo="rendimiento")
+        self.lot.mc_cantidad_luces = 4
+
+        revision._refrescar_ficha()
+
+        self.assertEqual(revision.luces_ficha, 4)
+
+    def test_confirmada_no_cambia_aunque_cambie_la_ficha(self):
+        self.lot.mc_cantidad_luces = 6
+        revision = self._revision(tipo="rendimiento")
+        revision.estado = "confirmado"
+
+        self.lot.mc_cantidad_luces = 4
+        revision.invalidate_recordset()
+
+        self.assertEqual(revision.luces_ficha, 6, "el documento conserva lo que declaró")
+
+    def test_el_hallazgo_de_luces_tampoco_se_borra(self):
+        """Lo peor del defecto: un documento entregado dejaba de marcar la diferencia."""
+        self.lot.mc_cantidad_luces = 6
+        revision = self._revision(tipo="rendimiento", luces_internas=2, luces_externas=2)
+        revision.estado = "confirmado"
+        self.assertTrue(revision.luces_difieren)
+
+        self.lot.mc_cantidad_luces = 4
+        revision.invalidate_recordset()
+
+        self.assertTrue(revision.luces_difieren, "la diferencia que se entregó sigue marcada")
+
+
 class TestPrecargaDesdeLaFicha(RevisionCommon):
     """La otra mitad del volcado: la prueba nace con lo que la ficha ya declara.
 
@@ -459,15 +508,19 @@ class TestSoftwareALaFicha(RevisionCommon):
 
         self.assertEqual(self.lot.mc_limitacion_pilot_gain, 80)
 
-    def test_una_reparacion_no_vuelca_los_ajustes(self):
-        """En reparación no se miden: se muestran desde la ficha para ver si cambiaron."""
+    def test_una_reparacion_tambien_vuelca_los_ajustes(self):
+        """El taller ajusta el pilot gain al reparar, no solo en las pruebas de aceptación.
+
+        Lo confirmó Paulo el 2026-08-21 y corrige lo que decía el § 5.4. Por eso manda la
+        revisión más reciente del equipo sea del tipo que sea.
+        """
         self.lot.mc_limitacion_pilot_gain = 60
         revision = self._revision(tipo="reparacion", limitacion_pilot_gain=80)
         revision.estado = "confirmado"
 
         revision._volcar_a_la_ficha()
 
-        self.assertEqual(self.lot.mc_limitacion_pilot_gain, 60)
+        self.assertEqual(self.lot.mc_limitacion_pilot_gain, 80)
 
     def test_el_conteo_de_luces_nunca_se_vuelca(self):
         """El contraejemplo de la regla, y por eso tiene test propio.

@@ -610,9 +610,9 @@ class StockLot(models.Model):
         "manda."
     )
     mc_limitacion_pilot_gain = fields.Integer(
-        string="Limitación pilot gain (%)", help=AVISO_PRUEBA
+        string="Limitación pilot gain (%)", help=AVISO_PRUEBA, tracking=True
     )
-    mc_ganancia_luz = fields.Integer(string="Ganancia luz (%)", help=AVISO_PRUEBA)
+    mc_ganancia_luz = fields.Integer(string="Ganancia luz (%)", help=AVISO_PRUEBA, tracking=True)
 
     # Las columnas de prueba en terreno vivieron aquí hasta 19.0.16.0.0. Eran el resultado
     # de un evento —fecha, lugar, profundidad, condiciones— guardado como si fuera ficha, y

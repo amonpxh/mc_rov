@@ -86,104 +86,49 @@
 
                 <notebook name="notebook_ficha_rov">
 
+                    <!-- La ficha entera en una pestaña, ordenada de lo físico a lo
+                         configurable: qué es el equipo, con qué se conecta, qué le colgamos,
+                         cómo está configurado.
+
+                         Periféricos y Umbilical fueron pestañas propias hasta 19.0.18.1.0 —
+                         cuatro campos cada una, demasiado poco para gastar una pestaña, y
+                         repartir la ficha en tres obligaba a pasearse por ellas para contestar
+                         una sola pregunta. Y hasta 19.0.17.0.0 esta misma pestaña arrastraba
+                         las mediciones de la prueba de rendimiento, que eran el resultado de un
+                         evento guardado como si fuera ficha.
+
+                         Ningún campo lleva `required`, ni acá ni en el modelo. En el modelo
+                         nunca lo llevó: la orden de fabricación crea el número de serie por
+                         código, antes de que nadie llene la ficha, y los lotes de componentes
+                         no tienen ninguno de estos datos. En la vista salió en 19.0.15.2.1. Lo
+                         que marca una ficha a medio llenar es `mc_ficha_completa`: un solo
+                         mecanismo, igual para lo que se teclea y para lo que se importa. -->
                     <page string="Especificaciones" name="page_especificaciones" invisible="not es_un_rov">
-                        <group name="group_especificaciones">
-                            <!-- Ningún campo lleva `required`, ni acá ni en el modelo.
 
-                                 En el modelo nunca lo llevó: la orden de fabricación crea el
-                                 número de serie por código, antes de que nadie llene la
-                                 ficha, y los lotes de componentes no tienen ninguno de estos
-                                 datos — un NOT NULL en la base rompería las dos cosas.
-
-                                 En la vista salió en 19.0.15.2.1, por lo anotado arriba en el
-                                 aviso. Lo que marca una ficha a medio llenar es
-                                 `mc_ficha_completa`: un solo mecanismo, que funciona igual
-                                 para lo que se teclea y para lo que se importa. -->
-                            <group name="group_especificaciones_left">
+                        <separator string="Estructura y motores"/>
+                        <group name="group_estructura">
+                            <group name="group_estructura_left">
                                 <field name="mc_chasis" widget="radio" options="{&quot;horizontal&quot;:true}"/>
                                 <field name="mc_modelo_motores" widget="selection" placeholder="Seleccione modelo de motor"/>
                                 <field name="mc_n_motores"/>
                                 <field name="mc_posicion_motores" widget="radio" options="{&quot;horizontal&quot;:true}"/>
-                                <label for="mc_peso_consola" string="Peso Consola"/>
-                                <div class="o_row">
-                                    <field name="mc_peso_consola" nolabel="1" class="o_field_number" style="max-width: 80px;"/>
-                                    <span>kg</span>
-                                </div>
+                            </group>
+                            <group name="group_estructura_right">
                                 <label for="mc_peso_rov" string="Peso ROV"/>
                                 <div class="o_row">
                                     <field name="mc_peso_rov" nolabel="1" class="o_field_number" style="max-width: 80px;"/>
                                     <span>kg</span>
                                 </div>
-                                <field name="mc_sensor_presion" widget="radio" options="{&quot;horizontal&quot;:true}"/>
-                                <!-- Vive aquí y no en Periféricos porque es un conteo de
-                                     componentes del equipo, como N° de motores, y no un
-                                     accesorio. Con esto la regla de obligatoriedad se
-                                     vuelve enunciable: es todo Especificaciones y nada
-                                     más. La ficha de reparación compara contra este
-                                     número el conteo de luces de la prueba. -->
-                                <field name="mc_cantidad_luces"/>
-                            </group>
-                            <!-- Estos cinco viajan en los dos sentidos con la prueba de rendimiento: la
-                                 prueba nace con lo que aquí esté declarado, y al confirmarse devuelve lo que
-                                 se encontró. Por eso da igual qué se llene primero y no hace falta pedirle a
-                                 nadie que deje campos en blanco. -->
-                            <group name="group_especificaciones_right">
-                                <field name="mc_tarjeta_comunicacion_rov" widget="radio" options="{&quot;horizontal&quot;:true}"/>
-                                <field name="mc_tarjeta_comunicacion_consola" widget="radio" options="{&quot;size&quot;:&quot;md&quot;,&quot;horizontal&quot;:true}"/>
-                                <field name="mc_software_superficie" widget="radio" options="{&quot;horizontal&quot;:true}"/>
-                                <field name="mc_version_software" placeholder="0.0.0"/>
-                                <field name="mc_controlador_vuelo" widget="radio" options="{&quot;horizontal&quot;:true}"/>
-                                <field name="mc_version_controlador" placeholder="0.0.0"/>
-                                <field name="mc_version_ardusub" placeholder="0.0.0"/>
-                                <!-- Selection de Sí/No y no casilla: un booleano nunca está
-                                     vacío, así que un "no" no se distinguiría de un "nadie
-                                     lo revisó". De este dato depende sobre qué parte de la
-                                     flota se puede medir confiabilidad por horas de uso en
-                                     vez de por calendario. -->
-                                <field name="mc_tiene_horometro" widget="radio" options="{&quot;horizontal&quot;:true}"/>
-                            </group>
-                        </group>
-
-                        <!-- Configuración del equipo, no resultado de una prueba: por eso
-                             sobrevivieron al retiro de 19.0.17.0.0 y viven acá. La prueba de
-                             rendimiento y la de terreno los miden; la revisión de reparación los
-                             muestra desde aquí para ver si cambiaron. -->
-                        <separator string="Parámetros de trabajo"/>
-                        <group name="group_parametros">
-                            <group>
-                                <label for="mc_limitacion_pilot_gain"/>
+                                <label for="mc_peso_consola" string="Peso Consola"/>
                                 <div class="o_row">
-                                    <field name="mc_limitacion_pilot_gain" nolabel="1"
-                                           class="o_field_number" style="max-width: 80px;"/>
-                                    <span>%</span>
-                                </div>
-                            </group>
-                            <group>
-                                <label for="mc_ganancia_luz"/>
-                                <div class="o_row">
-                                    <field name="mc_ganancia_luz" nolabel="1"
-                                           class="o_field_number" style="max-width: 80px;"/>
-                                    <span>%</span>
+                                    <field name="mc_peso_consola" nolabel="1" class="o_field_number" style="max-width: 80px;"/>
+                                    <span>kg</span>
                                 </div>
                             </group>
                         </group>
 
-                        <!-- Periféricos y Umbilical fueron pestañas propias hasta 19.0.18.1.0.
-                             Eran cuatro campos cada una: demasiado poco para gastar una pestaña,
-                             y repartir la ficha en tres obligaba a pasearse por ellas para
-                             contestar una sola pregunta —qué es este equipo—. Entran como
-                             secciones, que es lo que siempre fueron. -->
-                        <separator string="Periféricos"/>
-                        <group name="group_perifericos">
-                            <group name="group_perifericos_left">
-                                <field name="mc_salida_brazo"/>
-                                <field name="mc_brazo"/>
-                            </group>
-                            <group name="group_perifericos_right">
-                                <field name="mc_dispositivos_extra"/>
-                            </group>
-                        </group>
-
+                        <!-- Sube aquí en 19.0.18.2.0: el umbilical es parte física del equipo,
+                             así que se lee junto al chasis y los motores y no al final. -->
                         <separator string="Umbilical"/>
                         <group name="group_umbilical">
                             <group name="group_umbilical_left">
@@ -207,33 +152,87 @@
                                 </div>
                             </group>
                         </group>
-                        <!-- Se llamaba «PRUEBA DE RENDIMIENTO» hasta 19.0.16.0.1. Estas mediciones
-                             son las de rendimiento, y desde 19.0.16.0.0 el tipo de revisión que las
-                             recoge se llama así — la etiqueta se había quedado con la palabra
-                             que se retiró. La sección entera desaparece en el bloque A2, cuando
-                             la prueba de rendimiento reemplace estas columnas. -->
-                        <!-- Aquí vivieron «PRUEBA DE RENDIMIENTO» y «PARÁMETROS DE TRABAJO»
-                             hasta 19.0.17.0.0, dentro de una pestaña que solo nombraba la
-                             primera de sus tres secciones. Venía de la época de Studio.
 
-                             Las mediciones eran el resultado de un evento guardado como
-                             ficha, y encima estaban duplicadas con la revisión: el mismo dato
-                             se tecleaba dos veces sin ninguna señal de que sobraba. Ahora
-                             viven en una prueba de rendimiento, que lleva historial.
+                        <separator string="Periféricos y luces"/>
+                        <group name="group_perifericos">
+                            <group name="group_perifericos_left">
+                                <!-- El conteo de luces es de componentes del equipo, como el N°
+                                     de motores. La prueba compara su conteo contra este número. -->
+                                <field name="mc_cantidad_luces"/>
+                                <field name="mc_salida_brazo"/>
+                                <field name="mc_brazo"/>
+                            </group>
+                            <group name="group_perifericos_right">
+                                <field name="mc_dispositivos_extra"/>
+                            </group>
+                        </group>
 
-                             Los dos parámetros de trabajo que sí son ficha —pilot gain y
-                             ganancia luz— se movieron a Especificaciones, que es donde
-                             corresponde: describen cómo está configurado el equipo, no cómo
-                             salió una prueba. -->
+                        <separator string="Sensores e instrumentos"/>
+                        <group name="group_sensores">
+                            <group name="group_sensores_left">
+                                <field name="mc_sensor_presion" widget="radio" options="{&quot;horizontal&quot;:true}"/>
+                            </group>
+                            <group name="group_sensores_right">
+                                <!-- Selection de Sí/No y no casilla: un booleano nunca está
+                                     vacío, así que un "no" no se distinguiría de un "nadie lo
+                                     revisó". De este dato depende sobre qué parte de la flota
+                                     se puede medir confiabilidad por horas de uso. -->
+                                <field name="mc_tiene_horometro" widget="radio" options="{&quot;horizontal&quot;:true}"/>
+                            </group>
+                        </group>
+
+                        <separator string="Comunicación"/>
+                        <group name="group_comunicacion">
+                            <group name="group_comunicacion_left">
+                                <field name="mc_tarjeta_comunicacion_rov" widget="radio" options="{&quot;horizontal&quot;:true}"/>
+                            </group>
+                            <group name="group_comunicacion_right">
+                                <field name="mc_tarjeta_comunicacion_consola" widget="radio" options="{&quot;size&quot;:&quot;md&quot;,&quot;horizontal&quot;:true}"/>
+                            </group>
+                        </group>
+
+                        <!-- Estos cinco viajan en los dos sentidos con la prueba de rendimiento:
+                             la prueba nace con lo que aquí esté declarado y al confirmarse
+                             devuelve lo que se encontró. Por eso da igual qué se llene primero.
+                             Todos llevan `tracking`, así que cada cambio queda fechado en el
+                             historial del equipo — venga de una prueba o de una mano. -->
+                        <separator string="Software y control"/>
+                        <group name="group_software">
+                            <group name="group_software_left">
+                                <field name="mc_software_superficie" widget="radio" options="{&quot;horizontal&quot;:true}"/>
+                                <field name="mc_version_software" placeholder="0.0.0"/>
+                                <field name="mc_version_ardusub" placeholder="0.0.0"/>
+                            </group>
+                            <group name="group_software_right">
+                                <field name="mc_controlador_vuelo" widget="radio" options="{&quot;horizontal&quot;:true}"/>
+                                <field name="mc_version_controlador" placeholder="0.0.0"/>
+                            </group>
+                        </group>
+
+                        <!-- Configuración, no resultado de una prueba, y por eso viven en la
+                             ficha. Las tres revisiones los miden y la más reciente los escribe
+                             aquí; también llevan `tracking`. -->
+                        <separator string="Parámetros de trabajo"/>
+                        <group name="group_parametros">
+                            <group>
+                                <label for="mc_limitacion_pilot_gain"/>
+                                <div class="o_row">
+                                    <field name="mc_limitacion_pilot_gain" nolabel="1"
+                                           class="o_field_number" style="max-width: 80px;"/>
+                                    <span>%</span>
+                                </div>
+                            </group>
+                            <group>
+                                <label for="mc_ganancia_luz"/>
+                                <div class="o_row">
+                                    <field name="mc_ganancia_luz" nolabel="1"
+                                           class="o_field_number" style="max-width: 80px;"/>
+                                    <span>%</span>
+                                </div>
+                            </group>
+                        </group>
                     </page>
 
-                    <!-- La pestaña «Prueba en Terreno» se retiró en 19.0.16.0.0. Era el
-                         resultado de un evento guardado como ficha, así que repetir la
-                         prueba pisaba la anterior sin avisar. Ahora es una revisión de tipo
-                         `terreno`, con historial y con su propia batería. -->
-
-                    <!-- Historial de propiedad. Solo lectura: lo escribe el override de
-                         write de stock.lot al cambiar el propietario, no una persona. -->
                     <page string="Pruebas" name="page_revisiones" invisible="not es_un_rov">
                         <!-- El botón que reemplaza al menú de revisiones de
                              fabricación: manufactura las crea desde aquí, que es donde ya
