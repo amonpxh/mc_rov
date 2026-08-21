@@ -143,20 +143,41 @@ las que lo nombran.
 ### Paso 6 — La ficha técnica
 
 **Inventario → Números de serie → el que acaba de nacer.** Se llenan chasis, motores, pesos,
-tarjetas, controlador y luces.
+tarjetas y luces: **lo que el equipo *es*.**
 
-Las **versiones de software** las aporta el paso siguiente: en fabricación el software se
-instala, así que la prueba de rendimiento es la que dice qué quedó puesto.
+> **Y hay cinco campos que NO hay que llenar acá.** Están agrupados bajo el título *«Lo aporta
+> la prueba de rendimiento — déjalo en blanco»*: el software de superficie, el controlador de
+> vuelo y las tres versiones. **Los escribe la prueba del paso siguiente al confirmarse.**
+>
+> Si los tecleas ahora, vas a teclearlos otra vez en la prueba — y de memoria, que es peor. La
+> única excepción son los equipos anteriores al sistema, que no tienen ninguna prueba
+> registrada y su ficha solo se puede llenar a mano.
 
-El aviso amarillo de arriba dice cuántos datos faltan de cuántos. **No bloquea** — se puede
-guardar una ficha a medias, y es mejor guardar 12 de 14 datos verdaderos que inventar los 2 que
-faltan. Para encontrarlas después está el filtro **«Ficha incompleta»**.
+El aviso amarillo de arriba dice cuántos datos faltan de cuántos, y **va a seguir contando esos
+cinco**. No es un error: con la prueba hecha, el contador baja solo.
+
+**No bloquea** — se puede guardar una ficha a medias, y es mejor guardar 12 de 16 datos
+verdaderos que inventar los 4 que faltan. Para encontrarlas después está el filtro **«Ficha
+incompleta»**.
 
 ### Paso 7 — Prueba de rendimiento
 
-Desde el número de serie, botón **Nueva prueba de rendimiento**. Es la prueba de rendimiento:
-tensión, consumo en reposo y bajo carga, ancho de banda, corrida de resistencia con sus
-temperaturas, y las versiones de software instaladas.
+Desde el número de serie, botón **Nueva prueba de rendimiento**. Es la prueba de banco:
+presión y tiempo, fuga de corriente, consumo en reposo y bajo carga, ancho de banda,
+funcionamiento continuo con sus temperaturas, y **las versiones de software instaladas**.
+
+**La ficha va antes que la prueba, y no al revés**, porque la prueba *lee* la ficha: el
+umbilical del equipo se muestra ahí sin volver a teclearse, y el conteo de luces se compara
+contra lo que la ficha declara. Con la ficha vacía, la prueba pierde la mitad de lo que sabe
+hacer.
+
+**Al confirmarla, la prueba escribe en la ficha** el software y los dos parámetros de trabajo
+—pilot gain y ganancia luz—, y lo deja anotado en el historial del equipo. Ésa es la razón de
+dejar esos campos en blanco en el paso anterior.
+
+> **Y si el equipo ya tuvo pruebas antes, la nueva nace con las condiciones de la última**:
+> alimentación, modelo de fuente, tensión y con qué umbilical. Se pueden cambiar; están ahí
+> para no volver a contestar lo mismo cada vez. Las mediciones nunca se heredan.
 
 ### Paso 8 — Prueba en terreno
 
