@@ -54,13 +54,19 @@
                         <group string="Equipo y visita">
                             <field name="lot_id" readonly="estado == 'confirmado'"/>
                             <field name="es_un_rov" invisible="1"/>
+                            <field name="documento_emitido" invisible="1"/>
                             <field name="product_id"/>
                             <field name="propietario_id"/>
                             <field name="repair_id" readonly="estado == 'confirmado'"/>
                             <field name="partner_id" invisible="not repair_id"/>
                         </group>
                         <group string="Esta revisión">
-                            <field name="tipo" readonly="estado == 'confirmado'"/>
+                            <!-- El candado cuelga de `documento_emitido` y no de
+                                 `estado`: una prueba confirmada que se devuelve a borrador
+                                 para corregir un dato ya salió con su número puesto, y
+                                 cambiarle el tipo ahí la renumeraría — rompiendo la
+                                 referencia que el cliente tiene en la mano. -->
+                            <field name="tipo" readonly="documento_emitido"/>
                             <field name="fecha" readonly="estado == 'confirmado'"/>
                             <field name="responsable_id" required="1"
                                    readonly="estado == 'confirmado'"/>

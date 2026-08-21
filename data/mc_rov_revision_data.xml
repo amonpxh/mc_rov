@@ -1,10 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
+    <!-- Una secuencia por tipo de prueba, desde 19.0.19.0.0.
+
+         Las pruebas de aceptación son documentos que ve el cliente, y numerarlas dentro de
+         la serie de reparaciones las hace parecer un trámite interno: el nacimiento de un
+         equipo no va intercalado entre las averías de otros. `REV/` se queda con reparación
+         para que ningún registro existente cambie de número. Ver `designs/fabricacion.md`
+         § 4.8. -->
     <record id="seq_mc_rov_revision" model="ir.sequence">
         <field name="name">Revisión técnica ROV</field>
         <field name="code">mc.rov.revision</field>
         <field name="prefix">REV/</field>
+        <field name="padding">5</field>
+        <field name="company_id" eval="False"/>
+    </record>
+
+    <record id="seq_mc_rov_revision_rendimiento" model="ir.sequence">
+        <field name="name">Prueba de rendimiento ROV</field>
+        <field name="code">mc.rov.revision.rendimiento</field>
+        <field name="prefix">REN/</field>
+        <field name="padding">5</field>
+        <field name="company_id" eval="False"/>
+    </record>
+
+    <record id="seq_mc_rov_revision_terreno" model="ir.sequence">
+        <field name="name">Prueba en terreno ROV</field>
+        <field name="code">mc.rov.revision.terreno</field>
+        <field name="prefix">TER/</field>
         <field name="padding">5</field>
         <field name="company_id" eval="False"/>
     </record>

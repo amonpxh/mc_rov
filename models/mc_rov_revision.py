@@ -10,9 +10,11 @@ from odoo.exceptions import UserError
 # y además había dejado de describir una sola cosa: lo que pasa mientras se arma son puntos
 # de calidad, y lo que pasa después es esta prueba.
 #
-# Se llama `rendimiento` y no `rendimiento` porque tiene que contrastar con `terreno` en el mismo
-# eje —dónde se prueba— o el desplegable deja abierta la pregunta «¿y la de terreno no mide
-# rendimiento?». La etiqueta nunca dice «Banco» a secas por la misma razón.
+# Se llama `rendimiento` y no `banco`, que fue su nombre entre 19.0.16.0.0 y 19.0.18.0.0.
+# `banco` contrastaba con `terreno` en el mismo eje —dónde se prueba— y como taxonomía era
+# mejor, pero **el vocabulario del taller le gana a la taxonomía**: ellos dicen «la de
+# rendimiento», y un desplegable que nadie reconoce se contesta mal. Mismo criterio con que
+# la pestaña pasó de «Revisiones» a «Pruebas».
 TIPOS = [
     ("rendimiento", "Prueba de rendimiento"),
     ("reparacion", "Reparación"),
@@ -41,6 +43,22 @@ TIPOS_CON_FUNCIONAMIENTO_CONTINUO = {"rendimiento", "reparacion"}
 
 # Las dos pruebas que son parte del nacimiento del equipo y no de su vida posterior (§ 4.2).
 TIPOS_DE_ACEPTACION = ("rendimiento", "terreno")
+
+# Una secuencia por tipo, y no una sola para las tres (§ 4.8 del diseño de fabricación).
+#
+# Las pruebas de aceptación **son documentos que ve el cliente**. Una ficha de equipo nuevo
+# llamada `REV/00042`, intercalada entre las reparaciones de otros equipos, se lee como un
+# trámite interno — y numerar el nacimiento de un equipo dentro de la serie de sus averías
+# dice lo contrario de lo que el documento quiere decir.
+#
+# `REV/` se queda con reparación: los registros que ya existen no cambian de significado ni
+# de número. Las de aceptación estrenan prefijo, y las revisiones viejas de esos dos tipos
+# **conservan su `REV/`** — renumerarlas rompería una referencia ya entregada.
+SECUENCIAS = {
+    "reparacion": "mc.rov.revision",
+    "rendimiento": "mc.rov.revision.rendimiento",
+    "terreno": "mc.rov.revision.terreno",
+}
 
 # Lo que la ficha declaraba CUANDO SE CORRIÓ LA PRUEBA, campo de la revisión → campo del lote.
 #
@@ -216,6 +234,21 @@ class McRovRevision(models.Model):
         required=True,
         tracking=True,
         copy=False,
+    )
+
+    # Una revisión confirmada alguna vez ya salió del taller con su número puesto, y eso no
+    # se deshace volviéndola a borrador. Sin este campo, el candado del tipo colgaría de
+    # `estado`, y entonces bastaría con reabrir una prueba entregada para cambiarle el tipo y
+    # renumerarla — o sea, para romper la referencia que el cliente tiene en la mano.
+    #
+    # `copy=False` porque una copia todavía no se emitió.
+    documento_emitido = fields.Boolean(
+        string="Ya se emitió",
+        default=False,
+        readonly=True,
+        copy=False,
+        help="Se enciende la primera vez que se confirma y no se apaga nunca. Desde ahí el "
+        "tipo queda congelado, porque el número ya salió con ese prefijo.",
     )
 
     horas_operacion = fields.Float(
@@ -841,7 +874,7 @@ class McRovRevision(models.Model):
     def create(self, vals_list):
         for vals in vals_list:
             if vals.get("name", "/") == "/":
-                vals["name"] = self.env["ir.sequence"].next_by_code("mc.rov.revision") or "/"
+                vals["name"] = self._siguiente_numero(vals.get("tipo"))
             # Nace con las condiciones de la prueba anterior del mismo equipo. Mismo criterio
             # que la fecha, que nace con la de hoy: un valor corregible sirve más que un campo
             # en blanco. Solo rellena lo que no venga ya en `vals`.
@@ -871,8 +904,53 @@ class McRovRevision(models.Model):
             )
         return super().unlink()
 
+    def _siguiente_numero(self, tipo):
+        """El correlativo que le toca a una revisión de este tipo.
+
+        `tipo` puede llegar vacío desde `create` —el formulario no lo manda cuando vale el
+        valor por omisión— y entonces se usa ese mismo valor por omisión en vez de suponerlo
+        escrito aquí: si algún día cambia, cambia en un solo lugar.
+        """
+        tipo = tipo or self.default_get(["tipo"]).get("tipo")
+        codigo = SECUENCIAS[tipo]
+        return self.env["ir.sequence"].next_by_code(codigo) or "/"
+
+    def _renumerar(self, revision):
+        """Le da el número de su nuevo tipo, y deja dicho en el chatter de dónde venía.
+
+        Cambiar el tipo en borrador es corriente —el botón del número de serie crea la prueba
+        y recién ahí el técnico ve cuál era—, y el prefijo tiene que seguirlo o miente. El
+        correlativo viejo queda con un hueco, que es lo mismo que ya pasa cuando se borra un
+        borrador, y es preferible a un `TER/` que en realidad es una reparación.
+        """
+        anterior = revision.name
+        revision.name = self._siguiente_numero(revision.tipo)
+        etiqueta = dict(TIPOS)[revision.tipo]
+        revision.message_post(
+            body=f"La prueba pasó a «{etiqueta}» y se renumeró: {anterior} → {revision.name}."
+        )
+
     def write(self, vals):
+        # El tipo de un documento ya emitido no se toca. Es un candado de modelo y no de
+        # vista a propósito: la vista lo bloquea para el técnico, pero una importación, una
+        # acción de servidor o un `write` desde otro módulo no pasan por la vista.
+        cambian_de_tipo = self.browse()
+        if "tipo" in vals:
+            cambian_de_tipo = self.filtered(lambda revision: revision.tipo != vals["tipo"])
+            emitidas = cambian_de_tipo.filtered("documento_emitido")
+            if emitidas:
+                nombres = ", ".join(emitidas.mapped("name"))
+                raise UserError(
+                    "Estas pruebas ya se emitieron y no se les puede cambiar el tipo:\n\n"
+                    f"{nombres}\n\n"
+                    "Su número ya salió con el prefijo del tipo actual. Si el tipo estaba "
+                    "equivocado, crea la prueba correcta y deja ésta como está."
+                )
+
         res = super().write(vals)
+
+        for revision in cambian_de_tipo:
+            self._renumerar(revision)
         if "tipo" in vals:
             for revision in self:
                 self._limpiar_chequeos_sin_responder(revision)
@@ -1013,6 +1091,7 @@ class McRovRevision(models.Model):
             # se toca, y lo que quede aquí es lo que el documento va a decir para siempre.
             revision._refrescar_ficha()
             revision.estado = "confirmado"
+            revision.documento_emitido = True
             revision._volcar_a_la_ficha()
 
     def _volcar_a_la_ficha(self):

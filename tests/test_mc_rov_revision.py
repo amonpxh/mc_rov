@@ -3,6 +3,7 @@ from odoo.exceptions import UserError
 from odoo.tests.common import TransactionCase
 from odoo.tests import tagged
 
+from odoo.addons.mc_rov.models.mc_rov_revision import SECUENCIAS, TIPOS
 from odoo.addons.mc_rov.models.stock_lot import ROV_CATEG_PARAM
 
 
@@ -1266,3 +1267,107 @@ class TestMcRovRevisionAutomatica(RevisionCommon):
         revisiones = self._revisiones(orden)
         self.assertEqual(len(revisiones), 2)
         self.assertEqual(sorted(revisiones.mapped("numero_en_visita")), [1, 2])
+
+
+@tagged("post_install", "-at_install")
+class TestNumeracionPorTipo(RevisionCommon):
+    """Cada tipo de prueba tiene su correlativo, y el prefijo no puede mentir.
+
+    Las pruebas de aceptación son documentos que ve el cliente: una ficha de equipo nuevo
+    numerada dentro de la serie de reparaciones se lee como un trámite interno. Ver
+    `designs/fabricacion.md` § 4.8.
+    """
+
+    def _confirmable(self, **vals):
+        revision = self._revision(**vals)
+        self._corrida_completa(revision)
+        self._responder_todo(revision)
+        self._responder_sellos(revision)
+        return revision
+
+    def test_cada_tipo_tiene_su_secuencia(self):
+        """Un tipo nuevo sin secuencia revienta al crear la primera revisión, no antes.
+
+        `SECUENCIAS[tipo]` es un acceso directo a propósito —un `.get()` con respaldo
+        escondería el olvido detrás de un número con el prefijo equivocado— y este test es
+        lo que hace que el olvido se vea al agregar el tipo y no en producción.
+        """
+        for tipo, _etiqueta in TIPOS:
+            self.assertIn(tipo, SECUENCIAS, f"El tipo «{tipo}» no tiene secuencia asignada")
+
+    def test_una_reparacion_se_numera_como_siempre(self):
+        """`REV/` se queda con reparación: ningún registro existente cambia de significado."""
+        self.assertTrue(self._revision(tipo="reparacion").name.startswith("REV/"))
+
+    def test_una_prueba_de_rendimiento_estrena_prefijo(self):
+        self.assertTrue(self._revision(tipo="rendimiento").name.startswith("REN/"))
+
+    def test_una_prueba_en_terreno_estrena_prefijo(self):
+        self.assertTrue(self._revision(tipo="terreno").name.startswith("TER/"))
+
+    def test_cambiar_el_tipo_en_borrador_renumera(self):
+        """El botón del número de serie crea la prueba y recién ahí el técnico ve el tipo.
+
+        Corregirlo es corriente, y el prefijo tiene que seguirlo: un `REV/` que en realidad
+        es una prueba en terreno es exactamente lo que la numeración por tipo viene a evitar.
+        """
+        revision = self._revision(tipo="reparacion")
+        anterior = revision.name
+
+        revision.tipo = "terreno"
+
+        self.assertTrue(revision.name.startswith("TER/"))
+        self.assertNotEqual(revision.name, anterior)
+
+    def test_la_renumeracion_queda_en_el_chatter(self):
+        """El número viejo puede estar escrito en un correo o en una hoja del taller."""
+        revision = self._revision(tipo="reparacion")
+        anterior = revision.name
+
+        revision.tipo = "rendimiento"
+
+        cuerpos = " ".join(revision.message_ids.mapped("body"))
+        self.assertIn(anterior, cuerpos)
+        self.assertIn(revision.name, cuerpos)
+
+    def test_escribir_el_mismo_tipo_no_renumera(self):
+        """Un `write` que no cambia nada no debería quemar un correlativo."""
+        revision = self._revision(tipo="terreno")
+        anterior = revision.name
+
+        revision.tipo = "terreno"
+
+        self.assertEqual(revision.name, anterior)
+
+    def test_una_prueba_emitida_no_cambia_de_tipo(self):
+        revision = self._confirmable(tipo="reparacion")
+        revision.action_confirmar()
+
+        with self.assertRaises(UserError):
+            revision.tipo = "terreno"
+
+    def test_volver_a_borrador_no_reabre_el_tipo(self):
+        """El candado cuelga de `documento_emitido` y no de `estado`, y ésta es la razón.
+
+        Una prueba confirmada que se devuelve a borrador para corregir un dato **ya salió**
+        con su número puesto. Si el tipo se reabriera ahí, se renumeraría un documento que el
+        cliente tiene en la mano.
+        """
+        revision = self._confirmable(tipo="reparacion")
+        revision.action_confirmar()
+        revision.action_volver_a_borrador()
+
+        self.assertTrue(revision.documento_emitido)
+        with self.assertRaises(UserError):
+            revision.tipo = "terreno"
+
+    def test_una_copia_todavia_no_se_emitio(self):
+        """`copy=False` en `documento_emitido`: si se copiara, la copia nacería congelada."""
+        revision = self._confirmable(tipo="reparacion")
+        revision.action_confirmar()
+
+        copia = revision.copy()
+
+        self.assertFalse(copia.documento_emitido)
+        copia.tipo = "terreno"
+        self.assertTrue(copia.name.startswith("TER/"))
