@@ -130,8 +130,16 @@
                                     <field name="umbilical" widget="radio"
                                            options="{&quot;horizontal&quot;: true}"
                                            readonly="estado == 'confirmado'"/>
-                                    <!-- Solo para el cable del taller: el del equipo ya
-                                         declara su largo en la ficha. -->
+                                    <!-- El cable del equipo ya está definido en la ficha:
+                                         se muestra, no se vuelve a teclear. El peso no, que no
+                                         dice nada de la prueba. Solo cuando el cable es del
+                                         taller se pide el largo a mano. -->
+                                    <field name="umbilical_ficha"
+                                           invisible="umbilical != 'equipo' or tipo == 'reparacion'"/>
+                                    <field name="largo_ficha"
+                                           invisible="umbilical != 'equipo' or tipo == 'reparacion'"/>
+                                    <field name="diametro_ficha"
+                                           invisible="umbilical != 'equipo' or tipo == 'reparacion'"/>
                                     <label for="largo" invisible="umbilical != 'prueba'"/>
                                     <div class="o_row" invisible="umbilical != 'prueba'">
                                         <field name="largo" readonly="estado == 'confirmado'"/>
@@ -234,9 +242,20 @@
                                 <!-- Se miden donde se pueden ajustar. En reparación no se
                                      vuelven a medir: se muestran desde la ficha para ver si
                                      cambiaron, igual que las versiones de software. -->
+                                <!-- Se miden en las dos pruebas de aceptación. En reparación
+                                     no: ahí se muestran desde la ficha para ver si cambiaron,
+                                     igual que las versiones de software. -->
                                 <group string="Parámetros de trabajo" invisible="tipo == 'reparacion'">
-                                    <field name="limitacion_pilot_gain" readonly="estado == 'confirmado'"/>
-                                    <field name="ganancia_luz" readonly="estado == 'confirmado'"/>
+                                    <label for="limitacion_pilot_gain"/>
+                                    <div class="o_row">
+                                        <field name="limitacion_pilot_gain" readonly="estado == 'confirmado'"/>
+                                        <span>%</span>
+                                    </div>
+                                    <label for="ganancia_luz"/>
+                                    <div class="o_row">
+                                        <field name="ganancia_luz" readonly="estado == 'confirmado'"/>
+                                        <span>%</span>
+                                    </div>
                                 </group>
                                 <group string="Parámetros según la ficha" invisible="tipo != 'reparacion'">
                                     <field name="limitacion_pilot_gain_ficha"/>
@@ -244,19 +263,31 @@
                                 </group>
                             </group>
 
-                            <!-- En la prueba de banco el software va al revés que en
+                            <!-- En la prueba de rendimiento el software va al revés que en
                                  reparación: no se compara contra la ficha, se anota lo que se
                                  instaló y la ficha lo recibe al confirmar. El equipo acaba de
                                  nacer y no hay contra qué comparar. -->
-                            <group string="Software instalado" invisible="tipo != 'banco'">
+                            <group string="Software instalado" invisible="tipo != 'rendimiento'">
                                 <group>
                                     <field name="software_instalado_id" readonly="estado == 'confirmado'"/>
-                                    <field name="version_software_instalada" readonly="estado == 'confirmado'"/>
-                                    <field name="version_ardusub_instalada" readonly="estado == 'confirmado'"/>
+                                    <label for="version_software_instalada"/>
+                                    <div class="o_row">
+                                        <span>v</span>
+                                        <field name="version_software_instalada" readonly="estado == 'confirmado'"/>
+                                    </div>
+                                    <label for="version_ardusub_instalada"/>
+                                    <div class="o_row">
+                                        <span>v</span>
+                                        <field name="version_ardusub_instalada" readonly="estado == 'confirmado'"/>
+                                    </div>
                                 </group>
                                 <group>
                                     <field name="controlador_instalado_id" readonly="estado == 'confirmado'"/>
-                                    <field name="version_controlador_instalada" readonly="estado == 'confirmado'"/>
+                                    <label for="version_controlador_instalada"/>
+                                    <div class="o_row">
+                                        <span>v</span>
+                                        <field name="version_controlador_instalada" readonly="estado == 'confirmado'"/>
+                                    </div>
                                 </group>
                             </group>
 
@@ -602,8 +633,8 @@
                         domain="[('tipo', '=', 'reparacion')]"/>
                 <filter name="filtro_terreno" string="Prueba en terreno"
                         domain="[('tipo', '=', 'terreno')]"/>
-                <filter name="filtro_banco" string="Prueba de banco"
-                        domain="[('tipo', '=', 'banco')]"/>
+                <filter name="filtro_rendimiento" string="Prueba de rendimiento"
+                        domain="[('tipo', '=', 'rendimiento')]"/>
                 <!-- El group va pelado: el schema de vistas de búsqueda de Odoo 19 rechaza
                      expand y string en este elemento. Misma forma que el arch base de
                      repair.view_repair_order_form_filter. -->
@@ -622,7 +653,7 @@
         </field>
     </record>
 
-    <!-- El taller no tiene por qué mirar las pruebas de banco. Las de terreno sí entran:
+    <!-- El taller no tiene por qué mirar las pruebas de rendimiento. Las de terreno sí entran:
          una prueba en terreno puede pedirse dentro de una reparación —el cliente quiere
          comprobar que el equipo sigue respetando su profundidad— y en ese caso pertenece a
          la visita. Ver `designs/fabricacion.md` § 4.2. -->
@@ -630,12 +661,12 @@
         <field name="name">Revisiones técnicas</field>
         <field name="res_model">mc.rov.revision</field>
         <field name="view_mode">list,form</field>
-        <field name="domain">[('tipo', '!=', 'banco')]</field>
+        <field name="domain">[('tipo', '!=', 'rendimiento')]</field>
         <field name="context">{'default_tipo': 'reparacion'}</field>
     </record>
 
     <!-- Aquí hubo una acción «Revisiones de fabricación», retirada en 19.0.16.0.0. No la
-         referenciaba ningún menú —las pruebas de banco se crean desde el botón del número de
+         referenciaba ningún menú —las pruebas de rendimiento se crean desde el botón del número de
          serie, que es donde manufactura ya trabaja— así que era un registro muerto, y con
          el renombre su dominio habría dejado de encontrar nada. -->
 
@@ -650,7 +681,7 @@
                 <field name="seccion"/>
                 <field name="name"/>
                 <field name="por_componente" optional="hide"/>
-                <field name="aplica_banco"/>
+                <field name="aplica_rendimiento"/>
                 <field name="aplica_reparacion"/>
                 <field name="aplica_terreno"/>
                 <field name="active" optional="hide"/>

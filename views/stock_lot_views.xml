@@ -123,6 +123,13 @@
                                      número el conteo de luces de la prueba. -->
                                 <field name="mc_cantidad_luces"/>
                             </group>
+                            <!-- Estos cinco los escribe la prueba de rendimiento al confirmarse: en
+                                 fabricación el software se instala, así que la prueba es la que dice qué
+                                 quedó puesto. Van bajo su propio título porque el contador de ficha
+                                 incompleta los cuenta, y sin este aviso alguien los teclea de memoria y
+                                 después la prueba los vuelve a escribir. Siguen editables: la flota
+                                 anterior al sistema no tiene ninguna prueba registrada. -->
+                            <separator string="Lo aporta la prueba de rendimiento — déjalo en blanco"/>
                             <group name="group_especificaciones_right">
                                 <field name="mc_tarjeta_comunicacion_rov" widget="radio" options="{&quot;horizontal&quot;:true}"/>
                                 <field name="mc_tarjeta_comunicacion_consola" widget="radio" options="{&quot;size&quot;:&quot;md&quot;,&quot;horizontal&quot;:true}"/>
@@ -142,7 +149,7 @@
 
                         <!-- Configuración del equipo, no resultado de una prueba: por eso
                              sobrevivieron al retiro de 19.0.17.0.0 y viven acá. La prueba de
-                             banco y la de terreno los miden; la revisión de reparación los
+                             rendimiento y la de terreno los miden; la revisión de reparación los
                              muestra desde aquí para ver si cambiaron. -->
                         <separator string="Parámetros de trabajo"/>
                         <group name="group_parametros">
@@ -192,18 +199,18 @@
                             </group>
                         </group>
                         <!-- Se llamaba «PRUEBA DE RENDIMIENTO» hasta 19.0.16.0.1. Estas mediciones
-                             son las de banco, y desde 19.0.16.0.0 el tipo de revisión que las
+                             son las de rendimiento, y desde 19.0.16.0.0 el tipo de revisión que las
                              recoge se llama así — la etiqueta se había quedado con la palabra
                              que se retiró. La sección entera desaparece en el bloque A2, cuando
-                             la prueba de banco reemplace estas columnas. -->
-                        <!-- Aquí vivieron «PRUEBA DE BANCO» y «PARÁMETROS DE TRABAJO»
+                             la prueba de rendimiento reemplace estas columnas. -->
+                        <!-- Aquí vivieron «PRUEBA DE RENDIMIENTO» y «PARÁMETROS DE TRABAJO»
                              hasta 19.0.17.0.0, dentro de una pestaña que solo nombraba la
                              primera de sus tres secciones. Venía de la época de Studio.
 
                              Las mediciones eran el resultado de un evento guardado como
                              ficha, y encima estaban duplicadas con la revisión: el mismo dato
                              se tecleaba dos veces sin ninguna señal de que sobraba. Ahora
-                             viven en una prueba de banco, que lleva historial.
+                             viven en una prueba de rendimiento, que lleva historial.
 
                              Los dos parámetros de trabajo que sí son ficha —pilot gain y
                              ganancia luz— se movieron a Especificaciones, que es donde
@@ -225,8 +232,8 @@
                              dentro de un group ocupa una celda suelta y desincroniza los
                              pares etiqueta/campo de todo lo que venga después (PR #10). -->
                         <div class="mb-3">
-                            <button name="action_nueva_revision_banco" type="object"
-                                    string="Nueva prueba de banco"
+                            <button name="action_nueva_revision_rendimiento" type="object"
+                                    string="Nueva prueba de rendimiento"
                                     class="btn-primary"/>
                             <!-- La prueba en terreno vivía como pestaña de este mismo
                                  formulario hasta 19.0.16.0.0, donde se retiró porque guardaba
@@ -279,7 +286,7 @@
                          y de la familia. Se cambió por descubrimiento y no por taxonomía: la
                          etiqueta de una pestaña es el único cartel que el usuario ve, y
                          «Revisiones» no dice que ahí se prueba el equipo. Cada fila sigue
-                         diciendo de qué clase es —Prueba de banco, Prueba en terreno,
+                         diciendo de qué clase es —Prueba de rendimiento, Prueba en terreno,
                          Reparación—, así que nadie confunde una reparación con una prueba.
 
                          Va como pestaña y no como botón

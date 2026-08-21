@@ -129,7 +129,7 @@ Las ideas, por lo que rinden frente a lo que cuestan:
 
 | | Idea | Comentario |
 |---|---|---|
-| **a** | **Botones de siguiente paso** | La más valiosa. *«Ir a la ficha del equipo»* al terminar la MO; *«Nueva prueba de banco»* en el N° de serie; *«Levantar alerta»* en la línea de trabajo — ese último ya resuelve la fricción de que reparación termine en Calidad, porque el usuario nunca tiene que saber que Calidad existe |
+| **a** | **Botones de siguiente paso** | La más valiosa. *«Ir a la ficha del equipo»* al terminar la MO; *«Nueva prueba de rendimiento»* en el N° de serie; *«Levantar alerta»* en la línea de trabajo — ese último ya resuelve la fricción de que reparación termine en Calidad, porque el usuario nunca tiene que saber que Calidad existe |
 | **b** | **Textos de lista vacía** | Gratis: es un atributo de la acción y Odoo lo muestra solo. Va de paso con lo demás, no compite con (a) |
 | **c** | **Tablero de «qué me falta»** | Fichas incompletas, equipos sin pruebas, revisiones sin confirmar, alertas sin acción preventiva |
 | **d** | **Menú propio ordenado por proceso** | *«ROV → 2. Aceptar»* en vez de *«Inventario → Números de serie»*. Resuelve la fricción del nombre de puerta |
@@ -203,7 +203,7 @@ de la migración grande.
 ### A2 también va antes de la carga, y esto salió de mirar la pantalla *(2026-08-20)*
 
 Estaba dicho que A2 podía esperar. **No puede.** La pestaña «Umbilical» del número de serie
-contiene, además de las especificaciones del cable, **una sección entera de prueba de banco** —
+contiene, además de las especificaciones del cable, **una sección entera de prueba de rendimiento** —
 modelo de fuente, alimentación, tensión, consumos, pilot gain, ancho de banda, temperaturas— que
 son **las mismas mediciones que la revisión ya recoge**. El módulo está a medio mudar y esos
 datos tienen dos casas.
@@ -218,7 +218,7 @@ Dos cosas concretas que A2 tiene que resolver, además del retiro:
   equipo*, ese largo ya está en la ficha. El § 5.4 lo dice —*«umbilical usado y largo solo si es
   del taller»*— y no está implementado.
 - **La pestaña «Umbilical» se queda solo con el umbilical.** Hoy su título nombra la primera de
-  sus tres secciones, y las otras dos son la prueba de banco. Viene de la época de Studio.
+  sus tres secciones, y las otras dos son la prueba de rendimiento. Viene de la época de Studio.
 
 ### Catálogos editables en Especificaciones y Periféricos *(pedido 2026-08-20)*
 
@@ -240,7 +240,7 @@ vuelve»*.
 
 | | Qué | Bump | Cuándo |
 |---|---|---|---|
-| **A1** | `fabricacion` → `banco`, `observacion` → `detalle`, se retiran las columnas de terreno del lote, y el arreglo de `_compute_resultado` | `X`, con migración | **Antes de cargar datos reales** |
+| **A1** | `fabricacion` → `rendimiento`, `observacion` → `detalle`, se retiran las columnas de terreno del lote, y el arreglo de `_compute_resultado` | `X`, con migración | **Antes de cargar datos reales** |
 | **A2** | Las mediciones nuevas del § 5.4, y con ellas el retiro de las columnas de laboratorio | `Y` | Después |
 | **A3** | Las secuencias `BAN/` y `TER/`, y congelar `tipo` al confirmar | `Y` | Después |
 | **A4** | Las cuatro baterías del § 5.2 y § 5.3 | Datos | Después, y **quiere** equipos reales: los cinco chequeos de armado los escribió el diseño y no el taller |

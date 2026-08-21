@@ -242,10 +242,10 @@ class StockLot(models.Model):
                 lambda alerta, equipo=lot: equipo in alerta.lot_ids
             )
 
-    def action_nueva_revision_banco(self):
-        """Abre una prueba de banco para este equipo.
+    def action_nueva_revision_rendimiento(self):
+        """Abre una prueba de rendimiento para este equipo.
 
-        Es botón y no automático porque una prueba de banco **no siempre ocurre**:
+        Es botón y no automático porque una prueba de rendimiento **no siempre ocurre**:
         un equipo se fabrica una vez y a lo más se le hacen unas pocas modificaciones. Y el
         sistema no puede detectar una modificación — un cambio en la ficha técnica es una
         escritura, y eso también pasa cuando alguien corrige una errata. Crearía revisiones
@@ -254,7 +254,7 @@ class StockLot(models.Model):
         El criterio general del módulo: se crea solo lo que siempre ocurre, y a mano lo que
         a veces ocurre.
         """
-        return self._abrir_revision_nueva("banco")
+        return self._abrir_revision_nueva("rendimiento")
 
     def action_nueva_revision_terreno(self):
         """Abre una prueba en terreno para este equipo.
@@ -583,7 +583,7 @@ class StockLot(models.Model):
     mc_longitud = fields.Float(string="Longitud")
     mc_diametro = fields.Float(string="Diámetro")
     mc_peso_umbilical = fields.Float(string="Peso Umbilical")
-    # Aquí vivieron trece columnas de prueba de banco hasta 19.0.17.0.0: modelo de fuente,
+    # Aquí vivieron trece columnas de prueba de rendimiento hasta 19.0.17.0.0: modelo de fuente,
     # fuente de energía, tensión, consumos, tiempo de prueba, prueba de leak, ancho de banda,
     # subida, bajada y las dos temperaturas.
     #
@@ -592,15 +592,27 @@ class StockLot(models.Model):
     # además estaban duplicadas — la revisión recogía las mismas mediciones desde 19.0.15.0.0,
     # así que el mismo dato se tecleaba dos veces sin ninguna señal de que sobraba.
     #
-    # Ahora viven en una revisión de tipo `banco`, que lleva historial.
+    # Ahora viven en una revisión de tipo `rendimiento`, que lleva historial.
 
     # --- Parámetros de trabajo ---
     #
     # Estos dos NO son medición: son configuración del equipo, o sea ficha. Por eso sobreviven
-    # al retiro y siguen aquí. La prueba de banco y la de terreno los miden; la revisión de
+    # al retiro y siguen aquí. La prueba de rendimiento y la de terreno los miden; la revisión de
     # reparación los muestra desde aquí para ver si cambiaron (§ 5.4).
-    mc_limitacion_pilot_gain = fields.Integer(string="Limitación pilot gain (%)")
-    mc_ganancia_luz = fields.Integer(string="Ganancia luz (%)")
+    # Editables a pesar de que las pruebas los escriben solas, y a propósito: la flota
+    # anterior a Odoo no tiene ninguna prueba de aceptación registrada, así que su ficha solo
+    # se puede llenar a mano. Bloquearlos dejaría a esos equipos sin ajustes para siempre y
+    # sin forma de arreglarlo salvo inventando una prueba que nunca ocurrió. Lo mismo vale
+    # para corregir una errata. Toda escritura automática queda en el chatter del equipo.
+    AVISO_PRUEBA = (
+        "Lo actualiza la prueba de aceptación más reciente al confirmarse. Se puede editar a "
+        "mano —hace falta para los equipos anteriores al sistema— pero la próxima prueba "
+        "manda."
+    )
+    mc_limitacion_pilot_gain = fields.Integer(
+        string="Limitación pilot gain (%)", help=AVISO_PRUEBA
+    )
+    mc_ganancia_luz = fields.Integer(string="Ganancia luz (%)", help=AVISO_PRUEBA)
 
     # Las columnas de prueba en terreno vivieron aquí hasta 19.0.16.0.0. Eran el resultado
     # de un evento —fecha, lugar, profundidad, condiciones— guardado como si fuera ficha, y
