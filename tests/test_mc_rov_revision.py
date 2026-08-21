@@ -343,6 +343,47 @@ class TestCondicionesHeredadas(RevisionCommon):
         self.assertFalse(nueva.alimentacion)
 
 
+class TestFichaCongelada(RevisionCommon):
+    """Una revisión confirmada es un documento: su contenido no puede cambiar después.
+
+    Los campos «según la ficha» eran `related` en vivo hasta 19.0.18.2.0, así que una
+    revisión de hace seis meses mostraba la ficha de hoy — y `luces_difieren` llegaba a dejar
+    de marcar una diferencia que sí marcó el día de la prueba.
+    """
+
+    def test_en_borrador_sigue_a_la_ficha(self):
+        self.lot.mc_cantidad_luces = 6
+        revision = self._revision(tipo="rendimiento")
+        self.assertEqual(revision.luces_ficha, 6)
+
+        self.lot.mc_cantidad_luces = 4
+        revision.invalidate_recordset()
+
+        self.assertEqual(revision.luces_ficha, 4, "en borrador todavía compara contra la ficha")
+
+    def test_confirmada_no_cambia_aunque_cambie_la_ficha(self):
+        self.lot.mc_cantidad_luces = 6
+        revision = self._revision(tipo="rendimiento")
+        revision.estado = "confirmado"
+
+        self.lot.mc_cantidad_luces = 4
+        revision.invalidate_recordset()
+
+        self.assertEqual(revision.luces_ficha, 6, "el documento conserva lo que declaró")
+
+    def test_el_hallazgo_de_luces_tampoco_se_borra(self):
+        """Lo peor del defecto: un documento entregado dejaba de marcar la diferencia."""
+        self.lot.mc_cantidad_luces = 6
+        revision = self._revision(tipo="rendimiento", luces_internas=2, luces_externas=2)
+        revision.estado = "confirmado"
+        self.assertTrue(revision.luces_difieren)
+
+        self.lot.mc_cantidad_luces = 4
+        revision.invalidate_recordset()
+
+        self.assertTrue(revision.luces_difieren, "la diferencia que se entregó sigue marcada")
+
+
 class TestPrecargaDesdeLaFicha(RevisionCommon):
     """La otra mitad del volcado: la prueba nace con lo que la ficha ya declara.
 

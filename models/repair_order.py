@@ -269,6 +269,19 @@ class RepairOrder(models.Model):
             "reinicia el ciclo de mantención del equipo ni aparece en su historial."
         )
 
+    def action_ver_revisiones_del_equipo(self):
+        """Abre todas las revisiones del equipo, no solo las de esta visita.
+
+        La pestaña de esta orden muestra lo de esta visita, que es lo correcto. Pero el
+        diseño de la revisión compara contra **la visita anterior** —así se ve que el ancho
+        de banda cayó, o cuántas horas voló entre una y otra— y sin esta puerta había que
+        salir a buscar el número de serie a mano.
+        """
+        self.ensure_one()
+        if not self.lot_id:
+            raise UserError("Esta orden no tiene un equipo asociado.")
+        return self.lot_id.action_ver_revisiones()
+
     def _validar_origen(self):
         """Impide cerrar una orden con trabajos de los que no se dijo por qué pasaron.
 

@@ -35,10 +35,34 @@ CAMPO_APLICA = {
 # exigía su resultado siempre, así que **una revisión de terreno no podía quedar aprobada
 # nunca** — se quedaba en blanco para siempre, que es el mismo modo de falla que
 # `19.0.15.1.0` vino a arreglar del otro lado. Ver `designs/fabricacion.md` § 4.7.
+TODOS_LOS_TIPOS = ("rendimiento", "terreno", "reparacion")
+
 TIPOS_CON_FUNCIONAMIENTO_CONTINUO = {"rendimiento", "reparacion"}
 
 # Las dos pruebas que son parte del nacimiento del equipo y no de su vida posterior (§ 4.2).
 TIPOS_DE_ACEPTACION = ("rendimiento", "terreno")
+
+# Lo que la ficha declaraba CUANDO SE CORRIÓ LA PRUEBA, campo de la revisión → campo del lote.
+#
+# **Se congelan al confirmar, y ésa es toda la razón de que existan como campos propios.**
+# Antes eran `related` en vivo, así que una revisión de hace seis meses mostraba la ficha de
+# hoy — y peor: `luces_difieren` se recalculaba, o sea que un documento ya entregado al
+# cliente podía dejar de marcar la diferencia que marcaba, porque alguien corrigió la ficha
+# después. Un entregable no puede cambiar solo.
+#
+# Mientras la revisión es borrador siguen a la ficha, que es lo correcto: se está comparando
+# contra la especificación vigente. Al confirmar se vuelve un documento y quedan fijos.
+CAMPOS_FICHA_CONGELADOS = {
+    "luces_ficha": "mc_cantidad_luces",
+    "software_ficha_id": "mc_software_superficie",
+    "version_software_ficha": "mc_version_software",
+    "version_ardusub_ficha": "mc_version_ardusub",
+    "controlador_ficha_id": "mc_controlador_vuelo",
+    "version_controlador_ficha": "mc_version_controlador",
+    "umbilical_ficha": "mc_n_serie_umbilical",
+    "largo_ficha": "mc_longitud",
+    "diametro_ficha": "mc_diametro",
+}
 
 # Las condiciones bajo las que se corrió la prueba, que una revisión nueva hereda de la
 # anterior del mismo equipo. **Solo condiciones, nunca resultados**: heredar una medición
@@ -81,8 +105,8 @@ SOFTWARE_A_FICHA = {
     "version_controlador_instalada": "mc_version_controlador",
 }
 
-# Los ajustes se confirman en las dos pruebas de aceptación, así que manda la más reciente de
-# ésas. En reparación no se miden.
+# Los ajustes se confirman en las tres, así que manda la revisión más reciente del equipo sea
+# del tipo que sea.
 AJUSTES_A_FICHA = {
     "limitacion_pilot_gain": "mc_limitacion_pilot_gain",
     "ganancia_luz": "mc_ganancia_luz",
@@ -217,7 +241,7 @@ class McRovRevision(models.Model):
 
     luces_total = fields.Integer(string="Total luces", compute="_compute_luces", store=True)
     luces_ficha = fields.Integer(
-        related="lot_id.mc_cantidad_luces", string="Luces según ficha", readonly=True
+        string="Luces según ficha", compute="_compute_ficha_congelada", store=True, readonly=True
     )
     luces_difieren = fields.Boolean(
         string="El conteo no cuadra", compute="_compute_luces", store=True
@@ -239,19 +263,33 @@ class McRovRevision(models.Model):
     # positivo; y sobre todo, todavía no se sabe cuál de los tres revierte. La comparación la
     # hace el ojo, que para tres líneas es suficiente y no se equivoca con la ortografía.
     software_ficha_id = fields.Many2one(
-        related="lot_id.mc_software_superficie", string="Software de superficie", readonly=True
+        "mc.rov.software.superficie",
+        string="Software de superficie",
+        compute="_compute_ficha_congelada",
+        store=True,
+        readonly=True,
     )
     version_software_ficha = fields.Char(
-        related="lot_id.mc_version_software", string="Versión del software", readonly=True
+        string="Versión del software",
+        compute="_compute_ficha_congelada",
+        store=True,
+        readonly=True,
     )
     version_ardusub_ficha = fields.Char(
-        related="lot_id.mc_version_ardusub", string="Versión ArduSub", readonly=True
+        string="Versión ArduSub", compute="_compute_ficha_congelada", store=True, readonly=True
     )
     controlador_ficha_id = fields.Many2one(
-        related="lot_id.mc_controlador_vuelo", string="Controlador de vuelo", readonly=True
+        "mc.rov.controlador.vuelo",
+        string="Controlador de vuelo",
+        compute="_compute_ficha_congelada",
+        store=True,
+        readonly=True,
     )
     version_controlador_ficha = fields.Char(
-        related="lot_id.mc_version_controlador", string="Versión del controlador", readonly=True
+        string="Versión del controlador",
+        compute="_compute_ficha_congelada",
+        store=True,
+        readonly=True,
     )
 
     # --- Software instalado, y va al revés que en reparación ---
@@ -309,13 +347,22 @@ class McRovRevision(models.Model):
     # teclearlos — se muestran para saber con qué se probó. El peso no: no dice nada de la
     # prueba. Si el cable es del taller, esto no aplica y el largo se pide a mano.
     umbilical_ficha = fields.Char(
-        related="lot_id.mc_n_serie_umbilical", string="N° de serie del umbilical", readonly=True
+        string="N° de serie del umbilical",
+        compute="_compute_ficha_congelada",
+        store=True,
+        readonly=True,
     )
     largo_ficha = fields.Float(
-        related="lot_id.mc_longitud", string="Largo según ficha (m)", readonly=True
+        string="Largo según ficha (m)",
+        compute="_compute_ficha_congelada",
+        store=True,
+        readonly=True,
     )
     diametro_ficha = fields.Float(
-        related="lot_id.mc_diametro", string="Diámetro según ficha (mm)", readonly=True
+        string="Diámetro según ficha (mm)",
+        compute="_compute_ficha_congelada",
+        store=True,
+        readonly=True,
     )
 
     alimentacion = fields.Selection(
@@ -396,23 +443,14 @@ class McRovRevision(models.Model):
 
     # --- Parámetros de trabajo ---
     #
-    # Se miden en las dos pruebas de aceptación —rendimiento y terreno— y en reparación NO:
-    # ahí se muestran desde la ficha para ver si cambiaron.
+    # Se miden en las TRES: el taller también los ajusta al reparar (confirmado 2026-08-21,
+    # corrige lo que decía el § 5.4). Por eso no hay bloque de comparación — la ficha recibe el
+    # valor de la prueba más reciente sea del tipo que sea, y el último ajuste es la verdad.
     #
-    # La ficha recibe el valor de la prueba de aceptación más reciente. Son ajustes, y el
-    # último ajuste es la verdad — a diferencia del conteo de luces, donde la ficha dice
-    # cuántas debería tener el equipo y la diferencia con lo que encendió ES el hallazgo.
+    # A diferencia del conteo de luces, donde la ficha dice cuántas DEBERÍA tener el equipo y
+    # la diferencia con lo que encendió ES el hallazgo. Por eso ése no se vuelca nunca.
     limitacion_pilot_gain = fields.Integer(string="Limitación pilot gain (%)")
     ganancia_luz = fields.Integer(string="Ganancia luz (%)")
-
-    # En reparación no se vuelven a medir: se muestran desde la ficha para ver si cambiaron.
-    # Mismo bloque que ya funciona con las versiones de software.
-    limitacion_pilot_gain_ficha = fields.Integer(
-        related="lot_id.mc_limitacion_pilot_gain", string="Pilot gain según ficha", readonly=True
-    )
-    ganancia_luz_ficha = fields.Integer(
-        related="lot_id.mc_ganancia_luz", string="Ganancia luz según ficha", readonly=True
-    )
 
     # Dato interno: se medía, se le entregaba al cliente y el cliente la usó en contra. Vuelve
     # a medirse con la condición de que NO salga en el reporte impreso.
@@ -884,6 +922,40 @@ class McRovRevision(models.Model):
             if valor:
                 vals[campo_prueba] = valor.id if hasattr(valor, "id") else valor
 
+    @api.depends(
+        "estado",
+        "lot_id",
+        "lot_id.mc_cantidad_luces",
+        "lot_id.mc_software_superficie",
+        "lot_id.mc_version_software",
+        "lot_id.mc_version_ardusub",
+        "lot_id.mc_controlador_vuelo",
+        "lot_id.mc_version_controlador",
+        "lot_id.mc_n_serie_umbilical",
+        "lot_id.mc_longitud",
+        "lot_id.mc_diametro",
+    )
+    def _compute_ficha_congelada(self):
+        """Sigue a la ficha mientras es borrador; queda fija al confirmar.
+
+        Una revisión confirmada es un documento entregado, y un documento no puede cambiar
+        de contenido después de emitirse. Antes estos campos eran `related` en vivo: una
+        revisión de hace seis meses mostraba la ficha de hoy, y `luces_difieren` llegaba a
+        dejar de marcar una diferencia que sí marcó el día de la prueba.
+        """
+        for revision in self:
+            congelada = revision.estado == "confirmado"
+            for campo, campo_lote in CAMPOS_FICHA_CONGELADOS.items():
+                # Congelada conserva lo suyo. La excepción es que no tenga nada: estas
+                # columnas nacieron en 19.0.18.2.0, así que las revisiones confirmadas antes
+                # de esa versión llegan vacías, y dejarlas así les borraría la comparación
+                # que sí mostraban. En ese caso toma la ficha, que es la mejor aproximación
+                # que queda — el valor de entonces ya no existe en ninguna parte.
+                if congelada and revision[campo]:
+                    revision[campo] = revision[campo]
+                else:
+                    revision[campo] = revision.lot_id[campo_lote]
+
     def action_confirmar(self):
         """Cierra la revisión. A partir de aquí el registro es evidencia, no borrador."""
         for revision in self:
@@ -904,9 +976,9 @@ class McRovRevision(models.Model):
         - **El software lo determina la prueba de rendimiento**, porque es donde se instala. En
           reparación se compara contra la ficha; acá es al revés, y si esto no ocurriera la
           ficha quedaría vacía **y la comparación del lado de reparación no funcionaría nunca**.
-        - **Los ajustes —pilot gain y ganancia luz— se confirman en las dos pruebas de
-          aceptación**, así que manda la más reciente de ésas. En reparación no se miden: ahí
-          se muestran desde la ficha para ver si cambiaron.
+        - **Los ajustes —pilot gain y ganancia luz— se confirman en las tres**, incluida la
+          reparación: el taller también los ajusta al reparar. Manda la revisión más reciente
+          del equipo, sea del tipo que sea.
 
         **En los dos casos sobrescribe, y solo desde la prueba más reciente.** Sobrescribir es
         lo correcto: dejar un valor viejo haría que cada revisión posterior registrara una
@@ -924,7 +996,7 @@ class McRovRevision(models.Model):
         valores = {}
         if self._es_la_mas_reciente(tipos=("rendimiento",)):
             valores.update(self._valores_para_la_ficha(SOFTWARE_A_FICHA))
-        if self._es_la_mas_reciente(tipos=TIPOS_DE_ACEPTACION):
+        if self._es_la_mas_reciente(tipos=TODOS_LOS_TIPOS):
             valores.update(self._valores_para_la_ficha(AJUSTES_A_FICHA))
         if not valores:
             return
