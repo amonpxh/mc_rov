@@ -4,6 +4,30 @@ All notable changes to the `mc_rov` Odoo module are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this module adheres to [semantic versioning](https://semver.org/) within the constraints of Odoo's version scheme: `19.0.X.Y.Z` where `19.0` is the Odoo major, `X` is breaking-change/migration, `Y` is feature, `Z` is bugfix.
 
+## [19.0.22.1.1] — 2026-08-24
+
+### Fixed
+
+- **A test opens in its own screen, not in a dialog inside the serial number.** Same recipe as
+  the repair order's Revisiones tab, already proven in production: `readonly` on the field plus
+  `open_form_view` on the list, which adds the link that navigates to each record with its
+  header and its chatter.
+
+  **The reason is that a test is a document, not a line.** The nested dialog produced three odd
+  behaviours with one root: it had to be saved twice — the dialog and the form behind it — the
+  number the server had reassigned on a type change did not appear until F5, and changing the
+  type from there renumbered a document without showing the result. Paulo found all three
+  walking the screens.
+
+  It also finishes what `19.0.18.1.0` set out to do: a half-filled test can be reopened and
+  completed — now in its full form, which is where the four tabs live.
+
+### Docs
+
+- The «Sonar funciona» check was left with «Aplica a rendimiento» turned off by hand, on
+  purpose, to verify at the next deploy that the catalogue's `noupdate` actually holds. Noted
+  in `docs/pendientes.md`.
+
 ## [19.0.22.1.0] — 2026-08-24
 
 ### Changed
