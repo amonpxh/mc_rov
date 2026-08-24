@@ -252,13 +252,27 @@
                                     string="Nueva prueba en terreno"
                                     class="btn-secondary ms-2"/>
                         </div>
-                        <!-- Ya no es `readonly`: una prueba a medio llenar hay que poder volver a
-                             abrirla y terminarla. No se crean desde aquí —para eso están los dos
-                             botones de arriba, que fijan el tipo— pero sí se borran, porque el
-                             botón crea al primer clic y hace falta deshacer un clic equivocado.
-                             Una revisión confirmada no se deja borrar: eso lo impide el modelo. -->
-                        <field name="revision_ids">
-                            <list create="0" delete="0">
+                        <!-- La prueba se abre **en su propia pantalla**, no en un diálogo dentro
+                             de esta ficha. Es la misma receta que la pestaña Revisiones de la
+                             orden de reparación, ya validada en producción: `readonly` en el
+                             campo más `open_form_view` en la lista, que agrega el enlace que
+                             navega a cada registro con su cabecera y su chatter.
+
+                             **El motivo es que una prueba es un documento, no una línea.** En el
+                             diálogo anidado se veían tres cosas raras, todas de la misma raíz:
+                             había que guardar dos veces —el diálogo y la ficha de atrás—, el
+                             número renumerado por el servidor al cambiar el tipo no aparecía
+                             hasta recargar con F5, y cambiar el tipo desde ahí renumeraba un
+                             documento sin que se viera el resultado. Lo encontró Paulo el
+                             2026-08-24 recorriendo las pantallas.
+
+                             Corrige también, sin quedar a medias, lo que 19.0.18.1.0 quiso
+                             arreglar: una prueba a medio llenar se vuelve a abrir y se termina
+                             —ahora en su formulario completo, que es donde están las cuatro
+                             pestañas—. No se crean desde aquí: para eso están los dos botones de
+                             arriba, que fijan el tipo. -->
+                        <field name="revision_ids" readonly="1">
+                            <list open_form_view="1">
                                 <field name="name"/>
                                 <field name="fecha"/>
                                 <field name="tipo"/>

@@ -2,6 +2,15 @@
 
 > Actualizar esta sección al cerrar cada sesión de trabajo.
 
+### Verificar después del próximo deploy *(2026-08-24)*
+
+**El chequeo «Sonar funciona» quedó con «Aplica a rendimiento» apagado a mano**, desde
+Configuración → Catálogos ROV → Pasos de testeo ROV. No es un ajuste que el taller pidiera:
+está puesto a propósito para comprobar que el `noupdate` del catálogo, que entró en
+`19.0.20.0.0`, hace lo que dice. **Si después del próximo despliegue vuelve a aparecer
+encendido, el catálogo se sigue reescribiendo solo y hay que perseguirlo** — y con él se
+pierde en silencio cualquier ajuste que el taller haga desde la pantalla.
+
 ## Diseño abierto, salido de mirar las pantallas el 2026-08-17
 
 Todo esto quedó discutido y **sin decidir**. El hilo está en el historial de esa sesión; lo que
