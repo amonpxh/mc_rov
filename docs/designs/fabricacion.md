@@ -438,9 +438,17 @@ está hoy** — los otros 18 aplican a las cuatro baterías tal como ya están c
 | El software de superficie inicia y opera | Rep | **Rend · Terr · Rep** | Se acotó de más en 19.0.15.2.0 |
 | *(nuevos)* Sellos y o-rings · Penetradores apretados · Cableado interno · Foto del interior · Registrar N° de serie | — | **Armado** | Solo verificables antes de cerrar el casco |
 
-**Totales: Armado 5 · Rendimiento 18 · Terreno 17 · Reparación 24.**
+**Totales: Rendimiento 18 · Terreno 18 · Reparación 24.**
 
-Terreno es rendimiento **menos estanqueidad**, porque no hay máquina de presión en el muelle.
+> **Corregido en `19.0.22.0.0`, y este § se contradecía con el § 5.2.** Decía que terreno era
+> rendimiento *menos estanqueidad* porque no hay máquina de presión en el muelle — pero el
+> § 5.2 dice, cuatro párrafos antes, que **el chequeo de estanqueidad está en las tres y lo
+> que cambia son las mediciones**. Manda el § 5.2: el equipo baja igual, y la profundidad
+> alcanzada no es contexto sino la misma verificación hecha por otro medio. `19.0.20.0.0`
+> siguió la tabla en vez del párrafo; lo levantó Paulo preguntando por qué faltaba.
+>
+> **Y la batería de armado no existe**: los cinco chequeos del interior se descartaron junto
+> con la ruta de fabricación. Ver `docs/pendientes.md`.
 
 > **Los cinco chequeos de armado no salieron del taller: los escribió el diseño.** Razonados
 > desde el principio de «antes de cerrar el casco», pero sin conocer cómo se arma. **Son la parte

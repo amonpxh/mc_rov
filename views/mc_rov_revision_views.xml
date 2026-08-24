@@ -5,7 +5,7 @@
         <field name="name">mc.rov.revision.form</field>
         <field name="model">mc.rov.revision</field>
         <field name="arch" type="xml">
-            <form string="Revisión técnica">
+            <form string="Prueba">
                 <header>
                     <button name="action_confirmar" type="object" string="Confirmar"
                             class="btn-primary" invisible="estado != 'borrador'"/>
@@ -694,7 +694,7 @@
         <field name="name">mc.rov.revision.list</field>
         <field name="model">mc.rov.revision</field>
         <field name="arch" type="xml">
-            <list string="Revisiones técnicas">
+            <list string="Pruebas">
                 <field name="name"/>
                 <field name="fecha"/>
                 <field name="lot_id"/>
@@ -716,7 +716,7 @@
         <field name="name">mc.rov.revision.search</field>
         <field name="model">mc.rov.revision</field>
         <field name="arch" type="xml">
-            <search string="Buscar revisiones">
+            <search string="Buscar pruebas">
                 <field name="name"/>
                 <field name="lot_id"/>
                 <field name="responsable_id"/>
@@ -754,10 +754,9 @@
          comprobar que el equipo sigue respetando su profundidad— y en ese caso pertenece a
          la visita. Ver `designs/fabricacion.md` § 4.2. -->
     <record id="action_mc_rov_revision" model="ir.actions.act_window">
-        <field name="name">Revisiones técnicas</field>
+        <field name="name">Pruebas ROV</field>
         <field name="res_model">mc.rov.revision</field>
         <field name="view_mode">list,form</field>
-        <field name="domain">[('tipo', '!=', 'rendimiento')]</field>
         <field name="context">{'default_tipo': 'reparacion'}</field>
     </record>
 

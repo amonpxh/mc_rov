@@ -84,17 +84,29 @@
         action="action_mc_rov_controlador_vuelo"
         sequence="20"/>
 
-    <!-- Las revisiones van al menú principal de Reparaciones y no a Configuración: son
-         registros de trabajo diario, no catálogo. Entre Órdenes y Reporting, que ocupa la
-         secuencia 15.
+    <!-- Las pruebas van al menú principal y no a Configuración: son registros de trabajo
+         diario, no catálogo. Entre Órdenes y Reporting, que ocupa la secuencia 15.
 
-         Las de fabricación no tienen menú propio: se crean con un botón desde el número
-         de serie, que es donde manufactura ya trabaja. Un menú global solo serviría para
-         verlas todas juntas, y esa pregunta no la tiene nadie. -->
+         **Y va en los dos módulos, desde 19.0.22.0.0.** Las pruebas cuelgan del número de
+         serie y los números de serie viven en Inventario, así que pedirle a manufactura que
+         entre por Reparaciones para ver las pruebas de un equipo nuevo es mandarla al módulo
+         equivocado. Es un solo menú declarado dos veces, no dos listas distintas.
+
+         **Y muestra los tres tipos.** Hasta 19.0.21.0.0 el dominio dejaba fuera las de
+         rendimiento, con el argumento de que se crean desde el número de serie y que verlas
+         todas juntas no le servía a nadie. Desde Inventario esa pregunta sí existe: cuáles
+         se probaron, cuáles faltan. -->
     <menuitem
         id="menu_mc_rov_revisiones"
-        name="Revisiones técnicas"
+        name="Pruebas ROV"
         parent="repair.menu_repair_order"
+        action="action_mc_rov_revision"
+        sequence="12"/>
+
+    <menuitem
+        id="menu_mc_rov_revisiones_inventario"
+        name="Pruebas ROV"
+        parent="stock.menu_stock_inventory_control"
         action="action_mc_rov_revision"
         sequence="12"/>
 </odoo>
