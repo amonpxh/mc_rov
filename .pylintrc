@@ -11,6 +11,12 @@ max-line-length=120
 # La alternativa era sacar los tres modelos de línea a su propio archivo, y separa cosas que
 # se leen juntas: la revisión y sus líneas son una unidad. Se sube el techo con holgura, no
 # se quita — un archivo que llegue a 1400 sí necesita partirse.
+#
+# **Y llegó, en 19.0.21.0.0.** Se cumplió lo escrito arriba en vez de subir el techo otra vez:
+# los tres modelos de línea salieron a `mc_rov_revision_linea.py` y la cabecera volvió a 1221.
+# El techo se queda en 1400 porque el argumento de por qué este módulo tiene archivos largos
+# sigue en pie — pero ya se gastó una vez, así que el próximo archivo que lo toque se parte,
+# no se negocia.
 max-module-lines=1400
 
 [MESSAGES CONTROL]

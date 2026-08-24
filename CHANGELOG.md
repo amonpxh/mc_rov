@@ -4,6 +4,54 @@ All notable changes to the `mc_rov` Odoo module are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this module adheres to [semantic versioning](https://semver.org/) within the constraints of Odoo's version scheme: `19.0.X.Y.Z` where `19.0` is the Odoo major, `X` is breaking-change/migration, `Y` is feature, `Z` is bugfix.
 
+## [19.0.21.0.0] — 2026-08-24
+
+Eighth screen review, all of it found by Paulo walking the revision on staging. Three of the
+four bugs were introduced the same day, by me.
+
+### Fixed
+
+- **A draft has no verdict, and now the computation says so.** `19.0.18.3.0` hid it from the
+  form and left the computation untouched, so the «Resultado» column of every list kept
+  announcing «Aprobado» over a revision that was being corrected. Hiding on one screen what is
+  still computed for all the others is two mechanisms that can contradict each other - the
+  thing this module avoids everywhere else. The view conditions are gone: there is one
+  mechanism now.
+
+- **While a revision is a draft, the spec-sheet snapshot follows the spec sheet again.** This
+  is what `_refrescar_ficha` had claimed since `19.0.18.2.0` without it being true: the
+  snapshot was taken only at creation, so filling in the spec sheet *after* opening the test -
+  which is the natural order of work - left the revision comparing against empty fields. And an
+  empty field asserts nothing, so nothing was flagged: not the light count, not the software,
+  not the umbilical. It freezes at confirmation, which is when the revision becomes a document.
+
+- **The software comparison looks at five fields, not three versions.** A machine arriving with
+  a **different flight controller** or a **different surface software** passed without a word —
+  and swapping the part is a bigger finding than changing its version. The warning also names
+  **which** field disagrees: «el software no coincide» with five fields on screen forced people
+  to compare them by eye.
+
+- **The three spec-sheet umbilical fields are read-only, in drafts too.** They had been editable
+  since `19.0.18.1.0`, when correcting them there corrected the spec sheet - but the freeze in
+  `19.0.18.2.0` turned them into a snapshot, so editing them changed only the copy. It looked
+  like fixing the spec sheet without touching it.
+
+### Changed
+
+- **`N° de serie del umbilical` becomes `N° de serie según la ficha`.** Next to it sits the
+  serial of the cable that actually arrived, and the two labels read as the same field asked
+  twice.
+
+- **The spec sheet's umbilical length and diameter also show in repairs.** They were hidden
+  there, so with the machine's own cable no length appeared anywhere at all.
+
+### Migration
+
+`19.0.21.0.0/post-migrate.py` recomputes `resultado` and `software_difiere` and refreshes the
+snapshot on every draft. **Odoo does not recompute a stored field whose change lives only in
+the code** - the column already exists with data, so without this the old values stay and the
+defect looks unfixed.
+
 ## [19.0.20.0.0] — 2026-08-21
 
 ### Changed
