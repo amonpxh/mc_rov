@@ -4,6 +4,41 @@ All notable changes to the `mc_rov` Odoo module are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this module adheres to [semantic versioning](https://semver.org/) within the constraints of Odoo's version scheme: `19.0.X.Y.Z` where `19.0` is the Odoo major, `X` is breaking-change/migration, `Y` is feature, `Z` is bugfix.
 
+## [19.0.22.0.0] — 2026-08-24
+
+### Fixed
+
+- **Watertightness returns to the field battery.** `19.0.20.0.0` took it out following the
+  totals table in design section 5.3, which **contradicts its own section 5.2**: that paragraph
+  says, in as many words, that *the watertightness check is in all three and what changes is
+  the measurement*. Section 5.2 wins — there is no pressure rig on a jetty, but **the machine
+  goes down anyway**, and the depth reached is not context, it is the same verification done by
+  other means. Paulo raised it by asking why it was missing. The split is now
+  **rendimiento 18 · terreno 18 · reparación 24**.
+
+### Changed
+
+- **One word for one thing: «Pruebas».** The menu said «Revisiones técnicas», the serial's tab
+  said «Pruebas», and the repair order had one more «Revisiones» — three words for two things.
+  The user-facing labels are all «Pruebas» now; the model keeps its own name, which is where
+  «revision» belongs.
+
+- **The menu also lives in Inventario.** Tests hang off serial numbers and serial numbers live
+  in Inventory, so sending manufacturing through Repairs to see a new machine's tests points
+  them at the wrong module. One menu declared twice, not two different lists.
+
+- **And it shows all three types.** Until now the domain left out performance tests, on the
+  grounds that they are created from the serial and that seeing them all together served
+  nobody. From Inventory that question does exist: which ones were tested, which are missing.
+
+### Migration
+
+`19.0.22.0.0/post-migrate.py` turns the checkbox back on. Needed for the same reason as
+`19.0.20.0.0`: the catalogue is `noupdate`, so Odoo no longer applies XML values to existing
+records. **If somebody had already turned it off by hand, this turns it back on** — acceptable
+once, because the value being corrected was put there by the module and not by a person, and
+the log says so.
+
 ## [19.0.21.0.0] — 2026-08-24
 
 Eighth screen review, all of it found by Paulo walking the revision on staging. Three of the

@@ -33,17 +33,25 @@ class TestBaterias(RevisionCommon):
     def test_rendimiento_no_pide_los_de_desgaste(self):
         self.assertEqual(self._cuantos("rendimiento"), 18)
 
-    def test_terreno_es_rendimiento_menos_la_estanqueidad(self):
-        """En el muelle no hay máquina de presión.
+    def test_terreno_pide_los_mismos_que_rendimiento(self):
+        """Las dos pruebas de aceptación piden lo mismo, y la estanqueidad también.
 
-        La misma pregunta —¿se mantiene estanco?— la contesta ahí la profundidad alcanzada,
-        que es la verificación de presión hecha por otro medio, no un dato de contexto.
+        En el muelle no hay máquina de presión, pero **el equipo baja igual**: la profundidad
+        alcanzada no es un dato de contexto, es la misma verificación hecha por otro medio.
+        Lo que cambia entre baterías es la medición —bar y tiempo en el taller, metros en
+        terreno— y no el chequeo.
+
+        `19.0.20.0.0` la dejó fuera de terreno siguiendo la tabla de totales del § 5.3 del
+        diseño, que se contradecía con su propio § 5.2. Manda el § 5.2, y lo levantó Paulo
+        preguntando por qué faltaba.
         """
-        self.assertEqual(self._cuantos("terreno"), 17)
+        self.assertEqual(self._cuantos("terreno"), 18)
+        self.assertEqual(self._cuantos("terreno"), self._cuantos("rendimiento"))
 
         estanqueidad = self.env.ref("mc_rov.chequeo_estanqueidad")
-        self.assertFalse(estanqueidad.aplica_terreno)
+        self.assertTrue(estanqueidad.aplica_terreno)
         self.assertTrue(estanqueidad.aplica_rendimiento)
+        self.assertTrue(estanqueidad.aplica_reparacion)
 
     def test_los_de_desgaste_son_solo_de_reparacion(self):
         """Los cinco que el § 5.3 mueve, nombrados: contar 18 no dice cuáles son."""
