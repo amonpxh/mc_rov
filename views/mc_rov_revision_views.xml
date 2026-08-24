@@ -5,7 +5,7 @@
         <field name="name">mc.rov.revision.form</field>
         <field name="model">mc.rov.revision</field>
         <field name="arch" type="xml">
-            <form string="Prueba">
+            <form string="Revisión técnica">
                 <header>
                     <button name="action_confirmar" type="object" string="Confirmar"
                             class="btn-primary" invisible="estado != 'borrador'"/>
@@ -694,7 +694,7 @@
         <field name="name">mc.rov.revision.list</field>
         <field name="model">mc.rov.revision</field>
         <field name="arch" type="xml">
-            <list string="Pruebas">
+            <list string="Revisiones técnicas">
                 <field name="name"/>
                 <field name="fecha"/>
                 <field name="lot_id"/>
@@ -716,7 +716,7 @@
         <field name="name">mc.rov.revision.search</field>
         <field name="model">mc.rov.revision</field>
         <field name="arch" type="xml">
-            <search string="Buscar pruebas">
+            <search string="Buscar revisiones">
                 <field name="name"/>
                 <field name="lot_id"/>
                 <field name="responsable_id"/>
@@ -754,10 +754,26 @@
          comprobar que el equipo sigue respetando su profundidad— y en ese caso pertenece a
          la visita. Ver `designs/fabricacion.md` § 4.2. -->
     <record id="action_mc_rov_revision" model="ir.actions.act_window">
-        <field name="name">Pruebas ROV</field>
+        <field name="name">Revisiones técnicas</field>
         <field name="res_model">mc.rov.revision</field>
         <field name="view_mode">list,form</field>
+        <field name="domain">[('tipo', '!=', 'rendimiento')]</field>
         <field name="context">{'default_tipo': 'reparacion'}</field>
+    </record>
+
+    <!-- La misma información vista desde el otro lado, y por eso es otra acción y no la
+         misma con otro nombre.
+
+         Desde Reparaciones la pregunta es qué pasó en las visitas al taller, así que las
+         pruebas de rendimiento —que son el nacimiento del equipo y no una visita— sobran.
+         Desde Inventario la pregunta es qué se le ha hecho a este equipo, y ahí entran las
+         tres. Darle el mismo nombre y el mismo filtro a las dos habría dejado una sola lista
+         llamada de dos formas, que es peor que dos listas honestas. -->
+    <record id="action_mc_rov_prueba_realizada" model="ir.actions.act_window">
+        <field name="name">Pruebas realizadas</field>
+        <field name="res_model">mc.rov.revision</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'default_tipo': 'rendimiento'}</field>
     </record>
 
     <!-- Aquí hubo una acción «Revisiones de fabricación», retirada en 19.0.16.0.0. No la

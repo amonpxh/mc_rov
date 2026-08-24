@@ -84,29 +84,31 @@
         action="action_mc_rov_controlador_vuelo"
         sequence="20"/>
 
-    <!-- Las pruebas van al menú principal y no a Configuración: son registros de trabajo
-         diario, no catálogo. Entre Órdenes y Reporting, que ocupa la secuencia 15.
+    <!-- Van al menú principal y no a Configuración: son registros de trabajo diario, no
+         catálogo. Entre Órdenes y Reporting, que ocupa la secuencia 15.
 
-         **Y va en los dos módulos, desde 19.0.22.0.0.** Las pruebas cuelgan del número de
-         serie y los números de serie viven en Inventario, así que pedirle a manufactura que
-         entre por Reparaciones para ver las pruebas de un equipo nuevo es mandarla al módulo
-         equivocado. Es un solo menú declarado dos veces, no dos listas distintas.
+         **Dos menús, dos nombres y dos alcances, desde 19.0.22.1.0.** Las pruebas cuelgan del
+         número de serie y los números de serie viven en Inventario, así que pedirle a
+         manufactura que entre por Reparaciones para ver las pruebas de un equipo nuevo es
+         mandarla al módulo equivocado. Pero tampoco es la misma lista dos veces: desde
+         Reparaciones la pregunta es qué pasó en las visitas al taller y las de rendimiento
+         sobran; desde Inventario la pregunta es qué se le ha hecho al equipo y entran las
+         tres. Un solo nombre para las dos habría sido una lista llamada de dos formas.
 
-         **Y muestra los tres tipos.** Hasta 19.0.21.0.0 el dominio dejaba fuera las de
-         rendimiento, con el argumento de que se crean desde el número de serie y que verlas
-         todas juntas no le servía a nadie. Desde Inventario esa pregunta sí existe: cuáles
-         se probaron, cuáles faltan. -->
+         En Reparaciones el nombre se queda como estaba: ahí el vocabulario es «revisión»
+         desde que existe el módulo, y cambiarlo por cambiarlo le rompe la memoria a quien ya
+         sabe dónde entrar. -->
     <menuitem
         id="menu_mc_rov_revisiones"
-        name="Pruebas ROV"
+        name="Revisiones técnicas"
         parent="repair.menu_repair_order"
         action="action_mc_rov_revision"
         sequence="12"/>
 
     <menuitem
         id="menu_mc_rov_revisiones_inventario"
-        name="Pruebas ROV"
+        name="Pruebas realizadas"
         parent="stock.menu_stock_inventory_control"
-        action="action_mc_rov_revision"
+        action="action_mc_rov_prueba_realizada"
         sequence="12"/>
 </odoo>
