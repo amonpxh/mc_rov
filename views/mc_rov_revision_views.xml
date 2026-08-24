@@ -25,15 +25,20 @@
                     <!-- El resultado es lo primero que alguien quiere saber al abrir una
                          ficha, y es derivado: se lee, no se decide.
 
-                         **Solo se muestra cuando está confirmada**, desde 19.0.18.3.0. Un
-                         borrador con todo respondido calculaba "Aprobado" y lo anunciaba con
-                         su cinta, así que devolver una revisión a borrador para corregirla la
-                         dejaba diciendo aprobado mientras se editaba. El veredicto pertenece
-                         al documento emitido, no al borrador que lo va a reemplazar. -->
+                         **Solo existe cuando está confirmada**, y desde 19.0.21.0.0 eso lo
+                         garantiza el cálculo, no estas condiciones. Un borrador con todo
+                         respondido calculaba "Aprobado" y lo anunciaba con su cinta, así que
+                         devolver una revisión a borrador para corregirla la dejaba diciendo
+                         aprobado mientras se editaba. El veredicto pertenece al documento
+                         emitido, no al borrador que lo va a reemplazar.
+
+                         19.0.18.3.0 lo escondió solo acá y dejó el cálculo intacto, y la
+                         columna «Resultado» de las listas siguió anunciándolo igual. Por eso
+                         ahora hay un solo mecanismo y no dos que puedan contradecirse. -->
                     <widget name="web_ribbon" title="Rechazado" bg_color="text-bg-danger"
-                            invisible="resultado != 'rechazado' or estado != 'confirmado'"/>
+                            invisible="resultado != 'rechazado'"/>
                     <widget name="web_ribbon" title="Con observaciones" bg_color="text-bg-warning"
-                            invisible="resultado != 'aprobado_con_observaciones' or estado != 'confirmado'"/>
+                            invisible="resultado != 'aprobado_con_observaciones'"/>
 
                     <div class="oe_title">
                         <h1><field name="name" readonly="1"/></h1>
@@ -78,7 +83,7 @@
                             <field name="motivo" readonly="estado == 'confirmado'"
                                    invisible="not repair_id" required="repair_id"/>
                             <field name="horas_operacion" readonly="estado == 'confirmado'"/>
-                            <field name="resultado" readonly="1" invisible="estado != 'confirmado'"/>
+                            <field name="resultado" readonly="1"/>
                         </group>
                     </group>
 
@@ -155,12 +160,26 @@
                                     <field name="umbilical_serie"
                                            readonly="estado == 'confirmado'"
                                            invisible="umbilical != 'equipo' or tipo != 'reparacion'"/>
-                                    <field name="umbilical_ficha" readonly="estado == 'confirmado'"
+                                    <!-- Los tres de la ficha son de SOLO LECTURA, y desde
+                                         19.0.21.0.0 también en borrador. Eran editables desde
+                                         19.0.18.1.0, cuando corregirlos aquí corregía la
+                                         ficha — pero la congelación de 19.0.18.2.0 los
+                                         convirtió en una foto, así que editarlos pasó a
+                                         cambiar solo la copia: se veía como haber arreglado
+                                         la ficha sin haberla tocado. Si la ficha está mal, se
+                                         corrige en la ficha y la foto se refresca sola
+                                         mientras la prueba siga en borrador.
+
+                                         Y se muestran también en reparación: antes el largo y
+                                         el diámetro se escondían ahí, de modo que con el
+                                         cable del equipo no se veía ningún largo por ninguna
+                                         parte. -->
+                                    <field name="umbilical_ficha" readonly="1"
                                            invisible="umbilical != 'equipo'"/>
-                                    <field name="largo_ficha" readonly="estado == 'confirmado'"
-                                           invisible="umbilical != 'equipo' or tipo == 'reparacion'"/>
-                                    <field name="diametro_ficha" readonly="estado == 'confirmado'"
-                                           invisible="umbilical != 'equipo' or tipo == 'reparacion'"/>
+                                    <field name="largo_ficha" readonly="1"
+                                           invisible="umbilical != 'equipo'"/>
+                                    <field name="diametro_ficha" readonly="1"
+                                           invisible="umbilical != 'equipo'"/>
                                     <label for="largo" invisible="umbilical != 'prueba'"/>
                                     <div class="o_row" invisible="umbilical != 'prueba'">
                                         <field name="largo" readonly="estado == 'confirmado'"/>
@@ -345,8 +364,10 @@
 
                             <div class="alert alert-warning" role="alert"
                                  invisible="not software_difiere">
-                                El software encontrado no coincide con lo que declara la ficha
-                                del equipo. O el equipo revirtió, o la ficha está desactualizada.
+                                <field name="software_diferencias" readonly="1" nolabel="1"
+                                       class="fw-bold d-inline"/>
+                                no coincide con lo que declara la ficha del equipo. O el equipo
+                                revirtió, o la ficha está desactualizada.
                             </div>
 
                             <group string="Software según la ficha"

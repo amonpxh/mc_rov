@@ -69,6 +69,18 @@ class RevisionCommon(TransactionCase):
     def _responder_sellos(self, revision, estado="intacto"):
         revision.inspeccion_ids.write({"estado_sello": estado})
 
+    def _emitir(self, revision):
+        """Marca la revisión como confirmada sin pasar por `action_confirmar`.
+
+        Desde 19.0.21.0.0 **un borrador no tiene veredicto**, así que los tests que verifican
+        las reglas del veredicto tienen que emitir el documento primero. Se escribe el estado
+        directo y no se llama al botón a propósito: lo que se está probando es la regla de
+        `_compute_resultado`, no la lista de requisitos para confirmar, que tiene sus propios
+        tests y exigiría llenar cosas que no vienen al caso.
+        """
+        revision.estado = "confirmado"
+        return revision
+
     def _chequeo_catalogo(self, **vals):
         """Un paso de testeo creado para el test.
 
@@ -672,7 +684,12 @@ class TestSoftwareALaFicha(RevisionCommon):
 
 
 class TestMcRovRevisionResultado(RevisionCommon):
-    """Tests de `resultado`, que se deriva y no se decide."""
+    """Tests de `resultado`, que se deriva y no se decide.
+
+    Todos emiten el documento antes de leerlo: desde 19.0.21.0.0 un borrador no tiene
+    veredicto, porque anunciar «Aprobado» sobre una revisión que se está corrigiendo es
+    exactamente lo que se vino a arreglar.
+    """
 
     def test_terreno_se_aprueba_sin_corrida_de_resistencia(self):
         """El funcionamiento continuo se exige solo donde es parte de la batería.
@@ -688,7 +705,7 @@ class TestMcRovRevisionResultado(RevisionCommon):
         self.assertFalse(
             revision.funcionamiento_continuo_resultado, "en terreno no se corre el esfuerzo"
         )
-        self.assertEqual(revision.resultado, "aprobado")
+        self.assertEqual(self._emitir(revision).resultado, "aprobado")
 
     def test_rendimiento_sigue_exigiendo_la_corrida(self):
         """El arreglo no puede convertirse en dejar de pedirlo donde sí corresponde."""
@@ -696,7 +713,8 @@ class TestMcRovRevisionResultado(RevisionCommon):
         self._responder_todo(revision)
 
         self.assertFalse(
-            revision.resultado, "sin funcionamiento continuo no hay resultado posible"
+            self._emitir(revision).resultado,
+            "sin funcionamiento continuo no hay resultado posible",
         )
 
     def test_sin_hallazgos_ni_fallas_el_revision_esta_aprobado(self):
@@ -704,7 +722,7 @@ class TestMcRovRevisionResultado(RevisionCommon):
         self._corrida_completa(revision)
         self._responder_todo(revision)
 
-        self.assertEqual(revision.resultado, "aprobado")
+        self.assertEqual(self._emitir(revision).resultado, "aprobado")
 
     def test_un_hallazgo_cualquiera_lo_deja_con_observaciones(self):
         revision = self._revision()
@@ -719,7 +737,7 @@ class TestMcRovRevisionResultado(RevisionCommon):
             }
         )
 
-        self.assertEqual(revision.resultado, "aprobado_con_observaciones")
+        self.assertEqual(self._emitir(revision).resultado, "aprobado_con_observaciones")
 
     def test_un_hallazgo_que_impide_operar_lo_rechaza(self):
         revision = self._revision()
@@ -734,7 +752,7 @@ class TestMcRovRevisionResultado(RevisionCommon):
             }
         )
 
-        self.assertEqual(revision.resultado, "rechazado")
+        self.assertEqual(self._emitir(revision).resultado, "rechazado")
 
     def test_un_chequeo_fallado_rechaza_aunque_nadie_escriba_el_hallazgo(self):
         """El equipo no pasó, y eso no se compensa con que nadie haya explicado por qué."""
@@ -743,14 +761,14 @@ class TestMcRovRevisionResultado(RevisionCommon):
         self._responder_todo(revision)
         revision.chequeo_ids[0].resultado = "no_ok"
 
-        self.assertEqual(revision.resultado, "rechazado")
+        self.assertEqual(self._emitir(revision).resultado, "rechazado")
 
     def test_un_funcionamiento_continuo_con_problemas_rechaza(self):
         revision = self._revision()
         self._corrida_completa(revision, funcionamiento_continuo_resultado="con_problemas")
         self._responder_todo(revision)
 
-        self.assertEqual(revision.resultado, "rechazado")
+        self.assertEqual(self._emitir(revision).resultado, "rechazado")
 
     def test_no_aplica_no_es_una_falla(self):
         """Un equipo sin joystick no está reprobado por no tenerlo."""
@@ -758,7 +776,7 @@ class TestMcRovRevisionResultado(RevisionCommon):
         self._corrida_completa(revision)
         self._responder_todo(revision, resultado="no_lo_tiene")
 
-        self.assertEqual(revision.resultado, "aprobado")
+        self.assertEqual(self._emitir(revision).resultado, "aprobado")
 
 
 @tagged("post_install", "-at_install")
@@ -1161,7 +1179,7 @@ class TestMcRovRevisionAutomatica(RevisionCommon):
 
         self._lista_para_confirmar(revision)
 
-        self.assertEqual(revision.resultado, "aprobado")
+        self.assertEqual(self._emitir(revision).resultado, "aprobado")
 
     def test_la_primera_revision_trae_su_motivo_por_defecto(self):
         """No cuesta un clic y evita que «vacío» signifique «es la primera»."""
