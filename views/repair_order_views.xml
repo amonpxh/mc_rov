@@ -116,7 +116,7 @@
                         </list>
                     </field>
                 </page>
-                <page string="Pruebas" name="revisiones">
+                <page string="Revisiones" name="revisiones">
                     <!-- El historial completo del equipo, que esta pestaña no muestra: aquí
                          viven las revisiones de ESTA visita. La comparación que el diseño
                          pide —contra la visita anterior— necesitaba salir a buscar el número

@@ -4,6 +4,27 @@ All notable changes to the `mc_rov` Odoo module are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this module adheres to [semantic versioning](https://semver.org/) within the constraints of Odoo's version scheme: `19.0.X.Y.Z` where `19.0` is the Odoo major, `X` is breaking-change/migration, `Y` is feature, `Z` is bugfix.
 
+## [19.0.22.1.0] — 2026-08-24
+
+### Changed
+
+- **Two menus, two names, two scopes.** `19.0.22.0.0` unified the wording to «Pruebas»
+  everywhere and pointed both menus at one action. Paulo's correction: from Repairs the
+  question is *what happened during workshop visits*, so performance tests — which are the
+  machine's birth, not a visit — do not belong; from Inventory the question is *what has been
+  done to this machine*, and all three do. One name and one filter for both would have been a
+  single list called two different things.
+
+  So Repairs keeps **«Revisiones técnicas»** exactly as it was, filter included: that is the
+  vocabulary the module has used since it existed, and changing it for its own sake breaks the
+  muscle memory of whoever already knows where to click. Inventory gets **«Pruebas
+  realizadas»**, showing all three types.
+
+- **The form, list and search titles go back to «revisión».** `19.0.22.0.0` renamed them too,
+  which was a misreading: what needed one vocabulary was the menus, not the model. The repair
+  order's tab is «Revisiones» again. The serial's tab stays «Pruebas», which it has been since
+  `19.0.16.1.0` and for its own reason.
+
 ## [19.0.22.0.0] — 2026-08-24
 
 ### Fixed
@@ -18,18 +39,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ### Changed
 
-- **One word for one thing: «Pruebas».** The menu said «Revisiones técnicas», the serial's tab
-  said «Pruebas», and the repair order had one more «Revisiones» — three words for two things.
-  The user-facing labels are all «Pruebas» now; the model keeps its own name, which is where
-  «revision» belongs.
-
 - **The menu also lives in Inventario.** Tests hang off serial numbers and serial numbers live
   in Inventory, so sending manufacturing through Repairs to see a new machine's tests points
-  them at the wrong module. One menu declared twice, not two different lists.
+  them at the wrong module.
 
-- **And it shows all three types.** Until now the domain left out performance tests, on the
-  grounds that they are created from the serial and that seeing them all together served
-  nobody. From Inventory that question does exist: which ones were tested, which are missing.
+  *(Superseded by `19.0.22.1.0`, which made it two menus with two names and two scopes rather
+  than one list under two names.)*
 
 ### Migration
 
