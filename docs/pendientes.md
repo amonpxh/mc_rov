@@ -2,14 +2,20 @@
 
 > Actualizar esta sección al cerrar cada sesión de trabajo.
 
-### Verificar después del próximo deploy *(2026-08-24)*
+### Verificar después del próximo deploy
 
-**El chequeo «Sonar funciona» quedó con «Aplica a rendimiento» apagado a mano**, desde
-Configuración → Catálogos ROV → Pasos de testeo ROV. No es un ajuste que el taller pidiera:
-está puesto a propósito para comprobar que el `noupdate` del catálogo, que entró en
-`19.0.20.0.0`, hace lo que dice. **Si después del próximo despliegue vuelve a aparecer
-encendido, el catálogo se sigue reescribiendo solo y hay que perseguirlo** — y con él se
-pierde en silencio cualquier ajuste que el taller haga desde la pantalla.
+**Tres cosas, y las tres prueban lo mismo: que los catálogos son del usuario y el módulo no
+se los pisa.** Si alguna vuelve a su valor original después de un despliegue, el `noupdate`
+de ese catálogo no está protegiendo y hay que perseguirlo — con él se pierde en silencio
+cualquier ajuste que el taller haga desde la pantalla.
+
+1. **«Sonar funciona» tiene «Aplica a rendimiento» apagado a mano** *(2026-08-24)*, desde
+   Configuración → Catálogos ROV → Pasos de testeo ROV. No es un ajuste que el taller pidiera:
+   está puesto a propósito para comprobar el `noupdate` que entró en `19.0.20.0.0`.
+2. **La causa «No determinado» está renombrada a «No determinado odo\*»** *(2026-08-25)*, desde
+   Calidad → Configuración → Causas. Comprueba el `noupdate` de `19.0.22.2.0`.
+3. **Las cuatro causas de Odoo quedan archivadas** por la migración de `19.0.23.0.0`. Acá lo
+   que hay que mirar es lo contrario: que **no vuelvan a aparecer** activas.
 
 ## Diseño abierto, salido de mirar las pantallas el 2026-08-17
 
