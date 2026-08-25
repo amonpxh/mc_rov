@@ -253,10 +253,24 @@
                                     class="btn-secondary ms-2"/>
                         </div>
                         <!-- La prueba se abre **en su propia pantalla**, no en un diálogo dentro
-                             de esta ficha. Es la misma receta que la pestaña Revisiones de la
-                             orden de reparación, ya validada en producción: `readonly` en el
-                             campo más `open_form_view` en la lista, que agrega el enlace que
-                             navega a cada registro con su cabecera y su chatter.
+                             de esta ficha, y para eso está el botón «Abrir» de cada fila.
+
+                             **Primero se intentó con `open_form_view`, y ese atributo no
+                             sirve acá.** Leído en el fuente de Odoo 19
+                             (`web/static/src/views/list/list_arch_parser.js`): se ignora si la
+                             lista no es `editable`, y se evalúa a `false` **en silencio**, sin
+                             error ni aviso. Ninguna de las dos listas lo era, así que nunca
+                             funcionó — no es que se rompiera en una versión nueva. La perilla
+                             existe para listas editables, donde el clic edita en la tabla y la
+                             flecha es la salida al documento; acá se eligió lo contrario.
+
+                             Lo destapó Paulo el 2026-08-25 probándolo en pantalla, contra un
+                             comentario que lo daba por validado en producción y que nació
+                             falso.
+
+                             El campo se queda `readonly`, así que el diálogo que abre el clic
+                             en la fila es una vista previa inofensiva —no se edita nada ahí— y
+                             el botón es la puerta a la pantalla real.
 
                              **El motivo es que una prueba es un documento, no una línea.** En el
                              diálogo anidado se veían tres cosas raras, todas de la misma raíz:
@@ -272,7 +286,7 @@
                              pestañas—. No se crean desde aquí: para eso están los dos botones de
                              arriba, que fijan el tipo. -->
                         <field name="revision_ids" readonly="1">
-                            <list open_form_view="1">
+                            <list>
                                 <field name="name"/>
                                 <field name="fecha"/>
                                 <field name="tipo"/>
@@ -283,6 +297,17 @@
                                        decoration-warning="resultado == 'aprobado_con_observaciones'"
                                        decoration-success="resultado == 'aprobado'"/>
                                 <field name="estado"/>
+                                <!-- El botón dice lo que se puede hacer con ESA prueba, y
+                                     no una palabra neutra para las dos. El clic en la fila
+                                     abre una vista previa de solo lectura —eso no se puede
+                                     cambiar sin tocar el cliente web— y el riesgo es que
+                                     alguien vea esa ventana y concluya que la prueba ya no se
+                                     edita. Decirlo en el botón lo contesta antes de que la
+                                     pregunta aparezca. -->
+                                <button name="action_abrir" type="object" string="Editar"
+                                        class="btn-link" invisible="estado != 'borrador'"/>
+                                <button name="action_abrir" type="object" string="Abrir"
+                                        class="btn-link" invisible="estado == 'borrador'"/>
                             </list>
                         </field>
                     </page>

@@ -1219,3 +1219,34 @@ class McRovRevision(models.Model):
         for revision in self:
             revision.estado = "borrador"
             revision.message_post(body="La revisión volvió a borrador para corregirse.")
+
+    def action_abrir(self):
+        """Abre esta revisión en su propia pantalla, desde la lista incrustada en otra ficha.
+
+        **Existe porque `open_form_view` solo sirve en listas editables.** El fuente de
+        Odoo 19 lo dice sin ambigüedad —`web/static/src/views/list/list_arch_parser.js`—:
+
+            treeAttr.openFormView = treeAttr.editable ? exprToBoolean(...) : false;
+
+        O sea que en una lista de solo lectura el atributo **se evalúa a `false` en silencio**,
+        sin error ni aviso. Las dos pestañas que lo usaban —la del número de serie y la de la
+        orden de reparación— llevaban un comentario que lo daba por validado en producción, y
+        nació falso. Lo comprobó Paulo en pantalla el 2026-08-25.
+
+        La perilla existe para listas **editables**, donde el clic edita en la tabla y la
+        flecha es la salida al documento completo. Acá se eligió lo contrario —una prueba no se
+        edita dentro de la ficha de otro registro— así que hace falta un botón.
+
+        Y hace falta porque **una revisión es un documento, no una línea**: tiene barra de
+        estado, cuatro pestañas y chatter, y editarla dentro del formulario de otro registro
+        obligaba a guardar dos veces y escondía lo que el servidor hacía al guardar.
+        """
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": self.display_name,
+            "res_model": "mc.rov.revision",
+            "res_id": self.id,
+            "view_mode": "form",
+            "target": "current",
+        }

@@ -158,12 +158,17 @@
                                 invisible="not lot_id"/>
                     </div>
                     <!-- El campo queda readonly para que no se creen ni borren revisiones
-                         desde aquí, pero open_form_view agrega el link que abre cada una en
-                         su propio formulario, con su cabecera y su chatter. Sin él, hacer
-                         clic en una fila abría un diálogo de solo lectura: la revisión se
-                         podía llenar al crearla y nunca más. -->
+                         desde aquí, y el botón «Abrir» lleva a cada una a su propio
+                         formulario, con su cabecera, sus cuatro pestañas y su chatter.
+
+                         **Antes decía `open_form_view` y este comentario afirmaba que eso
+                         agregaba el enlace, dándolo por validado en producción. Nació falso.**
+                         El fuente de Odoo 19 lo ignora si la lista no es `editable` y lo
+                         evalúa a `false` en silencio —ver
+                         `web/static/src/views/list/list_arch_parser.js`— y esta lista nunca lo
+                         fue. Lo comprobó Paulo en pantalla el 2026-08-25. -->
                     <field name="revision_ids" readonly="1">
-                        <list open_form_view="1">
+                        <list>
                             <field name="name"/>
                             <field name="tipo"/>
                             <field name="numero_en_visita" optional="show"/>
@@ -174,6 +179,10 @@
                                    decoration-warning="resultado == 'aprobado_con_observaciones'"
                                    decoration-success="resultado == 'aprobado'"/>
                             <field name="estado"/>
+                            <button name="action_abrir" type="object" string="Editar"
+                                    class="btn-link" invisible="estado != 'borrador'"/>
+                            <button name="action_abrir" type="object" string="Abrir"
+                                    class="btn-link" invisible="estado == 'borrador'"/>
                         </list>
                     </field>
                 </page>
