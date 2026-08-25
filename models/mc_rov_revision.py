@@ -1219,3 +1219,28 @@ class McRovRevision(models.Model):
         for revision in self:
             revision.estado = "borrador"
             revision.message_post(body="La revisión volvió a borrador para corregirse.")
+
+    def action_abrir(self):
+        """Abre esta revisión en su propia pantalla, desde la lista incrustada en otra ficha.
+
+        **Existe porque `open_form_view` no hace lo que dice.** La pestaña Revisiones de la
+        orden de reparación lo usaba desde `19.0.10.x` con un comentario que afirmaba que
+        «agrega el link que abre cada una en su propio formulario», y con eso se marcó como
+        validado en producción. El 2026-08-25 Paulo comprobó que **las dos pestañas abren un
+        diálogo**: o nunca funcionó, o dejó de hacerlo en Odoo 19 y nadie lo verificó en
+        pantalla. Un botón sí funciona, y no depende de que el cliente web interprete un
+        atributo de una manera concreta.
+
+        Y hace falta porque **una revisión es un documento, no una línea**: tiene barra de
+        estado, cuatro pestañas y chatter, y editarla dentro del formulario de otro registro
+        obligaba a guardar dos veces y escondía lo que el servidor hacía al guardar.
+        """
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": self.display_name,
+            "res_model": "mc.rov.revision",
+            "res_id": self.id,
+            "view_mode": "form",
+            "target": "current",
+        }

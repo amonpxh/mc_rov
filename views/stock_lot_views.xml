@@ -253,10 +253,19 @@
                                     class="btn-secondary ms-2"/>
                         </div>
                         <!-- La prueba se abre **en su propia pantalla**, no en un diálogo dentro
-                             de esta ficha. Es la misma receta que la pestaña Revisiones de la
-                             orden de reparación, ya validada en producción: `readonly` en el
-                             campo más `open_form_view` en la lista, que agrega el enlace que
-                             navega a cada registro con su cabecera y su chatter.
+                             de esta ficha, y para eso está el botón «Abrir» de cada fila.
+
+                             **Primero se intentó con `open_form_view`**, copiando la pestaña
+                             Revisiones de la orden de reparación, cuyo comentario afirmaba que
+                             ese atributo agregaba el enlace y que estaba validado en
+                             producción. **No lo hace**: el 2026-08-25 Paulo comprobó que las
+                             dos pestañas seguían abriendo un diálogo. O nunca funcionó, o dejó
+                             de hacerlo en Odoo 19 y se dio por bueno sin mirarlo en pantalla.
+                             Un botón no depende de cómo el cliente web interprete un atributo.
+
+                             El campo se queda `readonly`, así que el diálogo que abre el clic
+                             en la fila es una vista previa inofensiva —no se edita nada ahí— y
+                             el botón es la puerta a la pantalla real.
 
                              **El motivo es que una prueba es un documento, no una línea.** En el
                              diálogo anidado se veían tres cosas raras, todas de la misma raíz:
@@ -272,7 +281,7 @@
                              pestañas—. No se crean desde aquí: para eso están los dos botones de
                              arriba, que fijan el tipo. -->
                         <field name="revision_ids" readonly="1">
-                            <list open_form_view="1">
+                            <list>
                                 <field name="name"/>
                                 <field name="fecha"/>
                                 <field name="tipo"/>
@@ -283,6 +292,8 @@
                                        decoration-warning="resultado == 'aprobado_con_observaciones'"
                                        decoration-success="resultado == 'aprobado'"/>
                                 <field name="estado"/>
+                                <button name="action_abrir" type="object" string="Abrir"
+                                        class="btn-link"/>
                             </list>
                         </field>
                     </page>

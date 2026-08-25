@@ -4,6 +4,24 @@ All notable changes to the `mc_rov` Odoo module are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this module adheres to [semantic versioning](https://semver.org/) within the constraints of Odoo's version scheme: `19.0.X.Y.Z` where `19.0` is the Odoo major, `X` is breaking-change/migration, `Y` is feature, `Z` is bugfix.
 
+## [19.0.22.1.2] — 2026-08-25
+
+### Fixed
+
+- **An «Abrir» button on every row, because `open_form_view` does not do what it says.**
+  `19.0.22.1.1` copied the repair order's Revisiones tab, whose comment claimed that attribute
+  «adds the link that opens each one in its own form» and marked it validated in production.
+  Paulo checked both tabs: **both still opened a dialog.** Either it never worked, or it
+  stopped working in Odoo 19 and was signed off without anyone looking at the screen.
+
+  A button does not depend on how the web client interprets an attribute. Both tabs get it —
+  the serial's Pruebas and the repair order's Revisiones — and the field stays `readonly`, so
+  the dialog a row click still opens is a harmless preview and the button is the door to the
+  real screen.
+
+  **The lesson is the one worth keeping: «validated in production» has to mean somebody
+  looked.** That comment had been carrying a claim nobody had tested.
+
 ## [19.0.22.1.1] — 2026-08-24
 
 ### Fixed
