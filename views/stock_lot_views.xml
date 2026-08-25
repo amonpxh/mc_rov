@@ -350,38 +350,21 @@
                          Esta es la serie de tiempo del equipo: dos revisiones separadas por
                          un año son lo que deja ver que el ancho de banda cayó, o cuántas
                          horas voló entre visitas. -->
-                    <!-- Las lecciones que tocaron a esta unidad. Va como pestaña por la
-                         misma razón que la de Revisiones y que está escrita arriba: este
-                         formulario no declara un oe_button_box con nombre estable, y
-                         adivinar internos de una vista heredada ya costó dos defectos.
+                    <!-- **No hay pestaña de alertas de calidad, y la que había se retiró
+                         en 19.0.22.3.0.** Odoo ya trae un botón inteligente «Alertas de
+                         calidad» en la cabecera del número de serie, con su conteo, y busca
+                         exactamente lo mismo que buscaba nuestra pestaña —
+                         `('lot_ids', 'in', ids)`, ver
+                         `quality_control/models/stock_lot.py::_compute_quality_alert_qty`.
 
-                         Es consulta de referencia, no el lugar principal: la lista que
-                         importa es la de la orden de fabricación, porque es la única que
-                         aparece sin que nadie la busque (fabricacion.md § 6.1.1). Ésta
-                         contesta la otra pregunta — «¿a este equipo qué le pasó que fuera
-                         del modelo y no suyo?». -->
-                    <page string="Alertas de calidad"
-                          name="page_alertas_calidad"
-                          groups="quality.group_quality_user"
-                          invisible="not mc_alerta_ids">
-                        <field name="mc_alerta_ids" readonly="1" nolabel="1">
-                            <list>
-                                <field name="name" string="Referencia"/>
-                                <field name="title"/>
-                                <field name="reason_id"/>
-                                <field name="stage_id"/>
-                                <field name="mc_eco_id" optional="show"/>
-                                <!-- La alerta también es un documento: etapa, causa, acción
-                                     correctiva y preventiva, y chatter propio. Mismo botón y
-                                     misma razón que en la pestaña Pruebas. Acá no se parte en
-                                     «Editar» / «Abrir» porque una alerta no tiene borrador ni
-                                     confirmado: su ciclo son las etapas, y cerrada o no se
-                                     sigue pudiendo escribir en ella. -->
-                                <button name="action_abrir" type="object" string="Abrir"
-                                        class="btn-link"/>
-                            </list>
-                        </field>
-                    </page>
+                         Se construyó por un error de verificación: el 2026-08-20 miramos si
+                         ese botón existía **con cero alertas en la base**, y los botones
+                         inteligentes se esconden cuando su contador está en cero. Concluimos
+                         que no existía y lo anotamos como hecho comprobado. Lo destapó Paulo
+                         el 2026-08-25 creando la primera alerta: el botón apareció solo.
+
+                         **La lección: un botón inteligente ausente puede ser un botón vacío.
+                         Verificar la ausencia de una función exige datos que la enciendan.** -->
 
                     <page string="Descripción" name="page_descripcion"/>
 

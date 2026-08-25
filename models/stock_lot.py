@@ -216,32 +216,6 @@ class StockLot(models.Model):
         for lot in self:
             lot.mc_revision_count = len(lot.revision_ids)
 
-    # Qué lecciones tocaron a esta unidad. `quality.alert.lot_ids` es Many2many y no tiene
-    # inverso declarado, así que hay que calcularlo — `quality_control` solo deja el conteo
-    # `quality_alert_qty`, que no lo usa ninguna vista y por eso el número de serie no
-    # mostraba nada de calidad (verificado en pantalla el 2026-08-20).
-    mc_alerta_ids = fields.Many2many(
-        "quality.alert",
-        string="Alertas de calidad",
-        compute="_compute_mc_alerta_ids",
-        groups="quality.group_quality_user",
-    )
-
-    def _compute_mc_alerta_ids(self):
-        """Las alertas que nombran a este equipo en su alcance del daño.
-
-        Una sola búsqueda para todo el recordset: el compute no está almacenado y el ORM lo
-        evalúa por registro, así que buscar por lote convertiría la lista de números de
-        serie en una tormenta de consultas.
-        """
-        alertas = self.env["quality.alert"].search([("lot_ids", "in", self.ids)])
-        for lot in self:
-            # `equipo=lot` fija el valor: sin eso todas las lambdas comparten la variable
-            # del bucle y terminan filtrando contra el último lote del recordset.
-            lot.mc_alerta_ids = alertas.filtered(
-                lambda alerta, equipo=lot: equipo in alerta.lot_ids
-            )
-
     def action_nueva_revision_rendimiento(self):
         """Abre una prueba de rendimiento para este equipo.
 
