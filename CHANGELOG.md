@@ -4,6 +4,26 @@ All notable changes to the `mc_rov` Odoo module are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this module adheres to [semantic versioning](https://semver.org/) within the constraints of Odoo's version scheme: `19.0.X.Y.Z` where `19.0` is the Odoo major, `X` is breaking-change/migration, `Y` is feature, `Z` is bugfix.
 
+## [19.0.22.3.0] — 2026-08-25
+
+### Removed
+
+- **The serial number's «Alertas de calidad» tab, which duplicated something Odoo already
+  ships.** `quality_control` puts a smart button on the serial's header with its own count, and
+  it searches exactly what our tab searched — `('lot_ids', 'in', ids)`, see
+  `quality_control/models/stock_lot.py::_compute_quality_alert_qty`. The field, its compute, the
+  «Abrir» button added one version earlier and three tests go with it.
+
+  **It existed because of a verification error.** On 2026-08-20 we checked whether that button
+  existed **with zero alerts in the database**, and smart buttons hide when their counter is
+  zero. We concluded it did not exist and wrote that down as a verified fact — in the design, in
+  the code comments and in the notes. Paulo found it on 2026-08-25 by creating the first alert:
+  the button appeared on its own.
+
+  **The lesson: a missing smart button may just be an empty one. Verifying that a feature is
+  absent requires data that would switch it on.** It is the same failure mode as the `-u mc_rov`
+  that printed nothing, and as `open_form_view` reporting no error while doing nothing.
+
 ## [19.0.22.2.0] — 2026-08-25
 
 ### Added

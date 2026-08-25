@@ -521,10 +521,17 @@ Trae **más** de lo que se iba a escribir, incluido el alcance del daño, que el
 1. **No hay puente alerta ↔ ECO.** Verificado: `mrp.eco` no tiene ningún campo hacia
    `quality.alert` ni al revés. Así que «cambiamos el BoM por esto» no queda registrado. Se
    arregla con **un campo**.
-2. **`product.template` no tiene relación con `quality.alert`.** Tampoco `stock.lot`. O sea que
-   **el que arme el próximo ROV no va a ver las lecciones** salvo que se acuerde de ir a la app
-   de Calidad. Es el riesgo del «cementerio» localizado en un campo que falta: **dos
-   `One2many`, y es el trabajo más valioso de todo el bloque.**
+2. **`product.template` no tiene relación con `quality.alert`.** O sea que **el que arme el
+   próximo ROV no va a ver las lecciones** salvo que se acuerde de ir a la app de Calidad. Es
+   el riesgo del «cementerio» localizado en un campo que falta, y es el trabajo más valioso de
+   todo el bloque.
+
+   > **«Tampoco `stock.lot`» decía esto, y era falso.** El número de serie **sí** trae el botón
+   > inteligente «Alertas de calidad» de `quality_control`, que busca lo mismo que buscaba
+   > nuestra pestaña. Se verificó el 2026-08-20 **con cero alertas en la base**, y un botón
+   > inteligente se esconde cuando su contador está en cero: se concluyó que no existía. La
+   > pestaña duplicada se retiró en `19.0.22.3.0`. **Verificar la ausencia de una función exige
+   > datos que la enciendan.**
 3. **De la línea de trabajo a la alerta** falta un botón que la pre-llene desde `origen`.
 
 ### Lo inesperado: `repair.order` ya está integrado con Calidad
