@@ -1223,13 +1223,19 @@ class McRovRevision(models.Model):
     def action_abrir(self):
         """Abre esta revisión en su propia pantalla, desde la lista incrustada en otra ficha.
 
-        **Existe porque `open_form_view` no hace lo que dice.** La pestaña Revisiones de la
-        orden de reparación lo usaba desde `19.0.10.x` con un comentario que afirmaba que
-        «agrega el link que abre cada una en su propio formulario», y con eso se marcó como
-        validado en producción. El 2026-08-25 Paulo comprobó que **las dos pestañas abren un
-        diálogo**: o nunca funcionó, o dejó de hacerlo en Odoo 19 y nadie lo verificó en
-        pantalla. Un botón sí funciona, y no depende de que el cliente web interprete un
-        atributo de una manera concreta.
+        **Existe porque `open_form_view` solo sirve en listas editables.** El fuente de
+        Odoo 19 lo dice sin ambigüedad —`web/static/src/views/list/list_arch_parser.js`—:
+
+            treeAttr.openFormView = treeAttr.editable ? exprToBoolean(...) : false;
+
+        O sea que en una lista de solo lectura el atributo **se evalúa a `false` en silencio**,
+        sin error ni aviso. Las dos pestañas que lo usaban —la del número de serie y la de la
+        orden de reparación— llevaban un comentario que lo daba por validado en producción, y
+        nació falso. Lo comprobó Paulo en pantalla el 2026-08-25.
+
+        La perilla existe para listas **editables**, donde el clic edita en la tabla y la
+        flecha es la salida al documento completo. Acá se eligió lo contrario —una prueba no se
+        edita dentro de la ficha de otro registro— así que hace falta un botón.
 
         Y hace falta porque **una revisión es un documento, no una línea**: tiene barra de
         estado, cuatro pestañas y chatter, y editarla dentro del formulario de otro registro

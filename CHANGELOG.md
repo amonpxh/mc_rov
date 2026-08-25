@@ -11,8 +11,17 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - **An «Abrir» button on every row, because `open_form_view` does not do what it says.**
   `19.0.22.1.1` copied the repair order's Revisiones tab, whose comment claimed that attribute
   «adds the link that opens each one in its own form» and marked it validated in production.
-  Paulo checked both tabs: **both still opened a dialog.** Either it never worked, or it
-  stopped working in Odoo 19 and was signed off without anyone looking at the screen.
+  Paulo checked both tabs: **both still opened a dialog.** Reading the Odoo 19 source settles
+  why — `web/static/src/views/list/list_arch_parser.js`:
+
+  ```js
+  treeAttr.openFormView = treeAttr.editable ? exprToBoolean(...) : false;
+  ```
+
+  **The attribute is ignored unless the list is `editable`, and it evaluates to `false` in
+  silence** — no error, no warning. Neither list ever was, so it never worked; it did not break
+  in a new version. The knob exists for editable lists, where the row click edits in place and
+  the arrow is the way out to the document. Here the opposite was chosen on purpose.
 
   A button does not depend on how the web client interprets an attribute. Both tabs get it —
   the serial's Pruebas and the repair order's Revisiones — and the field stays `readonly`, so

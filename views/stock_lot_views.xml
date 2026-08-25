@@ -255,13 +255,18 @@
                         <!-- La prueba se abre **en su propia pantalla**, no en un diálogo dentro
                              de esta ficha, y para eso está el botón «Abrir» de cada fila.
 
-                             **Primero se intentó con `open_form_view`**, copiando la pestaña
-                             Revisiones de la orden de reparación, cuyo comentario afirmaba que
-                             ese atributo agregaba el enlace y que estaba validado en
-                             producción. **No lo hace**: el 2026-08-25 Paulo comprobó que las
-                             dos pestañas seguían abriendo un diálogo. O nunca funcionó, o dejó
-                             de hacerlo en Odoo 19 y se dio por bueno sin mirarlo en pantalla.
-                             Un botón no depende de cómo el cliente web interprete un atributo.
+                             **Primero se intentó con `open_form_view`, y ese atributo no
+                             sirve acá.** Leído en el fuente de Odoo 19
+                             (`web/static/src/views/list/list_arch_parser.js`): se ignora si la
+                             lista no es `editable`, y se evalúa a `false` **en silencio**, sin
+                             error ni aviso. Ninguna de las dos listas lo era, así que nunca
+                             funcionó — no es que se rompiera en una versión nueva. La perilla
+                             existe para listas editables, donde el clic edita en la tabla y la
+                             flecha es la salida al documento; acá se eligió lo contrario.
+
+                             Lo destapó Paulo el 2026-08-25 probándolo en pantalla, contra un
+                             comentario que lo daba por validado en producción y que nació
+                             falso.
 
                              El campo se queda `readonly`, así que el diálogo que abre el clic
                              en la fila es una vista previa inofensiva —no se edita nada ahí— y

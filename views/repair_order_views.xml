@@ -162,12 +162,11 @@
                          formulario, con su cabecera, sus cuatro pestañas y su chatter.
 
                          **Antes decía `open_form_view` y este comentario afirmaba que eso
-                         agregaba el enlace, dándolo por validado en producción.** No lo hace:
-                         el 2026-08-25 Paulo comprobó que esta pestaña seguía abriendo un
-                         diálogo, igual que la del número de serie. O nunca funcionó, o dejó de
-                         hacerlo en Odoo 19 — y se había marcado como comprobado sin mirarlo en
-                         pantalla. Un botón no depende de cómo el cliente web interprete un
-                         atributo. -->
+                         agregaba el enlace, dándolo por validado en producción. Nació falso.**
+                         El fuente de Odoo 19 lo ignora si la lista no es `editable` y lo
+                         evalúa a `false` en silencio —ver
+                         `web/static/src/views/list/list_arch_parser.js`— y esta lista nunca lo
+                         fue. Lo comprobó Paulo en pantalla el 2026-08-25. -->
                     <field name="revision_ids" readonly="1">
                         <list>
                             <field name="name"/>
