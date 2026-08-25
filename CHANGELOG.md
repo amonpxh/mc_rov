@@ -23,6 +23,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
   in a new version. The knob exists for editable lists, where the row click edits in place and
   the arrow is the way out to the document. Here the opposite was chosen on purpose.
 
+  **The button says what can be done with that particular test: «Editar» on a draft, «Abrir»
+  on a confirmed one.** Not a neutral word for both, because the row click still opens a
+  read-only preview — that cannot be changed without touching the web client — and the risk is
+  that somebody sees that window and concludes the test can no longer be edited. Saying it on
+  the button answers the question before it comes up.
+
   A button does not depend on how the web client interprets an attribute. Both tabs get it —
   the serial's Pruebas and the repair order's Revisiones — and the field stays `readonly`, so
   the dialog a row click still opens is a harmless preview and the button is the door to the

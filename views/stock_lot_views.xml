@@ -297,8 +297,17 @@
                                        decoration-warning="resultado == 'aprobado_con_observaciones'"
                                        decoration-success="resultado == 'aprobado'"/>
                                 <field name="estado"/>
+                                <!-- El botón dice lo que se puede hacer con ESA prueba, y
+                                     no una palabra neutra para las dos. El clic en la fila
+                                     abre una vista previa de solo lectura —eso no se puede
+                                     cambiar sin tocar el cliente web— y el riesgo es que
+                                     alguien vea esa ventana y concluya que la prueba ya no se
+                                     edita. Decirlo en el botón lo contesta antes de que la
+                                     pregunta aparezca. -->
+                                <button name="action_abrir" type="object" string="Editar"
+                                        class="btn-link" invisible="estado != 'borrador'"/>
                                 <button name="action_abrir" type="object" string="Abrir"
-                                        class="btn-link"/>
+                                        class="btn-link" invisible="estado == 'borrador'"/>
                             </list>
                         </field>
                     </page>
