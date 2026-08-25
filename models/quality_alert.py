@@ -156,3 +156,24 @@ class QualityAlert(models.Model):
         "sabía que uno venía del otro. Encadenados en orden son el historial de "
         "maduración del diseño.",
     )
+
+    def action_abrir(self):
+        """Abre esta alerta en su propia pantalla, desde la lista incrustada en otra ficha.
+
+        Misma razón y misma forma que `mc.rov.revision.action_abrir`, y el mismo motivo por
+        el que no se usa `open_form_view`: el fuente de Odoo 19 lo ignora si la lista no es
+        `editable` y lo evalúa a `false` en silencio.
+
+        **Una alerta es un documento**: tiene etapa, responsable, causa, acción correctiva y
+        preventiva, y su propio chatter. Mirarla en el diálogo de la pestaña del número de
+        serie es un vistazo; trabajarla es otra cosa y pide su pantalla.
+        """
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": self.display_name,
+            "res_model": "quality.alert",
+            "res_id": self.id,
+            "view_mode": "form",
+            "target": "current",
+        }

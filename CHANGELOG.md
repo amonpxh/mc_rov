@@ -4,6 +4,18 @@ All notable changes to the `mc_rov` Odoo module are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this module adheres to [semantic versioning](https://semver.org/) within the constraints of Odoo's version scheme: `19.0.X.Y.Z` where `19.0` is the Odoo major, `X` is breaking-change/migration, `Y` is feature, `Z` is bugfix.
 
+## [19.0.22.1.3] — 2026-08-25
+
+### Fixed
+
+- **The «Abrir» button reaches the quality alerts tab too.** An alert is a document as much as
+  a test is: it has a stage, a cause, a corrective and a preventive action, and its own chatter.
+  Until now the serial's tab opened it in a read-only dialog with no way out, so the lesson
+  could be glanced at and never worked on from there.
+
+  No «Editar»/«Abrir» split here, unlike the tests: an alert has no draft/confirmed state — its
+  cycle is the stages, and it stays writable whether it is closed or not.
+
 ## [19.0.22.1.2] — 2026-08-25
 
 ### Fixed

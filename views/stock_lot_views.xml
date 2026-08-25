@@ -371,6 +371,14 @@
                                 <field name="reason_id"/>
                                 <field name="stage_id"/>
                                 <field name="mc_eco_id" optional="show"/>
+                                <!-- La alerta también es un documento: etapa, causa, acción
+                                     correctiva y preventiva, y chatter propio. Mismo botón y
+                                     misma razón que en la pestaña Pruebas. Acá no se parte en
+                                     «Editar» / «Abrir» porque una alerta no tiene borrador ni
+                                     confirmado: su ciclo son las etapas, y cerrada o no se
+                                     sigue pudiendo escribir en ella. -->
+                                <button name="action_abrir" type="object" string="Abrir"
+                                        class="btn-link"/>
                             </list>
                         </field>
                     </page>
