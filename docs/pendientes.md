@@ -205,7 +205,7 @@ Sin decidir: si eso se modela o queda como convención.
 | **A** | Las pruebas de aceptación. **No es un bloque: son cuatro con dependencias distintas**, ver abajo | Grande | — |
 | ~~**B**~~ | ~~Los puentes a `quality.alert`~~ — **hecho en `19.0.15.3.0`** | Chico | — |
 | **C** | Los indicadores agregados en el número de serie (§ 4.4), con el presupuesto de **uno por registro** | Chico | A |
-| **D** | Alinear `quality.reason` con `ORIGENES`. **La batería de armado se cayó** — ver abajo | Datos, cero código | B |
+| ~~**D**~~ | ~~Alinear `quality.reason` con `ORIGENES`~~ — **hecho en `19.0.22.2.0`**. La batería de armado se cayó, ver abajo | Datos, cero código | B |
 
 **A y B son independientes.** B se nota antes —son los cuatro campos que cierran el círculo con
 reparación— y no lleva migración, así que sirve de rodaje para el flujo nuevo con staging antes
