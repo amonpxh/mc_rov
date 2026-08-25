@@ -15,6 +15,11 @@ dato; archivadas, la alerta las sigue mostrando y el catálogo deja de ofrecerla
 deshace desde la pantalla: Calidad → Configuración → Causas, quitar el filtro y
 desarchivar.
 
+**Y archivar solo se puede porque este módulo le agrega `active` al modelo.** Odoo lo entrega
+sin él —lo descubrió este mismo script en el ensayo, que encontró la columna ausente y se
+detuvo sin tocar nada— así que un catálogo que Odoo no deja retirar se estaba llamando «del
+usuario». Ver `models/quality_reason.py`.
+
 **No se resuelven por XML ID a propósito.** Nombrar `quality_control.quality_reason_X` obliga
 a acertar cuatro identificadores de otro módulo, y equivocar uno impide instalar el módulo
 entero. En vez de eso se archiva *lo que tenga XML ID de un módulo que no sea el nuestro*: es

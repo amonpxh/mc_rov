@@ -19,6 +19,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
   on», and the reason the symptom catalogue was closed in `19.0.13.0.0`. Paulo asked for it
   after seeing the ten together in the dropdown.
 
+- **`quality.reason` gains an `active` field, because Odoo ships it without one.** The
+  rehearsal of this very version found the column missing and stopped without touching
+  anything — the guard paid for itself. Without `active`, a catalogue entry can only be
+  **deleted**, and deleting is the wrong answer twice: it takes the datum from any alert that
+  used it, and Odoo's own module recreates it on the next update.
+
+  **A catalogue nothing can be removed from cannot be called the user's.**
+
   **Archived, not deleted:** if an old alert used one, deleting it would take the datum with
   it. And it is undone from the screen — Calidad → Configuración → Causas, drop the filter,
   unarchive.
