@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- **Bloque D: el catálogo de causas de calidad, alineado con `ORIGENES`.**
+
+         Los seis valores de `origen` de una línea de trabajo —de quién es el problema— ya
+         existían del lado de reparación desde 19.0.13.0.0, y del lado de calidad no tenían
+         equivalente. La consecuencia era que el puente reparación → lección dejaba la causa
+         raíz en blanco: el técnico ya había contestado *por qué pasó* al cerrar la orden, y
+         esa respuesta no llegaba a la alerta. Alguien tenía que volver a elegirla a mano,
+         de una lista que decía otra cosa.
+
+         **El contrato ya estaba escrito en el código y esperaba estos registros.**
+         `_mc_valores_de_alerta` resuelve la causa con
+         `env.ref("mc_rov.quality_reason_<origen>")`, así que basta con que estos seis
+         existan con estos XML ID exactos. Ni una línea de Python cambia.
+
+         **Los nombres son idénticos a los de `ORIGENES`, paréntesis incluido.** Dos listas
+         que dicen lo mismo con palabras distintas se desalinean sin que nadie lo note, y el
+         paréntesis es lo que hace que un técnico elija bien: «Diseño o especificación» a
+         secas se confunde con «lo hicimos mal».
+
+         `noupdate` porque el catálogo es del usuario: si el taller renombra una entrada,
+         una actualización del módulo no debe deshacerlo. **El puente no depende del nombre
+         sino del XML ID**, así que renombrar es seguro; lo que rompería el puente es
+         borrarlas. -->
+    <data noupdate="1">
+
+        <record id="quality_reason_diseno" model="quality.reason">
+            <field name="name">Diseño o especificación (lo pensamos mal)</field>
+        </record>
+
+        <record id="quality_reason_falla_fabricacion" model="quality.reason">
+            <field name="name">Manufactura propia (lo hicimos mal)</field>
+        </record>
+
+        <record id="quality_reason_pieza_proveedor" model="quality.reason">
+            <field name="name">Pieza de proveedor (vino fallada)</field>
+        </record>
+
+        <record id="quality_reason_mal_uso" model="quality.reason">
+            <field name="name">Uso del cliente (mal uso o accidente)</field>
+        </record>
+
+        <record id="quality_reason_desgaste" model="quality.reason">
+            <field name="name">Desgaste normal (duró lo que tenía que durar)</field>
+        </record>
+
+        <!-- «No determinado» también entra, y no es relleno: una alerta cuya causa no se
+             pudo establecer es distinta de una alerta sin causa elegida. Sin esta entrada,
+             las dos se ven iguales — que es el mismo vacío-indistinguible-de-dato que este
+             módulo persigue en todas partes. -->
+        <record id="quality_reason_desconocida" model="quality.reason">
+            <field name="name">No determinado</field>
+        </record>
+
+    </data>
+
+</odoo>

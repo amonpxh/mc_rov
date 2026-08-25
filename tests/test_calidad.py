@@ -2,6 +2,7 @@ from odoo.exceptions import UserError
 from odoo.tests.common import TransactionCase
 from odoo.tests import tagged
 
+from odoo.addons.mc_rov.models.mc_rov_componente import ORIGENES
 from odoo.addons.mc_rov.models.stock_lot import ROV_CATEG_PARAM
 
 
@@ -328,6 +329,20 @@ class TestAlertaDesdeLineaDeTrabajo(CalidadCommon):
             }
         )
 
+    def test_el_puente_ahora_propone_la_causa(self):
+        """Lo que el bloque D venía a encender, y sin tocar una línea de Python.
+
+        Hasta `19.0.22.1.3` esto quedaba en blanco: el técnico contestaba «por qué pasó» al
+        cerrar la orden y esa respuesta no llegaba a la alerta, así que alguien tenía que
+        volver a elegirla a mano de una lista que decía otra cosa.
+        """
+        self.linea.action_crear_alerta_calidad()
+
+        self.assertEqual(
+            self.linea.mc_alerta_id.reason_id,
+            self.env.ref("mc_rov.quality_reason_diseno"),
+        )
+
     def test_crea_la_alerta_y_la_deja_enlazada(self):
         self.linea.action_crear_alerta_calidad()
 
@@ -356,17 +371,6 @@ class TestAlertaDesdeLineaDeTrabajo(CalidadCommon):
         self.assertEqual(
             self.env["quality.alert"].search_count([("repair_id", "=", self.orden.id)]), 1
         )
-
-    def test_sin_catalogo_alineado_la_razon_queda_vacia(self):
-        """Contrato con el bloque D: la causa raíz se resuelve por XML ID.
-
-        Mientras D no cree `mc_rov.quality_reason_<origen>`, esto queda en blanco y la
-        persona la elige a mano. Cuando D exista, el botón empieza a llenarla sin tocar
-        una línea de código.
-        """
-        self.linea.action_crear_alerta_calidad()
-        esperado = self.env.ref("mc_rov.quality_reason_diseno", raise_if_not_found=False)
-        self.assertEqual(self.linea.mc_alerta_id.reason_id, esperado or self.env["quality.reason"])
 
 
 class TestLeccionDesdeVariosTrabajos(CalidadCommon):
@@ -467,3 +471,36 @@ class TestLeccionDesdeVariosTrabajos(CalidadCommon):
         self.linea_b.origen = "falla_fabricacion"
         (self.linea_a | self.linea_b).action_crear_alerta_calidad()
         self.assertFalse(self.linea_a.mc_alerta_id.reason_id)
+
+
+@tagged("post_install", "-at_install")
+class TestRazonesDeCalidad(CalidadCommon):
+    """El catálogo `quality.reason` alineado con `ORIGENES` — el bloque D.
+
+    El puente reparación → lección resuelve la causa raíz por XML ID, no por nombre. Estos
+    tests protegen ese contrato desde los dos lados: que los seis existan, y que agregar un
+    origen nuevo sin su razón se vea al correr la suite y no en producción.
+    """
+
+    def test_cada_origen_tiene_su_razon(self):
+        """Un origen sin razón deja la causa en blanco **y no falla**.
+
+        Ése es el modo de falla que este test cubre: `_mc_valores_de_alerta` usa
+        `raise_if_not_found=False` a propósito, para que el módulo funcione antes de que el
+        catálogo exista. La consecuencia es que agregar un séptimo origen y olvidar su razón
+        no rompe nada visible — simplemente el puente deja de proponer causa para ése, en
+        silencio.
+        """
+        for origen, _etiqueta in ORIGENES:
+            razon = self.env.ref(f"mc_rov.quality_reason_{origen}", raise_if_not_found=False)
+            self.assertTrue(razon, f"Falta quality.reason para el origen «{origen}»")
+
+    def test_las_etiquetas_dicen_lo_mismo_en_las_dos_listas(self):
+        """Dos listas que dicen lo mismo con palabras distintas se desalinean sin que nadie lo note.
+
+        Y el paréntesis es lo que hace que un técnico elija bien: «Diseño o especificación» a
+        secas se confunde con «lo hicimos mal».
+        """
+        for origen, etiqueta in ORIGENES:
+            razon = self.env.ref(f"mc_rov.quality_reason_{origen}")
+            self.assertEqual(razon.name, etiqueta)

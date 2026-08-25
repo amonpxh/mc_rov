@@ -1,6 +1,6 @@
 {
     "name": "Marine Connection - ROV",
-    "version": "19.0.22.1.3",
+    "version": "19.0.22.2.0",
     "category": "Inventory",
     "summary": "Gestión de equipos ROV y órdenes de reparación",
     "author": "Marine Connection",
@@ -35,6 +35,9 @@
         # Después de mc_rov_data.xml: marca como inspeccionables componentes definidos allí.
         "data/mc_rov_revision_data.xml",
         "data/mc_rov_sintoma_data.xml",
+        # Las causas de calidad, alineadas con ORIGENES. Sin dependencia de orden con lo
+        # demás: el puente las busca por XML ID en tiempo de ejecución, no al cargar.
+        "data/mc_rov_calidad_data.xml",
         "views/mc_rov_componente_views.xml",
         "views/mc_rov_sintoma_views.xml",
         "views/mc_rov_tipo_intervencion_views.xml",

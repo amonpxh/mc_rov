@@ -4,6 +4,31 @@ All notable changes to the `mc_rov` Odoo module are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this module adheres to [semantic versioning](https://semver.org/) within the constraints of Odoo's version scheme: `19.0.X.Y.Z` where `19.0` is the Odoo major, `X` is breaking-change/migration, `Y` is feature, `Z` is bugfix.
 
+## [19.0.22.2.0] — 2026-08-25
+
+### Added
+
+- **The `quality.reason` catalogue, aligned with `ORIGENES` — block D, and the last of it.**
+  The six values of a work line's `origen` — whose problem is this — had existed on the repair
+  side since `19.0.13.0.0` and had no counterpart on the quality side. The consequence was that
+  the repair → lesson bridge left the root cause blank: **the technician had already answered
+  *why it happened* when closing the order, and that answer never reached the alert.** Somebody
+  had to pick it again by hand, from a list that said something else.
+
+  **The contract was already written in the code, waiting for these records.**
+  `_mc_valores_de_alerta` resolves the cause with `env.ref("mc_rov.quality_reason_<origen>")`,
+  so all it took was the six records with those exact XML IDs. Not one line of Python changed.
+
+  The labels are identical to `ORIGENES`, parentheses included: two lists that say the same
+  thing in different words drift apart without anyone noticing, and the parenthetical is what
+  makes a technician pick right — «Diseño o especificación» on its own reads like «we built it
+  wrong».
+
+  `noupdate`, because the catalogue belongs to the user: **the bridge keys on the XML ID, not
+  the name**, so renaming an entry is safe and a module update will not undo it. What would
+  break the bridge is deleting one — and there is a test that catches a new `origen` shipped
+  without its reason, which would otherwise fail in silence.
+
 ## [19.0.22.1.3] — 2026-08-25
 
 ### Fixed
