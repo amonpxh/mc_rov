@@ -329,6 +329,20 @@ class TestAlertaDesdeLineaDeTrabajo(CalidadCommon):
             }
         )
 
+    def test_el_puente_ahora_propone_la_causa(self):
+        """Lo que el bloque D venía a encender, y sin tocar una línea de Python.
+
+        Hasta `19.0.22.1.3` esto quedaba en blanco: el técnico contestaba «por qué pasó» al
+        cerrar la orden y esa respuesta no llegaba a la alerta, así que alguien tenía que
+        volver a elegirla a mano de una lista que decía otra cosa.
+        """
+        self.linea.action_crear_alerta_calidad()
+
+        self.assertEqual(
+            self.linea.mc_alerta_id.reason_id,
+            self.env.ref("mc_rov.quality_reason_diseno"),
+        )
+
     def test_crea_la_alerta_y_la_deja_enlazada(self):
         self.linea.action_crear_alerta_calidad()
 
@@ -490,17 +504,3 @@ class TestRazonesDeCalidad(CalidadCommon):
         for origen, etiqueta in ORIGENES:
             razon = self.env.ref(f"mc_rov.quality_reason_{origen}")
             self.assertEqual(razon.name, etiqueta)
-
-    def test_el_puente_ahora_propone_la_causa(self):
-        """Lo que el bloque D venía a encender, y sin tocar una línea de Python.
-
-        Hasta `19.0.22.1.3` esto quedaba en blanco: el técnico contestaba «por qué pasó» al
-        cerrar la orden y esa respuesta no llegaba a la alerta, así que alguien tenía que
-        volver a elegirla a mano de una lista que decía otra cosa.
-        """
-        self.linea.action_crear_alerta_calidad()
-
-        self.assertEqual(
-            self.linea.mc_alerta_id.reason_id,
-            self.env.ref("mc_rov.quality_reason_diseno"),
-        )
