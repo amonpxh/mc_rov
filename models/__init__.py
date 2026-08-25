@@ -13,6 +13,7 @@ from . import mrp_production
 from . import product_category
 from . import product_template
 from . import quality_alert
+from . import quality_reason
 from . import repair_order
 from . import sale_order_line
 from . import stock_lot

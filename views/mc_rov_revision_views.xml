@@ -777,7 +777,11 @@
 
          Sin este menú, decir que «el catálogo es del usuario» era una frase vacía: los
          registros estaban puestos con `noupdate` para que un renombre sobreviviera a las
-         actualizaciones, y no había ninguna pantalla donde renombrarlos. -->
+         actualizaciones, y no había ninguna pantalla donde renombrarlos.
+
+         La otra mitad de esa frase la puso `models/quality_reason.py`, que le agrega `active`
+         al modelo: **de un catálogo del que no se puede sacar nada no se puede decir que sea
+         de nadie.** -->
     <record id="view_quality_reason_list" model="ir.ui.view">
         <field name="name">quality.reason.list.mc.rov</field>
         <field name="model">quality.reason</field>
