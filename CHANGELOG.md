@@ -4,6 +4,33 @@ All notable changes to the `mc_rov` Odoo module are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this module adheres to [semantic versioning](https://semver.org/) within the constraints of Odoo's version scheme: `19.0.X.Y.Z` where `19.0` is the Odoo major, `X` is breaking-change/migration, `Y` is feature, `Z` is bugfix.
 
+## [19.0.23.0.0] — 2026-08-25
+
+### Changed
+
+- **Odoo's own four quality causes are archived.** `quality_control` ships *Falla en el centro
+  de trabajo*, *Operación de trabajo*, *Calidad de las piezas* and *Otros* — they answer
+  **where** the problem happened. The six added in `19.0.22.2.0` answer something else —
+  **whose** it is — and the overlap is real: «Calidad de las piezas» covers *Pieza de
+  proveedor*, and the two work-centre ones cover *Manufactura propia*.
+
+  **Ten options where three mean almost the same as two others is not a richer catalogue, it
+  is a count that later means nothing.** Same problem as four ways of writing «it won't turn
+  on», and the reason the symptom catalogue was closed in `19.0.13.0.0`. Paulo asked for it
+  after seeing the ten together in the dropdown.
+
+  **Archived, not deleted:** if an old alert used one, deleting it would take the datum with
+  it. And it is undone from the screen — Calidad → Configuración → Causas, drop the filter,
+  unarchive.
+
+### Migration
+
+`19.0.23.0.0/post-migrate.py`. It does **not** resolve them by XML ID: naming four external
+IDs from another module means getting all four right, and one wrong prevents the module from
+installing at all. Instead it archives *whatever carries an XML ID from a module other than
+ours* — which is exactly the set that ships from the factory, because records a person creates
+on screen carry no XML ID. **A catalogue entry the workshop adds by hand is never touched.**
+
 ## [19.0.22.5.0] — 2026-08-25
 
 ### Changed
