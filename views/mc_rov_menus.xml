@@ -113,11 +113,15 @@
         sequence="12"/>
     <!-- Las causas de calidad, que Odoo no expone. Van en Configuración de Calidad y no en
          los catálogos ROV porque es donde el usuario las fue a buscar y no las encontró, y
-         porque el campo que las usa vive en la alerta. -->
+         porque el campo que las usa vive en la alerta.
+
+         El prefijo es `quality_control` y no `quality`: el menú lo declara el módulo de
+         control de calidad. Equivocarlo **impide instalar el módulo entero**, no da un test
+         rojo, y lo cazó CI al primer intento. -->
     <menuitem
         id="menu_quality_reason"
         name="Causas"
-        parent="quality.menu_quality_configuration"
+        parent="quality_control.menu_quality_configuration"
         action="action_quality_reason"
         groups="quality.group_quality_user"
         sequence="25"/>
