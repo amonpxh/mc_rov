@@ -769,6 +769,31 @@
          Desde Inventario la pregunta es qué se le ha hecho a este equipo, y ahí entran las
          tres. Darle el mismo nombre y el mismo filtro a las dos habría dejado una sola lista
          llamada de dos formas, que es peor que dos listas honestas. -->
+    <!-- **El catálogo de causas no tiene menú en Odoo.** `quality.reason` existe como
+         modelo y el campo «Causa raíz» de la alerta lo usa, pero Calidad → Configuración
+         solo ofrece equipos, etapas, etiquetas y plantillas: las causas no aparecen por
+         ningún lado. Lo encontró Paulo el 2026-08-25 buscándolas después de que `19.0.22.2.0`
+         creara las seis.
+
+         Sin este menú, decir que «el catálogo es del usuario» era una frase vacía: los
+         registros estaban puestos con `noupdate` para que un renombre sobreviviera a las
+         actualizaciones, y no había ninguna pantalla donde renombrarlos. -->
+    <record id="view_quality_reason_list" model="ir.ui.view">
+        <field name="name">quality.reason.list.mc.rov</field>
+        <field name="model">quality.reason</field>
+        <field name="arch" type="xml">
+            <list string="Causas" editable="bottom">
+                <field name="name"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_quality_reason" model="ir.actions.act_window">
+        <field name="name">Causas</field>
+        <field name="res_model">quality.reason</field>
+        <field name="view_mode">list</field>
+    </record>
+
     <record id="action_mc_rov_prueba_realizada" model="ir.actions.act_window">
         <field name="name">Pruebas realizadas</field>
         <field name="res_model">mc.rov.revision</field>
