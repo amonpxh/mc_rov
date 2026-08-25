@@ -4,6 +4,50 @@ All notable changes to the `mc_rov` Odoo module are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this module adheres to [semantic versioning](https://semver.org/) within the constraints of Odoo's version scheme: `19.0.X.Y.Z` where `19.0` is the Odoo major, `X` is breaking-change/migration, `Y` is feature, `Z` is bugfix.
 
+## [19.0.22.5.0] — 2026-08-25
+
+### Changed
+
+- **Discarding a lesson candidate is now a button over the selection, not a column you type
+  into.** The queue was an editable list whose only writable column was «Descartado porque»,
+  so clicking a row — the natural gesture for reading it — dropped the user into writing a
+  discard. **The main action of that screen is concluding the lesson, not throwing it away**,
+  and offering the discard as the default answer to a click is the opposite of what the screen
+  is for. Paulo raised it.
+
+  The queue now has **two symmetric buttons** over the selection: write the lesson, or discard.
+  Both act on what was selected, which is how that screen is read — a pattern is judged with
+  several rows in view, and discarding it is judged the same way.
+
+  **And it fixes something nobody had noticed:** discarding four works of the same pattern
+  meant typing the same reason four times, one per row. Now it is written once for the whole
+  selection. The reason is still required, for the same argument as the decommission wizard:
+  having to write why prevents the distracted discard, and leaves a datum that is useful later.
+  The wizard also refuses to overwrite an existing discard — erasing somebody else's decision
+  without a trace would be worse than not allowing the discard at all.
+
+- **`Detalle` on a work line becomes `Qué se hizo`.** The generic word competed with «Por qué
+  pasó» - which lives in the Cierre tab - and the user wrote the reasoning in it. That happened
+  to Paulo while testing. The two fields are the two halves of one story, and now their labels
+  say so.
+
+## [19.0.22.4.0] — 2026-08-25
+
+### Added
+
+- **A menu for the quality causes, which Odoo does not expose.** `quality.reason` exists as a
+  model and the alert's «Causa raíz» field uses it, but Calidad → Configuración only offers
+  teams, stages, tags and worksheet templates: the causes appear nowhere. Paulo found it
+  looking for them after `19.0.22.2.0` created the six.
+
+  **Without this menu, saying «the catalogue belongs to the user» was an empty phrase.** The
+  six records carry `noupdate` precisely so that a rename survives module updates, and there
+  was no screen on which to rename them.
+
+  The parent is `quality_control.menu_quality_configuration`, not `quality.` — getting that
+  prefix wrong **prevents the module from installing at all** and does not produce a red test.
+  CI caught it on the first try.
+
 ## [19.0.22.3.0] — 2026-08-25
 
 ### Removed

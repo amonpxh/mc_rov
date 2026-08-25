@@ -475,3 +475,79 @@ class TestRazonesDeCalidad(CalidadCommon):
         for origen, etiqueta in ORIGENES:
             razon = self.env.ref(f"mc_rov.quality_reason_{origen}")
             self.assertEqual(razon.name, etiqueta)
+
+
+@tagged("post_install", "-at_install")
+class TestDescartarConMotivo(CalidadCommon):
+    """El descarte se hace con un botón y sobre la selección, no fila por fila.
+
+    Hasta `19.0.22.4.0` la cola era una lista editable cuya única columna escribible era
+    «Descartado porque», así que el clic en una fila —el gesto de leerla— metía a la persona
+    a escribir un descarte. La acción principal de esa pantalla es concluir la lección.
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.orden = self.env["repair.order"].create(
+            {"product_id": self.producto.id, "lot_id": self.equipo.id}
+        )
+        self.linea = self.env["mc.rov.linea.falla"].create(
+            {
+                "repair_id": self.orden.id,
+                "componente_id": self.env.ref("mc_rov.comp_motor").id,
+                "accion_id": self.env.ref("mc_rov.accion_reparacion").id,
+                "origen": "diseno",
+            }
+        )
+        self.otra = self.env["mc.rov.linea.falla"].create(
+            {
+                "repair_id": self.orden.id,
+                "componente_id": self.env.ref("mc_rov.comp_umbilical").id,
+                "accion_id": self.env.ref("mc_rov.accion_reparacion").id,
+                "origen": "diseno",
+            }
+        )
+
+    def _asistente(self, lineas):
+        return (
+            self.env["mc.rov.descarte.wizard"]
+            .with_context(active_ids=lineas.ids)
+            .create({"motivo": "Fue un accidente puntual, no un problema del modelo"})
+        )
+
+    def test_un_motivo_para_toda_la_seleccion(self):
+        """Descartar cuatro trabajos del mismo patrón obligaba a teclear cuatro veces."""
+        lineas = self.linea | self.otra
+
+        self._asistente(lineas).action_descartar()
+
+        for linea in lineas:
+            self.assertEqual(
+                linea.mc_descarte_motivo,
+                "Fue un accidente puntual, no un problema del modelo",
+            )
+
+    def test_sin_seleccion_no_abre(self):
+        with self.assertRaises(UserError):
+            self.env["mc.rov.descarte.wizard"].with_context(active_ids=[]).default_get(
+                ["linea_ids"]
+            )
+
+    def test_no_deja_descartar_lo_ya_descartado(self):
+        """Pisar el motivo anterior borraría la decisión de otra persona sin dejar rastro."""
+        self.linea.mc_descarte_motivo = "Ya lo habíamos mirado"
+
+        with self.assertRaises(UserError):
+            self.env["mc.rov.descarte.wizard"].with_context(
+                active_ids=(self.linea | self.otra).ids
+            ).default_get(["linea_ids"])
+
+    def test_el_resumen_nombra_lo_que_se_va_a_descartar(self):
+        """El asistente se abre encima de la lista y tapa las filas que hay que mirar."""
+        valores = (
+            self.env["mc.rov.descarte.wizard"]
+            .with_context(active_ids=self.linea.ids)
+            .default_get(["linea_ids", "resumen"])
+        )
+
+        self.assertIn(self.equipo.name, valores["resumen"])
