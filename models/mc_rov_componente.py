@@ -205,7 +205,15 @@ class McRovLineaFalla(models.Model):
     # blanco, porque de ella depende poder situar cada trabajo en el tiempo.
     fecha = fields.Date(string="Fecha", default=fields.Date.context_today)
     horas = fields.Float(string="HH.", digits=(5, 1))
-    detalle = fields.Text(string="Detalle")
+    # **«Qué se hizo» y no «Detalle».** La palabra genérica competía con «Por qué pasó»
+    # —que vive en la pestaña Cierre— y el usuario escribía el razonamiento acá: le pasó a
+    # Paulo el 2026-08-25 probándolo. Los dos campos son las dos mitades de una misma
+    # historia, y ahora sus etiquetas lo dicen: **qué se hizo** y **por qué pasó**.
+    detalle = fields.Text(
+        string="Qué se hizo",
+        help="El trabajo en sí: qué se cambió, cómo, con qué. El razonamiento de por qué "
+        "falló va en «Por qué pasó», en la pestaña Cierre.",
+    )
 
     # Almacenado y no derivado al vuelo porque **la cola de lecciones se agrupa por
     # modelo**, y Odoo solo agrupa por columnas que existen en la tabla. No es una de las
@@ -311,6 +319,22 @@ class McRovLineaFalla(models.Model):
             "res_model": "quality.alert",
             "views": [(self.env.ref("quality_control.quality_alert_view_form").id, "form")],
             "res_id": alerta.id,
+        }
+
+    def action_descartar_lecciones(self):
+        """Abre el asistente que pide el motivo del descarte para toda la selección.
+
+        Es el hermano de `action_crear_alerta_calidad`: los dos actúan sobre lo que la
+        persona marcó, porque un patrón se lee con varias filas a la vista y descartarlo se
+        decide igual.
+        """
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Descartar candidatas a lección",
+            "res_model": "mc.rov.descarte.wizard",
+            "view_mode": "form",
+            "target": "new",
+            "context": {"active_ids": self.ids},
         }
 
     def _mc_valores_de_alerta(self):

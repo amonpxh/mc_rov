@@ -24,19 +24,25 @@
         <field name="name">mc.rov.linea.falla.leccion.list</field>
         <field name="model">mc.rov.linea.falla</field>
         <field name="arch" type="xml">
+            <!-- **No es editable, desde 19.0.22.5.0.** Lo era, y su única columna
+                 escribible era «Descartado porque», así que hacer clic en una fila —el gesto
+                 natural para leerla— metía a la persona a escribir un descarte. La acción
+                 principal de esta pantalla es concluir la lección, no tirarla. -->
             <list string="Lecciones pendientes"
                   create="0"
-                  delete="0"
-                  editable="bottom">
+                  delete="0">
 
-                <!-- Actúa sobre lo seleccionado, no sobre una fila: una lección se escribe
-                     con varios trabajos a la vista, porque leídos de corrido dicen algo que
-                     ninguno dice solo. -->
+                <!-- Los dos actúan sobre lo seleccionado y no sobre una fila: un patrón se
+                     lee con varios trabajos a la vista, porque leídos de corrido dicen algo
+                     que ninguno dice solo. Y descartarlo también se decide así. -->
                 <header>
                     <button name="action_crear_alerta_calidad"
                             type="object"
                             string="Escribir la lección del modelo"
                             class="btn-primary"/>
+                    <button name="action_descartar_lecciones"
+                            type="object"
+                            string="Descartar"/>
                 </header>
 
                 <field name="mc_product_tmpl_id" readonly="1" optional="show"/>
@@ -49,10 +55,10 @@
                 <!-- La evidencia. Es la columna que se lee para decidir, así que va ancha y
                      visible por defecto aunque sea texto largo. -->
                 <field name="analisis_causa" readonly="1"/>
-                <!-- La única columna editable: escribir aquí saca el trabajo de la lista.
-                     Es un motivo y no una casilla a propósito — ver el campo en el modelo. -->
-                <field name="mc_descarte_motivo"
-                       placeholder="Escriba por qué no es una lección, y sale de la lista"/>
+                <!-- Se muestra pero no se escribe acá: el descarte pasa por el botón,
+                     que pide el motivo una vez para toda la selección. Escribirlo fila por
+                     fila obligaba a teclear lo mismo cuatro veces para un mismo patrón. -->
+                <field name="mc_descarte_motivo" readonly="1" optional="hide"/>
             </list>
         </field>
     </record>

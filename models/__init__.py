@@ -1,5 +1,6 @@
 from . import mc_rov_chequeo
 from . import mc_rov_componente
+from . import mc_rov_descarte_wizard
 from . import mc_rov_hallazgo
 from . import mc_rov_propietario_historial
 from . import mc_rov_software
