@@ -212,7 +212,22 @@
                         cliente, y sin él la orden no se cierra. «No determinado» es una
                         respuesta válida.
                     </div>
-                    <field name="linea_falla_cierre_ids">
+                    <!-- **`readonly="0"` explícito, y es una hipótesis.** Una orden cerrada
+                         no dejaba escribir acá, mientras que las MISMAS líneas sí se editaban
+                         desde «Trabajos realizados» — y Odoo no declara ningún `readonly` que
+                         alcance a este campo. La diferencia entre las dos listas es que ésta
+                         es un segundo One2many sobre la misma relación, y algo del cliente
+                         web lo trata distinto.
+
+                         Se declara editable a propósito en vez de buscar la causa, porque el
+                         comportamiento que se quiere es ése de todos modos: **el razonamiento
+                         de por qué falló se afina con el tiempo**, y una orden cerrada hace
+                         seis meses puede merecer una corrección. El origen decide quién paga
+                         y el análisis lo justifica: los dos son análisis, no ejecución.
+
+                         Si al probarlo sigue bloqueado, la causa está más abajo y hay que
+                         perseguirla. Lo levantó Paulo el 2026-08-26. -->
+                    <field name="linea_falla_cierre_ids" readonly="0">
                         <list editable="bottom" create="0" delete="0">
                             <field name="componente_id" readonly="1"/>
                             <field name="accion_id" readonly="1"/>
