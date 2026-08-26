@@ -86,13 +86,29 @@
                         string="Pieza de proveedor"
                         domain="[('origen', '=', 'pieza_proveedor')]"/>
                 <separator/>
-                <!-- Para volver a mirar lo descartado: un descarte es un juicio, y los
-                     juicios se revisan. Sin este filtro no habría forma de encontrarlos. -->
+                <!-- **Los tres van en el mismo grupo, así que se suman en vez de excluirse**:
+                     marcar «Descartados» junto a «Esperando decisión» muestra las dos cosas,
+                     que es como se revisa una decisión sin perder de vista lo que queda.
+
+                     Y el corte vive acá y no en el dominio del menú, desde 19.0.23.0.3.
+                     Estaba en el menú, y eso dejaba **los otros dos filtros muertos**: la
+                     acción excluía lo descartado y lo ya convertido en lección antes de que
+                     la búsqueda los viera, así que este mismo archivo tenía escrito «sin
+                     este filtro no habría forma de encontrarlos» al lado de un filtro que no
+                     podía encontrar nada. Lo destapó Paulo el 2026-08-26 intentando volver a
+                     ver lo que acababa de descartar.
+
+                     Un descarte es un juicio, y los juicios se revisan. El motivo del
+                     descarte es **lo único que se guarda de todo el mecanismo de patrones**;
+                     guardarlo donde nadie puede leerlo es no guardarlo. -->
+                <filter name="pendientes"
+                        string="Esperando decisión"
+                        domain="[('mc_alerta_id', '=', False), ('mc_descarte_motivo', '=', False)]"/>
                 <filter name="descartados"
                         string="Descartados"
                         domain="[('mc_descarte_motivo', '!=', False)]"/>
                 <filter name="con_leccion"
-                        string="Ya alimentaron una lección"
+                        string="Ya son lección"
                         domain="[('mc_alerta_id', '!=', False)]"/>
                 <group>
                     <filter name="group_modelo"
@@ -119,12 +135,11 @@
 
              No hace falta filtrar por orden cerrada — el origen se contesta al cerrar, así
              que una orden abierta lo tiene vacío y no entra por su propio peso. -->
-        <field name="domain">[
-            ('origen', 'in', ['diseno', 'falla_fabricacion', 'pieza_proveedor']),
-            ('mc_alerta_id', '=', False),
-            ('mc_descarte_motivo', '=', False)
-        ]</field>
-        <field name="context">{'search_default_group_modelo': 1}</field>
+        <field name="domain">[('origen', 'in', ['diseno', 'falla_fabricacion', 'pieza_proveedor'])]</field>
+        <!-- Lo pendiente entra como filtro por omisión y no como dominio, para que se pueda
+             QUITAR. En el dominio del menú es un candado: nada de lo que salga de la cola se
+             puede volver a mirar. -->
+        <field name="context">{'search_default_group_modelo': 1, 'search_default_pendientes': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 No hay trabajos esperando una decisión
@@ -144,6 +159,10 @@
                 Un trabajo sale de esta lista cuando se convierte en lección o cuando se
                 descarta. Los dos caminos dejan escrito qué se decidió, que es de lo que se
                 trata: <b>el sistema detecta y la persona concluye</b>.
+            </p>
+            <p>
+                Para volver a verlos, quita el filtro <b>Esperando decisión</b> de la barra de
+                búsqueda y usa <b>Descartados</b> o <b>Ya son lección</b>.
             </p>
         </field>
     </record>
