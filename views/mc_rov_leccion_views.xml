@@ -20,6 +20,11 @@
          de cada grupo es la evidencia: cuatro trabajos sobre el mismo componente del mismo
          modelo son un patrón, y uno solo es una anécdota. Decidir dónde está la línea es un
          juicio, y por eso no se codifica un número. -->
+    <!-- **Se llama «Candidatas a lección» y no «Lecciones pendientes»**, desde 19.0.23.0.1.
+         Esta lista no contiene lecciones: contiene trabajos que **podrían** serlo, y lo
+         pendiente no es la lección sino la decisión de si lo es. El nombre viejo se leía como
+         «lecciones que están pendientes de algo», que es justo lo que no son — las lecciones
+         de verdad son las alertas ya escritas. Lo levantó Paulo el 2026-08-26. -->
     <record id="view_mc_rov_leccion_pendiente_list" model="ir.ui.view">
         <field name="name">mc.rov.linea.falla.leccion.list</field>
         <field name="model">mc.rov.linea.falla</field>
@@ -28,7 +33,7 @@
                  escribible era «Descartado porque», así que hacer clic en una fila —el gesto
                  natural para leerla— metía a la persona a escribir un descarte. La acción
                  principal de esta pantalla es concluir la lección, no tirarla. -->
-            <list string="Lecciones pendientes"
+            <list string="Candidatas a lección"
                   create="0"
                   delete="0">
 
@@ -67,7 +72,7 @@
         <field name="name">mc.rov.linea.falla.leccion.search</field>
         <field name="model">mc.rov.linea.falla</field>
         <field name="arch" type="xml">
-            <search string="Lecciones pendientes">
+            <search string="Candidatas a lección">
                 <field name="mc_product_tmpl_id"/>
                 <field name="componente_id"/>
                 <field name="repair_id"/>
@@ -105,7 +110,7 @@
     </record>
 
     <record id="action_mc_rov_leccion_pendiente" model="ir.actions.act_window">
-        <field name="name">Lecciones pendientes</field>
+        <field name="name">Candidatas a lección</field>
         <field name="res_model">mc.rov.linea.falla</field>
         <field name="view_mode">list</field>
         <field name="search_view_id" ref="view_mc_rov_leccion_pendiente_search"/>
@@ -122,7 +127,7 @@
         <field name="context">{'search_default_group_modelo': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
-                No hay trabajos esperando lección
+                No hay trabajos esperando una decisión
             </p>
             <p>
                 Aquí llegan los trabajos de reparación cuyo origen apunta hacia adentro:
@@ -131,15 +136,21 @@
             </p>
             <p>
                 Cuando varios coinciden en el mismo modelo y el mismo componente, eso es un
-                patrón: selecciónalos y escribe la lección. Si uno no lo es, anota por qué
-                en la última columna y sale de la lista.
+                patrón: <b>selecciónalos</b> y usa <b>Escribir la lección del modelo</b>. Si
+                no lo son, <b>Descartar</b> pide el motivo una vez para todos los que hayas
+                marcado.
+            </p>
+            <p>
+                Un trabajo sale de esta lista cuando se convierte en lección o cuando se
+                descarta. Los dos caminos dejan escrito qué se decidió, que es de lo que se
+                trata: <b>el sistema detecta y la persona concluye</b>.
             </p>
         </field>
     </record>
 
     <menuitem
         id="menu_mc_rov_lecciones_pendientes"
-        name="Lecciones pendientes"
+        name="Candidatas a lección"
         parent="repair.menu_repair_order"
         action="action_mc_rov_leccion_pendiente"
         sequence="13"/>

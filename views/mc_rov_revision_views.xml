@@ -792,10 +792,25 @@
         </field>
     </record>
 
+    <!-- Sin vista de búsqueda propia, `quality.reason` no ofrece el filtro «Archivado» con
+         nombre: hay que encontrarlas por «Activo = falso», que es un filtro de programador.
+         Lo notó Paulo el 2026-08-26 buscando las cuatro que la migración retiró. -->
+    <record id="view_quality_reason_search" model="ir.ui.view">
+        <field name="name">quality.reason.search.mc.rov</field>
+        <field name="model">quality.reason</field>
+        <field name="arch" type="xml">
+            <search string="Causas">
+                <field name="name"/>
+                <filter name="inactive" string="Archivadas" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
     <record id="action_quality_reason" model="ir.actions.act_window">
         <field name="name">Causas</field>
         <field name="res_model">quality.reason</field>
         <field name="view_mode">list</field>
+        <field name="search_view_id" ref="view_quality_reason_search"/>
     </record>
 
     <record id="action_mc_rov_prueba_realizada" model="ir.actions.act_window">
