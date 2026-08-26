@@ -96,7 +96,20 @@
                             <field name="hallazgo_origen_id"
                                    domain="[('lot_id', '=', parent.lot_id)]"
                                    optional="show"/>
-                            <field name="origen" optional="show"/>
+                            <!-- **El origen NO se pregunta acá**, y se retiró de esta lista
+                                 en 19.0.23.0.2. Vive en la pestaña Cierre, junto a su
+                                 razonamiento.
+
+                                 Estaba en las dos, y eso contradecía el motivo por el que
+                                 la de Cierre existe: mientras el técnico repara, de quién
+                                 es el problema todavía es especulación. Pero además —y esto
+                                 lo dijo Paulo— **ésta es la primera pestaña que se usa**, así
+                                 que un campo que aparece acá se llena acá. Dejarlo visible y
+                                 bloqueado tampoco servía: cambia la pregunta a «¿por qué no
+                                 me deja?», que no es mejor.
+
+                                 Es el mismo dato de la misma línea: no se teclea dos veces,
+                                 se pregunta en el momento en que se puede contestar. -->
                             <field name="responsable_id" optional="show"/>
                             <field name="fecha"/>
                             <field name="horas" class="text-start" sum="Total HH."/>

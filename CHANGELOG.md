@@ -4,6 +4,46 @@ All notable changes to the `mc_rov` Odoo module are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this module adheres to [semantic versioning](https://semver.org/) within the constraints of Odoo's version scheme: `19.0.X.Y.Z` where `19.0` is the Odoo major, `X` is breaking-change/migration, `Y` is feature, `Z` is bugfix.
 
+## [19.0.23.0.3] — 2026-08-26
+
+### Fixed
+
+- **What leaves the queue can be looked at again.** The «Descartados» and «Ya son lección»
+  filters existed in the search view — one of them with a comment saying *«sin este filtro no
+  habría forma de encontrarlos»* — and **neither could ever match anything**: the action's own
+  domain excluded discarded and already-promoted works before the search ever saw them. The
+  filter and the lock that made it useless were written in the same file.
+
+  The pending condition moves from the action's domain to a **default search filter**, so it
+  can be removed. And the three filters share one group, so they add up instead of excluding
+  each other: «Descartados» next to «Esperando decisión» shows both, which is how a decision
+  gets reviewed without losing sight of what is still open.
+
+  **A discard is a judgement, and judgements get reviewed.** The discard reason is the only
+  thing kept from the whole pattern mechanism — keeping it where nobody can read it is not
+  keeping it. Paulo found it trying to look at what he had just discarded.
+
+## [19.0.23.0.2] — 2026-08-26
+
+### Changed
+
+- **The origin is asked in one place: the Cierre tab.** It was a column in «Trabajos
+  realizados» as well, which contradicted the reason that tab exists — while the technician is
+  repairing, whose problem it is is still speculation.
+
+  And there is a sharper argument, Paulo's: **«Trabajos realizados» is the first tab anyone
+  uses.** A field that shows up where people work first gets filled there. Leaving it visible
+  but read-only would not have helped either: it turns the question into «why won't it let
+  me?», which is not an improvement.
+
+  It is the same field on the same line — nothing is typed twice. It is asked at the moment it
+  can be answered.
+
+  | Tab | Answers | When |
+  |---|---|---|
+  | Trabajos realizados | what was done — component, action, hours, who | while working |
+  | Cierre | why it happened — origin and its reasoning | at the end |
+
 ## [19.0.23.0.1] — 2026-08-26
 
 ### Fixed
