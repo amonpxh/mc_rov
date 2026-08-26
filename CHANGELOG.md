@@ -4,6 +4,14 @@ All notable changes to the `mc_rov` Odoo module are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this module adheres to [semantic versioning](https://semver.org/) within the constraints of Odoo's version scheme: `19.0.X.Y.Z` where `19.0` is the Odoo major, `X` is breaking-change/migration, `Y` is feature, `Z` is bugfix.
 
+## [19.0.23.0.4] — 2026-08-26
+
+### Changed
+
+- **The Cierre section is titled «Análisis de la reparación», not «Por qué pasó».** The section
+  heading repeated the column heading directly underneath it — the same words twice, stacked. A
+  section title names the block; a column title names a field.
+
 ## [19.0.23.0.3] — 2026-08-26
 
 ### Fixed

@@ -219,7 +219,10 @@
 
                          El aviso explica por qué la lista puede estar vacía: una visita de
                          diagnóstico puro no registra trabajos, y esa orden se cierra igual. -->
-                    <separator string="Por qué pasó"/>
+                    <!-- El título nombra el BLOQUE, no una de sus columnas. Decía «Por qué
+                         pasó» con la columna «Por qué pasó» justo debajo: la misma palabra dos
+                         veces, una encima de la otra. Lo vio Paulo el 2026-08-26. -->
+                    <separator string="Análisis de la reparación"/>
                     <div class="text-muted mb-2">
                         El origen es lo que decide si la reparación la paga la empresa o el
                         cliente, y sin él la orden no se cierra. «No determinado» es una
