@@ -65,7 +65,30 @@ class McRovDescarteWizard(models.TransientModel):
         return valores
 
     def action_descartar(self):
-        """Escribe el motivo en los trabajos seleccionados, que con eso salen de la cola."""
+        """Escribe el motivo en los trabajos seleccionados, que con eso salen de la cola.
+
+        **Y lo dice.** Sin el aviso, las filas simplemente desaparecían de la lista y el
+        usuario se quedaba sin saber si había pasado lo que quería, si se descartó de más, o
+        si el sistema hizo algo por su cuenta. Le pasó a Paulo el 2026-08-26: *«ni siquiera
+        recuerdo qué apreté, solo desapareció»*.
+
+        **Una fila que se va sin decir nada se ve igual que un error**, y en una pantalla
+        donde la acción principal es un juicio humano eso erosiona la confianza en las dos
+        acciones, no solo en ésta.
+        """
         self.ensure_one()
         self.linea_ids.write({"mc_descarte_motivo": self.motivo})
-        return {"type": "ir.actions.act_window_close"}
+
+        cuantos = len(self.linea_ids)
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "type": "success",
+                "message": (
+                    f"{cuantos} trabajo(s) descartados. Salen de la lista y el motivo queda "
+                    "guardado en cada uno."
+                ),
+                "next": {"type": "ir.actions.act_window_close"},
+            },
+        }

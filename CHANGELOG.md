@@ -14,6 +14,24 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
   screen ever gives — leaving it describing a gesture that no longer exists is worse than
   having no text. Paulo found it using the queue normally.
 
+- **Discarding said nothing.** The rows just vanished from the list, and the user was left not
+  knowing whether what they wanted had happened, whether too much got discarded, or whether the
+  system had done something on its own. Paulo: *«ni siquiera recuerdo qué apreté, solo
+  desapareció»*. **A row that leaves without saying so looks exactly like a bug**, and on a
+  screen whose main action is a human judgement that erodes trust in both buttons, not just the
+  one. It now confirms how many were discarded and where the reason went.
+
+- **The `quality.reason` list had no «Archivadas» filter**, so the four the migration retired
+  could only be found through «Activo = falso» — a developer's filter. It has a search view now.
+
+### Changed
+
+- **«Lecciones pendientes» becomes «Candidatas a lección».** The list does not contain lessons:
+  it contains works that **might** become one, and what is pending is not the lesson but the
+  decision about whether it is one. The old name read as «lessons that are pending something»,
+  which is precisely what they are not — the real lessons are the alerts already written. Paulo
+  raised it.
+
 ## [19.0.23.0.0] — 2026-08-25
 
 ### Changed
