@@ -4,6 +4,16 @@ All notable changes to the `mc_rov` Odoo module are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this module adheres to [semantic versioning](https://semver.org/) within the constraints of Odoo's version scheme: `19.0.X.Y.Z` where `19.0` is the Odoo major, `X` is breaking-change/migration, `Y` is feature, `Z` is bugfix.
 
+## [19.0.23.0.1] — 2026-08-26
+
+### Fixed
+
+- **The empty-queue text still described the column that `19.0.22.5.0` removed.** It said
+  «anota por qué en la última columna y sale de la lista», and that column is gone: discarding
+  is a button now. The text a user reads when a screen is empty is the only instruction that
+  screen ever gives — leaving it describing a gesture that no longer exists is worse than
+  having no text. Paulo found it using the queue normally.
+
 ## [19.0.23.0.0] — 2026-08-25
 
 ### Changed

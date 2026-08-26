@@ -131,8 +131,14 @@
             </p>
             <p>
                 Cuando varios coinciden en el mismo modelo y el mismo componente, eso es un
-                patrón: selecciónalos y escribe la lección. Si uno no lo es, anota por qué
-                en la última columna y sale de la lista.
+                patrón: <b>selecciónalos</b> y usa <b>Escribir la lección del modelo</b>. Si
+                no lo son, <b>Descartar</b> pide el motivo una vez para todos los que hayas
+                marcado.
+            </p>
+            <p>
+                Un trabajo sale de esta lista cuando se convierte en lección o cuando se
+                descarta. Los dos caminos dejan escrito qué se decidió, que es de lo que se
+                trata: <b>el sistema detecta y la persona concluye</b>.
             </p>
         </field>
     </record>
