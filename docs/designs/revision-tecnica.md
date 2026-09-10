@@ -978,19 +978,45 @@ fotos antes de que el disco importe.
 convierte al reporte QWeb en un requisito del entregable, no en un extra que se agrega si
 sobra tiempo. Lo mismo aplica a la ficha de fabricación, que hoy tampoco imprime nada.
 
-La consecuencia de diseño es que **cada dato tiene una audiencia** y hay que decidirlo campo
-por campo antes de escribir el reporte:
+La consecuencia de diseño es que **cada dato tiene una audiencia**. La tabla incorpora los
+acuerdos de las notas del 27–28 de agosto, ratificados por Paulo el 9 de septiembre:
 
 | Va al cliente | Se queda interno |
 |---|---|
 | Chequeos ejecutados y su resultado | Horas de trabajo por línea y por técnico |
-| Mediciones de las corridas | El responsable, salvo que quieran firmarlo |
+| Mediciones aplicables, salvo temperatura | Temperaturas, veredicto global y severidad |
+| Técnico en la cabecera, según la maqueta ratificada | Horas internas de trabajo |
 | `observaciones_salida` — definido en § 6.4 como *lo que se le informa al cliente* | `detalle` de cada hallazgo |
 | Hallazgos, con criterio | La lectura del horómetro |
 
-Los hallazgos de familia **intervención de terceros** son el caso a decidir: puede convenir
-mostrarlos —es la conversación de garantía, con evidencia— o reservarlos. Es una decisión
-del reporte y no del modelo, así que no bloquea la implementación.
+### Base de impresión ratificada — septiembre de 2026
+
+- Variante C, papel carta. Referencia: [maqueta recuperada](referencias/ficha-impresa-rov.html).
+  Sus datos son de ejemplo. El logo tipográfico es provisional: usar el logo configurado de
+  la compañía en Odoo cuando exista.
+- Ficha de equipo reparado y ficha de equipo nuevo. La primera implementación imprime una
+  revisión por documento: `reparacion`, `rendimiento` o `terreno`, con su número real.
+  `fabricacion` ya no es un tipo vigente. No consolida rendimiento y terreno ni incluye
+  toda la ficha técnica de `stock.lot`; las notas no especifican ese consolidado.
+- Hallazgos solo en reparación, sin severidad ni detalle interno. La primera implementación
+  permite ocultar el bloque completo; no introduce un filtro especial por familia. No
+  truncar hallazgos para forzar una página. Chequeos dinámicos, incluidos los nuevos del
+  catálogo, con distinción entre pendiente y no aplica.
+- Conservar fuga de corriente y funcionamiento continuo donde correspondan. En terreno,
+  no imprimir mediciones eléctricas o de presión de taller. Cero no significa automáticamente
+  «sin medir»: los campos numéricos actuales no distinguen ambos casos.
+- Opciones de firmas, sellos, hallazgos y diferencias para la copia impresa. No modifican ni
+  confirman la revisión. Identificar expresamente los borradores.
+- Bloques modulares con IDs estables para personalizar mediante vistas heredadas. Las notas
+  mencionan Studio, controles de visibilidad y cinco maquetas con `noupdate`, pero no definen
+  esos parámetros por completo. La edición desde Studio aún requiere validación; no congelar
+  todas las plantillas base con `noupdate` por inferencia de ese resumen.
+- Usar los valores congelados disponibles en la revisión para comparaciones históricas.
+  El reporte no constituye un archivo inmutable: contactos, catálogos y algunos datos de
+  la orden siguen vinculados a registros actuales.
+
+El estado de implementación y las verificaciones pendientes se mantienen exclusivamente
+al inicio de [pendientes.md](../pendientes.md).
 
 ## 13. Fuera de alcance
 

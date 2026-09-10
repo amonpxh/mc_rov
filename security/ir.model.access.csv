@@ -1,4 +1,5 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_mc_rov_ficha_wizard,mc.rov.ficha.wizard,model_mc_rov_ficha_wizard,base.group_user,1,1,1,1
 access_mc_rov_componente,mc.rov.componente,model_mc_rov_componente,,1,1,1,1
 access_mc_rov_subtipo,mc.rov.subtipo,model_mc_rov_subtipo,,1,1,1,1
 access_mc_rov_accion,mc.rov.accion,model_mc_rov_accion,,1,1,1,1

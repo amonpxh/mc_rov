@@ -1,5 +1,31 @@
 # Changelog
 
+## Unreleased — 19.0.23.1.0
+
+### Added
+
+- Primera implementación del reporte por revisión para el cliente, en papel carta, con
+  condiciones, mediciones aplicables, chequeos del catálogo, sellos y hallazgos de reparación,
+  diferencias y observaciones de salida. Excluye temperatura, veredicto global y severidad.
+- Botón «Imprimir ficha» con opciones de firmas, sellos, hallazgos y diferencias. No modifica
+  ni confirma la revisión. Los borradores se identifican expresamente.
+- Guía compartida Codex/Claude Code, continuidad recuperada y maqueta HTML de referencia.
+
+### Validation
+
+- Comprobaciones estáticas locales y 6 pruebas del reporte aprobadas en Odoo 19 Enterprise
+  en staging. Corregidos la llamada al renderizador y los `t-field` sobre celdas de tabla.
+- Suite completa: 3 fallos y 0 errores de 289 pruebas. Los fallos coinciden con dos
+  personalizaciones del catálogo documentadas antes de esta rama (sonar y causa de calidad);
+  no se restauraron esos datos para forzar un resultado verde.
+- Cinco PDF reales generados e inspeccionados con wkhtmltopdf: papel carta; reparación con
+  2, 7 y 20 hallazgos sin truncar ni partir filas; rendimiento y terreno; sin campos internos.
+- El flujo se comprobó desde el navegador de staging con `TRN/00003`: abre el asistente con
+  la revisión seleccionada y la acción de descarga. Aún falta comprobar la edición heredada
+  mediante Studio.
+- Staging necesitó elevar sus límites de memoria de 512 MiB/1 GiB a 1,5/2 GiB para que
+  QtWebKit pudiera iniciar. El servicio quedó activo y los PDF se repitieron sin overrides.
+
 All notable changes to the `mc_rov` Odoo module are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this module adheres to [semantic versioning](https://semver.org/) within the constraints of Odoo's version scheme: `19.0.X.Y.Z` where `19.0` is the Odoo major, `X` is breaking-change/migration, `Y` is feature, `Z` is bugfix.
