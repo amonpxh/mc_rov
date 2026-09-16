@@ -1,4 +1,5 @@
 from odoo import fields, models
+from odoo.exceptions import UserError
 
 
 class McRovFichaWizard(models.TransientModel):
@@ -15,9 +16,11 @@ class McRovFichaWizard(models.TransientModel):
     mostrar_diferencias = fields.Boolean(string="Diferencias con la ficha", default=True)
 
     def action_imprimir(self):
-        """Solo cambia la presentación; no confirma ni modifica la prueba."""
+        """Entrega solo la revisión de reparación, sin modificar sus resultados."""
         self.ensure_one()
         self.revision_id.check_access("read")
+        if self.revision_id.tipo != "reparacion":
+            raise UserError("La ficha para el cliente solo está disponible para revisiones de reparación.")
         # Mantener docids en la URL del reporte: las opciones viajan en el contexto,
         # no como `data`, que activa otra ruta del cliente de reportes de Odoo.
         reporte = self.env.ref("mc_rov.action_report_ficha").with_context(

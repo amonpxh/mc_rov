@@ -45,6 +45,16 @@ variante C y la compatibilidad de edición mediante Studio quedan para después 
 el flujo funcional. No refrescar ni borrar la base. Producción y traspaso a la empresa
 quedan fuera de esta etapa.
 
+**Ajuste de composición del reporte — 2026-09-16:** para la ficha de reparación en papel
+carta, Hallazgos usa un límite adaptativo: máximo siete, con presupuesto visual de 7,60
+unidades. Una primera línea pesa 1 y cada línea estimada adicional pesa 0,52; la estimación
+usa el mayor wrapping entre componente/subtipo y descripción. Así, el catálogo real muestra
+siete líneas y el caso de estrés de dos líneas muestra cinco, siempre seguido de «y N hallazgos
+más · ver en el sistema». Todas las líneas se conservan en Odoo. La escala final es +4 % sobre
+la composición vigente al iniciar esta pasada. Tras ampliar la zona funcional de firma, el
+render real deja 37 pt de reserva y el de estrés 26,5 pt; ambos son una única página Letter,
+con firmas y pie completos. Hallazgos y Observaciones comparten la altura exterior natural de
+su fila; la nota de diferencias se ancla visualmente al fondo de Observaciones.
 **Incidencia de PDF resuelta en staging:** staging confirma `mc_rov|installed|19.0.23.1.0`.
 El primer PDF caía en `wkhtmltopdf` con código -11 durante la inicialización de QtWebKit.
 Una página mínima funcionaba y el mismo reporte se generaba al quitar el límite de memoria:

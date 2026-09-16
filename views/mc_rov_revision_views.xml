@@ -209,7 +209,7 @@
                                         <span>h</span>
                                     </div>
                                 </group>
-                                <group string="Qué dio">
+                                <group string="Funcionamiento continuo">
                                     <field name="funcionamiento_continuo_resultado" widget="radio"
                                            options="{&quot;horizontal&quot;: true}"
                                            readonly="estado == 'confirmado'"/>
@@ -218,6 +218,11 @@
                                         <field name="funcionamiento_continuo_duracion" readonly="estado == 'confirmado'"/>
                                         <span>h</span>
                                     </div>
+                                </group>
+                            </group>
+
+                            <group>
+                                <group string="Ancho de banda">
                                     <label for="subida"/>
                                     <div class="o_row">
                                         <field name="subida" readonly="estado == 'confirmado'"/>
@@ -228,28 +233,22 @@
                                         <field name="bajada" readonly="estado == 'confirmado'"/>
                                         <span>Mbps</span>
                                     </div>
+                                </group>
+                                <group string="Temperatura">
                                     <label for="temperatura_interior"/>
                                     <div class="o_row">
                                         <field name="temperatura_interior" readonly="estado == 'confirmado'"/>
-                                        <span>°C</span>
+                                        <span>&#176;C</span>
                                     </div>
                                     <label for="temperatura_exterior"/>
                                     <div class="o_row">
                                         <field name="temperatura_exterior" readonly="estado == 'confirmado'"/>
-                                        <span>°C</span>
+                                        <span>&#176;C</span>
                                     </div>
                                 </group>
                             </group>
 
                             <group>
-                                <!-- La medición al lado del chequeo, no en su lugar: quien
-                                     dice si la estanqueidad aprobó es «Estanqueidad bajo
-                                     presión», que responde OK / No OK / No aplica. Estos dos
-                                     números lo acompañan y no opinan — sin umbral, porque los
-                                     técnicos saben a cuánto va cada equipo (§ 5.6).
-
-                                     En terreno no aplica: ahí la verificación de presión es la
-                                     profundidad alcanzada, la misma pregunta por otro medio. -->
                                 <group string="Estanqueidad" invisible="tipo == 'terreno'">
                                     <label for="presion_bar"/>
                                     <div class="o_row">
@@ -262,15 +261,17 @@
                                         <span>h</span>
                                     </div>
                                 </group>
-                                <!-- Las tres juntas porque se leen juntas: una fuga alta con
-                                     consumos normales dice algo distinto de una fuga alta con
-                                     el consumo disparado. En terreno no hay instrumento. -->
-                                <group string="Eléctrico" invisible="tipo == 'terreno'">
+                                <group string="Aislaci&#243;n" invisible="tipo == 'terreno'">
                                     <label for="fuga_corriente"/>
                                     <div class="o_row">
                                         <field name="fuga_corriente" readonly="estado == 'confirmado'"/>
                                         <span>A</span>
                                     </div>
+                                </group>
+                            </group>
+
+                            <group>
+                                <group string="Consumo" invisible="tipo == 'terreno'">
                                     <label for="consumo_reposo"/>
                                     <div class="o_row">
                                         <field name="consumo_reposo" readonly="estado == 'confirmado'"/>
@@ -282,16 +283,7 @@
                                         <span>kWh</span>
                                     </div>
                                 </group>
-                            </group>
-
-                            <group>
-                                <!-- Se miden donde se pueden ajustar. En reparación no se
-                                     vuelven a medir: se muestran desde la ficha para ver si
-                                     cambiaron, igual que las versiones de software. -->
-                                <!-- Se miden en las dos pruebas de aceptación. En reparación
-                                     no: ahí se muestran desde la ficha para ver si cambiaron,
-                                     igual que las versiones de software. -->
-                                <group string="Parámetros de trabajo">
+                                <group string="Par&#225;metros de trabajo">
                                     <label for="limitacion_pilot_gain"/>
                                     <div class="o_row">
                                         <field name="limitacion_pilot_gain" readonly="estado == 'confirmado'"/>
@@ -835,6 +827,7 @@
                 <field name="sequence" widget="handle"/>
                 <field name="seccion"/>
                 <field name="name"/>
+                <field name="nombre_ficha" optional="show"/>
                 <field name="por_componente" optional="hide"/>
                 <field name="aplica_rendimiento"/>
                 <field name="aplica_reparacion"/>

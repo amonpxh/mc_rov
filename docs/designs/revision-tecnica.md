@@ -998,10 +998,15 @@ acuerdos de las notas del 27–28 de agosto, ratificados por Paulo el 9 de septi
   revisión por documento: `reparacion`, `rendimiento` o `terreno`, con su número real.
   `fabricacion` ya no es un tipo vigente. No consolida rendimiento y terreno ni incluye
   toda la ficha técnica de `stock.lot`; las notas no especifican ese consolidado.
-- Hallazgos solo en reparación, sin severidad ni detalle interno. La primera implementación
-  permite ocultar el bloque completo; no introduce un filtro especial por familia. No
-  truncar hallazgos para forzar una página. Chequeos dinámicos, incluidos los nuevos del
-  catálogo, con distinción entre pendiente y no aplica.
+- Hallazgos solo en reparación, sin severidad ni detalle interno. La ficha muestra, en su
+  orden real, hasta siete líneas simples. Para evitar que textos largos dominen la hoja, el
+  reporte calcula un presupuesto visual de 7,60 unidades: la primera línea vale 1 y cada línea
+  estimada adicional 0,52, usando el mayor wrapping entre componente/subtipo y descripción.
+  Luego muestra «y N hallazgos más · ver en el sistema». Las líneas completas permanecen en Odoo
+  y el bloque puede ocultarse completo; no hay filtro por familia ni priorización por severidad.
+  La regla se validó en Letter con catálogo real y con textos de estrés que envuelven,
+  observaciones, diferencias, chequeos, firmas, pie y BORRADOR. Chequeos dinámicos, incluidos
+  los nuevos del catálogo, con distinción entre pendiente y no aplica.
 - Conservar fuga de corriente y funcionamiento continuo donde correspondan. En terreno,
   no imprimir mediciones eléctricas o de presión de taller. Cero no significa automáticamente
   «sin medir»: los campos numéricos actuales no distinguen ambos casos.

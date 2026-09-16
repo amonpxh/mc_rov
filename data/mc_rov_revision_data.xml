@@ -91,6 +91,7 @@
              sacó de terreno siguiendo la tabla de totales del § 5.3, que se contradecía con
              ese párrafo, y volvió en `19.0.22.0.0` cuando Paulo preguntó por qué faltaba. -->
         <record id="chequeo_estanqueidad" model="mc.rov.chequeo">
+            <field name="nombre_ficha">Estanqueidad</field>
             <field name="name">Estanqueidad bajo presión</field>
             <field name="seccion">presion</field>
             <field name="sequence">40</field>
@@ -100,6 +101,7 @@
         </record>
 
         <record id="chequeo_sensor_leak" model="mc.rov.chequeo">
+            <field name="nombre_ficha">Sensor de leak</field>
             <field name="name">El sensor de leak responde</field>
             <field name="seccion">leak</field>
             <field name="sequence">50</field>
@@ -110,6 +112,7 @@
 
         <!-- Busca posición de armado, y en rendimiento la posición ya se verifica funcionalmente: si una hélice está al revés, fallan los chequeos de movimiento. -->
         <record id="chequeo_helices" model="mc.rov.chequeo">
+            <field name="nombre_ficha">Posición de hélices</field>
             <field name="name">Hélices en posición correcta</field>
             <field name="seccion">navegacion</field>
             <field name="sequence">60</field>
@@ -118,6 +121,7 @@
             <field name="aplica_terreno" eval="False"/>
         </record>
         <record id="chequeo_mov_vertical" model="mc.rov.chequeo">
+            <field name="nombre_ficha">Movimiento vertical</field>
             <field name="name">Movimiento vertical</field>
             <field name="seccion">navegacion</field>
             <field name="sequence">64</field>
@@ -126,6 +130,7 @@
             <field name="aplica_terreno" eval="True"/>
         </record>
         <record id="chequeo_mov_horizontal" model="mc.rov.chequeo">
+            <field name="nombre_ficha">Movimiento horizontal</field>
             <field name="name">Movimiento horizontal</field>
             <field name="seccion">navegacion</field>
             <field name="sequence">66</field>
@@ -135,6 +140,7 @@
         </record>
 
         <record id="chequeo_camara" model="mc.rov.chequeo">
+            <field name="nombre_ficha">Imagen de cámara</field>
             <field name="name">Imagen de cámara</field>
             <field name="seccion">video</field>
             <field name="sequence">90</field>
@@ -143,6 +149,7 @@
             <field name="aplica_terreno" eval="True"/>
         </record>
         <record id="chequeo_tilt" model="mc.rov.chequeo">
+            <field name="nombre_ficha">Tilt</field>
             <field name="name">Tilt</field>
             <field name="seccion">video</field>
             <field name="sequence">100</field>
@@ -166,6 +173,7 @@
 
         <!-- Energía -->
         <record id="chequeo_enciende" model="mc.rov.chequeo">
+            <field name="nombre_ficha">Encendido y arranque</field>
             <field name="name">Enciende y arranca correctamente</field>
             <field name="seccion">energia</field>
             <field name="sequence">15</field>
@@ -178,6 +186,7 @@
              de plumón, y sin nada adentro no se miraba nada al recibir de forma registrable. -->
         <!-- Busca daño de uso, y un equipo recién armado no lo tiene. -->
         <record id="chequeo_chasis" model="mc.rov.chequeo">
+            <field name="nombre_ficha">Chasis y estructura</field>
             <field name="name">Chasis y estructura sin daño visible</field>
             <field name="seccion">inspeccion_fisica</field>
             <field name="sequence">20</field>
@@ -187,6 +196,7 @@
         </record>
         <!-- Busca daño de uso. -->
         <record id="chequeo_penetradores" model="mc.rov.chequeo">
+            <field name="nombre_ficha">Penetradores y conectores</field>
             <field name="name">Penetradores y conectores sin daño</field>
             <field name="seccion">inspeccion_fisica</field>
             <field name="sequence">25</field>
@@ -196,6 +206,7 @@
         </record>
         <!-- Busca desgaste. -->
         <record id="chequeo_helices_dano" model="mc.rov.chequeo">
+            <field name="nombre_ficha">Hélices</field>
             <field name="name">Hélices sin daño ni desgaste</field>
             <field name="seccion">inspeccion_fisica</field>
             <field name="sequence">30</field>
@@ -214,6 +225,7 @@
              su modelo. El día que la ficha técnica declare el valor esperado, esto puede pasar a
              derivarse solo, igual que ya lo hace `luces_difieren` contra la cantidad de luces. -->
         <record id="chequeo_responde_comandos" model="mc.rov.chequeo">
+            <field name="nombre_ficha">Comandos desde superficie</field>
             <field name="name">Responde a comandos desde superficie</field>
             <field name="seccion">comunicacion</field>
             <field name="sequence">55</field>
@@ -222,6 +234,7 @@
             <field name="aplica_terreno" eval="True"/>
         </record>
         <record id="chequeo_ancho_banda" model="mc.rov.chequeo">
+            <field name="nombre_ficha">Ancho de banda</field>
             <field name="name">El ancho de banda es el esperado para este equipo y este cable</field>
             <field name="seccion">comunicacion</field>
             <field name="sequence">57</field>
@@ -256,6 +269,7 @@
              significa lo mismo. -->
         <!-- Estaba acotado a reparación desde 19.0.15.2.0 y se acotó de más: que el software de superficie arranque y opere hace falta en las tres. -->
         <record id="chequeo_software_opera" model="mc.rov.chequeo">
+            <field name="nombre_ficha">Software de superficie</field>
             <field name="name">El software de superficie inicia y opera</field>
             <field name="seccion">comunicacion</field>
             <field name="sequence">58</field>
@@ -264,6 +278,7 @@
             <field name="aplica_terreno" eval="True"/>
         </record>
         <record id="chequeo_software_ficha" model="mc.rov.chequeo">
+            <field name="nombre_ficha">Software según ficha</field>
             <field name="name">El software instalado corresponde a la ficha</field>
             <field name="seccion">comunicacion</field>
             <field name="sequence">59</field>
@@ -282,6 +297,7 @@
              Por eso tampoco hace falta una sección "Sensores": el sensor de profundidad se
              verifica probando depth hold. -->
         <record id="chequeo_depth_hold" model="mc.rov.chequeo">
+            <field name="nombre_ficha">Depth hold</field>
             <field name="name">Mantiene profundidad (depth hold)</field>
             <field name="seccion">navegacion</field>
             <field name="sequence">77</field>
@@ -290,6 +306,7 @@
             <field name="aplica_terreno" eval="True"/>
         </record>
         <record id="chequeo_stabilize" model="mc.rov.chequeo">
+            <field name="nombre_ficha">Stabilize</field>
             <field name="name">Se estabiliza (stabilize)</field>
             <field name="seccion">navegacion</field>
             <field name="sequence">75</field>
@@ -301,6 +318,7 @@
         <!-- Luces. Contar cuántas encienden —que es lo que ya hacen `luces_internas` y
              `luces_externas`— no es lo mismo que verificar que se controlan desde superficie. -->
         <record id="chequeo_luces_control" model="mc.rov.chequeo">
+            <field name="nombre_ficha">Control de luces</field>
             <field name="name">Las luces responden al control desde superficie</field>
             <field name="seccion">luces</field>
             <field name="sequence">120</field>
@@ -322,6 +340,7 @@
              compás. Si acro responde y stabilize no, el giro está sano y el problema es la parte
              que nivela. No todos los equipos lo tienen, y para eso está "No aplica". -->
         <record id="chequeo_thrusters" model="mc.rov.chequeo">
+            <field name="nombre_ficha">Thrusters</field>
             <field name="name">Todos los thrusters responden</field>
             <field name="seccion">navegacion</field>
             <field name="sequence">62</field>
@@ -330,6 +349,7 @@
             <field name="aplica_terreno" eval="True"/>
         </record>
         <record id="chequeo_acro" model="mc.rov.chequeo">
+            <field name="nombre_ficha">Modo acro</field>
             <field name="name">Responde en modo acrobático (acro)</field>
             <field name="seccion">navegacion</field>
             <field name="sequence">73</field>
@@ -339,6 +359,7 @@
         </record>
         <!-- Se observa con el equipo andando, por eso va en navegación y no en la inspección. -->
         <record id="chequeo_ruido_vibracion" model="mc.rov.chequeo">
+            <field name="nombre_ficha">Ruido y vibración</field>
             <field name="name">Sin ruido ni vibración anormal</field>
             <field name="seccion">navegacion</field>
             <field name="sequence">79</field>
@@ -351,6 +372,7 @@
              se revisaban chasis, penetradores y hélices, o sea el vehículo, no el cable. -->
         <!-- Busca daño de uso. -->
         <record id="chequeo_umbilical_estado" model="mc.rov.chequeo">
+            <field name="nombre_ficha">Umbilical</field>
             <field name="name">Umbilical sin cortes ni aplastamientos</field>
             <field name="seccion">inspeccion_fisica</field>
             <field name="sequence">27</field>
@@ -361,6 +383,7 @@
 
         <!-- Accesorios -->
         <record id="chequeo_manipulador" model="mc.rov.chequeo">
+            <field name="nombre_ficha">Manipulador</field>
             <field name="name">Manipulador responde</field>
             <field name="seccion">accesorios</field>
             <field name="sequence">110</field>
@@ -369,6 +392,7 @@
             <field name="aplica_terreno" eval="True"/>
         </record>
         <record id="chequeo_sonar" model="mc.rov.chequeo">
+            <field name="nombre_ficha">Sonar</field>
             <field name="name">Sonar funciona</field>
             <field name="seccion">accesorios</field>
             <field name="sequence">115</field>
