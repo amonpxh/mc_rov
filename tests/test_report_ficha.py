@@ -7,15 +7,19 @@ from odoo.exceptions import UserError
 from .test_mc_rov_revision import RevisionCommon
 
 
+# El informe cubre escenarios independientes; dividir la clase ocultaría los fixtures comunes.
+# pylint: disable=too-many-public-methods
 class TestReporteFicha(RevisionCommon):
     """Lo que se entrega al cliente debe respetar la audiencia y no perder líneas."""
 
     def _imprimir_html(self, revision, opciones=None):
-        contenido, _ = self.env["ir.actions.report"].with_context(
-            rov_options=opciones or {}
-        )._render_qweb_html(
-            "mc_rov.action_report_ficha",
-            revision.ids,
+        contenido, _ = (
+            self.env["ir.actions.report"]
+            .with_context(rov_options=opciones or {})
+            ._render_qweb_html(
+                "mc_rov.action_report_ficha",
+                revision.ids,
+            )
         )
         return html.fromstring(contenido)
 
@@ -45,19 +49,15 @@ class TestReporteFicha(RevisionCommon):
         self.assertNotIn("DETALLE_INTERNO_NO_ENTREGAR", texto)
         self.assertNotIn("Impide operar", texto)
         self.assertIn("Hallazgo de prueba", texto)
-        self.assertEqual(
-            len(documento.xpath('//*[@data-rov-check]')), len(revision.chequeo_ids)
-        )
+        self.assertEqual(len(documento.xpath("//*[@data-rov-check]")), len(revision.chequeo_ids))
 
     def test_cabecera_conserva_banda_y_datos_de_identificacion(self):
         """La cabecera impresa mantiene la jerarquía de la ficha C sin perder datos reales."""
         revision = self._revision()
         documento = self._imprimir_html(revision)
 
-        self.assertTrue(documento.xpath('//*[@data-rov-header-band]'))
-        self.assertTrue(
-            documento.xpath('//img[starts-with(@src, "data:image/png;base64,")]')
-        )
+        self.assertTrue(documento.xpath("//*[@data-rov-header-band]"))
+        self.assertTrue(documento.xpath('//img[starts-with(@src, "data:image/png;base64,")]'))
         for etiqueta in ("Fecha", "Equipo", "N° de serie", "Propietario", "Técnico"):
             self.assertTrue(
                 documento.xpath(f'//*[@data-rov-identity-card and .//*[text()="{etiqueta}"]]'),
@@ -67,7 +67,7 @@ class TestReporteFicha(RevisionCommon):
     def test_tira_reparacion_conserva_cinco_datos(self):
         revision = self._revision(tipo="reparacion")
         documento = self._imprimir_html(revision)
-        tarjetas = documento.xpath('//*[@data-rov-identity-card]')
+        tarjetas = documento.xpath("//*[@data-rov-identity-card]")
 
         self.assertEqual(len(tarjetas), 5)
         self.assertFalse(documento.xpath('//*[text()="Tipo de prueba"]'))
@@ -89,7 +89,7 @@ class TestReporteFicha(RevisionCommon):
         documento = self._imprimir_html(revision)
         self.assertNotIn("BORRADOR", documento.text_content())
         self.assertIn("No aplica", documento.text_content())
-        self.assertIn("0", documento.xpath('//*[@data-rov-leakage]')[0].text_content())
+        self.assertIn("0", documento.xpath("//*[@data-rov-leakage]")[0].text_content())
 
     def test_sellos_no_aplica_se_conserva_pero_no_se_imprime(self):
         revision = self._revision()
@@ -99,7 +99,7 @@ class TestReporteFicha(RevisionCommon):
         sellos[2].estado_sello = "no_lo_tiene"
 
         documento = self._imprimir_html(revision)
-        bloque = documento.xpath('//*[@data-rov-seals]')[0]
+        bloque = documento.xpath("//*[@data-rov-seals]")[0]
         texto = bloque.text_content()
 
         self.assertEqual(sellos[2].estado_sello, "no_lo_tiene")
@@ -107,7 +107,7 @@ class TestReporteFicha(RevisionCommon):
         self.assertIn("Roto", texto)
         self.assertIn("Pendiente", texto)
         self.assertNotIn("No aplica", texto)
-        self.assertEqual(len(bloque.xpath('//*[@data-rov-seal]')), len(sellos) - 1)
+        self.assertEqual(len(bloque.xpath("//*[@data-rov-seal]")), len(sellos) - 1)
 
     def test_sellos_distinguen_integridad_manipulacion_y_sello_previo(self):
         revision = self._revision()
@@ -116,10 +116,12 @@ class TestReporteFicha(RevisionCommon):
             sello.estado_sello = estado
 
         documento = self._imprimir_html(revision)
-        bloque = documento.xpath('//*[@data-rov-seals]')[0]
+        bloque = documento.xpath("//*[@data-rov-seals]")[0]
         clases = {
-            sello.get("data-rov-seal"): sello.xpath('.//*[contains(@class, "rov-card-value")]')[0].get("class", "")
-            for sello in bloque.xpath('.//*[@data-rov-seal]')
+            sello.get("data-rov-seal"): sello.xpath('.//*[contains(@class, "rov-card-value")]')[
+                0
+            ].get("class", "")
+            for sello in bloque.xpath(".//*[@data-rov-seal]")
         }
         estilos = " ".join(documento.xpath("//style/text()"))
 
@@ -149,7 +151,7 @@ class TestReporteFicha(RevisionCommon):
         )
 
         documento = self._imprimir_html(revision)
-        paneles = documento.xpath('//*[@data-rov-measurement-panel]')
+        paneles = documento.xpath("//*[@data-rov-measurement-panel]")
         texto = " ".join(panel.text_content() for panel in paneles)
 
         self.assertEqual(len(paneles), 6)
@@ -173,9 +175,7 @@ class TestReporteFicha(RevisionCommon):
         self.assertNotIn("↓", etiquetas_banda)
         self.assertIn("↑", valores_banda)
         self.assertIn("↓", valores_banda)
-        self.assertEqual(
-            len(banda.xpath('.//*[contains(@class, "rov-measurement-arrow")]')), 2
-        )
+        self.assertEqual(len(banda.xpath('.//*[contains(@class, "rov-measurement-arrow")]')), 2)
         self.assertEqual(
             documento.xpath(
                 'string(//*[@data-rov-measurement-panel="continuo"]'
@@ -200,11 +200,11 @@ class TestReporteFicha(RevisionCommon):
         revision.chequeo_ids[2].resultado = "no_lo_tiene"
 
         documento = self._imprimir_html(revision)
-        bloque = documento.xpath('//*[@data-rov-checks]')[0]
-        grupos = bloque.xpath('//*[@data-rov-check-section]')
+        bloque = documento.xpath("//*[@data-rov-checks]")[0]
+        grupos = bloque.xpath("//*[@data-rov-check-section]")
 
         self.assertEqual(len(grupos), len(set(revision.chequeo_ids.mapped("seccion"))))
-        self.assertEqual(len(bloque.xpath('//*[@data-rov-check]')), len(revision.chequeo_ids))
+        self.assertEqual(len(bloque.xpath("//*[@data-rov-check]")), len(revision.chequeo_ids))
         texto = bloque.text_content()
         self.assertIn("Conforme", texto)
         self.assertIn("No conforme", texto)
@@ -217,8 +217,8 @@ class TestReporteFicha(RevisionCommon):
         revision.chequeo_ids[2].resultado = "no_lo_tiene"
 
         documento = self._imprimir_html(revision)
-        bloque = documento.xpath('//*[@data-rov-checks]')[0]
-        grupos = bloque.xpath('.//*[@data-rov-check-section]')
+        bloque = documento.xpath("//*[@data-rov-checks]")[0]
+        grupos = bloque.xpath(".//*[@data-rov-check-section]")
 
         self.assertEqual(
             len(bloque.xpath('.//*[contains(@class, "rov-check-separator")]')),
@@ -237,8 +237,7 @@ class TestReporteFicha(RevisionCommon):
         )
         leyenda = bloque.xpath('.//*[contains(@class, "rov-checks-legend")]')[0]
         clases_leyenda = {
-            item.text_content().strip(): item.get("class", "")
-            for item in leyenda.xpath("./span")
+            item.text_content().strip(): item.get("class", "") for item in leyenda.xpath("./span")
         }
         self.assertEqual(clases_leyenda["Conforme"], "rov-check-ok")
         self.assertEqual(clases_leyenda["No conforme"], "rov-check-fail")
@@ -281,7 +280,9 @@ class TestReporteFicha(RevisionCommon):
         self.assertIn("margin: 0 0 7.35px;", estilos)
         self.assertIn(".rov-ficha .rov-report-card { min-height: 164.16px;", estilos)
         self.assertIn(".rov-ficha .rov-closing-card { min-height: 170.56px;", estilos)
-        self.assertIn(".rov-ficha .rov-measurement-arrow { font-size: 11.14pt; font-weight: normal;", estilos)
+        self.assertIn(
+            ".rov-ficha .rov-measurement-arrow { font-size: 11.14pt; font-weight: normal;", estilos
+        )
         self.assertIn(".rov-ficha .rov-check-details {", estilos)
         self.assertIn("line-height: 1.346;", estilos)
 
@@ -322,26 +323,30 @@ class TestReporteFicha(RevisionCommon):
         for estado, clase_resumen, clases_linea in (
             ("ok", "rov-check-summary-ok", {"rov-check-ok"}),
             ("no_ok", "rov-check-summary-fail", {"rov-check-fail"}),
-            ("mixto", "rov-check-summary-fail", {
-                "rov-check-ok",
-                "rov-check-fail",
-                "rov-check-na",
-                "rov-check-pending",
-            }),
+            (
+                "mixto",
+                "rov-check-summary-fail",
+                {
+                    "rov-check-ok",
+                    "rov-check-fail",
+                    "rov-check-na",
+                    "rov-check-pending",
+                },
+            ),
         ):
             if estado == "mixto":
                 for indice, linea in enumerate(navegacion):
                     linea.resultado = ("ok", "no_ok", "no_lo_tiene", False)[indice % 4]
             else:
                 navegacion.write({"resultado": estado})
-            bloque = self._imprimir_html(revision).xpath('//*[@data-rov-checks]')[0]
+            bloque = self._imprimir_html(revision).xpath("//*[@data-rov-checks]")[0]
             seccion = bloque.xpath('//*[@data-rov-check-section="navegacion"]')[0]
 
             self.assertIn(
                 clase_resumen,
-                seccion.xpath('.//*[@data-rov-check-summary]')[0].get("class", ""),
+                seccion.xpath(".//*[@data-rov-check-summary]")[0].get("class", ""),
             )
-            lineas = seccion.xpath('.//*[@data-rov-check]')
+            lineas = seccion.xpath(".//*[@data-rov-check]")
             self.assertEqual(len(lineas), len(navegacion))
             self.assertEqual(
                 {
@@ -415,7 +420,7 @@ class TestReporteFicha(RevisionCommon):
         por_seccion["video"][0].resultado = "ok"
         por_seccion["video"][1].resultado = "no_lo_tiene"
 
-        bloque = self._imprimir_html(revision).xpath('//*[@data-rov-checks]')[0]
+        bloque = self._imprimir_html(revision).xpath("//*[@data-rov-checks]")[0]
 
         for seccion, clase in (
             ("energia", "rov-check-summary-ok"),
@@ -425,8 +430,7 @@ class TestReporteFicha(RevisionCommon):
             ("video", "rov-check-summary-na"),
         ):
             resumen = bloque.xpath(
-                f'.//*[@data-rov-check-section="{seccion}"]'
-                '//*[@data-rov-check-summary]'
+                f'.//*[@data-rov-check-section="{seccion}"]' "//*[@data-rov-check-summary]"
             )[0]
             self.assertIn(clase, resumen.get("class", ""))
 
@@ -448,7 +452,7 @@ class TestReporteFicha(RevisionCommon):
 
     def test_pendiente_se_explica_en_leyenda_sin_repetirse_por_linea(self):
         revision = self._revision()
-        bloque = self._imprimir_html(revision).xpath('//*[@data-rov-checks]')[0]
+        bloque = self._imprimir_html(revision).xpath("//*[@data-rov-checks]")[0]
 
         self.assertEqual(bloque.text_content().count("Pendiente"), 1)
 
@@ -499,10 +503,9 @@ class TestReporteFicha(RevisionCommon):
         nuevo = self._chequeo_catalogo(name="Chequeo sin XML ID")
         nombres = (vacio.name, personalizado.name, nuevo.name)
         self.env.flush_all()
-        migrate = run_path(str(
-            Path(__file__).resolve().parents[1]
-            / "migrations/19.0.23.2.0/post-migrate.py"
-        ))["migrate"]
+        migrate = run_path(
+            str(Path(__file__).resolve().parents[1] / "migrations/19.0.23.2.0/post-migrate.py")
+        )["migrate"]
 
         for _ in range(2):
             migrate(self.env.cr, "19.0.23.1.0")
@@ -534,7 +537,10 @@ class TestReporteFicha(RevisionCommon):
             {
                 "product_id": self.product.id,
                 "lot_id": self.lot.id,
-                "observaciones_salida": "Primera línea para el cliente.\nSegunda línea extensa que debe envolver naturalmente.",
+                "observaciones_salida": (
+                    "Primera línea para el cliente.\n"
+                    "Segunda línea extensa que debe envolver naturalmente."
+                ),
             }
         )
         revision = self._revision(
@@ -548,21 +554,23 @@ class TestReporteFicha(RevisionCommon):
         )
 
         documento = self._imprimir_html(revision)
-        cierre = documento.xpath('//*[@data-rov-closing-layout]')[0]
+        cierre = documento.xpath("//*[@data-rov-closing-layout]")[0]
         tarjetas = cierre.xpath('./tr/td[contains(@class, "rov-closing-cell")]')
-        observaciones = cierre.xpath('.//*[@data-rov-observations]')[0]
+        observaciones = cierre.xpath(".//*[@data-rov-observations]")[0]
 
         self.assertEqual(len(tarjetas), 2)
-        self.assertTrue(all("rov-closing-cell-half" in tarjeta.get("class", "") for tarjeta in tarjetas))
+        self.assertTrue(
+            all("rov-closing-cell-half" in tarjeta.get("class", "") for tarjeta in tarjetas)
+        )
         self.assertIn(hallazgo.hallazgo_id.name, cierre.text_content())
         self.assertIn("Primera línea para el cliente.", observaciones.text_content())
-        self.assertTrue(observaciones.xpath('.//*[@data-rov-differences]'))
+        self.assertTrue(observaciones.xpath(".//*[@data-rov-differences]"))
         self.assertIn("4471", observaciones.text_content())
         self.assertIn("4102", observaciones.text_content())
 
         sin_diferencias = self._imprimir_html(revision, {"diferencias": False})
-        self.assertFalse(sin_diferencias.xpath('//*[@data-rov-differences]'))
-        self.assertTrue(sin_diferencias.xpath('//*[@data-rov-observations]'))
+        self.assertFalse(sin_diferencias.xpath("//*[@data-rov-differences]"))
+        self.assertTrue(sin_diferencias.xpath("//*[@data-rov-observations]"))
 
         solo_hallazgos = self._revision()
         self._hallazgo_privado(solo_hallazgos, "Hallazgo sin observaciones")
@@ -586,7 +594,9 @@ class TestReporteFicha(RevisionCommon):
         self.assertEqual(len(celda_observaciones), 1)
         self.assertIn("rov-closing-cell-full", celda_observaciones[0].get("class", ""))
 
-        self.assertFalse(self._imprimir_html(self._revision()).xpath('//*[@data-rov-closing-layout]'))
+        self.assertFalse(
+            self._imprimir_html(self._revision()).xpath("//*[@data-rov-closing-layout]")
+        )
 
     def test_hallazgos_cortos_muestran_siete_y_resumen_sin_perder_las_lineas(self):
         revision = self._revision()
@@ -599,13 +609,13 @@ class TestReporteFicha(RevisionCommon):
         for numero in range(7):
             self.assertIn(f"Hallazgo visible {numero:02d}", texto)
         self.assertNotIn("Hallazgo visible 07", texto)
-        resumen = documento.xpath('//*[@data-rov-findings-summary]')
+        resumen = documento.xpath("//*[@data-rov-findings-summary]")
         self.assertEqual(len(resumen), 1)
         self.assertIn("y 13 hallazgos más", " ".join(resumen[0].text_content().split()))
         self.assertIn("ver en el sistema", resumen[0].text_content())
 
         revision.hallazgo_ids[8:].unlink()
-        resumen_singular = self._imprimir_html(revision).xpath('//*[@data-rov-findings-summary]')
+        resumen_singular = self._imprimir_html(revision).xpath("//*[@data-rov-findings-summary]")
         self.assertEqual(len(resumen_singular), 1)
         self.assertIn("y 1 hallazgo más", " ".join(resumen_singular[0].text_content().split()))
 
@@ -623,24 +633,24 @@ class TestReporteFicha(RevisionCommon):
         for numero in range(5):
             self.assertIn(f"conector principal {numero:02d}", texto)
         self.assertNotIn("conector principal 05", texto)
-        resumen = documento.xpath('//*[@data-rov-findings-summary]')
+        resumen = documento.xpath("//*[@data-rov-findings-summary]")
         self.assertEqual(len(resumen), 1)
         self.assertIn("y 7 hallazgos más", " ".join(resumen[0].text_content().split()))
 
     def test_firmas_pie_y_borrador_siguen_la_composicion_de_la_ficha(self):
         documento = self._imprimir_html(self._revision())
 
-        marca = documento.xpath('//*[@data-rov-watermark]')
+        marca = documento.xpath("//*[@data-rov-watermark]")
         self.assertEqual(len(marca), 1)
         self.assertEqual(marca[0].text_content().strip(), "BORRADOR")
 
-        firmas = documento.xpath('//*[@data-rov-signatures]')[0]
+        firmas = documento.xpath("//*[@data-rov-signatures]")[0]
         self.assertEqual(len(firmas.xpath('.//*[contains(@class, "rov-signature-line")]')), 2)
         self.assertIn("Firma del técnico", firmas.text_content())
         self.assertIn("Jefe de taller", firmas.text_content())
         self.assertNotIn("___", firmas.text_content())
 
-        pie = documento.xpath('//*[@data-rov-footer]')[0]
+        pie = documento.xpath("//*[@data-rov-footer]")[0]
         texto_pie = " ".join(pie.text_content().split())
         for valor in (
             "Ingeniería y Servicios Marine Connection SpA",
@@ -654,8 +664,8 @@ class TestReporteFicha(RevisionCommon):
     def test_opciones_no_cambian_la_revision(self):
         revision = self._revision()
         documento = self._imprimir_html(revision, {"firmas": False, "sellos": False})
-        self.assertFalse(documento.xpath('//*[@data-rov-signatures]'))
-        self.assertFalse(documento.xpath('//*[@data-rov-seals]'))
+        self.assertFalse(documento.xpath("//*[@data-rov-signatures]"))
+        self.assertFalse(documento.xpath("//*[@data-rov-seals]"))
         self.assertEqual(revision.estado, "borrador")
 
     def test_asistente_selecciona_documento_y_opciones(self):

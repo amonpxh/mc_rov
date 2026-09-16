@@ -20,7 +20,9 @@ class McRovFichaWizard(models.TransientModel):
         self.ensure_one()
         self.revision_id.check_access("read")
         if self.revision_id.tipo != "reparacion":
-            raise UserError("La ficha para el cliente solo está disponible para revisiones de reparación.")
+            raise UserError(
+                "La ficha para el cliente solo está disponible para revisiones de reparación."
+            )
         # Mantener docids en la URL del reporte: las opciones viajan en el contexto,
         # no como `data`, que activa otra ruta del cliente de reportes de Odoo.
         reporte = self.env.ref("mc_rov.action_report_ficha").with_context(

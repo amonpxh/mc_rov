@@ -16,6 +16,7 @@ def _logo_blanco_ficha_uri():
     with path.open("rb") as logo:
         return "data:image/png;base64," + base64.b64encode(logo.read()).decode()
 
+
 # Una visita al taller genera UNA revisión, no dos. El par recepción/entrega venía de la
 # idea de comparar el antes y el después dentro de la misma orden, pero la hoja de papel que
 # esto reemplaza es una ficha por equipo reparado, y nadie llena dos fichas por visita. La
