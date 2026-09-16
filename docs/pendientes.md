@@ -2,6 +2,89 @@
 
 > Actualizar esta sección al cerrar cada sesión de trabajo.
 
+## Trabajo actual — 2026-09-10
+
+**Prioridad acordada con Paulo:** primero funcionalidad. Traspaso del repositorio a la
+empresa y reorganización administrativa al final. `interview-prep.md`,
+`rov-pipeline-roadmap.md` y las plantillas del directorio padre son material histórico,
+no el plan vigente. Las secciones fechadas de este backlog conservan discusiones anteriores;
+no interpretar una propuesta antigua como una tarea aún pendiente sin contrastar el código.
+
+**Rama:** `feature/fichas-pdf`, basada en `1a300ce` (PR #83, versión `19.0.23.0.4`).
+Remoto configurado: `https://github.com/amonpxh/mc_rov.git`. Las notas del 27 de agosto
+registran ese despliegue a producción, pero la consulta SSH del 10 de septiembre encontró
+otra realidad: producción y staging siguen en `c450535`, versión instalada `19.0.23.0.3`.
+Para el estado del servidor prevalece esa comprobación sobre las notas antiguas.
+
+**Implementado localmente y transferido a staging, sin publicar:** primera implementación `19.0.23.1.0` del reporte
+por revisión (`reports/ficha_report.xml`), botón «Imprimir ficha» en la cabecera de la
+revisión y asistente con opciones de firmas, sellos, hallazgos y diferencias. El botón
+se comprobó en el navegador con la revisión de terreno `TRN/00003`: abre el asistente con
+la revisión seleccionada y la opción de firmas; la acción «Descargar PDF» se inició sin
+confirmar ni modificar el registro. El diseño y límites están en
+[revisión técnica, § 12.1](designs/revision-tecnica.md#121-el-reporte-no-es-el-adorno-final).
+La maqueta recuperada está en `designs/referencias/ficha-impresa-rov.html` y contiene datos
+de ejemplo, no resultados de una prueba Odoo.
+
+**Verificado:** sintaxis Python/XML, archivos del manifiesto, referencias entre plantillas,
+compilación de expresiones QWeb y exclusión de campos internos prohibidos. La maqueta HTML
+abre en Edge sin errores JavaScript. Las **6 pruebas `TestReporteFicha` pasan en Odoo 19 Enterprise
+en staging**, tras corregir la llamada posicional al renderizador y los `t-field` sobre
+celdas de tabla. La suite completa termina con **3 fallos, 0 errores de 289 pruebas**:
+dos recuentos de chequeos (17 frente a 18) y una etiqueta de causa de calidad.
+Coinciden con las personalizaciones documentadas abajo (sonar y «No determinado odo*»);
+sus archivos de código y catálogo no cambiaron en esta rama. No se restauraron datos
+para forzar verde, ni se hizo todavía una ejecución comparativa del código anterior.
+También se generaron e inspeccionaron visualmente cinco PDF reales con wkhtmltopdf:
+reparación con 2 hallazgos cabe en 1 página; con 7 y 20 usa 2 páginas sin truncar ni partir
+hallazgos; rendimiento y terreno caben en 1 página. Todos son papel carta. Los datos
+temporales se revirtieron y el detalle interno del hallazgo no aparece en el texto extraído.
+
+**Siguiente paso:** revisar el diff y preparar el commit de la rama. La fidelidad fina a la
+variante C y la compatibilidad de edición mediante Studio quedan para después de asegurar
+el flujo funcional. No refrescar ni borrar la base. Producción y traspaso a la empresa
+quedan fuera de esta etapa.
+
+**Ajuste de composición del reporte — 2026-09-16:** para la ficha de reparación en papel
+carta, Hallazgos usa un límite adaptativo: máximo siete, con presupuesto visual de 7,60
+unidades. Una primera línea pesa 1 y cada línea estimada adicional pesa 0,52; la estimación
+usa el mayor wrapping entre componente/subtipo y descripción. Así, el catálogo real muestra
+siete líneas y el caso de estrés de dos líneas muestra cinco, siempre seguido de «y N hallazgos
+más · ver en el sistema». Todas las líneas se conservan en Odoo. La escala final es +4 % sobre
+la composición vigente al iniciar esta pasada. Tras ampliar la zona funcional de firma, el
+render real deja 37 pt de reserva y el de estrés 26,5 pt; ambos son una única página Letter,
+con firmas y pie completos. Hallazgos y Observaciones comparten la altura exterior natural de
+su fila; la nota de diferencias se ancla visualmente al fondo de Observaciones.
+**Incidencia de PDF resuelta en staging:** staging confirma `mc_rov|installed|19.0.23.1.0`.
+El primer PDF caía en `wkhtmltopdf` con código -11 durante la inicialización de QtWebKit.
+Una página mínima funcionaba y el mismo reporte se generaba al quitar el límite de memoria:
+la causa era `limit_memory_hard = 1073741824`, no la plantilla. Staging quedó en
+`limit_memory_soft = 1610612736` y `limit_memory_hard = 2147483648`; con esos límites se
+repitieron los cinco PDF correctamente sin overrides de línea de comandos.
+
+**Ensayo ejecutado:** respaldo previo de código y base en `/var/tmp/mc-rov-fichas.dTlpaE`.
+Las pruebas se ejecutaron en el puerto separado 8199; sus logs `report-tests-8199.log` y
+`module-tests-8199.log` están dentro del respaldo. El proceso manual que ocupaba 8070 fue
+validado como staging y detenido de forma normal. `odoo-staging.service` quedó activo con
+PID 621320, configuración `/etc/odoo/odoo-staging.conf` y respuesta HTTP en localhost:8070.
+El código local y el de staging contienen las correcciones finales del reporte.
+
+**Acceso identificado:** servidor `64.176.17.240`, usuario `root`; Paulo se autentica por
+contraseña desde VS Code. El intento no interactivo fue rechazado y luego se completó
+una consulta interactiva de solo lectura. Staging está verificado
+como `odoo_staging`, `/opt/odoo/staging-addons/mc_rov`, configuración
+`/etc/odoo/odoo-staging.conf`, puerto 8070, escuchando solo en `127.0.0.1`. Tiene marcador
+`mc_rov.entorno=STAGING`, Studio instalado y checkout en `rehearsal` con los cambios locales
+transferidos. Su servicio está activo; producción permanece en otro servicio, base y carpeta. El servidor
+dispone de `wkhtmltopdf 0.12.6`. El CI documentado hace checkout en el addons path de producción:
+no usar un PR para ensayar sin revisar esa configuración. Procedimientos en
+[staging](runbooks/staging.md) y [testing](runbooks/testing.md).
+
+**Continuidad:** se recuperó del código y de `../.remember/today-2026-08-27.done.md`,
+`../.remember/today-2026-08-28.md` y `../.remember/now.md`, no de una lectura completa
+de «Implementar bloque B de fabricación con quality.alert». `AGENTS.md` remite a las
+reglas compartidas de `CLAUDE.md`; este archivo centraliza estado y siguiente paso.
+
 ### Verificar después del próximo deploy
 
 **Tres cosas, y las tres prueban lo mismo: que los catálogos son del usuario y el módulo no
@@ -790,8 +873,12 @@ de la vista. Los dos se habían deducido de una captura, sin poder leer el arch 
 Lo que sigue del plan original, en orden:
 
 - [ ] **Reporte PDF de las dos fichas** (`19.0.9.0.0` del plan, ahora la siguiente versión
-  grande). Ni la ficha de fabricación ni la revisión técnica se pueden imprimir hoy; el
-  único documento imprimible de una orden es el presupuesto por defecto de Odoo.
+  grande). La ficha de revisión técnica quedó implementada y validada en staging; aún falta
+  definir e implementar la ficha de fabricación.
+
+  **2026-09-10 — reporte por revisión validado en STAGING, sin publicar.** Incluye opciones
+  de impresión; maqueta C recuperada en `designs/referencias/ficha-impresa-rov.html`. Estado
+  al inicio de este archivo y diseño en `designs/revision-tecnica.md`, § 12.1.
 
   **La revisión existe, entre otras cosas, para entregársela al cliente**, así que esto no
   es un extra. Obliga a decidir campo por campo qué es interno y qué va impreso — ver

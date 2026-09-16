@@ -6,3 +6,4 @@ from . import test_baterias
 from . import test_ronda_de_pantalla
 from . import test_diagnostico_fallas
 from . import test_calidad
+from . import test_report_ficha

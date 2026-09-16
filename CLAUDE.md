@@ -63,6 +63,8 @@ El número de versión en `__manifest__.py` sigue el formato `19.0.X.Y.Z`:
 
 ## Estado actual
 
+La coordinación entre Claude Code y Codex está en [`AGENTS.md`](AGENTS.md).
+
 Trabajo pendiente y diseños ya acordados: ver [`docs/pendientes.md`](docs/pendientes.md). Actualizar ese archivo al cerrar cada sesión de trabajo.
 
 ## Notas técnicas

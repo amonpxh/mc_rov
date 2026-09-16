@@ -47,6 +47,10 @@ class McRovChequeo(models.Model):
     _order = "seccion, sequence, name"
 
     name = fields.Char(string="Chequeo", required=True)
+    nombre_ficha = fields.Char(
+        string="Nombre en ficha impresa",
+        help="Etiqueta breve para el cliente. Si está vacía, se imprime el nombre completo del chequeo.",
+    )
     sequence = fields.Integer(default=10)
     seccion = fields.Selection(SECCIONES, string="Sección", required=True, default="otro")
 

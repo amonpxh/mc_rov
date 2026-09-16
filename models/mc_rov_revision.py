@@ -1,5 +1,21 @@
+import base64
+from functools import lru_cache
+from pathlib import Path
+import textwrap
+
 from odoo import models, fields, api
 from odoo.exceptions import UserError
+
+
+@lru_cache(maxsize=1)
+def _logo_blanco_ficha_uri():
+    """Carga la marca como data URI porque wkhtmltopdf no sirve rutas estáticas sin HTTP."""
+    path = Path(__file__).parent.parent / "static" / "src" / "img" / "logo_mc_blanco.png"
+    if not path.is_file():
+        return False
+    with path.open("rb") as logo:
+        return "data:image/png;base64," + base64.b64encode(logo.read()).decode()
+
 
 # Una visita al taller genera UNA revisión, no dos. El par recepción/entrega venía de la
 # idea de comparar el antes y el después dentro de la misma orden, pero la hoja de papel que
@@ -151,8 +167,8 @@ AJUSTES_A_FICHA = {
 }
 
 RESULTADOS_CHEQUEO = [
-    ("ok", "OK"),
-    ("no_ok", "No OK"),
+    ("ok", "Conforme"),
+    ("no_ok", "No conforme"),
     # "No aplica" afirma algo sobre el equipo: no lo tiene, o no corresponde revisarlo. No
     # se confunde con "no lo revisamos" porque eso no es un valor, es el campo vacío — y un
     # chequeo vacío impide confirmar la revisión. El denominador de las estadísticas queda
@@ -188,6 +204,16 @@ SEVERIDADES = [
     ("impide_operar", "Impide operar"),
 ]
 
+# Presupuesto tipográfico de Hallazgos en la ficha de cliente. Una segunda línea mide
+# aproximadamente 16 px adicionales sobre una fila base de 31 px en el PDF Letter real.
+FICHA_HALLAZGOS_MAXIMO = 7
+# El presupuesto 7,60 mantiene siete filas simples y permite cinco de dos líneas.
+# En el PDF real, ambas alternativas dejan el bloque dentro de una diferencia pequeña.
+FICHA_HALLAZGOS_PRESUPUESTO = 7.60
+FICHA_HALLAZGO_PESO_LINEA_ADICIONAL = 0.52
+FICHA_HALLAZGO_ANCHO_COMPONENTE = 26
+FICHA_HALLAZGO_ANCHO_DESCRIPCION = 36
+
 
 class McRovRevision(models.Model):
     """Una sesión de pruebas sobre un equipo: la ficha de reparación, digital.
@@ -206,6 +232,45 @@ class McRovRevision(models.Model):
     _inherit = ["mail.thread"]
     _order = "fecha desc, id desc"
     _rec_name = "name"
+
+    def _ficha_logo_blanco_uri(self):
+        """Entrega la marca embebida para que la ficha no dependa del servidor HTTP."""
+        return _logo_blanco_ficha_uri()
+
+    @api.model
+    def _ficha_lineas_estimadas(self, texto, ancho):
+        """Aproxima el wrapping de wkhtmltopdf por palabras para una columna de Hallazgos."""
+        normalizado = " ".join((texto or "").split())
+        if not normalizado:
+            return 1
+        return len(textwrap.wrap(normalizado, width=ancho) or [normalizado])
+
+    def _ficha_peso_hallazgo(self, hallazgo):
+        """Convierte el alto estimado de una fila en unidades comparables con una fila simple."""
+        etiqueta = hallazgo.componente_id.display_name or ""
+        if hallazgo.subtipo_id:
+            etiqueta = f"{etiqueta} / {hallazgo.subtipo_id.display_name}"
+        lineas = max(
+            self._ficha_lineas_estimadas(etiqueta, FICHA_HALLAZGO_ANCHO_COMPONENTE),
+            self._ficha_lineas_estimadas(
+                hallazgo.hallazgo_id.display_name,
+                FICHA_HALLAZGO_ANCHO_DESCRIPCION,
+            ),
+        )
+        return 1 + (lineas - 1) * FICHA_HALLAZGO_PESO_LINEA_ADICIONAL
+
+    def _ficha_hallazgos_para_pdf(self):
+        """Devuelve el prefijo que cabe en el presupuesto visual, sin alterar ni priorizar datos."""
+        self.ensure_one()
+        cantidad = 0
+        peso = 0.0
+        for hallazgo in self.hallazgo_ids[:FICHA_HALLAZGOS_MAXIMO]:
+            peso_hallazgo = self._ficha_peso_hallazgo(hallazgo)
+            if cantidad and peso + peso_hallazgo > FICHA_HALLAZGOS_PRESUPUESTO:
+                break
+            cantidad += 1
+            peso += peso_hallazgo
+        return self.hallazgo_ids[:cantidad]
 
     name = fields.Char(string="Revisión", readonly=True, copy=False, default="/")
 
