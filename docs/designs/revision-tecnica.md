@@ -84,6 +84,12 @@ el estado *antes* y *después* del trabajo. Lo reemplazan dos cosas:
    vuelve a probar. Ahí las dos revisiones existen porque alguien tuvo una razón para
    crearlas, no porque el sistema las exigiera. `numero_en_visita` distingue cuál es cuál.
 
+La pestaña Revisiones de la orden también ofrece **«Imprimir ficha»**. Abre el mismo
+asistente de la revisión: con una sola revisión de reparación la propone; con varias deja
+la elección al usuario para no entregar por accidente el diagnóstico inicial como re-test.
+El selector solo acepta revisiones de esa orden y el PDF conserva la marca BORRADOR cuando
+corresponde.
+
 **Consecuencia que hay que vigilar:** el estado de los sellos ahora se registra en la única
 revisión de la visita, y debe ser siempre **el estado con que llegó el equipo**. Antes lo
 garantizaba el tipo del registro; ahora lo garantizan la etiqueta del campo («Estado del
