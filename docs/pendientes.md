@@ -10,9 +10,10 @@ siendo un control distinto sobre el accesorio montado. «No aplica» corresponde
 carece de salida de brazo, no simplemente si no tiene un brazo conectado durante la prueba.
 Se actualizaron las pruebas de catálogo y generación de checklist. Los recuentos estándar
 se comprueban contra el XML, porque el catálogo instalado puede estar personalizado.
-Pre-commit pasó y CI confirmó 0 fallos y 0 errores en 310 pruebas. Producción recibió el
-upgrade de `mc_rov`, se reinició `odoo` y la consulta a `odoo_prod` confirmó el registro
-solo para RND; STAGING no se actualizó en esta entrega. Las revisiones RND en borrador ya
+Pre-commit pasó y CI confirmó 0 fallos y 0 errores en 311 pruebas para `c826622`.
+Producción recibió el upgrade de `mc_rov` a `19.0.23.4.1`, se reinició `odoo` y la consulta
+a `odoo_prod` confirmó el nuevo nombre operativo del registro, solo para RND; STAGING no se
+actualizó en esta entrega. Las revisiones RND en borrador ya
 existentes requieren «Actualizar checklist» para incorporar la nueva línea.
 
 ## Trabajo actual — 2026-09-10
