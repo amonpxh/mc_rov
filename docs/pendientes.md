@@ -2,6 +2,15 @@
 
 > Actualizar esta sección al cerrar cada sesión de trabajo.
 
+**Ficha desde la orden — 2026-09-24:** PR #85 integró en `main` el botón «Imprimir ficha»
+junto a «Nueva revisión» en la pestaña Revisiones. Abre el asistente actual: propone la
+única revisión de reparación de la visita o exige elegir si hay varias; impide imprimir
+desde ese selector una revisión de otra orden. La fase roja de TDD confirmó los dos casos
+ausentes; la versión final pasó pre-commit y CI con 313 pruebas, 0 fallos y 0 errores.
+Producción recibió `19.0.23.5.0` en `68455d0`; `odoo` quedó activo y la base confirmó
+el vínculo del asistente con la orden. No se modificó el PDF ni se actualizó STAGING.
+Queda pendiente únicamente la comprobación visual del botón con una sesión de usuario.
+
 **Chequeo de salida del brazo — 2026-09-24:** en `a4fd897`, publicado en `main`, se agregó
 al catálogo estándar el chequeo RND cuyo nombre visible se acorta en `19.0.23.4.1` a «Salida
 de brazo funcionando correctamente» (nombre de ficha «Salida de brazo»), sección Prueba de
