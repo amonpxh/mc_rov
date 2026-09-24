@@ -2,15 +2,18 @@
 
 > Actualizar esta sección al cerrar cada sesión de trabajo.
 
-**Chequeo de salida del brazo — 2026-09-24:** en la rama
-`feature/chequeo-salida-brazo` se agregó al catálogo estándar «Salida de brazo configurada,
+**Chequeo de salida del brazo — 2026-09-24:** en `a4fd897`, publicado en `main`, se agregó
+al catálogo estándar «Salida de brazo configurada,
 reconocida en software y operativa con brazos de corte y pinza» (nombre de ficha «Salida de
 brazo»), sección Prueba de accesorios, solo para rendimiento. «Manipulador responde» sigue
 siendo un control distinto sobre el accesorio montado. «No aplica» corresponde si el equipo
 carece de salida de brazo, no simplemente si no tiene un brazo conectado durante la prueba.
 Se actualizaron las pruebas de catálogo y generación de checklist. Los recuentos estándar
 se comprueban contra el XML, porque el catálogo instalado puede estar personalizado.
-Cambio local; pendiente ejecutar la suite Odoo y actualizar STAGING.
+Pre-commit pasó y CI confirmó 0 fallos y 0 errores en 310 pruebas. Producción recibió el
+upgrade de `mc_rov`, se reinició `odoo` y la consulta a `odoo_prod` confirmó el registro
+solo para RND; STAGING no se actualizó en esta entrega. Las revisiones RND en borrador ya
+existentes requieren «Actualizar checklist» para incorporar la nueva línea.
 
 ## Trabajo actual — 2026-09-10
 
