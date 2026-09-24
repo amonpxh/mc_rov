@@ -425,8 +425,8 @@ profundidad en terreno **no es contexto: es la verificación de presión hecha p
 
 ### 5.3 Los chequeos
 
-Los 24 del catálogo, más los 6 del armado. **Solo se listan las diferencias respecto de cómo
-está hoy** — los otros 18 aplican a las cuatro baterías tal como ya están configurados.
+Los 24 originales del catálogo, más los 6 del armado. **Solo se listan las diferencias respecto de cómo
+estaba el catálogo al redactar este diseño** — los otros 18 originales aplicaban a las baterías tal como estaban configuradas.
 
 | Chequeo | Hoy | Queda en | Por qué |
 |---|---|---|---|
@@ -438,7 +438,12 @@ está hoy** — los otros 18 aplican a las cuatro baterías tal como ya están c
 | El software de superficie inicia y opera | Rep | **Rend · Terr · Rep** | Se acotó de más en 19.0.15.2.0 |
 | *(nuevos)* Sellos y o-rings · Penetradores apretados · Cableado interno · Foto del interior · Registrar N° de serie | — | **Armado** | Solo verificables antes de cerrar el casco |
 
-**Totales: Rendimiento 18 · Terreno 18 · Reparación 24.**
+**Catálogo estándar desde `19.0.23.4.0`: Rendimiento 19 · Terreno 18 · Reparación 24.**
+El chequeo nuevo «Salida de brazo configurada, reconocida en software y operativa con brazos de
+corte y pinza» pertenece a Prueba de accesorios y se pide solo en rendimiento. Verifica la
+configuración y operación de la salida, no el montaje de un brazo concreto. «Manipulador responde»
+sigue comprobando el accesorio instalado por separado. Si el equipo no tiene salida de brazo,
+se responde «No aplica»; la ausencia de un brazo montado por sí sola no resuelve este chequeo.
 
 > **Corregido en `19.0.22.0.0`, y este § se contradecía con el § 5.2.** Decía que terreno era
 > rendimiento *menos estanqueidad* porque no hay máquina de presión en el muelle — pero el

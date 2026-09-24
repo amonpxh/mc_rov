@@ -64,7 +64,7 @@
          justo lo que el taller tiene que poder hacer cuando una batería no le calza. Los
          registros nuevos SÍ se siguen creando: `noupdate` solo protege lo que ya existe.
 
-         El reparto de abajo es **rendimiento 18 · terreno 18 · reparación 24**, y hay un
+         El reparto de abajo es **rendimiento 19 · terreno 18 · reparación 24**, y hay un
          test que lo cuenta. El criterio que lo ordena es que **un equipo recién armado no
          tiene desgaste**, así que los chequeos que buscan daño de uso son de reparación.
 
@@ -381,7 +381,17 @@
             <field name="aplica_terreno" eval="False"/>
         </record>
 
-        <!-- Accesorios -->
+        <!-- Accesorios. RND comprueba la salida configurable para corte y pinza;
+             la respuesta del manipulador instalado sigue siendo otro chequeo. -->
+        <record id="chequeo_salida_brazo" model="mc.rov.chequeo">
+            <field name="nombre_ficha">Salida de brazo</field>
+            <field name="name">Salida de brazo configurada, reconocida en software y operativa con brazos de corte y pinza</field>
+            <field name="seccion">accesorios</field>
+            <field name="sequence">105</field>
+            <field name="aplica_rendimiento" eval="True"/>
+            <field name="aplica_reparacion" eval="False"/>
+            <field name="aplica_terreno" eval="False"/>
+        </record>
         <record id="chequeo_manipulador" model="mc.rov.chequeo">
             <field name="nombre_ficha">Manipulador</field>
             <field name="name">Manipulador responde</field>

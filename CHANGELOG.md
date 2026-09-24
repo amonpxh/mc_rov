@@ -1,5 +1,13 @@
 # Changelog
 
+## [19.0.23.4.0] — 2026-09-24
+
+### Added
+
+- Chequeo estándar de la salida de brazo en RND: configuración, reconocimiento en software
+  y funcionamiento compatible con brazos de corte y pinza. Permanece separado del chequeo
+  del manipulador montado y no se añade a terreno ni reparación.
+
 ## Unreleased — 19.0.23.1.0
 
 ### Added

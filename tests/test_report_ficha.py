@@ -456,7 +456,7 @@ class TestReporteFicha(RevisionCommon):
 
         self.assertEqual(bloque.text_content().count("Pendiente"), 1)
 
-    def test_catalogo_estandar_tiene_los_24_nombres_para_ficha(self):
+    def test_catalogo_estandar_tiene_los_25_nombres_para_ficha(self):
         self.assertIn("nombre_ficha", self.env["mc.rov.chequeo"]._fields)
         esperados = {
             "chequeo_chasis": "Chasis y estructura",
@@ -482,6 +482,7 @@ class TestReporteFicha(RevisionCommon):
             "chequeo_depth_hold": "Depth hold",
             "chequeo_ruido_vibracion": "Ruido y vibración",
             "chequeo_manipulador": "Manipulador",
+            "chequeo_salida_brazo": "Salida de brazo",
             "chequeo_sonar": "Sonar",
         }
 
