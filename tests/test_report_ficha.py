@@ -682,6 +682,7 @@ class TestReporteFicha(RevisionCommon):
         orden = self.env["repair.order"].create(
             {"product_id": self.product.id, "lot_id": self.lot.id}
         )
+        self.assertTrue(hasattr(orden, "action_imprimir_ficha"))
         with self.assertRaises(UserError):
             orden.action_imprimir_ficha()
 
@@ -706,6 +707,7 @@ class TestReporteFicha(RevisionCommon):
         )
 
     def test_selector_de_orden_no_imprime_una_revision_de_otra_visita(self):
+        self.assertIn("repair_id", self.env["mc.rov.ficha.wizard"]._fields)
         orden = self.env["repair.order"].create(
             {"product_id": self.product.id, "lot_id": self.lot.id}
         )
