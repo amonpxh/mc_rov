@@ -267,7 +267,7 @@ class StockLot(models.Model):
                 order="fecha desc, id desc",
                 limit=1,
             )
-            propuestas["default_%s" % campo] = revision.id
+            propuestas[f"default_{campo}"] = revision.id
         accion = self.env.ref("mc_rov.action_ficha_equipo_nuevo_wizard").read()[0]
         accion["context"] = {"default_lot_id": self.id, **propuestas}
         return accion

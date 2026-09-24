@@ -46,4 +46,3 @@ class McRovFichaEquipoNuevoWizard(models.TransientModel):
     def action_emitir(self):
         """Emite la selección visible en el asistente y entrega el binario guardado."""
         return self._crear_ficha().action_emitir()
-

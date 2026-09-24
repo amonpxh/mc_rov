@@ -102,7 +102,7 @@ class McRovFichaEquipoNuevo(models.Model):
     @api.model
     def _ficha_decimal(self, valor, decimales=1):
         """Presenta magnitudes reales con el separador decimal de la ficha."""
-        return ("%.*f" % (decimales, valor or 0)).replace(".", ",")
+        return f"{valor or 0:.{decimales}f}".replace(".", ",")
 
     @api.model
     def _ficha_etiqueta(self, registro, campo):
@@ -176,7 +176,7 @@ class McRovFichaEquipoNuevo(models.Model):
         contenido, _ = self.env["ir.actions.report"]._render_qweb_pdf(
             "mc_rov.action_report_ficha_equipo_nuevo", self.ids
         )
-        nombre = "Ficha Equipo Nuevo - %s.pdf" % self.name.replace("/", "-")
+        nombre = f"Ficha Equipo Nuevo - {self.name.replace('/', '-')}.pdf"
         adjunto = self.env["ir.attachment"].search(
             [("res_model", "=", self._name), ("res_id", "=", self.id), ("name", "=", nombre)],
             limit=1,
@@ -201,7 +201,7 @@ class McRovFichaEquipoNuevo(models.Model):
         if self.pdf_attachment_id:
             return {
                 "type": "ir.actions.act_url",
-                "url": "/web/content/%s?download=true" % self.pdf_attachment_id.id,
+                "url": f"/web/content/{self.pdf_attachment_id.id}?download=true",
                 "target": "self",
             }
         return self.env.ref("mc_rov.action_report_ficha_equipo_nuevo").report_action(self)

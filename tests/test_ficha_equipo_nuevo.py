@@ -46,9 +46,7 @@ class TestFichaEquipoNuevo(RevisionCommon):
         otro_lote = self.env["stock.lot"].create(
             {"name": "ROV-OTRO", "product_id": self.product.id}
         )
-        trn_otro = self.env["mc.rov.revision"].create(
-            {"lot_id": otro_lote.id, "tipo": "terreno"}
-        )
+        trn_otro = self.env["mc.rov.revision"].create({"lot_id": otro_lote.id, "tipo": "terreno"})
         with self.assertRaises(ValidationError):
             self._ficha(rnd, trn_otro)
         with self.assertRaises(ValidationError):
@@ -77,10 +75,14 @@ class TestFichaEquipoNuevo(RevisionCommon):
             for grupo in self._ficha(rnd, trn)._ficha_grupos_chequeos(trn)
             if grupo["nombre"] == "accesorios"
         )
-        self.assertEqual(grupo["total"], len(trn.chequeo_ids.filtered(lambda l: l.seccion == "accesorios")))
+        self.assertEqual(
+            grupo["total"], len(trn.chequeo_ids.filtered(lambda l: l.seccion == "accesorios"))
+        )
         self.assertEqual(grupo["estilo"], "fail")
-        self.assertIn(accesorio.chequeo_id.nombre_ficha or accesorio.chequeo_id.name,
-                      [linea["nombre"] for linea in grupo["lineas"]])
+        self.assertIn(
+            accesorio.chequeo_id.nombre_ficha or accesorio.chequeo_id.name,
+            [linea["nombre"] for linea in grupo["lineas"]],
+        )
         with self.assertRaises(UserError):
             self._ficha(rnd, trn).action_emitir()
 
