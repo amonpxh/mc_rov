@@ -144,16 +144,17 @@ class RepairOrder(models.Model):
         }
 
     def action_imprimir_ficha(self):
-        """Abre la ficha de esta visita sin adivinar cuál de varios pases entregar."""
+        """Propone el pase más reciente de la visita, dejando cambiarlo en el asistente."""
         self.ensure_one()
         revisiones = self.revision_ids.filtered(lambda revision: revision.tipo == "reparacion")
         if not revisiones:
             raise UserError("Esta orden no tiene revisiones de reparación para imprimir.")
 
+        ultima = max(revisiones, key=lambda revision: (revision.fecha, revision.id))
         accion = self.env.ref("mc_rov.action_ficha_wizard").read()[0]
         accion["context"] = {
             "default_repair_id": self.id,
-            "default_revision_id": revisiones.id if len(revisiones) == 1 else False,
+            "default_revision_id": ultima.id,
         }
         return accion
 
