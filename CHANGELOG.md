@@ -1,5 +1,12 @@
 # Changelog
 
+## [19.0.23.6.0] — 2026-09-24
+
+### Added
+
+- Ficha de equipo nuevo centrada en el número de serie, con RND y TRN elegidas
+  explícitamente, PDF Letter consolidado y copia final almacenada al emitir.
+
 ## [19.0.23.5.1] — 2026-09-24
 
 ### Fixed

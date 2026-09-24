@@ -63,6 +63,40 @@ class TestFichaEquipoNuevo(RevisionCommon):
         self.assertEqual(ficha.estado, "borrador")
         self.assertFalse(ficha.pdf_attachment_id)
 
+    def test_resumen_refleja_checklist_real_y_fallo_rechaza_emision(self):
+        rnd = self._aprobada("rendimiento")
+        trn = self._revision(tipo="terreno")
+        accesorio = trn.chequeo_ids.filtered(lambda linea: linea.seccion == "accesorios")[:1]
+        self.assertTrue(accesorio)
+        self._responder_todo(trn)
+        accesorio.resultado = "no_ok"
+        self._emitir(trn)
+        self.assertEqual(trn.resultado, "rechazado")
+        grupo = next(
+            grupo
+            for grupo in self._ficha(rnd, trn)._ficha_grupos_chequeos(trn)
+            if grupo["nombre"] == "accesorios"
+        )
+        self.assertEqual(grupo["total"], len(trn.chequeo_ids.filtered(lambda l: l.seccion == "accesorios")))
+        self.assertEqual(grupo["estilo"], "fail")
+        self.assertIn(accesorio.chequeo_id.nombre_ficha or accesorio.chequeo_id.name,
+                      [linea["nombre"] for linea in grupo["lineas"]])
+        with self.assertRaises(UserError):
+            self._ficha(rnd, trn).action_emitir()
+
+    def test_emision_guarda_pdf_y_no_cambia_con_ediciones_del_equipo(self):
+        rnd = self._aprobada("rendimiento")
+        trn = self._aprobada("terreno")
+        ficha = self._ficha(rnd, trn)
+        ficha.action_emitir()
+        self.assertEqual(ficha.estado, "emitida")
+        self.assertTrue(ficha.pdf_attachment_id)
+        firma = ficha.pdf_attachment_id.checksum
+        self.lot.mc_chasis = "Inox"
+        self.assertEqual(ficha.pdf_attachment_id.checksum, firma)
+        with self.assertRaises(UserError):
+            ficha.write({"rnd_id": False})
+
     def test_qweb_usa_datos_reales_y_oculta_temperaturas(self):
         self.lot.write(
             {

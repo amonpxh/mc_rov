@@ -3,6 +3,7 @@ import logging
 from dateutil.relativedelta import relativedelta
 
 from odoo import models, fields, api
+from odoo.exceptions import UserError
 
 _logger = logging.getLogger(__name__)
 
@@ -206,6 +207,9 @@ class StockLot(models.Model):
         "lot_id",
         string="Revisiones técnicas",
     )
+    ficha_equipo_nuevo_ids = fields.One2many(
+        "mc.rov.ficha.equipo.nuevo", "lot_id", string="Fichas de equipo nuevo"
+    )
 
     mc_revision_count = fields.Integer(
         string="Revisiones",
@@ -243,6 +247,30 @@ class StockLot(models.Model):
         aceptación de un equipo nuevo. La batería es la misma en los dos casos.
         """
         return self._abrir_revision_nueva("terreno")
+
+    def action_preparar_ficha_equipo_nuevo(self):
+        """Propone las últimas pruebas aceptadas; la persona confirma ambas en el wizard."""
+        self.ensure_one()
+        if not self.es_un_rov:
+            raise UserError("La ficha de equipo nuevo requiere un número de serie ROV.")
+        pruebas = self.env["mc.rov.revision"]
+        propuestas = {}
+        for tipo, campo in (("rendimiento", "rnd_id"), ("terreno", "trn_id")):
+            revision = pruebas.search(
+                [
+                    ("lot_id", "=", self.id),
+                    ("tipo", "=", tipo),
+                    ("repair_id", "=", False),
+                    ("estado", "=", "confirmado"),
+                    ("resultado", "in", ["aprobado", "aprobado_con_observaciones"]),
+                ],
+                order="fecha desc, id desc",
+                limit=1,
+            )
+            propuestas["default_%s" % campo] = revision.id
+        accion = self.env.ref("mc_rov.action_ficha_equipo_nuevo_wizard").read()[0]
+        accion["context"] = {"default_lot_id": self.id, **propuestas}
+        return accion
 
     def _abrir_revision_nueva(self, tipo):
         self.ensure_one()

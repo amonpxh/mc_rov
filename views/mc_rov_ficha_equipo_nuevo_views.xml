@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_ficha_equipo_nuevo_wizard_form" model="ir.ui.view">
+        <field name="name">mc.rov.ficha.equipo.nuevo.wizard.form</field>
+        <field name="model">mc.rov.ficha.equipo.nuevo.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Preparar ficha de equipo nuevo">
+                <group>
+                    <field name="lot_id" readonly="1"/>
+                    <field name="rnd_id" domain="[('lot_id', '=', lot_id), ('tipo', '=', 'rendimiento'), ('repair_id', '=', False), ('estado', '=', 'confirmado'), ('resultado', 'in', ['aprobado', 'aprobado_con_observaciones'])]"/>
+                    <field name="trn_id" domain="[('lot_id', '=', lot_id), ('tipo', '=', 'terreno'), ('repair_id', '=', False), ('estado', '=', 'confirmado'), ('resultado', 'in', ['aprobado', 'aprobado_con_observaciones'])]"/>
+                    <field name="fecha_emision"/>
+                    <field name="responsable_id"/>
+                    <field name="observacion"/>
+                </group>
+                <footer>
+                    <button name="action_emitir" type="object" string="Emitir ficha" class="btn-primary"/>
+                    <button name="action_guardar_borrador" type="object" string="Guardar borrador" class="btn-secondary ms-2"/>
+                    <button string="Cancelar" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_ficha_equipo_nuevo_wizard" model="ir.actions.act_window">
+        <field name="name">Preparar ficha de equipo nuevo</field>
+        <field name="res_model">mc.rov.ficha.equipo.nuevo.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <record id="view_ficha_equipo_nuevo_form" model="ir.ui.view">
+        <field name="name">mc.rov.ficha.equipo.nuevo.form</field>
+        <field name="model">mc.rov.ficha.equipo.nuevo</field>
+        <field name="arch" type="xml">
+            <form string="Ficha de equipo nuevo">
+                <header>
+                    <button name="action_emitir" type="object" string="Emitir ficha"
+                            class="btn-primary" invisible="estado != 'borrador'"/>
+                    <button name="action_descargar" type="object" string="Imprimir ficha"
+                            class="btn-secondary" invisible="estado != 'emitida'"/>
+                    <button name="action_descargar" type="object" string="Vista previa"
+                            class="btn-secondary" invisible="estado != 'borrador'"/>
+                    <field name="estado" widget="statusbar" statusbar_visible="borrador,emitida"/>
+                </header>
+                <sheet>
+                    <h1><field name="name" readonly="1"/></h1>
+                    <group>
+                        <group>
+                            <field name="lot_id" readonly="estado == 'emitida'"/>
+                            <field name="cliente_nombre" readonly="1"/>
+                            <field name="fecha_emision" readonly="estado == 'emitida'"/>
+                            <field name="responsable_id" readonly="estado == 'emitida'"/>
+                        </group>
+                        <group>
+                            <field name="rnd_id" readonly="estado == 'emitida'"
+                                   domain="[('lot_id', '=', lot_id), ('tipo', '=', 'rendimiento'), ('repair_id', '=', False), ('estado', '=', 'confirmado'), ('resultado', 'in', ['aprobado', 'aprobado_con_observaciones'])]"/>
+                            <field name="trn_id" readonly="estado == 'emitida'"
+                                   domain="[('lot_id', '=', lot_id), ('tipo', '=', 'terreno'), ('repair_id', '=', False), ('estado', '=', 'confirmado'), ('resultado', 'in', ['aprobado', 'aprobado_con_observaciones'])]"/>
+                            <field name="pdf_attachment_id" readonly="1" invisible="not pdf_attachment_id"/>
+                        </group>
+                    </group>
+                    <field name="observacion" readonly="estado == 'emitida'"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>
