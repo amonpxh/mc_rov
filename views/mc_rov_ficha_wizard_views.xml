@@ -6,7 +6,9 @@
         <field name="arch" type="xml">
             <form string="Imprimir ficha para el cliente">
                 <group>
-                    <field name="revision_id" readonly="1"/>
+                    <field name="repair_id" invisible="1"/>
+                    <field name="revision_id" readonly="not repair_id"
+                           domain="[('tipo', '=', 'reparacion'), ('repair_id', '=', repair_id)]"/>
                     <field name="tipo" invisible="1"/>
                     <field name="mostrar_firmas"/>
                     <field name="mostrar_sellos" invisible="tipo != 'reparacion'"/>

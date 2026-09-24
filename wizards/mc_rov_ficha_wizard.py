@@ -8,6 +8,7 @@ class McRovFichaWizard(models.TransientModel):
     _name = "mc.rov.ficha.wizard"
     _description = "Imprimir ficha ROV"
 
+    repair_id = fields.Many2one("repair.order", ondelete="cascade")
     revision_id = fields.Many2one("mc.rov.revision", required=True, ondelete="cascade")
     tipo = fields.Selection(related="revision_id.tipo")
     mostrar_firmas = fields.Boolean(string="Espacios para firmas", default=True)
@@ -18,6 +19,10 @@ class McRovFichaWizard(models.TransientModel):
     def action_imprimir(self):
         """Entrega solo la revisión de reparación, sin modificar sus resultados."""
         self.ensure_one()
+        if self.repair_id:
+            self.repair_id.check_access("read")
+            if self.revision_id.repair_id != self.repair_id:
+                raise UserError("Seleccione una revisión de esta orden de reparación.")
         self.revision_id.check_access("read")
         if self.revision_id.tipo != "reparacion":
             raise UserError(

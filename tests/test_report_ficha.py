@@ -695,6 +695,10 @@ class TestReporteFicha(RevisionCommon):
         self._revision(repair_id=orden.id)
         accion = orden.action_imprimir_ficha()
         self.assertFalse(accion["context"].get("default_revision_id"))
+        wizard = self.env["mc.rov.ficha.wizard"].create(
+            {"repair_id": orden.id, "revision_id": primera.id}
+        )
+        self.assertEqual(wizard.action_imprimir()["report_name"], "mc_rov.report_ficha")
 
         vista = etree.fromstring(
             self.env.ref("mc_rov.view_repair_order_form_mc_rov").arch_db.encode()

@@ -169,6 +169,9 @@
                         <button name="action_nueva_revision" type="object"
                                 string="Nueva revisión" class="btn-primary"
                                 invisible="not lot_id"/>
+                        <button name="action_imprimir_ficha" type="object"
+                                string="Imprimir ficha" class="btn-secondary"
+                                invisible="not revision_ids"/>
                     </div>
                     <!-- El campo queda readonly para que no se creen ni borren revisiones
                          desde aquí, y el botón «Abrir» lleva a cada una a su propio
