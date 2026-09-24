@@ -85,8 +85,8 @@ el estado *antes* y *después* del trabajo. Lo reemplazan dos cosas:
    crearlas, no porque el sistema las exigiera. `numero_en_visita` distingue cuál es cuál.
 
 La pestaña Revisiones de la orden también ofrece **«Imprimir ficha»**. Abre el mismo
-asistente de la revisión: con una sola revisión de reparación la propone; con varias deja
-la elección al usuario para no entregar por accidente el diagnóstico inicial como re-test.
+asistente de la revisión: propone la revisión de reparación más reciente de la visita
+por fecha e ID y deja al usuario elegir otra cuando corresponda.
 El selector solo acepta revisiones de esa orden y el PDF conserva la marca BORRADOR cuando
 corresponde.
 

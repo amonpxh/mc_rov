@@ -1,5 +1,12 @@
 # Changelog
 
+## [19.0.23.5.1] — 2026-09-24
+
+### Fixed
+
+- «Imprimir ficha» propone la revisión de reparación más reciente de la orden y deja
+  espacio visible respecto de «Nueva revisión». La selección sigue siendo editable.
+
 ## [19.0.23.5.0] — 2026-09-24
 
 ### Added

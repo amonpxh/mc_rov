@@ -170,7 +170,7 @@
                                 string="Nueva revisión" class="btn-primary"
                                 invisible="not lot_id"/>
                         <button name="action_imprimir_ficha" type="object"
-                                string="Imprimir ficha" class="btn-secondary"
+                                string="Imprimir ficha" class="btn-secondary ms-2"
                                 invisible="not revision_ids"/>
                     </div>
                     <!-- El campo queda readonly para que no se creen ni borren revisiones
