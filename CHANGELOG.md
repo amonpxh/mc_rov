@@ -1,5 +1,12 @@
 # Changelog
 
+## [19.0.23.5.0] — 2026-09-24
+
+### Added
+
+- La orden de reparación abre la ficha desde la pestaña Revisiones. Si tiene varias revisiones,
+  el asistente exige elegir cuál imprimir y valida que pertenezca a la misma orden.
+
 ## [19.0.23.4.1] — 2026-09-24
 
 ### Changed

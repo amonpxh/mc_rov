@@ -677,3 +677,49 @@ class TestReporteFicha(RevisionCommon):
         accion = wizard.action_imprimir()
         self.assertEqual(accion["report_name"], "mc_rov.report_ficha")
         self.assertFalse(accion["context"]["rov_options"]["firmas"])
+
+    def test_orden_ofrece_selector_sin_escoger_una_de_varias_revisiones(self):
+        orden = self.env["repair.order"].create(
+            {"product_id": self.product.id, "lot_id": self.lot.id}
+        )
+        with self.assertRaises(UserError):
+            orden.action_imprimir_ficha()
+
+        primera = self._revision(repair_id=orden.id)
+        accion = orden.action_imprimir_ficha()
+        self.assertEqual(accion["res_model"], "mc.rov.ficha.wizard")
+        self.assertEqual(accion["context"]["default_repair_id"], orden.id)
+        self.assertEqual(accion["context"]["default_revision_id"], primera.id)
+
+        self._revision(repair_id=orden.id)
+        accion = orden.action_imprimir_ficha()
+        self.assertFalse(accion["context"].get("default_revision_id"))
+        wizard = self.env["mc.rov.ficha.wizard"].create(
+            {"repair_id": orden.id, "revision_id": primera.id}
+        )
+        self.assertEqual(wizard.action_imprimir()["report_name"], "mc_rov.report_ficha")
+
+        vista = etree.fromstring(
+            self.env.ref("mc_rov.view_repair_order_form_mc_rov").arch_db.encode()
+        )
+        self.assertTrue(
+            vista.xpath(
+                "//button[@name='action_nueva_revision']"
+                "/following-sibling::button[@name='action_imprimir_ficha']"
+            )
+        )
+
+    def test_selector_de_orden_no_imprime_una_revision_de_otra_visita(self):
+        orden = self.env["repair.order"].create(
+            {"product_id": self.product.id, "lot_id": self.lot.id}
+        )
+        otra_orden = self.env["repair.order"].create(
+            {"product_id": self.product.id, "lot_id": self.lot.id}
+        )
+        ajena = self._revision(repair_id=otra_orden.id)
+        wizard = self.env["mc.rov.ficha.wizard"].create(
+            {"repair_id": orden.id, "revision_id": ajena.id}
+        )
+
+        with self.assertRaises(UserError):
+            wizard.action_imprimir()

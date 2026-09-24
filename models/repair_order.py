@@ -143,6 +143,20 @@ class RepairOrder(models.Model):
             "target": "current",
         }
 
+    def action_imprimir_ficha(self):
+        """Abre la ficha de esta visita sin adivinar cuál de varios pases entregar."""
+        self.ensure_one()
+        revisiones = self.revision_ids.filtered(lambda revision: revision.tipo == "reparacion")
+        if not revisiones:
+            raise UserError("Esta orden no tiene revisiones de reparación para imprimir.")
+
+        accion = self.env.ref("mc_rov.action_ficha_wizard").read()[0]
+        accion["context"] = {
+            "default_repair_id": self.id,
+            "default_revision_id": revisiones.id if len(revisiones) == 1 else False,
+        }
+        return accion
+
     # Detalle técnico de los trabajos ejecutados (ver mc.rov.linea.falla)
     linea_falla_ids = fields.One2many(
         "mc.rov.linea.falla", "repair_id", string="Trabajos realizados"
