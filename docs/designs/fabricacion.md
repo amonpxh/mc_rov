@@ -439,9 +439,9 @@ estaba el catálogo al redactar este diseño** — los otros 18 originales aplic
 | *(nuevos)* Sellos y o-rings · Penetradores apretados · Cableado interno · Foto del interior · Registrar N° de serie | — | **Armado** | Solo verificables antes de cerrar el casco |
 
 **Catálogo estándar desde `19.0.23.4.0`: Rendimiento 19 · Terreno 18 · Reparación 24.**
-El chequeo nuevo «Salida de brazo configurada, reconocida en software y operativa con brazos de
-corte y pinza» pertenece a Prueba de accesorios y se pide solo en rendimiento. Verifica la
-configuración y operación de la salida, no el montaje de un brazo concreto. «Manipulador responde»
+El chequeo «Salida de brazo funcionando correctamente» pertenece a Prueba de accesorios y se
+pide solo en rendimiento. Verifica que el software reconozca la salida, que esté configurada y
+que funcione con brazos de corte y pinza; no evalúa el montaje de un brazo concreto. «Manipulador responde»
 sigue comprobando el accesorio instalado por separado. Si el equipo no tiene salida de brazo,
 se responde «No aplica»; la ausencia de un brazo montado por sí sola no resuelve este chequeo.
 

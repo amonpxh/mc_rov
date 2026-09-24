@@ -385,7 +385,7 @@
              la respuesta del manipulador instalado sigue siendo otro chequeo. -->
         <record id="chequeo_salida_brazo" model="mc.rov.chequeo">
             <field name="nombre_ficha">Salida de brazo</field>
-            <field name="name">Salida de brazo configurada, reconocida en software y operativa con brazos de corte y pinza</field>
+            <field name="name">Salida de brazo funcionando correctamente</field>
             <field name="seccion">accesorios</field>
             <field name="sequence">105</field>
             <field name="aplica_rendimiento" eval="True"/>

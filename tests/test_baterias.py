@@ -6,6 +6,7 @@ crecer sin pasar por un PR. Lo que se protege acá es el reparto que el módulo 
 """
 
 from pathlib import Path
+from runpy import run_path
 
 from lxml import etree
 from odoo.tests import tagged
@@ -69,11 +70,7 @@ class TestBaterias(RevisionCommon):
 
     def test_salida_de_brazo_se_genera_solo_en_rendimiento(self):
         brazo = self.env.ref("mc_rov.chequeo_salida_brazo")
-        self.assertEqual(
-            brazo.name,
-            "Salida de brazo configurada, reconocida en software y operativa "
-            "con brazos de corte y pinza",
-        )
+        self.assertEqual(brazo.name, "Salida de brazo funcionando correctamente")
         self.assertEqual(brazo.nombre_ficha, "Salida de brazo")
         self.assertEqual(brazo.seccion, "accesorios")
         self.assertTrue(brazo.aplica_rendimiento)
@@ -84,6 +81,31 @@ class TestBaterias(RevisionCommon):
             revision = self._revision(tipo=tipo)
             lineas = revision.chequeo_ids.filtered(lambda linea: linea.chequeo_id == brazo)
             self.assertEqual(len(lineas), 1 if tipo == "rendimiento" else 0)
+
+    def test_renombre_salida_de_brazo_respeta_catalogo_personalizado(self):
+        brazo = self.env.ref("mc_rov.chequeo_salida_brazo")
+        nombre_anterior = (
+            "Salida de brazo configurada, reconocida en software y operativa "
+            "con brazos de corte y pinza"
+        )
+        otro = self._chequeo_catalogo(name=nombre_anterior)
+        brazo.name = nombre_anterior
+        self.env.flush_all()
+
+        migrate = run_path(
+            str(Path(__file__).resolve().parents[1] / "migrations/19.0.23.4.1/post-migrate.py")
+        )["migrate"]
+        migrate(self.env.cr, "19.0.23.4.0")
+        self.env.invalidate_all()
+        self.assertEqual(brazo.name, "Salida de brazo funcionando correctamente")
+        self.assertEqual(brazo.nombre_ficha, "Salida de brazo")
+        self.assertEqual(otro.name, nombre_anterior)
+
+        brazo.name = "Nombre propio del taller"
+        self.env.flush_all()
+        migrate(self.env.cr, "19.0.23.4.0")
+        self.env.invalidate_all()
+        self.assertEqual(brazo.name, "Nombre propio del taller")
 
     def test_los_de_desgaste_son_solo_de_reparacion(self):
         """Los cinco que el § 5.3 mueve, nombrados: el total no dice cuáles son."""

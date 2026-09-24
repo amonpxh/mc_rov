@@ -3,9 +3,9 @@
 > Actualizar esta sección al cerrar cada sesión de trabajo.
 
 **Chequeo de salida del brazo — 2026-09-24:** en `a4fd897`, publicado en `main`, se agregó
-al catálogo estándar «Salida de brazo configurada,
-reconocida en software y operativa con brazos de corte y pinza» (nombre de ficha «Salida de
-brazo»), sección Prueba de accesorios, solo para rendimiento. «Manipulador responde» sigue
+al catálogo estándar el chequeo RND cuyo nombre visible se acorta en `19.0.23.4.1` a «Salida
+de brazo funcionando correctamente» (nombre de ficha «Salida de brazo»), sección Prueba de
+accesorios, solo para rendimiento. «Manipulador responde» sigue
 siendo un control distinto sobre el accesorio montado. «No aplica» corresponde si el equipo
 carece de salida de brazo, no simplemente si no tiene un brazo conectado durante la prueba.
 Se actualizaron las pruebas de catálogo y generación de checklist. Los recuentos estándar

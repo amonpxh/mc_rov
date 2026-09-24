@@ -1,5 +1,12 @@
 # Changelog
 
+## [19.0.23.4.1] — 2026-09-24
+
+### Changed
+
+- El chequeo de RND se muestra como «Salida de brazo funcionando correctamente». La migración
+  cambia solo el nombre estándar anterior y respeta los nombres editados por el taller.
+
 ## [19.0.23.4.0] — 2026-09-24
 
 ### Added
