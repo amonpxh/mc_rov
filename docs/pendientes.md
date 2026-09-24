@@ -2,6 +2,14 @@
 
 > Actualizar esta sección al cerrar cada sesión de trabajo.
 
+**Última ficha desde la orden — 2026-09-24:** PR #86 integró en `main` la propuesta
+automática de la revisión de reparación más reciente de la orden, ordenada por fecha e ID.
+El asistente permite escoger otra revisión de la misma orden. El botón «Imprimir ficha»
+ahora tiene separación respecto de «Nueva revisión». TDD comprobó la selección y el margen;
+CI de la rama y del merge pasó con 313 pruebas, 0 fallos y 0 errores. Producción recibió
+`19.0.23.5.1` en `319015c`; `odoo` quedó activo. STAGING no se actualizó. Falta únicamente
+comprobar el espaciado en una sesión de usuario.
+
 **Ficha desde la orden — 2026-09-24:** PR #85 integró en `main` el botón «Imprimir ficha»
 junto a «Nueva revisión» en la pestaña Revisiones. Abre el asistente actual: propone la
 única revisión de reparación de la visita o exige elegir si hay varias; impide imprimir
