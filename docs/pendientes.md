@@ -10,8 +10,9 @@ La suite focalizada pasó en STAGING. Se generaron cinco PDFs con datos temporal
 revertidos: real, rechazado, chequeos extensos, nombres largos y datos técnicos largos.
 Los cinco son de una página Letter, con pie completo; el rechazado conserva BORRADOR.
 Los chequeos extensos usan resumen por grupo y muestran las excepciones, manteniendo el
-detalle completo en las revisiones de Odoo. Falta aprobación visual del PDF real y CI del
-último ajuste antes de integrar el PR.
+detalle completo en las revisiones de Odoo. El commit `b6dd294` pasó pre-commit y CI
+(320 pruebas, 0 fallos, 0 errores). Falta aprobación visual del PDF real antes de
+integrar el PR.
 
 **Impresión de ficha reparada — 2026-09-25:** el error `wkhtmltopdf -11` en producción
 se reprodujo con la revisión de reparación ID 25 aplicando el límite de memoria de 1 GiB
