@@ -2,6 +2,24 @@
 
 > Actualizar esta sección al cerrar cada sesión de trabajo.
 
+**Ficha de equipo nuevo — 2026-09-25:** la rama `feature/ficha-equipo-nuevo-v49`
+(PR borrador #87) contiene el modelo FEN persistente, el asistente que selecciona RND/TRN,
+el PDF Letter basado en `D4.130A_baseline_meta_final` y sus pruebas. STAGING tiene la
+última variante QWeb para revisión visual; producción aún no recibe la ficha nueva.
+La suite focalizada pasó en STAGING. Se generaron cinco PDFs con datos temporales
+revertidos: real, rechazado, chequeos extensos, nombres largos y datos técnicos largos.
+Los cinco son de una página Letter, con pie completo; el rechazado conserva BORRADOR.
+Los chequeos extensos usan resumen por grupo y muestran las excepciones, manteniendo el
+detalle completo en las revisiones de Odoo. Falta aprobación visual del PDF real y CI del
+último ajuste antes de integrar el PR.
+
+**Impresión de ficha reparada — 2026-09-25:** el error `wkhtmltopdf -11` en producción
+se reprodujo con la revisión de reparación ID 25 aplicando el límite de memoria de 1 GiB
+del worker; la misma revisión generó un PDF válido con 2 GiB. Se respaldó
+`/etc/odoo/odoo.conf`, se elevó únicamente `limit_memory_hard` a 2 GiB y se reinició
+`odoo`; `limit_memory_soft` permaneció en 512 MiB. Los workers nuevos muestran el límite
+de 2 GiB, el login HTTP responde 200 y el render de la revisión ID 25 volvió a pasar.
+
 **Última ficha desde la orden — 2026-09-24:** PR #86 integró en `main` la propuesta
 automática de la revisión de reparación más reciente de la orden, ordenada por fecha e ID.
 El asistente permite escoger otra revisión de la misma orden. El botón «Imprimir ficha»

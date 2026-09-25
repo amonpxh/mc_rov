@@ -26,61 +26,61 @@
         <div class="article fen-sheet" t-att-data-oe-model="o._name" t-att-data-oe-id="o.id">
             <style>
                 html, body, .fen-sheet.article { margin:0 !important; padding:0 !important; }
-                .fen-sheet { width:100% !important; color:#243444; background:#fff; font-family:'DejaVu Sans',Arial,sans-serif; font-size:7.2pt; line-height:1.22; }
+                .fen-sheet { width:100% !important; color:#243444; background:#fff; font-family:'DejaVu Sans',Arial,sans-serif; font-size:9.2pt; line-height:1.22; }
                 .fen-sheet * { box-sizing:border-box; }
-                .fen-page { position:relative; width:100%; min-height:792pt; padding:0 8.6pt 74pt; }
-                .fen-header { position:relative; height:61pt; margin:0 -8.6pt 8pt; padding:7pt 13pt 5pt; background:#00569a; color:#fff; }
-                .fen-logo { width:104pt; height:auto; display:block; }
-                .fen-title { position:absolute; top:38pt; left:13pt; margin:0; color:#fff; font-family:Georgia,serif; font-size:14.5pt; line-height:1; font-weight:bold; }
-                .fen-badge { position:absolute; right:14pt; top:16pt; padding:5.5pt 9pt 5pt; border-radius:3pt; background:#fff; color:#005aa0; font-family:'DejaVu Sans Mono','Courier New',monospace; font-size:7.5pt; font-weight:bold; }
+                .fen-page { position:relative; width:100%; min-height:958pt; padding:0 8.6pt 14pt; }
+                .fen-header { position:relative; height:75pt; margin:0 -8.6pt 8pt; padding:7pt 13pt 5pt; background:#00569a; color:#fff; }
+                .fen-logo { position:absolute; left:13pt; top:-11pt; width:124pt; height:auto; display:block; }
+                .fen-title { position:absolute; top:47pt; left:13pt; margin:0; color:#fff; font-family:Georgia,serif; font-size:22pt; line-height:1; font-weight:bold; }
+                .fen-badge { position:absolute; right:14pt; top:18pt; padding:5.5pt 9pt 5pt; border-radius:3pt; background:#fff; color:#005aa0; font-family:'DejaVu Sans Mono','Courier New',monospace; font-size:10pt; font-weight:bold; }
                 .fen-watermark { position:absolute; top:92pt; left:95pt; color:#dce4ea; font-size:43pt; font-weight:bold; transform:rotate(-17deg); z-index:0; }
                 .fen-identity { width:100%; margin-bottom:6pt; border-collapse:separate; border-spacing:3pt 0; table-layout:fixed; }
-                .fen-identity td { width:20%; padding:5pt 5.5pt 4pt; height:38pt; vertical-align:top; border:1px solid #d3e1ec; border-radius:4pt; background:#edf2f5; overflow-wrap:break-word; }
-                .fen-label { display:block; color:#526b80; font-family:'DejaVu Sans Mono','Courier New',monospace; font-weight:bold; font-size:6.18pt; text-transform:uppercase; letter-spacing:.035em; line-height:1.05; }
-                .fen-id-value { display:block; margin-top:4pt; font-family:'DejaVu Sans Mono','Courier New',monospace; font-size:7.95pt; line-height:1.1; }
+                .fen-identity td { width:20%; padding:5pt 5.5pt 4pt; height:48pt; vertical-align:top; border:1px solid #d3e1ec; border-radius:4pt; background:#edf2f5; overflow-wrap:break-word; }
+                .fen-label { display:block; color:#526b80; font-family:'DejaVu Sans Mono','Courier New',monospace; font-weight:bold; font-size:8.2pt; text-transform:uppercase; letter-spacing:.035em; line-height:1.05; }
+                .fen-id-value { display:block; margin-top:4pt; font-family:'DejaVu Sans Mono','Courier New',monospace; font-size:10.5pt; line-height:1.1; }
+                .fen-id-long { margin-top:1pt; font-size:8.2pt; line-height:.95; }
                 .fen-card { position:relative; margin:0 0 5pt; padding:7.5pt 8.5pt; border:1px solid #d3e1ec; border-radius:5pt; background:#fff; page-break-inside:avoid; }
-                .fen-section-title { margin:0 0 6pt; color:#005aa0; font-size:7.6pt; line-height:1.08; font-weight:bold; letter-spacing:.04em; text-transform:uppercase; }
+                .fen-section-title { margin:0 0 7pt; color:#005aa0; font-size:10pt; line-height:1.08; font-weight:bold; letter-spacing:.04em; text-transform:uppercase; }
                 .fen-config-table { width:100%; border-collapse:separate; border-spacing:5pt 0; table-layout:fixed; }
-                .fen-config-col { width:50%; vertical-align:top; padding:0; }
-                .fen-config-group { margin-bottom:5pt; padding:5pt 6pt 4pt; border:1px solid #d3e1ec; border-radius:4pt; background:#edf3f8; }
-                .fen-config-group:last-child { margin-bottom:0; }
-                .fen-subtitle { margin:0 0 4.5pt; color:#005aa0; font-size:6.35pt; line-height:1.08; font-weight:bold; }
-                .fen-row { display:table; width:100%; padding:1.7pt 0; border-top:1px solid #e2ebf1; font-size:6.85pt; line-height:1.2; }
-                .fen-row:first-of-type { border-top:0; }
+                .fen-config-col { width:50%; vertical-align:top; padding:3pt 10pt; border:1px solid #d3e1ec; border-radius:4pt; background:#fff; }
+                .fen-config-group { min-height:98pt; margin:0; padding:6pt 3pt 4pt; border-bottom:1px solid #d3e1ec; background:#fff; }
+                .fen-config-group:last-child { border-bottom:0; }
+                .fen-subtitle { margin:0 0 5pt; color:#005aa0; font-size:9pt; line-height:1.08; font-weight:bold; text-transform:uppercase; letter-spacing:.035em; }
+                .fen-row { display:table; width:100%; padding:1pt 0; font-size:10.5pt; line-height:1.16; }
                 .fen-key, .fen-value { display:table-cell; vertical-align:top; overflow-wrap:break-word; }
                 .fen-key { width:47%; color:#526b80; }
-                .fen-value { width:53%; text-align:right; font-family:'DejaVu Sans Mono','Courier New',monospace; font-size:6.7pt; }
+                .fen-value { width:53%; text-align:right; font-family:'DejaVu Sans Mono','Courier New',monospace; font-size:10.3pt; }
                 .fen-validation { margin:0 0 5pt; padding-bottom:6pt; }
                 .fen-val-table { width:100%; margin-top:5pt; border-collapse:separate; border-spacing:0; table-layout:fixed; border:1px solid #d3e1ec; border-radius:4pt; background:#edf3f8; }
                 .fen-val-table + .fen-val-table { margin-top:5.5pt; }
                 .fen-val-head, .fen-val-mid, .fen-val-side { height:174pt; vertical-align:top; padding-top:3.1pt; padding-bottom:5pt; }
-                .fen-val-head { width:82pt; padding-left:6pt; padding-right:5pt; border-right:1px solid #d3e1ec; background:#f4f7f9; }
+                .fen-val-head { width:110pt; padding-left:6pt; padding-right:5pt; border-right:1px solid #d3e1ec; background:#f4f7f9; }
                 .fen-val-mid { padding-left:5pt; padding-right:5pt; }
-                .fen-val-side { width:250pt; padding-left:6pt; padding-right:6pt; border-left:1px solid #d3e1ec; background:#f4f7f9; }
-                .fen-revision-name { color:#005aa0; font-family:'DejaVu Sans Mono','Courier New',monospace; font-size:8pt; font-weight:bold; }
-                .fen-revision-meta { margin-top:5pt; color:#526b80; font-size:5.8pt; line-height:1.3; overflow-wrap:break-word; }
-                .fen-status { display:inline-block; margin-top:6pt; padding:3pt 4pt; border-radius:3pt; font-size:5.7pt; line-height:1.18; font-weight:bold; }
+                .fen-val-side { width:333pt; padding-left:6pt; padding-right:6pt; border-left:1px solid #d3e1ec; background:#f4f7f9; }
+                .fen-revision-name { color:#005aa0; font-family:'DejaVu Sans Mono','Courier New',monospace; font-size:10.7pt; font-weight:bold; }
+                .fen-revision-meta { margin-top:5pt; color:#526b80; font-size:8pt; line-height:1.3; overflow-wrap:break-word; }
+                .fen-status { display:inline-block; margin-top:6pt; padding:3pt 4pt; border-radius:3pt; font-size:7.6pt; line-height:1.18; font-weight:bold; }
                 .fen-status-ok { background:#e3f4e9; color:#007b4b; }
                 .fen-status-warning { background:#fff0d4; color:#92600d; }
                 .fen-status-fail { background:#fce6e4; color:#b42318; }
                 .fen-status-pending { background:#e9edf0; color:#667a89; }
-                .fen-vr-title { margin:0 0 3pt; color:#005aa0; font-size:6.3pt; font-weight:bold; text-transform:uppercase; letter-spacing:.04em; }
+                .fen-vr-title { margin:0 0 4pt; color:#005aa0; font-size:8.5pt; font-weight:bold; text-transform:uppercase; letter-spacing:.04em; }
                 .fen-vr-section + .fen-vr-section { margin-top:4pt; padding-top:4pt; border-top:1px solid #d3e1ec; }
                 .fen-vr-pair { width:100%; border-collapse:separate; border-spacing:3pt 0; table-layout:fixed; }
                 .fen-vr-pair td { width:50%; padding:0; vertical-align:top; }
-                .fen-vr-group-title { margin:1pt 0 3pt; color:#005aa0; font-size:5.9pt; font-weight:bold; }
-                .fen-vr-line { display:table; width:100%; margin:1.3pt 0; font-size:5.85pt; line-height:1.16; }
+                .fen-vr-group-title { margin:1pt 0 3pt; color:#005aa0; font-size:8pt; font-weight:bold; }
+                .fen-vr-line { display:table; width:100%; margin:1.3pt 0; font-size:8.6pt; line-height:1.16; }
                 .fen-vr-line span, .fen-vr-line strong { display:table-cell; vertical-align:top; }
                 .fen-vr-line span { width:44%; color:#526b80; }
                 .fen-vr-line strong { width:56%; text-align:right; font-family:'DejaVu Sans Mono','Courier New',monospace; font-weight:normal; overflow-wrap:break-word; }
                 .fen-vr-line .fen-ok { color:#007b4b; }
                 .fen-vr-line .fen-arrow { font-weight:normal; }
-                .fen-check-legend { margin:0 0 4pt; color:#667a89; font-size:5.4pt; }
+                .fen-check-legend { margin:0 0 4pt; color:#667a89; font-size:7.2pt; }
                 .fen-check-legend .ok { color:#007b4b; }
                 .fen-check-legend .fail { color:#b42318; }
                 .fen-check-legend .na { font-style:italic; }
                 .fen-check-grid { width:100%; font-size:0; }
-                .fen-check-item { display:inline-block; width:48%; margin:0 1% 3pt; padding:2.2pt 3pt; vertical-align:top; border:1px solid #dbe6ed; border-radius:3pt; background:#fff; font-size:6pt; line-height:1.18; page-break-inside:avoid; }
+                .fen-check-item { display:inline-block; width:48%; margin:0 1% 3pt; padding:2.2pt 3pt; vertical-align:top; border:1px solid #dbe6ed; border-radius:3pt; background:#fff; font-size:8pt; line-height:1.18; page-break-inside:avoid; }
                 .fen-check-head { display:table; width:100%; margin-bottom:1.2pt; }
                 .fen-check-name, .fen-check-score { display:table-cell; font-weight:bold; }
                 .fen-check-name { color:#334b5b; }
@@ -89,16 +89,20 @@
                 .fen-check-score.fail, .fen-check-line.fail { color:#b42318; }
                 .fen-check-score.na, .fen-check-line.na { color:#667a89; font-style:italic; }
                 .fen-check-score.pending, .fen-check-line.pending { color:#667a89; }
-                .fen-check-detail { color:#4a6070; font-size:5.7pt; line-height:1.2; overflow-wrap:break-word; }
+                .fen-check-detail { color:#4a6070; font-size:7.7pt; line-height:1.2; overflow-wrap:break-word; }
+                .fen-checks-compact .fen-check-item { margin-bottom:2pt; padding:1.7pt 2.5pt; font-size:7.6pt; line-height:1.12; }
+                .fen-checks-compact .fen-check-detail { font-size:7.1pt; line-height:1.12; }
+                .fen-checks-summary .fen-check-item { margin-bottom:2pt; padding:1.7pt 2.5pt; font-size:7.6pt; line-height:1.12; }
+                .fen-checks-summary .fen-check-detail { font-size:7.1pt; line-height:1.12; }
                 .fen-check-separator { color:#96a8b5; }
-                .fen-observations { min-height:58pt; }
-                .fen-observation-text { font-family:'DejaVu Serif',Georgia,serif; font-size:8.1pt; line-height:1.35; font-style:italic; white-space:pre-line; }
-                .fen-amber-note { margin-top:6pt; padding:5pt 6pt; border-left:2pt solid #c48b36; background:#fff4dd; color:#725119; font-size:6.8pt; line-height:1.25; }
-                .fen-signatures { position:absolute; left:14pt; right:14pt; bottom:40pt; width:calc(100% - 28pt); border-collapse:separate; border-spacing:12pt 0; table-layout:fixed; }
+                .fen-observations { min-height:105pt; }
+                .fen-observation-text { font-family:'DejaVu Serif',Georgia,serif; font-size:11.7pt; line-height:1.35; font-style:italic; white-space:pre-line; }
+                .fen-amber-note { margin-top:7pt; padding:5pt 6pt; border-left:2pt solid #c48b36; background:#fff4dd; color:#725119; font-size:8.5pt; line-height:1.25; }
+                .fen-signatures { width:100%; margin-top:7pt; border-collapse:separate; border-spacing:12pt 0; table-layout:fixed; }
                 .fen-signatures td { width:25%; padding:0; vertical-align:bottom; }
                 .fen-sign-line { height:1pt; background:#738695; }
-                .fen-sign-label { padding-top:3pt; color:#536779; font-family:'DejaVu Sans Mono','Courier New',monospace; font-size:6.8pt; text-transform:uppercase; white-space:nowrap; }
-                .fen-footer { position:absolute; left:14pt; right:14pt; bottom:8pt; padding-top:4.8pt; border-top:1px solid #d3e1ec; color:#596d7e; font-size:6.92pt; line-height:1.08; text-align:center; white-space:nowrap; }
+                .fen-sign-label { padding-top:3pt; color:#536779; font-family:'DejaVu Sans Mono','Courier New',monospace; font-size:8.6pt; text-transform:uppercase; white-space:nowrap; }
+                .fen-footer { position:absolute; left:14pt; right:14pt; bottom:8pt; padding-top:4.8pt; border-top:1px solid #d3e1ec; color:#596d7e; font-size:9.2pt; line-height:1.08; text-align:center; white-space:nowrap; }
             </style>
             <div class="page fen-page">
                 <div class="fen-header">
@@ -111,8 +115,8 @@
                     <td><span class="fen-label">Fecha</span><span class="fen-id-value" t-esc="o.fecha_emision.strftime('%d-%m-%Y')"/></td>
                     <td><span class="fen-label">Equipo / modelo</span><span class="fen-id-value" t-esc="o.lot_id.product_id.display_name"/></td>
                     <td><span class="fen-label">N° de serie</span><span class="fen-id-value" t-esc="o.lot_id.name"/></td>
-                    <td><span class="fen-label">Cliente</span><span class="fen-id-value" t-esc="o.cliente_nombre or 'Pendiente'"/></td>
-                    <td><span class="fen-label">Responsable</span><span class="fen-id-value" t-esc="o.responsable_id.name or 'Pendiente'"/></td>
+                    <td><span class="fen-label">Cliente</span><span t-att-class="'fen-id-value fen-id-long' if len(o.cliente_nombre or '') > 38 else 'fen-id-value'" t-esc="o.cliente_nombre or 'Pendiente'"/></td>
+                    <td><span class="fen-label">Responsable</span><span t-att-class="'fen-id-value fen-id-long' if len(o.responsable_id.name or '') > 38 else 'fen-id-value'" t-esc="o.responsable_id.name or 'Pendiente'"/></td>
                 </tr></table>
 
                 <div class="fen-card">
@@ -157,6 +161,7 @@
 
                 <div class="fen-card fen-validation">
                     <h2 class="fen-section-title">Validaciones de aceptación</h2>
+                    <t t-set="modo_chequeos" t-value="o._ficha_modo_chequeos()"/>
                     <t t-foreach="[o.rnd_id, o.trn_id]" t-as="revision">
                         <table class="fen-val-table" data-fen-validation="1"><tr>
                             <td class="fen-val-head">
@@ -174,13 +179,24 @@
                             <td class="fen-val-side">
                                 <div class="fen-vr-title">Chequeos realizados</div>
                                 <div class="fen-check-legend"><span class="ok">Conforme</span> · <span class="fail">No conforme</span> · <span class="na">No aplica</span> · Pendiente</div>
-                                <div t-if="revision" class="fen-check-grid">
+                                <div t-if="revision" t-att-class="'fen-check-grid fen-checks-' + modo_chequeos">
                                     <t t-foreach="o._ficha_grupos_chequeos(revision)" t-as="grupo">
                                         <div class="fen-check-item">
                                             <div class="fen-check-head"><span class="fen-check-name" t-esc="grupo['nombre']"/><span t-att-class="'fen-check-score %s' % grupo['estilo']"><t t-esc="grupo['conformes']"/> de <t t-esc="grupo['total']"/></span></div>
                                             <div class="fen-check-detail">
-                                                <t t-foreach="grupo['lineas']" t-as="linea">
-                                                    <span t-if="linea_index" class="fen-check-separator"> · </span><span t-att-class="'fen-check-line %s' % {'ok':'ok','no_ok':'fail','no_lo_tiene':'na','pendiente':'pending'}[linea['estado']]" t-esc="linea['nombre']"/>
+                                                <t t-if="modo_chequeos == 'summary'">
+                                                    <t t-set="fallos" t-value="[linea for linea in grupo['lineas'] if linea['estado'] == 'no_ok']"/>
+                                                    <t t-set="no_aplica" t-value="len([linea for linea in grupo['lineas'] if linea['estado'] == 'no_lo_tiene'])"/>
+                                                    <t t-set="pendientes" t-value="len([linea for linea in grupo['lineas'] if linea['estado'] == 'pendiente'])"/>
+                                                    <t t-foreach="fallos" t-as="linea"><span t-if="linea_index" class="fen-check-separator"> · </span><span class="fen-check-line fail" t-esc="linea['nombre']"/></t>
+                                                    <span t-if="no_aplica" class="fen-check-line na"><t t-if="fallos" class="fen-check-separator"> · </t><t t-esc="no_aplica"/> No aplica</span>
+                                                    <span t-if="pendientes" class="fen-check-line pending"><t t-if="fallos or no_aplica" class="fen-check-separator"> · </t><t t-esc="pendientes"/> Pendiente</span>
+                                                    <span t-if="not (fallos or no_aplica or pendientes)" class="fen-check-line ok">Conforme</span>
+                                                </t>
+                                                <t t-else="">
+                                                    <t t-foreach="grupo['lineas']" t-as="linea">
+                                                        <span t-if="linea_index" class="fen-check-separator"> · </span><span t-att-class="'fen-check-line %s' % {'ok':'ok','no_ok':'fail','no_lo_tiene':'na','pendiente':'pending'}[linea['estado']]" t-esc="linea['nombre']"/>
+                                                    </t>
                                                 </t>
                                             </div>
                                         </div>
@@ -194,19 +210,18 @@
                 <div class="fen-card fen-observations">
                     <h2 class="fen-section-title">Observaciones / aceptación</h2>
                     <div t-if="o.observacion" class="fen-observation-text" t-esc="o.observacion"/>
+                    <table class="fen-signatures"><tr>
+                        <td><div class="fen-sign-line"/><div class="fen-sign-label">Responsable técnico</div></td>
+                        <td><div class="fen-sign-line"/><div class="fen-sign-label">Jefe de taller</div></td>
+                        <td><div class="fen-sign-line"/><div class="fen-sign-label">Gerente General</div></td>
+                        <td><div class="fen-sign-line"/><div class="fen-sign-label">Aceptación del cliente</div></td>
+                    </tr></table>
                     <t t-foreach="[o.rnd_id, o.trn_id]" t-as="revision">
                         <t t-if="revision and revision.resultado == 'aprobado_con_observaciones' and revision.hallazgo_ids">
-                            <div class="fen-amber-note"><strong t-esc="revision.hallazgo_ids[0].hallazgo_id.name"/> · Observación registrada en <t t-esc="revision.name"/>.</div>
+                            <div class="fen-amber-note"><strong t-esc="revision.hallazgo_ids[0].componente_id.name"/>: <t t-esc="revision.hallazgo_ids[0].hallazgo_id.name"/>. Observación registrada en <t t-esc="revision.name"/>.</div>
                         </t>
                     </t>
                 </div>
-
-                <table class="fen-signatures"><tr>
-                    <td><div class="fen-sign-line"/><div class="fen-sign-label">Responsable técnico</div></td>
-                    <td><div class="fen-sign-line"/><div class="fen-sign-label">Jefe de taller</div></td>
-                    <td><div class="fen-sign-line"/><div class="fen-sign-label">Gerente General</div></td>
-                    <td><div class="fen-sign-line"/><div class="fen-sign-label">Aceptación del cliente</div></td>
-                </tr></table>
                 <div class="fen-footer">Ingeniería y Servicios Marine Connection SpA · RUT 76.957.685-1 · Pje. Chinquihue 136, Puerto Montt · +56 9 7646 3823 · marineconnection.cl</div>
             </div>
         </div>

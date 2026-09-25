@@ -94,10 +94,40 @@ class TestFichaEquipoNuevo(RevisionCommon):
         self.assertEqual(ficha.estado, "emitida")
         self.assertTrue(ficha.pdf_attachment_id)
         firma = ficha.pdf_attachment_id.checksum
+        pdf_emitido = ficha.pdf_attachment_id.raw
         self.lot.mc_chasis = "Inox"
         self.assertEqual(ficha.pdf_attachment_id.checksum, firma)
+        self.assertEqual(ficha.pdf_attachment_id.raw, pdf_emitido)
+        self.assertEqual(
+            ficha.action_descargar()["url"],
+            f"/web/content/{ficha.pdf_attachment_id.id}?download=true",
+        )
         with self.assertRaises(UserError):
             ficha.write({"rnd_id": False})
+
+    def test_chequeos_extensos_resumen_sin_ocultar_excepciones(self):
+        rnd = self._aprobada("rendimiento")
+        trn = self._aprobada("terreno")
+        ficha = self._ficha(rnd, trn)
+        self.assertEqual(ficha._ficha_modo_chequeos(), "normal")
+        for index, linea in enumerate(rnd.chequeo_ids[:6]):
+            linea.chequeo_id.nombre_ficha = (
+                "Verificación extendida de configuración, respuesta y compatibilidad "
+                f"de accesorios en secuencia de aceptación {index + 1}"
+            )
+        excepcion = trn.chequeo_ids.filtered(lambda linea: linea.seccion == "accesorios")[:1]
+        excepcion.resultado = "no_ok"
+        self.assertEqual(ficha._ficha_modo_chequeos(), "summary")
+        contenido, _ = self.env["ir.actions.report"]._render_qweb_html(
+            "mc_rov.action_report_ficha_equipo_nuevo", ficha.ids
+        )
+        documento = html.fromstring(contenido)
+        self.assertEqual(len(documento.xpath("//*[contains(@class, 'fen-checks-summary')]")), 2)
+        self.assertIn(
+            excepcion.chequeo_id.nombre_ficha or excepcion.chequeo_id.name,
+            documento.text_content(),
+        )
+        self.assertIn("No conforme", documento.text_content())
 
     def test_qweb_usa_datos_reales_y_oculta_temperaturas(self):
         self.lot.write(

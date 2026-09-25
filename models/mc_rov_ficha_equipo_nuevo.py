@@ -1,5 +1,7 @@
 """Documento de aceptación de un equipo nuevo, respaldado por pruebas independientes."""
 
+from textwrap import wrap
+
 from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
 
@@ -158,6 +160,30 @@ class McRovFichaEquipoNuevo(models.Model):
                 }
             )
         return grupos
+
+    def _ficha_modo_chequeos(self):
+        """Reserva el detalle completo para nombres que caben en la ficha Letter.
+
+        Cada chip tiene unos 30 caracteres útiles por línea. En contenido extenso,
+        la ficha conserva los conteos y las excepciones; el detalle íntegro sigue
+        disponible en las revisiones RND/TRN de Odoo.
+        """
+        self.ensure_one()
+        max_lineas = 0
+        for revision in (self.rnd_id, self.trn_id):
+            if not revision:
+                continue
+            lineas = sum(
+                max(1, len(wrap(linea["nombre"], width=30, break_on_hyphens=False)))
+                for grupo in self._ficha_grupos_chequeos(revision)
+                for linea in grupo["lineas"]
+            )
+            max_lineas = max(max_lineas, lineas)
+        if max_lineas > 32:
+            return "summary"
+        if max_lineas > 24:
+            return "compact"
+        return "normal"
 
     def action_emitir(self):
         """Guarda el PDF final; ninguna revisión posterior modifica el documento entregado."""
