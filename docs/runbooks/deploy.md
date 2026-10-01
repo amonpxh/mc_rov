@@ -50,6 +50,7 @@ git -C /opt/odoo/custom-addons/mc_rov log --oneline -1
 grep version /opt/odoo/custom-addons/mc_rov/__manifest__.py
 
 # 3. Update the module (re-applies new migrations if any)
+sudo bash /opt/odoo/custom-addons/mc_rov/scripts/install_report_font.sh
 sudo -u odoo odoo \
   -u mc_rov \
   --stop-after-init \

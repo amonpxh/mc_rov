@@ -1,11 +1,19 @@
 """Documento de aceptación de un equipo nuevo, respaldado por pruebas independientes."""
 
+import base64
+from functools import lru_cache
+from pathlib import Path
 from textwrap import wrap
 
 from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
 
-from .mc_rov_revision import _logo_blanco_ficha_uri
+
+@lru_cache(maxsize=1)
+def _logo_blanco_fen_uri():
+    """Usa el recorte de la maqueta sin cambiar la marca de la ficha reparada."""
+    path = Path(__file__).parent.parent / "static" / "src" / "img" / "logo_mc_blanco_fen.png"
+    return "data:image/png;base64," + base64.b64encode(path.read_bytes()).decode("ascii")
 
 
 # Solo orden de presentación. Las secciones y sus chequeos siguen viniendo del catálogo.
@@ -99,7 +107,7 @@ class McRovFichaEquipoNuevo(models.Model):
 
     def _ficha_logo_blanco_uri(self):
         """Inserta el logo en el PDF sin depender del servidor HTTP."""
-        return _logo_blanco_ficha_uri()
+        return _logo_blanco_fen_uri()
 
     @api.model
     def _ficha_decimal(self, valor, decimales=1):
@@ -160,6 +168,18 @@ class McRovFichaEquipoNuevo(models.Model):
                 }
             )
         return grupos
+
+    def _ficha_pares_chequeos(self, revision):
+        """Empareja los grupos para el layout de dos columnas sin alterar su orden."""
+        return self._ficha_emparejar_grupos(self._ficha_grupos_chequeos(revision))
+
+    @api.model
+    def _ficha_emparejar_grupos(self, grupos):
+        """Conserva un último grupo sin pareja para que también se pueda imprimir."""
+        return [
+            (grupos[indice], grupos[indice + 1] if indice + 1 < len(grupos) else False)
+            for indice in range(0, len(grupos), 2)
+        ]
 
     def _ficha_modo_chequeos(self):
         """Reserva el detalle completo para nombres que caben en la ficha Letter.

@@ -2,17 +2,154 @@
 
 > Actualizar esta sección al cerrar cada sesión de trabajo.
 
-**Ficha de equipo nuevo — 2026-09-25:** la rama `feature/ficha-equipo-nuevo-v49`
-(PR borrador #87) contiene el modelo FEN persistente, el asistente que selecciona RND/TRN,
-el PDF Letter basado en `D4.130A_baseline_meta_final` y sus pruebas. STAGING tiene la
-última variante QWeb para revisión visual; producción aún no recibe la ficha nueva.
+**Radio y gap vertical de subcubos Chequeos FEN - 2026-10-01:** radio de 2 pt y `border-spacing:4pt 2.75pt` (horizontal sigue en 4 pt; gap vertical sube 0,75 pt). Padding, tipografia, contenido, anchos, REV y geometria general no cambiaron. TDD RED se confirmo; `TestFichaEquipoNuevo` paso: 15 pruebas, 0 fallos y 0 errores. Los PDFs FEN con contenido y pendiente son Letter de una pagina (612 x 792 pt); los fixtures se revirtieron y Odoo quedo activo. Los crops RND/TRN antes/despues y las paginas completas se revisaron; el pie y las firmas siguen intactos. QWeb REV mantuvo el mismo hash. Evidencia final en `.tmp/report-final-qa-rounding/`; los artefactos QA anteriores se conservaron. Sin commit ni despliegue a produccion.
+
+**Microajuste de gaps en Chequeos FEN — 2026-10-01:** la grilla de subcubos
+blancos usa `border-spacing:4pt 2pt`; padding, columnas, contenidos, semántica y QWeb
+REV permanecen intactos. La aserción TDD falló primero contra el QWeb anterior; en STAGING
+pasaron las 15 pruebas FEN. Las muestras completa y pendiente son Letter (612 × 792 pt),
+una página, con footer y firmas visibles; se revisaron los crops de Chequeos antes/después
+y el espacio entre subcubos es visible sin contornos. La observación de QA conserva sus
+acentos. Las fixtures se revirtieron, Odoo quedó activo y el hash de `ficha_report.xml`
+REV permaneció idéntico. PDFs y evidencia en `.tmp/report-final-qa`. Sin commit, merge
+ni despliegue a producción.
+
+**Cierre de paleta, Chequeos y supercubos FEN — 2026-09-30:** se eligió B
+(`#9FB4C3`) para FEN y REV; A queda descartada. REV mantiene sus subcubos de
+Chequeos blancos y sin borde. FEN usa un marco redondeado con recorte real y gutter
+de 2,5 pt alrededor de RND/TRN; columnas, altura interna y barras semánticas
+permanecen iguales. Las pruebas cubren la paleta, los marcos y columnas, y evitan
+sustituir una RND faltante por una reparación.
+
+El `REV/00014` del PDF QA correspondía a una RND histórica cuyo número conservó el
+prefijo anterior al cambio de secuencias; no hubo fallback a una revisión de
+reparación. STAGING instaló la paleta B y pasó 50 pruebas. Los PDFs FEN con contenido,
+FEN pendiente (`FEN/QA-PEND`) y REV real son Letter de una página; se revisaron en
+color y escala de grises, incluidos los bloques de Chequeos. El badge de la muestra
+pendiente ahora cabe completo. Las fixtures se revirtieron y Odoo quedó activo. Los
+artefactos están en `.tmp/report-final-qa`. Sin commit, merge ni despliegue a
+producción.
+
+**Estados vacíos de Hallazgos/Observaciones REV y Observaciones FEN — 2026-09-30:**
+se agregaron placeholders discretos solo cuando el bloque está vacío; una nota ámbar
+suprime el placeholder de Observaciones. Las tarjetas REV conservan su estructura y la
+prueba compara su geometría sin contenido contra el cierre completo. En STAGING pasaron
+47 pruebas; los cuatro escenarios REV y los dos FEN se generaron en Letter de una página
+(612 × 792 pt), con todos los fixtures revertidos y el servicio activo. Los PDFs están en
+`.tmp/empty-copy-final/`. La inspección raster no estuvo disponible en este entorno; los
+PDFs quedan para revisión visual manual. Sin commit.
+
+**Geometría final compartida FEN/REV — 2026-09-29:** el header azul redondeado quedó
+en 60,51 pt, con márgenes de 5,76 pt arriba, 5,19 pt laterales y 5,19 pt hasta metadata.
+REV ganó interlineado y separación en las descripciones de Chequeos sin alterar la grilla
+de tres columnas. Se ajustó el flujo del cierre para alinear firmas y footer con FEN y se
+redujo el padding inferior del contenedor para evitar una página vacía. En STAGING pasaron
+45 pruebas; servicio activo y fixtures revertidas. FEN real y REV vacío/full/solo Hallazgos/
+solo Observaciones son Letter de una página, sin texto fuera de página y con pie completo.
+Límites: tarjetas Hallazgos/Observaciones FEN 697,29 pt y REV 698,44–699,02 pt; líneas de
+firma REV 739,93–741,08 pt frente a FEN 742,24 pt; footer REV 767,59–768,17 pt frente a
+FEN 770,47 pt; margen inferior 9,52–10,10 pt. PDFs y crops están en
+`.tmp/rev-geometry-final/`; métricas en `qa/metrics.json`. Sin producción ni commit.
+
+**Ajuste compartido de metadata FEN/REV — 2026-09-29:** aumentó la legibilidad de
+las etiquetas y valores normales en la fila de identificación, manteniendo intactas
+la geometría y las tarjetas del encabezado. Solo los valores que superan umbrales
+deterministas por campo reciben la clase compacta; las etiquetas nunca se compactan y
+los valores extensos envuelven naturalmente. FEN y REV usan el mismo componente y
+umbrales. `TestReporteFicha` y `TestFichaEquipoNuevo` pasaron en STAGING: 43 pruebas,
+0 fallos y 0 errores. Los PDFs reales FEN/REV y el FEN de estrés son Letter de una
+página, sin contenido fuera de página; el estrés muestra cliente y responsable en dos
+líneas, sin clipping. El servicio quedó activo. PDFs y recortes están en
+`.tmp/header-metadata-a5/`.
+
+**Padding de metadata compartido FEN/REV — 2026-09-29:** las celdas usan padding
+efectivo `6.45pt 6.8pt 3.8pt` (arriba, laterales y abajo), aplicado con un selector
+que supera el reset previo de celdas de tabla. El render confirmó el inset visual real;
+etiquetas y tamaños tipográficos permanecen sin cambios. En STAGING pasaron 43 pruebas.
+Los PDFs reales de REV y FEN, más el estrés FEN con Cliente y Responsable envueltos en
+dos líneas, son Letter de una página, sin texto fuera de página y con el footer completo.
+El servicio quedó activo. PDFs, HTML y recortes están en
+`.tmp/header-metadata-padding-final/`.
+
+**Altura mínima de metadata compartida FEN/REV — 2026-09-29:** la fila normal pasó de
+27,08 pt a 30,54 pt, igualando la altura previa de la fila FEN de estrés. Las cinco
+celdas se expanden como una unidad mediante la altura mínima de la tabla; si el contenido
+requiere más espacio, la fila puede crecer. Se conservan padding, alineación y tamaños:
+labels 5,763 pt, values normales 7,492 pt y values compactos de estrés 6,339 pt. La
+suite focalizada de STAGING pasó: 43 pruebas, 0 fallos y 0 errores; el servicio quedó
+activo y los datos de estrés se revirtieron por `SAVEPOINT`. Los PDFs reales FEN/REV y
+el FEN de estrés son Letter de una página, con footer completo y sin texto fuera de
+página. PDFs, HTML y recortes están en `.tmp/header-metadata-height-final/`.
+
+**Tarjetas REV para escritura manual — 2026-09-29:** `HALLAZGOS` y
+`OBSERVACIONES` ahora permanecen como dos tarjetas de media anchura en toda ficha de
+reparación, incluso cuando no hay contenido, para permitir completar la copia impresa a
+mano. Hallazgos conserva el límite/resumen adaptativo y el contenido de Observaciones y
+la nota ámbar siguen siendo condicionales; no se generan placeholders ni una nota vacía.
+La tarjeta de Observaciones mantiene su sizer para acompañar la altura de Hallazgos sin
+fijarla ni recortar texto. `TestReporteFicha` pasó en STAGING: 31 pruebas, 0 fallos y
+0 errores; `odoo-staging` quedó activo. Los renders de `REV/00022` vacío, ambos bloques
+rellenos, solo Hallazgos y solo Observaciones son Letter de una página, con las dos
+tarjetas, pie completo y sin texto fuera de página. En los casos esperados aparecen el
+resumen adaptativo y la nota ámbar. La regresión de FEN es idéntica píxel por píxel a la
+referencia congelada. Todas las líneas QA se revirtieron mediante rollback. PDFs,
+recortes y métricas están en `.tmp/rev-always-cards-final/`. La suite amplia de 325
+pruebas tuvo un fallo en `TestRazonesDeCalidad.test_las_etiquetas_dicen_lo_mismo_en_las_dos_listas`
+(clasificación C: expectativa de test desactualizada para el catálogo editable). Compara
+`ORIGENES` con `quality.reason.name`: esperaba `No determinado` y leyó `No determinado odo*`.
+Los otros cinco nombres coinciden. El rename está documentado desde 2026-08-25 y el catálogo
+XML está bajo `noupdate="1"` intencionalmente; un upgrade no debe pisar personalizaciones.
+El mismo fallo aparece en el log de la suite del 2026-09-10, antes de la normalización
+FEN/REV; los archivos de `ORIGENES`, datos XML y `test_calidad.py` no están modificados en
+esta rama. No se cambió el catálogo ni el test. Recomendación: separar la prueba de las
+etiquetas iniciales del catálogo de una base STAGING con valores personalizados. El respaldo de STAGING quedó en
+`/var/tmp/mc-rov-rev-always-cards-backup-20260929-121204`. Cambios locales y STAGING;
+sin despliegue a producción ni commit.
+
+**Normalización visual REV/FEN — 2026-09-28:** en la rama
+`feature/ficha-equipo-nuevo-v49` se alinearon el logo recortado, la cabecera y los roles
+tipográficos de REV con FEN, sin modificar el QWeb de FEN ni la lógica de revisión. REV
+ya no imprime la marca BORRADOR; los Chequeos conservan descripción conforme neutra,
+conteo conforme verde y solo el ítem no conforme en rojo. STAGING recibió estos cambios
+y `TestReporteFicha` pasó con 30 pruebas, 0 fallos y 0 errores; el servicio quedó activo.
+Los PDFs nuevos de Odoo son Letter de una página, sin texto fuera de página. La fixture
+FEN normalizada es idéntica píxel por píxel al FEN congelado. El PDF real de `REV/00022`
+conserva el mismo contenido funcional que el anterior, salvo BORRADOR; esa revisión tiene
+0 hallazgos y carece de observaciones y diferencias, por lo que no muestra esas tarjetas.
+Una muestra REV transaccional verificó ambas tarjetas, el resumen adaptativo y la nota
+ámbar en una página; sus datos se revirtieron. PDFs y recortes están en
+`.tmp/rev-normalization-final/`. Corte hist?rico, luego aprobado: aprobación visual, commit/PR; producción no
+recibió esta normalización.
+
+**Ficha de equipo nuevo — registro histórico del 2026-09-25:** la rama `feature/ficha-equipo-nuevo-v49`
+(PR #87, entonces en borrador) contiene el modelo FEN persistente, el asistente que selecciona RND/TRN,
+el PDF Letter y sus pruebas. La referencia visual vigente es exclusivamente
+`D4.147A_baseline_amber_E5B54B.html` (V49.34). STAGING tiene la última variante QWeb
+para revisión visual; producción aún no recibe la ficha nueva.
 La suite focalizada pasó en STAGING. Se generaron cinco PDFs con datos temporales
 revertidos: real, rechazado, chequeos extensos, nombres largos y datos técnicos largos.
 Los cinco son de una página Letter, con pie completo; el rechazado conserva BORRADOR.
 Los chequeos extensos usan resumen por grupo y muestran las excepciones, manteniendo el
 detalle completo en las revisiones de Odoo. El commit `b6dd294` pasó pre-commit y CI
-(320 pruebas, 0 fallos, 0 errores). Falta aprobación visual del PDF real antes de
+(320 pruebas, 0 fallos, 0 errores). En ese corte faltaba aprobación visual del PDF real antes de
 integrar el PR.
+
+**QA visual V49.34 — registro histórico del 25-09-2026:** el 25-09-2026 se renderizó el HTML final
+en Edge y se comparó a 96 DPI con un PDF auténtico de Odoo y una fixture transaccional.
+La corrección local e instalada en STAGING recupera las posiciones de Configuración,
+Validaciones, Observaciones, firmas y pie. Ambos FEN son Letter de una página, sin texto
+fuera de ella; el pie empieza a 768,1 pt frente a 767,8 pt del HTML. La fuente
+NotoSans-SemiBold figura realmente en el PDF, junto con DejaVu Sans, Mono y Serif. La
+suite focalizada pasó: 35 pruebas, 0 fallos, 0 errores. Los datos de QA se revirtieron.
+La fixture visual reproduce `Sonar` en rojo y `1 de 2` con badge ámbar solo mediante una
+variante temporal de QWeb: el modelo real considera rechazado un chequeo `no_ok`, por lo
+que esa combinación de la maqueta no se trasladó a la lógica funcional. El PDF real
+conserva los rótulos reales de Odoo (`Inox`, `6 en el equipo`) y `2 de 2` en Accesorios.
+Se conservaron la comparación de imágenes, los recortes y la lista de fuentes en `.tmp`.
+En ese corte faltaba revisión visual del usuario, commit/PR y despliegue de esta pasada; no se ha tocado
+producción. El runbook incorpora la instalación de Noto en fontconfig antes del upgrade.
+
+**Comparación visual actualizada — registro histórico del 2026-09-28:** se usó `D4.147A_baseline_amber_E5B54B.html` como golden y PDFs nuevos de Odoo como resultado comparado. En STAGING se corrigió el inset horizontal propio del `article` FEN, se ajustó el alto/badge de cabecera, el ritmo interno de Configuración, los tamaños de Chequeos y Observaciones, y la cuadrícula de Chequeos a parejas dinámicas de igual altura. Las cuatro firmas ahora ocupan columnas iguales y el pie queda en una línea. Real y fixture siguen en una página Letter, con el pie completo y sin texto fuera de página; la fixture verifica `TRN/00008`, `Paulo Haller` y `1 de 2`. Los datos temporales se revirtieron. `TestFichaEquipoNuevo`: 8 pruebas, 0 fallos, 0 errores. La comparación directa queda en `.tmp/side_by_side.png` y sus recortes; aún se ve una diferencia de wrapping en Observaciones (tres líneas en el PDF y dos en el HTML) y las Validaciones ocupan unos puntos más de alto. Esta evaluación fue un corte intermedio y quedó superada por las revisiones posteriores.
 
 **Impresión de ficha reparada — 2026-09-25:** el error `wkhtmltopdf -11` en producción
 se reprodujo con la revisión de reparación ID 25 aplicando el límite de memoria de 1 GiB

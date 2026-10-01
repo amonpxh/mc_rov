@@ -24,6 +24,51 @@
 
     <!-- Los bloques tienen IDs estables para herencias Studio. El código base sigue
          actualizándose; una personalización debe ser una vista heredada, no sobrescribirlo. -->
+    <template id="report_shared_header_metadata_styles">
+        <style>.mc-report-head, .mc-report-head * { box-sizing:border-box; }
+                .mc-report-head { color:#243444; font-family:'DejaVu Sans',Arial,sans-serif; }
+                .mc-report-revision-gutter { margin:0 15.32px; }
+                .mc-report-header { position:relative; display:block; height:79pt; min-height:79pt; margin:7.2pt -5pt 6.5pt; padding:6pt 12pt 5pt; overflow:hidden; border-radius:7pt; background:#00569a; color:#fff; }
+                .mc-report-brand-lockup { position:relative; display:block; height:50pt; min-height:50pt; padding-right:150pt; }
+                .mc-report-logo { position:absolute; top:4.8pt; left:0; display:block; width:133pt; height:auto; margin:0; }
+                .mc-report-title-wrap { position:absolute; top:38pt; left:0; min-height:0; margin:0; padding:0; }
+                .mc-report-header .mc-report-title { margin:0; padding:0; color:#fff; font-family:'DejaVu Sans',Arial,sans-serif; font-size:22pt; font-weight:700; letter-spacing:.003em; line-height:1; white-space:nowrap; }
+                .mc-report-badge { position:absolute; top:27.5pt; right:12pt; margin:0; padding:6.1pt 9.5pt 5.7pt; border:1px solid #d3e1ec; border-radius:4.5pt; background:#fff; color:#00569a; font-family:'DejaVu Sans Mono','Courier New',monospace; font-size:10.6pt; font-weight:700; line-height:1; }
+                /* En la tabla de wkhtmltopdf, height actúa como mínimo: la fila sigue creciendo si los values requieren más líneas. */
+                .mc-report-head .mc-report-identity { width:calc(100% + 7.4pt); height:40pt; margin:0 -3.7pt 4.9pt; border-collapse:separate; border-spacing:3.7pt 0; table-layout:fixed; }
+                .mc-report-head .mc-report-identity td { padding:0; vertical-align:top; }
+                .mc-report-identity-cell:nth-child(1) { width:16.34%; }
+                .mc-report-identity-cell:nth-child(2) { width:22.37%; }
+                .mc-report-identity-cell:nth-child(3) { width:18.48%; }
+                .mc-report-identity-cell:nth-child(4) { width:22.96%; }
+                .mc-report-identity-cell:nth-child(5) { width:19.85%; }
+                .mc-report-head .mc-report-identity td.mc-report-identity-cell { padding:6.45pt 6.8pt 3.8pt; border:1px solid #9fb4c3; border-radius:4pt; background:#e7eef3; overflow-wrap:break-word; }
+                .mc-report-label { display:block; color:#526b80; font-family:'DejaVu Sans Mono','Courier New',monospace; font-size:7.8pt; font-weight:700; letter-spacing:.035em; line-height:1.05; text-transform:uppercase; white-space:nowrap; }
+                .mc-report-value { display:block; margin-top:4pt; color:#243444; font-family:'DejaVu Sans Mono','Courier New',monospace; font-size:9.7pt; line-height:1.1; white-space:normal; overflow-wrap:break-word; word-wrap:break-word; }
+                .mc-report-value--compact { font-size:8pt; line-height:1; }
+
+        </style>
+    </template>
+
+    <template id="report_shared_metadata_value">
+        <span t-attf-class="mc-report-value{{ ' mc-report-value--compact' if len(mc_report_metadata_value or '') &gt; mc_report_metadata_compact_limit else '' }}" t-out="mc_report_metadata_value"/>
+    </template>
+
+    <template id="report_shared_header_metadata">
+        <div class="mc-report-head" data-mc-report-component="header-metadata">
+            <div class="mc-report-header" data-mc-report-header="1">
+                <div class="mc-report-brand-lockup">
+                    <img t-if="o._ficha_logo_blanco_uri()" class="mc-report-logo" t-att-src="o._ficha_logo_blanco_uri()" alt="Marine Connection"/>
+                    <div class="mc-report-title-wrap"><h1 class="mc-report-title" t-out="mc_report_title"/></div>
+                </div>
+                <div class="mc-report-badge" t-esc="o.name"/>
+            </div>
+            <table class="mc-report-identity" data-mc-report-identity="1" role="presentation">
+                <tr><t t-out="0"/></tr>
+            </table>
+        </div>
+    </template>
+
     <template id="report_ficha">
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="o">
@@ -35,8 +80,7 @@
         <t t-set="company" t-value="o.lot_id.company_id or res_company"/>
         <t t-set="options" t-value="o.env.context.get('rov_options', {})"/>
         <div class="article rov-ficha" t-att-data-oe-model="o._name" t-att-data-oe-id="o.id" t-att-data-oe-lang="o.env.lang">
-            <style>
-                html, body, .rov-ficha, .rov-ficha.article { margin: 0 !important; padding: 0 !important; }
+            <style>html, body, .rov-ficha, .rov-ficha.article { margin: 0 !important; padding: 0 !important; }
                 .rov-ficha, .rov-ficha.article { width: 100% !important; font-family: Arial, sans-serif; font-size: 12.38pt; color: #243444; }
                 .rov-ficha h1 { font-family: Georgia, serif; font-size: 24.75pt; color: #00569a; margin: 5.89px 0 9.43px; }
                 .rov-ficha h2 { font-size: 12.97pt; color: #00569a; margin: 11.79px 0 4.71px; page-break-after: avoid; }
@@ -46,56 +90,42 @@
                 .rov-ficha .rov-value { font-family: 'Courier New', monospace; }
                 .rov-ficha .rov-data tr { border-bottom: 1px solid #dbe3e9; }
                 .rov-ficha .rov-data th { width: 45%; }
-                .rov-ficha .rov-meta { background: #f0f5f8; border: 1px solid #dbe3e9; }
-                /* Tablas de presentación: QtWebKit conserva la banda y las tarjetas. */
-                .rov-ficha .rov-header-band { margin: 0; border-collapse: separate; border-spacing: 0; background: #00569a; color: #fff; }
+                .rov-ficha .rov-meta { background: #e7eef3; border: 1px solid #9fb4c3; }
                 .rov-ficha .page { position: relative; margin: 0 !important; padding: 0 !important; }
-                .rov-ficha .rov-header-band td { height: 83.37px; padding: 9.81px 18.86px; vertical-align: middle; }
-                .rov-ficha .rov-header-brand { width: 78%; }
-                /* El PNG de marca tiene área transparente; esta ventana muestra su contenido a escala estable. */
-                .rov-ficha .rov-header-logo-window { position: relative; width: 173.27px; height: 37.13px; margin-bottom: 11.79px; overflow: hidden; }
-                .rov-ficha .rov-header-logo { position: absolute; top: -25.99px; left: -3.72px; width: 180.71px; max-width: none; height: auto; }
-                .rov-ficha .rov-header-title { margin-left: .28em; font-family: Georgia, serif; font-size: 20.41pt; font-weight: bold; line-height: 1; }
-                .rov-ficha .rov-header-number { width: 22%; text-align: right; white-space: nowrap; }
-                .rov-ficha .rov-header-number span { display: inline-block; padding: 8.58px 11.79px; border-radius: 5px; background: #edf3f8; color: #00569a; font-family: 'Courier New', monospace; font-size: 11.14pt; font-weight: bold; }
-                .rov-ficha .rov-identity-wrap { padding: 11.03px 15.32px 9.81px; }
-                .rov-ficha .rov-identity-strip { border-collapse: separate; border-spacing: 4.71px 0; }
-                .rov-ficha .rov-identity-slot { width: 20%; padding: 0; }
-                .rov-ficha .rov-identity-card { min-height: 44.13px; padding: 6.13px 9.43px; border: 1px solid #d3e1ec; border-radius: 7px; background: #edf3f8; }
-                .rov-ficha .rov-identity-label { display: block; margin-bottom: 3.68px; color: #526b80; font-family: 'Courier New', monospace; font-size: 7.42pt; font-weight: bold; letter-spacing: .08em; text-transform: uppercase; }
-                .rov-ficha .rov-identity-value { display: block; color: #243444; font-family: 'Courier New', monospace; font-size: 10.15pt; overflow-wrap: break-word; word-wrap: break-word; }
                 .rov-ficha .rov-report-body { padding: 0 15.32px 15.93px; }
                 .rov-ficha .rov-card-pair { width: 100%; margin: 0 0 12.26px; border-collapse: separate; border-spacing: 0; }
                 .rov-ficha .rov-card-pair-cell { width: 50%; padding: 0 5.89px 0 0; vertical-align: top; }
                 .rov-ficha .rov-card-pair-cell + .rov-card-pair-cell { padding: 0 0 0 5.89px; }
-                .rov-ficha .rov-report-card { min-height: 164.16px; box-sizing: border-box; padding: 12.26px 14.14px 11.03px; border: 1px solid #d3e1ec; border-radius: 7px; background: #fff; }
+                .rov-ficha .rov-report-card { min-height: 164.16px; box-sizing: border-box; padding: 12.26px 14.14px 11.03px; border: 1px solid #9fb4c3; border-radius: 7px; background: #fff; }
                 .rov-ficha .rov-section-title { margin: 0 0 7.35px; color: #005aa0; font-family: Arial, sans-serif; font-size: 9.03pt; font-weight: bold; letter-spacing: .08em; line-height: 1.275; }
                 .rov-ficha .rov-card-row { display: table; width: 100%; padding: 3.68px 0; border-bottom: 1px solid #f0f4f7; font-size: 10.4pt; line-height: 1.275; }
                 .rov-ficha .rov-card-row:last-child { border-bottom: 0; }
                 .rov-ficha .rov-card-label, .rov-ficha .rov-card-value { display: table-cell; vertical-align: top; }
-                .rov-ficha .rov-card-value, .rov-ficha .rov-measurement-value, .rov-ficha .rov-finding-value, .rov-ficha .rov-identity-value { font-weight: normal; }
+                .rov-ficha .rov-card-label { color: #526b80; }
+                .rov-ficha .rov-card-value, .rov-ficha .rov-measurement-value, .rov-ficha .rov-finding-value { font-weight: normal; }
                 .rov-ficha .rov-card-value { width: 54%; text-align: right; font-family: 'Courier New', monospace; }
                 .rov-ficha .rov-seal-ok { color: #007b4b; }
                 .rov-ficha .rov-seal-fail { color: #b42318; }
                 .rov-ficha .rov-seal-warning { color: #b36b00; }
                 .rov-ficha .rov-seal-pending { color: #657585; }
-                .rov-ficha .rov-measurements { margin: 0 0 12.26px; padding: 12.26px 12.97px 11.03px; border: 1px solid #d3e1ec; border-radius: 7px; background: #fff; }
+                .rov-ficha .rov-measurements { margin: 0 0 12.26px; padding: 12.26px 12.97px 11.03px; border: 1px solid #9fb4c3; border-radius: 7px; background: #fff; }
                 .rov-ficha .rov-measurement-grid { width: 100%; border-collapse: separate; border-spacing: 4.71px 4.9px; table-layout: fixed; }
                 .rov-ficha .rov-measurement-grid td { width: 33.33%; padding: 0; vertical-align: top; }
-                .rov-ficha .rov-measurement-grid td.rov-measurement-panel { padding: 7.35px 9.43px; border-radius: 6px; background: #edf3f8; }
+                .rov-ficha .rov-measurement-grid td.rov-measurement-panel { padding: 7.35px 9.43px; border-radius: 6px; background: #e3ecf3; }
                 .rov-ficha .rov-measurement-name { display: block; margin-bottom: 3.68px; color: #526b80; font-family: 'Courier New', monospace; font-size: 7.55pt; font-weight: bold; letter-spacing: .08em; text-transform: uppercase; }
                 .rov-ficha .rov-measurement-row { display: table; width: 100%; padding: 1.23px 0; font-size: 10.02pt; line-height: 1.275; }
                 .rov-ficha .rov-measurement-label, .rov-ficha .rov-measurement-value { display: table-cell; vertical-align: top; }
+                .rov-ficha .rov-measurement-label { color: #526b80; }
                 .rov-ficha .rov-measurement-value { width: 52%; text-align: right; font-family: 'Courier New', monospace; }
                 .rov-ficha .rov-measurement-success { color: #007b4b; font-weight: bold; }
                 .rov-ficha .rov-measurement-arrow { font-size: 11.14pt; font-weight: normal; line-height: .8; }
-                .rov-ficha .rov-checks { margin: 0 0 12.26px; padding: 12.26px 12.97px 11.03px; border: 1px solid #d3e1ec; border-radius: 7px; background: #fff; }
+                .rov-ficha .rov-checks { margin: 0 0 12.26px; padding: 12.26px 12.97px 11.03px; border: 1px solid #9fb4c3; border-radius: 7px; background: #fff; }
                 .rov-ficha .rov-checks-header { display: table; width: 100%; margin: 0 0 6.13px; }
                 .rov-ficha .rov-checks-title, .rov-ficha .rov-checks-legend { display: table-cell; vertical-align: top; }
                 .rov-ficha .rov-checks-legend { text-align: right; color: #657585; font-size: 8.66pt; }
                 .rov-ficha .rov-check-grid { width: 100%; border-collapse: separate; border-spacing: 5.89px 4.9px; table-layout: fixed; }
                 .rov-ficha .rov-check-grid td { width: 33.33%; padding: 0; vertical-align: top; }
-                .rov-ficha .rov-check-section { padding: 2.45px 3.54px; page-break-inside: auto !important; }
+                .rov-ficha .rov-check-section { padding: 2.45px 3.54px; border: 0; border-radius: 0; background: #fff; page-break-inside: auto !important; }
                 .rov-ficha .rov-check-section-head { display: table; width: 100%; margin-bottom: 2.45px; }
                 .rov-ficha .rov-check-section-name, .rov-ficha .rov-check-section-summary { display: table-cell; vertical-align: top; font-size: 8.66pt; font-weight: bold; }
                 .rov-ficha .rov-check-section-summary { width: 31%; text-align: right; font-family: 'Courier New', monospace; }
@@ -103,34 +133,35 @@
                 .rov-ficha .rov-check-summary-fail { color: #b42318; }
                 .rov-ficha .rov-check-summary-pending { color: #657585; }
                 .rov-ficha .rov-check-summary-na { color: #657585; font-style: italic; }
-                .rov-ficha .rov-check-details { padding-left: 9.43px; color: #52606d; font-size: 8.66pt; line-height: 1.346; overflow-wrap: break-word; word-wrap: break-word; }
+                .rov-ficha .rov-check-details { padding-left: 9.43px; color: #526b80; font-size: 8.66pt; line-height: 1.346; overflow-wrap: break-word; word-wrap: break-word; }
                 .rov-ficha .rov-check-line { display: inline; }
                 .rov-ficha .rov-check-separator { color: #9aa9b5; }
                 .rov-ficha .rov-check-status { font-family: 'Courier New', monospace; font-size: 7.18pt; }
                 .rov-ficha .rov-check-ok { color: #007b4b; }
+                .rov-ficha .rov-check-details .rov-check-ok { color: #526b80; }
                 .rov-ficha .rov-check-fail { color: #b42318; font-weight: 600; }
                 .rov-ficha .rov-check-na { color: #657585; font-style: italic; }
                 .rov-ficha .rov-check-pending { color: #657585; }
-                .rov-ficha .rov-closing-grid { width: 100%; margin: 0 0 12.26px; border-collapse: separate; border-spacing: 0; table-layout: fixed; }
+                /* Supera el margen inferior de Chequeos para que wkhtmltopdf conserve el aire antes del cierre. */
+                .rov-ficha .rov-closing-grid { width: 100%; margin: 21.33px 0 12.26px; border-collapse: separate; border-spacing: 0; table-layout: fixed; }
                 /* El borde vive en la celda: ambas tarjetas comparten la altura natural de la fila. */
-                .rov-ficha .rov-closing-cell { padding: 0; vertical-align: top; border: 1px solid #d3e1ec; border-radius: 7px; background: #fff; page-break-inside: auto !important; }
-                .rov-ficha .rov-closing-cell-paired { position: relative; }
+                .rov-ficha .rov-closing-cell { padding: 0; vertical-align: top; border: 1px solid #9fb4c3; border-radius: 7px; background: #fff; page-break-inside: auto !important; }
                 .rov-ficha .rov-closing-cell-half { width: 49%; }
                 .rov-ficha .rov-closing-cell-full { width: 100%; }
                 .rov-ficha .rov-closing-gap { width: 2%; padding: 0; border: 0; background: transparent; }
-                .rov-ficha .rov-closing-card { min-height: 170.56px; height: 100%; box-sizing: border-box; padding: 12.26px 14.14px 11.03px; background: transparent; overflow: visible; }
+                .rov-ficha .rov-closing-card { min-height: 170.56px; box-sizing: border-box; padding: 12.26px 14.14px 11.03px; background: transparent; overflow: visible; }
                 .rov-ficha .rov-finding { display: table; width: 100%; padding: 3.68px 0; border-bottom: 1px solid #edf2f5; font-size: 10.02pt; line-height: 1.275; page-break-inside: avoid !important; }
                 .rov-ficha .rov-finding:last-child { border-bottom: 0; }
                 .rov-ficha .rov-finding-summary { margin-top: 4.9px; color: #657585; font-style: italic; border-bottom: 0; }
                 .rov-ficha .rov-finding-label, .rov-ficha .rov-finding-value { display: table-cell; vertical-align: top; overflow-wrap: break-word; word-wrap: break-word; }
                 .rov-ficha .rov-finding-label { width: 44%; padding-right: 12.97px; }
                 .rov-ficha .rov-finding-value { width: 56%; padding-left: 4.71px; text-align: right; font-family: 'Courier New', monospace; font-size: .95em; }
-                .rov-ficha .rov-observations-sizer { min-height: 170.56px; padding: 12.26px 14.14px 11.03px; visibility: hidden; }
-                .rov-ficha .rov-observations-card-paired { position: absolute; top: 0; right: 0; bottom: 0; left: 0; }
+                /* QtWebKit treats table height as a minimum, so long content can grow naturally. */
+                .rov-ficha .rov-observations-layout { width: 100%; height: 239.45px; margin: 0; border-collapse: collapse; table-layout: fixed; }
+                .rov-ficha .rov-observations-layout td { padding: 0; vertical-align: top; }
+                .rov-ficha .rov-observations-differences-cell { vertical-align: bottom !important; }
                 .rov-ficha .rov-observations-title { margin: 0 0 9.81px; }
                 .rov-ficha .rov-observations-text { margin: 0; color: #3d4d5d; font-family: Georgia, serif; font-size: 11.14pt; font-style: italic; line-height: 1.51; white-space: pre-wrap; overflow-wrap: break-word; word-wrap: break-word; }
-                .rov-ficha .rov-observations-card-paired .rov-observations-content { padding-bottom: 98.07px; }
-                .rov-ficha .rov-observations-card-paired .rov-observations-differences { position: absolute; right: 14.14px; bottom: 11.03px; left: 14.14px; }
                 .rov-ficha .rov-differences { margin-top: 9.81px; padding: 8.58px 10.61px; border-left: 2px solid #b36b00; border-radius: 0 5px 5px 0; background: #fff7ed; color: #8f5600; font-size: 10.15pt; line-height: 1.408; overflow-wrap: break-word; word-wrap: break-word; }
                 .rov-ficha .rov-difference-line + .rov-difference-line { margin-top: 3.68px; }
                 .rov-ficha .rov-pair { width: 50%; padding: 0 10.61px 0 0; }
@@ -138,29 +169,17 @@
                 .rov-ficha .rov-check { padding-left: 18.86px; }
                 .rov-ficha .rov-fail { color: #a42323; font-weight: bold; }
                 .rov-ficha .rov-na { color: #657585; font-style: italic; }
-                .rov-ficha .rov-draft { position: fixed; top: 45%; left: 0; right: 0; z-index: 3; text-align: center; pointer-events: none; }
-                .rov-ficha .rov-draft span { display: inline-block; color: #243444; font-family: Arial, sans-serif; font-size: 80.16pt; font-weight: bold; letter-spacing: .16em; line-height: 1; opacity: .07; white-space: nowrap; -webkit-transform: rotate(-22deg); transform: rotate(-22deg); }
                 .rov-ficha .rov-signatures { width: 100%; margin: 4.9px 0 0; border-collapse: separate; border-spacing: 15.32px 0; page-break-inside: avoid; }
                 .rov-ficha .rov-signatures td { width: 50%; padding: 0; text-align: left; }
-                .rov-ficha .rov-signature-line { height: 31.88px; margin-bottom: 3.68px; border-bottom: 1px solid #d3e1ec; }
-                .rov-ficha .rov-signature-label { color: #657585; font-family: 'Courier New', monospace; font-size: 8.17pt; letter-spacing: .04em; text-transform: uppercase; }
+                .rov-ficha .rov-signature-line { height: 31.88px; margin-bottom: 3.68px; border-bottom: 1px solid #8fa6b7; }
+                .rov-ficha .rov-signature-label { color: #526b80; font-family: 'Courier New', monospace; font-size: 8.17pt; letter-spacing: .04em; text-transform: uppercase; }
                 .rov-ficha .rov-logo { max-height: 53.04px; max-width: 212.17px; }
-                .rov-ficha .rov-footer { margin: 12.26px 0 2.45px; padding-top: 11.03px; border-top: 1px solid #d3e1ec; color: #657585; font-size: 8.17pt; letter-spacing: .03em; line-height: 1.377; text-align: center; page-break-inside: avoid; }
+                .rov-ficha .rov-footer { margin: 12.26px 0 2.45px; padding-top: 11.03px; border-top: 1px solid #8fa6b7; color: #526b80; font-size: 8.17pt; letter-spacing: .03em; line-height: 1.377; text-align: center; page-break-inside: avoid; }
                 .rov-ficha .rov-footer-item { display: inline-block; margin: 0 5.89px 2.45px; white-space: nowrap; }
                 /* QtWebKit puede ignorar la regla del tr y partir el contenido de una celda. */
                 .rov-ficha tr, .rov-ficha td, .rov-ficha th { page-break-inside: avoid !important; }
-
                 /* Escala final: +2 % sobre la composición aprobada. */
                 .rov-ficha, .rov-ficha.article { font-size: 12.63pt; }
-                .rov-ficha .rov-header-band td { height: 84.71px; padding-top: 9.97px; padding-bottom: 9.97px; }
-                .rov-ficha .rov-header-logo-window { width: 176.74px; height: 37.87px; margin-bottom: 11.87px; }
-                .rov-ficha .rov-header-logo { top: -26.51px; left: -3.79px; width: 184.32px; }
-                .rov-ficha .rov-header-title { font-size: 20.82pt; }
-                .rov-ficha .rov-header-number span { padding-top: 8.72px; padding-bottom: 8.72px; font-size: 11.36pt; }
-                .rov-ficha .rov-identity-wrap { padding-top: 11.21px; padding-bottom: 9.97px; }
-                .rov-ficha .rov-identity-card { min-height: 44.84px; padding-top: 6.22px; padding-bottom: 6.22px; }
-                .rov-ficha .rov-identity-label { margin-bottom: 3.74px; font-size: 7.57pt; }
-                .rov-ficha .rov-identity-value { font-size: 10.36pt; }
                 .rov-ficha .rov-report-body { padding-bottom: 16.19px; }
                 .rov-ficha .rov-card-pair { margin-bottom: 12.46px; }
                 .rov-ficha .rov-report-card { min-height: 166.82px; padding-top: 12.46px; padding-bottom: 11.21px; }
@@ -185,11 +204,8 @@
                 .rov-ficha .rov-closing-card { min-height: 173.32px; padding-top: 12.46px; padding-bottom: 11.21px; }
                 .rov-ficha .rov-finding { padding-top: 3.74px; padding-bottom: 3.74px; font-size: 10.22pt; line-height: 1.286; }
                 .rov-ficha .rov-finding-summary { margin-top: 4.98px; }
-                .rov-ficha .rov-observations-sizer { min-height: 173.32px; padding-top: 12.46px; padding-bottom: 11.21px; }
                 .rov-ficha .rov-observations-title { margin-bottom: 9.97px; }
                 .rov-ficha .rov-observations-text { font-size: 11.36pt; line-height: 1.522; }
-                .rov-ficha .rov-observations-card-paired .rov-observations-content { padding-bottom: 99.66px; }
-                .rov-ficha .rov-observations-card-paired .rov-observations-differences { bottom: 11.21px; }
                 .rov-ficha .rov-differences { margin-top: 9.97px; padding-top: 8.72px; padding-bottom: 8.72px; font-size: 10.36pt; line-height: 1.419; }
                 .rov-ficha .rov-difference-line + .rov-difference-line { margin-top: 3.74px; }
                 .rov-ficha .rov-signatures { margin-top: 4.98px; }
@@ -197,19 +213,9 @@
                 .rov-ficha .rov-signature-label { font-size: 8.33pt; }
                 .rov-ficha .rov-footer { margin-top: 12.46px; margin-bottom: 2.49px; padding-top: 11.21px; font-size: 8.33pt; line-height: 1.388; }
                 .rov-ficha .rov-footer-item { margin-bottom: 2.49px; }
-
                 /* Escala final: +4 % sobre la composición aprobada. */
                 .rov-ficha, .rov-ficha.article { font-size: 12.87pt; }
-                .rov-ficha .rov-header-band td { height: 86.06px; padding-top: 10.12px; padding-bottom: 10.12px; }
-                .rov-ficha .rov-header-logo-window { width: 180.2px; height: 38.61px; margin-bottom: 8px; }
-                .rov-ficha .rov-header-logo { top: -27.03px; left: -3.87px; width: 187.93px; }
-                .rov-ficha .rov-header-title { font-size: 21.23pt; }
-                .rov-ficha .rov-header-number span { padding-top: 8.86px; padding-bottom: 8.86px; font-size: 11.59pt; }
-                .rov-ficha .rov-identity-wrap { padding-top: 11.39px; padding-bottom: 10.12px; }
-                .rov-ficha .rov-identity-card { min-height: 45.55px; padding-top: 6.32px; padding-bottom: 6.32px; }
-                .rov-ficha .rov-identity-label { margin-bottom: 3.8px; font-size: 7.72pt; }
-                .rov-ficha .rov-identity-value { font-size: 10.56pt; }
-                .rov-ficha .rov-report-body { padding-bottom: 16.45px; }
+                .rov-ficha .rov-report-body { padding-bottom: 8px; }
                 .rov-ficha .rov-card-pair { margin-bottom: 12.66px; }
                 .rov-ficha .rov-report-card { min-height: 169.47px; padding-top: 12.66px; padding-bottom: 11.39px; }
                 .rov-ficha .rov-section-title { margin-bottom: 7.59px; font-size: 9.39pt; line-height: 1.296; }
@@ -223,21 +229,18 @@
                 .rov-ficha .rov-checks { margin-bottom: 12.66px; padding-top: 12.66px; padding-bottom: 11.39px; }
                 .rov-ficha .rov-checks-header { margin-bottom: 6.32px; }
                 .rov-ficha .rov-checks-legend { font-size: 9.01pt; }
-                .rov-ficha .rov-check-grid { border-spacing: 5.89px 5.06px; }
-                .rov-ficha .rov-check-section { padding-top: 2.53px; padding-bottom: 2.53px; }
-                .rov-ficha .rov-check-section-head { margin-bottom: 2.53px; }
+                .rov-ficha .rov-check-grid { border-spacing: 5.89px 6.5px; }
+                .rov-ficha .rov-check-section { padding: 3.45px 3.54px; }
+                .rov-ficha .rov-check-section-head { margin-bottom: 3.2px; }
                 .rov-ficha .rov-check-section-name, .rov-ficha .rov-check-section-summary { font-size: 9.01pt; }
-                .rov-ficha .rov-check-details { font-size: 9.01pt; line-height: 1.369; }
+                .rov-ficha .rov-check-details { font-size: 8.75pt; line-height: 1.42; }
                 .rov-ficha .rov-check-status { font-size: 7.47pt; }
                 .rov-ficha .rov-closing-grid { margin-bottom: 12.66px; }
                 .rov-ficha .rov-closing-card { min-height: 176.07px; padding-top: 12.66px; padding-bottom: 11.39px; }
                 .rov-ficha .rov-finding { padding-top: 3.8px; padding-bottom: 3.8px; font-size: 10.42pt; line-height: 1.296; }
                 .rov-ficha .rov-finding-summary { margin-top: 5.06px; }
-                .rov-ficha .rov-observations-sizer { min-height: 176.07px; padding-top: 12.66px; padding-bottom: 11.39px; }
                 .rov-ficha .rov-observations-title { margin-bottom: 10.12px; }
                 .rov-ficha .rov-observations-text { font-size: 11.59pt; line-height: 1.534; }
-                .rov-ficha .rov-observations-card-paired .rov-observations-content { padding-bottom: 101.24px; }
-                .rov-ficha .rov-observations-card-paired .rov-observations-differences { bottom: 11.39px; }
                 .rov-ficha .rov-differences { margin-top: 10.12px; padding-top: 8.86px; padding-bottom: 8.86px; font-size: 10.56pt; line-height: 1.431; }
                 .rov-ficha .rov-difference-line + .rov-difference-line { margin-top: 3.8px; }
                 .rov-ficha .rov-signatures { margin-top: 5.06px; }
@@ -245,21 +248,38 @@
                 .rov-ficha .rov-signature-label { font-size: 8.5pt; }
                 .rov-ficha .rov-footer { margin-top: 12.66px; margin-bottom: 2.53px; padding-top: 11.39px; font-size: 8.5pt; line-height: 1.4; }
                 .rov-ficha .rov-footer-item { margin-bottom: 2.53px; }
-
-                /* Microajustes finales: aire en identificación y zona funcional de firma. */
-                .rov-ficha .rov-identity-wrap { padding-top: 12.5px; padding-bottom: 11.25px; }
-                .rov-ficha .rov-identity-card { min-height: 50.5px; padding-top: 7px; padding-bottom: 7px; }
-                .rov-ficha .rov-identity-label { margin-bottom: 4px; }
                 .rov-ficha .rov-finding-summary { margin-top: 8.5px; }
                 .rov-ficha .rov-observations-title { margin-bottom: 11.5px; }
-                .rov-ficha .rov-signatures { margin-top: 12.66px; }
+                .rov-ficha .rov-signatures { margin-top: 26.66px; }
                 .rov-ficha .rov-signature-line { height: 47px; margin-bottom: 4px; }
-                .rov-ficha .rov-signature-label { font-size: 8.75pt; color: #536779; }
-                .rov-ficha .rov-footer { font-size: 8.7pt; color: #536779; }
-                .rov-ficha .rov-header-logo-window { margin-bottom: 9px; }
+                .rov-ficha .rov-signature-label { font-size: 8.75pt; color: #526b80; }
+                .rov-ficha .rov-footer { font-size: 8.7pt; color: #526b80; }
+                /* Ambas tarjetas parten de la altura full validada y crecen si su contenido lo exige. */
+                .rov-ficha .rov-closing-card { min-height: 263.5px; overflow: visible; }
+                .rov-ficha .rov-observations-layout { height: 239.45px; }
+                .rov-ficha .rov-section-title { font-size: 10pt; letter-spacing: .088em; line-height: 1.05; }
+                .rov-ficha .rov-measurement-name { font-size: 8.48pt; }
+                .rov-ficha .rov-check-section-name { font-size: 8.65pt; }
+                .rov-ficha .rov-check-section-summary { font-size: 8.81pt; }
+                .rov-ficha .rov-check-details { color: #526b80; font-size: 8.75pt; line-height: 1.42; }
+                .rov-ficha .rov-footer { font-size: 9.2pt; }
+                /* REV comparte con FEN la geometría y tipografía de los roles comunes;
+                   conserva sus tarjetas, flujo, semántica y dimensiones propias. */
+                .rov-ficha, .rov-ficha.article { font-family: 'DejaVu Sans', Arial, sans-serif; }
+                .rov-ficha .rov-section-title { font-family: 'DejaVu Sans', Arial, sans-serif; font-size: 10pt; letter-spacing: .088em; }
+                .rov-ficha .rov-card-value, .rov-ficha .rov-measurement-name, .rov-ficha .rov-measurement-value, .rov-ficha .rov-finding-value, .rov-ficha .rov-check-section-summary { font-family: 'DejaVu Sans Mono', 'Courier New', monospace; }
+                .rov-ficha .rov-measurement-name { font-size: 8.48pt; }
+                .rov-ficha .rov-check-section-name { font-family: 'DejaVu Sans', Arial, sans-serif; }
+                .rov-ficha .rov-check-section-summary { font-family: 'DejaVu Sans Mono', 'Courier New', monospace; }
+                .rov-ficha .rov-check-details { color: #526b80; font-family: 'DejaVu Sans', Arial, sans-serif; font-size: 8.75pt; font-weight: normal; line-height: 1.42; }
+                .rov-ficha .rov-signature-line { border-bottom: .58pt solid #8fa6b7; }
+                .rov-ficha .rov-signature-label { color: #526b80; font-family: 'DejaVu Sans Mono', 'Courier New', monospace; font-size: 8.6pt; font-weight: normal; line-height: 1.06; }
+                .rov-ficha .rov-footer { color: #526b80; font-family: 'DejaVu Sans', Arial, sans-serif; font-size: 9.2pt; font-weight: normal; letter-spacing: .016em; line-height: 1.08; margin-top: 17.26px; border-top-color: #8fa6b7; }
+                .rov-ficha .rov-empty-placeholder { color: #526b80; font-family: 'DejaVu Sans', Arial, sans-serif; font-size: 8.8pt; font-style: italic; font-weight: normal; line-height: 1.2; text-align: left; }
+
             </style>
             <div class="page">
-                <div class="rov-draft" data-rov-watermark="1" t-if="o.estado == 'borrador'"><span>BORRADOR</span></div>
+                <t t-call="mc_rov.report_shared_header_metadata_styles"/>
                 <t t-call="mc_rov.ficha_cabecera"/>
                 <div class="rov-report-body">
                     <table class="rov-card-pair"><tr>
@@ -282,25 +302,15 @@
         </div>
     </template>
     <template id="ficha_cabecera">
-        <table class="rov-header-band" data-rov-header-band="1" role="presentation">
-            <tr>
-                <td class="rov-header-brand">
-                    <div class="rov-header-logo-window"><img t-if="o._ficha_logo_blanco_uri()" class="rov-header-logo" t-att-src="o._ficha_logo_blanco_uri()" alt="Marine Connection"/></div>
-                    <div class="rov-header-title">Ficha de equipo reparado</div>
-                </td>
-                <td class="rov-header-number"><span t-field="o.name"/></td>
-            </tr>
-        </table>
-        <div class="rov-identity-wrap">
-            <table class="rov-identity-strip" role="presentation">
-                <tr>
-                    <td class="rov-identity-slot"><div class="rov-identity-card" data-rov-identity-card="1"><span class="rov-identity-label">Fecha</span><span class="rov-identity-value" t-field="o.fecha"/></div></td>
-                    <td class="rov-identity-slot"><div class="rov-identity-card" data-rov-identity-card="1"><span class="rov-identity-label">Equipo</span><span class="rov-identity-value" t-field="o.product_id"/></div></td>
-                    <td class="rov-identity-slot"><div class="rov-identity-card" data-rov-identity-card="1"><span class="rov-identity-label">N° de serie</span><span class="rov-identity-value" t-field="o.lot_id.name"/></div></td>
-                    <td class="rov-identity-slot"><div class="rov-identity-card" data-rov-identity-card="1"><span class="rov-identity-label"><t t-if="o.repair_id">Cliente</t><t t-else="">Propietario</t></span><span t-if="o.repair_id" class="rov-identity-value" t-field="o.partner_id"/><span t-else="" class="rov-identity-value" t-field="o.propietario_id"/></div></td>
-                    <td class="rov-identity-slot"><div class="rov-identity-card" data-rov-identity-card="1"><span class="rov-identity-label">Técnico</span><span class="rov-identity-value" t-field="o.responsable_id"/></div></td>
-                </tr>
-            </table>
+        <div class="mc-report-revision-gutter">
+            <t t-set="mc_report_title" t-value="'Ficha de equipo reparado'"/>
+            <t t-call="mc_rov.report_shared_header_metadata">
+                <td class="mc-report-identity-cell" data-mc-report-id="1"><span class="mc-report-label">Fecha</span><t t-set="mc_report_metadata_value" t-value="o.fecha.strftime('%d-%m-%Y') if o.fecha else ''"/><t t-set="mc_report_metadata_compact_limit" t-value="14"/><t t-call="mc_rov.report_shared_metadata_value"/></td>
+                <td class="mc-report-identity-cell" data-mc-report-id="1"><span class="mc-report-label">Equipo</span><t t-set="mc_report_metadata_value" t-value="o.product_id.display_name or ''"/><t t-set="mc_report_metadata_compact_limit" t-value="25"/><t t-call="mc_rov.report_shared_metadata_value"/></td>
+                <td class="mc-report-identity-cell" data-mc-report-id="1"><span class="mc-report-label">N° de serie</span><t t-set="mc_report_metadata_value" t-value="o.lot_id.name or ''"/><t t-set="mc_report_metadata_compact_limit" t-value="18"/><t t-call="mc_rov.report_shared_metadata_value"/></td>
+                <td class="mc-report-identity-cell" data-mc-report-id="1"><span class="mc-report-label"><t t-if="o.repair_id">Cliente</t><t t-else="">Propietario</t></span><t t-set="mc_report_metadata_value" t-value="(o.partner_id.display_name if o.partner_id else '') if o.repair_id else (o.propietario_id.display_name if o.propietario_id else '')"/><t t-set="mc_report_metadata_compact_limit" t-value="26"/><t t-call="mc_rov.report_shared_metadata_value"/></td>
+                <td class="mc-report-identity-cell" data-mc-report-id="1"><span class="mc-report-label">Técnico</span><t t-set="mc_report_metadata_value" t-value="o.responsable_id.display_name or ''"/><t t-set="mc_report_metadata_compact_limit" t-value="22"/><t t-call="mc_rov.report_shared_metadata_value"/></td>
+            </t>
         </div>
     </template>
     <template id="ficha_condiciones">
@@ -401,17 +411,15 @@
         </div>
     </template>
     <template id="ficha_hallazgos_observaciones">
-        <t t-set="mostrar_hallazgos" t-value="o.tipo == 'reparacion' and options.get('hallazgos', True) and bool(o.hallazgo_ids)"/>
         <t t-set="mostrar_diferencias" t-value="o.tipo == 'reparacion' and options.get('diferencias', True) and (o.umbilical_difiere or o.luces_difieren or o.software_difiere)"/>
         <t t-set="mostrar_observaciones" t-value="bool(o.repair_id.observaciones_salida)"/>
-        <t t-set="mostrar_tarjeta_observaciones" t-value="mostrar_observaciones or mostrar_diferencias"/>
-        <table t-if="mostrar_hallazgos or mostrar_tarjeta_observaciones" class="rov-closing-grid" data-rov-closing-layout="1" role="presentation">
+        <table t-if="o.tipo == 'reparacion'" class="rov-closing-grid" data-rov-closing-layout="1" role="presentation">
             <tr>
-                <td t-if="mostrar_hallazgos" t-att-class="'rov-closing-cell ' + ('rov-closing-cell-half' if mostrar_tarjeta_observaciones else 'rov-closing-cell-full')">
+                <td class="rov-closing-cell rov-closing-cell-half">
                     <t t-call="mc_rov.ficha_hallazgos"/>
                 </td>
-                <td t-if="mostrar_hallazgos and mostrar_tarjeta_observaciones" class="rov-closing-gap"></td>
-                <td t-if="mostrar_tarjeta_observaciones" t-att-class="'rov-closing-cell ' + ('rov-closing-cell-half rov-closing-cell-paired' if mostrar_hallazgos else 'rov-closing-cell-full')">
+                <td class="rov-closing-gap"></td>
+                <td class="rov-closing-cell rov-closing-cell-half">
                     <t t-call="mc_rov.ficha_observaciones"/>
                 </td>
             </tr>
@@ -420,8 +428,9 @@
     <template id="ficha_hallazgos">
         <div class="rov-closing-card" data-rov-findings="1">
             <div class="rov-closing-title rov-section-title">HALLAZGOS</div>
-            <t t-set="hallazgos_ficha" t-value="o._ficha_hallazgos_para_pdf()"/>
-            <t t-set="hallazgos_ocultos" t-value="len(o.hallazgo_ids) - len(hallazgos_ficha)"/>
+            <t t-set="hallazgos_ficha" t-value="o._ficha_hallazgos_para_pdf() if options.get('hallazgos', True) else o.hallazgo_ids[:0]"/>
+            <t t-set="hallazgos_ocultos" t-value="len(o.hallazgo_ids) - len(hallazgos_ficha) if options.get('hallazgos', True) else 0"/>
+            <div t-if="not o.hallazgo_ids" class="rov-empty-placeholder" data-rov-empty-findings="1">Sin hallazgos registrados en sistema.</div>
             <div class="rov-finding" t-foreach="hallazgos_ficha" t-as="hallazgo">
                 <div class="rov-finding-label"><span t-field="hallazgo.componente_id"/><t t-if="hallazgo.subtipo_id"> / <span t-field="hallazgo.subtipo_id"/></t></div>
                 <div class="rov-finding-value"><span t-field="hallazgo.hallazgo_id"/></div>
@@ -440,16 +449,21 @@
         </div>
     </template>
     <template id="ficha_observaciones_contenido">
-        <div class="rov-closing-title rov-section-title rov-observations-title">OBSERVACIONES</div>
-        <div t-if="mostrar_observaciones" class="rov-observations-content">
-            <div class="rov-observations-text" t-field="o.repair_id.observaciones_salida"/>
-        </div>
-        <div t-if="mostrar_diferencias" class="rov-observations-differences"><t t-call="mc_rov.ficha_diferencias"/></div>
+        <table class="rov-observations-layout" role="presentation">
+            <tr><td>
+                <div class="rov-closing-title rov-section-title rov-observations-title">OBSERVACIONES</div>
+                <div t-if="not mostrar_observaciones and not mostrar_diferencias" class="rov-empty-placeholder" data-rov-empty-observations="1">Sin observaciones registradas en sistema.</div>
+                <div t-if="mostrar_observaciones" class="rov-observations-content">
+                    <div class="rov-observations-text" t-field="o.repair_id.observaciones_salida"/>
+                </div>
+            </td></tr>
+            <tr t-if="mostrar_diferencias"><td class="rov-observations-differences-cell">
+                <div class="rov-observations-differences"><t t-call="mc_rov.ficha_diferencias"/></div>
+            </td></tr>
+        </table>
     </template>
     <template id="ficha_observaciones">
-        <!-- La réplica invisible hace crecer la fila; la tarjeta visible ocupa esa altura. -->
-        <div t-if="mostrar_hallazgos" class="rov-observations-sizer"><t t-call="mc_rov.ficha_observaciones_contenido"/></div>
-        <div t-att-class="'rov-closing-card rov-observations-card ' + ('rov-observations-card-paired' if mostrar_hallazgos else '')" data-rov-observations="1">
+        <div class="rov-closing-card rov-observations-card" data-rov-observations="1">
             <t t-call="mc_rov.ficha_observaciones_contenido"/>
         </div>
     </template>
