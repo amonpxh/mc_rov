@@ -2,6 +2,19 @@
 
 > Actualizar esta sección al cerrar cada sesión de trabajo.
 
+**Separación Electrónica / Software — 2026-10-01:** implementación local en
+`feature/separar-electronica-software`, versión `19.0.23.7.0`. Electrónica conserva
+los subtipos físicos; Software / Configuración contiene Software de superficie,
+Firmware y Parámetros / Configuración. El upgrade reclasifica los hallazgos y trabajos
+del subtipo Parámetros que todavía usan Electrónica; sin subtipo permanecen en
+Electrónica porque no se puede inferir su naturaleza. No se conserva una categoría
+mixta histórica. Chequeos y diseño PDF permanecen intactos. Validación local del XML
+y SQL de migración y hooks de pre-commit aprobados. STAGING instaló `19.0.23.7.0`:
+20 pruebas, 0 fallos y 0 errores; catálogo verificado, sin hallazgos ni trabajos de
+Parámetros todavía asociados a Electrónica; servicio activo. Evidencia recibida del
+runner el 2026-10-01. Los avisos existentes de campos calculados quedaron fuera de alcance.
+Pendientes publicación del commit, PR, merge y despliegue a producción.
+
 **Cierre FEN/REV — 2026-10-01:** PR #87 se fusionó en `main` como
 `1fad9963f4fbe7f064e7f44e3e2889e523c5c2fa`; checks de `pre-commit` y de la suite Odoo
 pasaron. La versión `19.0.23.6.0` se actualizó en producción y `odoo` quedó activo.
@@ -1050,10 +1063,9 @@ de la vista. Los dos se habían deducido de una captura, sin poder leer el arch 
   que nunca tuvieron causa quedaron ahí, así que un `desconocida` anterior a `19.0.13.0.0`
   puede significar «no se pudo determinar» o «nadie lo llenó», y eso ya no se distingue.
 
-- [ ] **`comp_electronica` se llama «Electrónica / Software» y mezcla dos cosas en una
-  etiqueta.** Apareció al agregar los componentes que faltaban: fue la razón por la que
-  «Software de superficie» no entró como componente propio. Separarlas obliga a decidir qué
-  pasa con las filas que ya la usan, así que queda anotado.
+- [ ] **Separar Electrónica y Software / Configuración:** implementado y validado en
+  STAGING (`19.0.23.7.0`, 20 pruebas); pendientes PR y producción. Parámetros y
+  sus hallazgos/trabajos se reclasifican; los registros sin subtipo quedan en Electrónica.
 
 - [ ] **Medir la tasa de llenado de `hallazgo_origen_id`** antes de confiar en cualquier
   análisis que cruce hallazgos con orígenes. Es opcional, y sin él la línea de trabajo tiene
