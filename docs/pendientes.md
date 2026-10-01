@@ -2,6 +2,14 @@
 
 > Actualizar esta sección al cerrar cada sesión de trabajo.
 
+**Cierre FEN/REV — 2026-10-01:** PR #87 se fusionó en `main` como
+`1fad9963f4fbe7f064e7f44e3e2889e523c5c2fa`; checks de `pre-commit` y de la suite Odoo
+pasaron. La versión `19.0.23.6.0` se actualizó en producción y `odoo` quedó activo.
+Se verificaron el reporte FEN, su paperformat y la fuente Noto Sans; HTTP local respondió
+correctamente. La última validación FEN de STAGING pasó 15 pruebas y generó PDFs Letter de
+una página; sus datos auxiliares se revirtieron. Las entradas fechadas que siguen son
+registros históricos; `.tmp` contiene evidencia local y no forma parte del PR.
+
 **Radio y gap vertical de subcubos Chequeos FEN - 2026-10-01:** radio de 2 pt y `border-spacing:4pt 2.75pt` (horizontal sigue en 4 pt; gap vertical sube 0,75 pt). Padding, tipografia, contenido, anchos, REV y geometria general no cambiaron. TDD RED se confirmo; `TestFichaEquipoNuevo` paso: 15 pruebas, 0 fallos y 0 errores. Los PDFs FEN con contenido y pendiente son Letter de una pagina (612 x 792 pt); los fixtures se revirtieron y Odoo quedo activo. Los crops RND/TRN antes/despues y las paginas completas se revisaron; el pie y las firmas siguen intactos. QWeb REV mantuvo el mismo hash. Evidencia final en `.tmp/report-final-qa-rounding/`; los artefactos QA anteriores se conservaron. Sin commit ni despliegue a produccion.
 
 **Microajuste de gaps en Chequeos FEN — 2026-10-01:** la grilla de subcubos
