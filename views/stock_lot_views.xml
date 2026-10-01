@@ -251,6 +251,9 @@
                             <button name="action_nueva_revision_terreno" type="object"
                                     string="Nueva prueba en terreno"
                                     class="btn-secondary ms-2"/>
+                            <button name="action_preparar_ficha_equipo_nuevo" type="object"
+                                    string="Preparar ficha de equipo nuevo"
+                                    class="btn-secondary ms-2"/>
                         </div>
                         <!-- La prueba se abre **en su propia pantalla**, no en un diálogo dentro
                              de esta ficha, y para eso está el botón «Abrir» de cada fila.
@@ -308,6 +311,16 @@
                                         class="btn-link" invisible="estado != 'borrador'"/>
                                 <button name="action_abrir" type="object" string="Abrir"
                                         class="btn-link" invisible="estado == 'borrador'"/>
+                            </list>
+                        </field>
+                        <separator string="Fichas de equipo nuevo"/>
+                        <field name="ficha_equipo_nuevo_ids" readonly="1">
+                            <list>
+                                <field name="name"/>
+                                <field name="fecha_emision"/>
+                                <field name="rnd_id"/>
+                                <field name="trn_id"/>
+                                <field name="estado"/>
                             </list>
                         </field>
                     </page>

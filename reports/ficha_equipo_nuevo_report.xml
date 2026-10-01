@@ -1,0 +1,301 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_ficha_equipo_nuevo" model="ir.actions.report">
+        <field name="name">Ficha de equipo nuevo</field>
+        <field name="model">mc.rov.ficha.equipo.nuevo</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">mc_rov.report_ficha_equipo_nuevo</field>
+        <field name="report_file">mc_rov.report_ficha_equipo_nuevo</field>
+        <field name="paperformat_id" ref="mc_rov.paperformat_ficha_carta"/>
+        <field name="binding_model_id" ref="model_mc_rov_ficha_equipo_nuevo"/>
+        <field name="binding_type">report</field>
+        <field name="attachment_use" eval="True"/>
+        <field name="attachment">'Ficha Equipo Nuevo - %s.pdf' % object.name.replace('/', '-') if object.estado == 'emitida' else False</field>
+        <field name="print_report_name">'Ficha Equipo Nuevo - %s' % object.name.replace('/', '-')</field>
+    </record>
+
+    <template id="report_ficha_equipo_nuevo">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="mc_rov.report_ficha_equipo_nuevo_document"/>
+            </t>
+        </t>
+    </template>
+
+    <template id="report_ficha_equipo_nuevo_document">
+        <div class="article fen-sheet" t-att-data-oe-model="o._name" t-att-data-oe-id="o.id">
+            <style>/* El article de Odoo deja 9.22 pt físicos por lado; se compensa dentro de FEN convirtiendo el inset por el factor wkhtml observado. */
+                .fen-sheet.article { position:relative; left:-12.29pt; width:calc(100% + 24.58pt) !important; max-width:none !important; }
+                .fen-sheet { width:100% !important; color:#243444; background:#fff; font-family:'DejaVu Sans',Arial,sans-serif; font-size:9.2pt; line-height:1.22; }
+                .fen-sheet * { box-sizing:border-box; }
+                .fen-page { position:relative; width:100%; height:1018pt; min-height:1018pt; padding:0 11.68pt 7.5pt; }
+                .fen-card { position:relative; margin:0 0 4.7pt; padding:7.5pt 8.5pt; border:1px solid #9fb4c3; border-radius:5pt; background:#fff; page-break-inside:avoid; }
+                .fen-section-title { margin:0 0 7pt; color:#005aa0; font-size:10pt; line-height:1.05; font-weight:bold; letter-spacing:.088em; text-transform:uppercase; }
+                .fen-config-table { width:calc(100% + 12pt); margin-left:-6pt; border-collapse:separate; border-spacing:6pt 0; table-layout:fixed; }
+                .fen-config-col { width:50%; vertical-align:top; padding:8.1pt 6.5pt 7.2pt; border:1px solid #9fb4c3; border-radius:4pt; background:#fff; }
+                .fen-config-group { min-height:0; margin:0; padding:0; border:0; background:#fff; }
+                .fen-config-group + .fen-config-group { margin-top:4.5pt; padding-top:4.6pt; border-top:1px solid #d3e1ec; }
+                .fen-subtitle { margin:0 0 5.15pt; color:#005aa0; font-size:9pt; line-height:1.1; font-weight:bold; text-transform:uppercase; letter-spacing:.015em; }
+                .fen-row { display:table; width:100%; padding:1.35pt 0; font-size:10.3pt; line-height:1.16; }
+                .fen-key, .fen-value { display:table-cell; vertical-align:top; overflow-wrap:break-word; }
+                .fen-key { width:44%; padding-right:6pt; color:#526b80; }
+                .fen-value { width:56%; text-align:right; font-family:'DejaVu Sans Mono','Courier New',monospace; font-size:10.2pt; }
+                .fen-value-weights { white-space:nowrap; }
+                .fen-validation { margin:0 0 4.7pt; padding-bottom:6pt; }
+                .fen-val-shell { margin:2.5pt; page-break-inside:avoid; }
+                .fen-val-frame { border:1px solid #9fb4c3; border-radius:4pt; overflow:hidden; background:#edf3f8; page-break-inside:avoid; }
+                .fen-val-table { width:100%; height:176pt; min-height:176pt; margin:0; border-collapse:separate; border-spacing:0; table-layout:fixed; border:0; background:#edf3f8; page-break-inside:avoid; }
+                .fen-val-head, .fen-val-mid, .fen-val-side { height:176pt; vertical-align:top; padding-top:4pt; padding-bottom:2.5pt; }
+                .fen-val-frame.fen-validation-ok { border-left:3pt solid #4DBA78; }
+                .fen-val-frame.fen-validation-warning { border-left:3pt solid #E5B54B; }
+                .fen-val-frame.fen-validation-fail { border-left:3pt solid #D8685C; }
+                .fen-val-frame.fen-validation-pending { border-left:3pt solid #A2AEB8; }
+                .fen-val-head { width:104pt; padding-left:7.2pt; padding-right:4.6pt; border-right:1px solid #d3e1ec; background:#f4f7f9; }
+                .fen-val-mid { padding-left:5pt; padding-right:5pt; }
+                .fen-val-side { width:325.5pt; padding:4pt 5pt 2.5pt; border-left:1px solid #d3e1ec; background:#f4f7f9; }
+                .fen-revision-name { color:#005aa0; font-family:'DejaVu Sans Mono','Courier New',monospace; font-size:11.7pt; font-weight:bold; line-height:1; }
+                .fen-revision-meta { margin-top:3pt; color:#526b80; font-size:8.3pt; line-height:1.18; overflow-wrap:break-word; }
+                .fen-status { display:inline-block; margin-top:6pt; padding:3.6pt 6pt 3pt; border-radius:3pt; font-family:'Noto Sans',Arial,sans-serif; font-size:9.3pt; line-height:1; font-weight:600; text-transform:uppercase; }
+                .fen-status-ok { background:#e3f4e9; color:#007b4b; }
+                .fen-status-warning { background:#fff0d4; color:#92600d; }
+                .fen-status-fail { background:#fce6e4; color:#b42318; }
+                .fen-status-pending { background:#e9edf0; color:#667a89; }
+                .fen-vr-title { margin:0 0 2.5pt; color:#005aa0; font-size:8.72pt; line-height:1.1; font-weight:bold; text-transform:uppercase; letter-spacing:.04em; }
+                .fen-vr-section + .fen-vr-section { margin-top:3.65pt; padding-top:3.65pt; border-top:1px solid #d3e1ec; }
+                .fen-vr-pair { width:100%; border-collapse:separate; border-spacing:3pt 0; table-layout:fixed; }
+                .fen-vr-pair td { width:50%; padding:0; vertical-align:top; }
+                .fen-vr-group-title { margin:1.17pt 0 3.3pt; color:#526b80; font-family:'DejaVu Sans Mono','Courier New',monospace; font-size:8.48pt; line-height:1.1; font-weight:bold; text-transform:uppercase; letter-spacing:.055em; }
+                .fen-vr-line { display:table; width:100%; margin:.4pt 0; font-size:9.33pt; line-height:1.23; }
+                .fen-vr-line > span, .fen-vr-line > strong { display:table-cell; vertical-align:top; }
+                .fen-vr-line > span { width:auto; padding-right:6pt; color:#526b80; }
+                .fen-vr-line > strong { width:1%; text-align:right; font-family:'DejaVu Sans Mono','Courier New',monospace; font-size:9pt; font-weight:normal; white-space:nowrap; }
+                .fen-vr-line .fen-ok { color:#007b4b; }
+                .fen-vr-line .fen-arrow { font-weight:normal; }
+                .fen-check-topline { display:table; width:100%; margin:0 0 2.55pt; }
+                .fen-check-topline .fen-vr-title { display:table-cell; width:50%; margin:0; vertical-align:baseline; white-space:nowrap; }
+                .fen-check-legend { display:table-cell; margin:0; color:#667a89; font-size:6.62pt; letter-spacing:-.012em; line-height:1; text-align:right; white-space:nowrap; vertical-align:baseline; }
+                .fen-check-legend .ok { color:#007b4b; font-weight:bold; }
+                .fen-check-legend .fail { color:#b42318; font-weight:bold; }
+                .fen-check-legend .na { color:#7b8791; font-style:italic; }
+                .fen-check-legend .pending { color:#7b8791; font-style:normal; font-weight:normal; }
+                .fen-check-grid { width:100%; }
+                .fen-check-grid-table { width:100%; border-collapse:separate; border-spacing:4pt 2.75pt; table-layout:fixed; }
+                .fen-check-grid-table tr { page-break-inside:avoid; }
+                .fen-check-item { width:50%; margin:0; padding:2pt 3.15pt; vertical-align:top; border:0; border-radius:2pt; background:#fff; font-size:8.75pt; line-height:1.23; }
+                .fen-check-empty { width:50%; padding:0; }
+                .fen-check-head { display:table; width:100%; margin-bottom:.92pt; }
+                .fen-check-name, .fen-check-score { display:table-cell; font-weight:bold; }
+                .fen-check-name { color:#334b5b; font-size:8.65pt; }
+                .fen-check-score { text-align:right; font-family:'DejaVu Sans Mono','Courier New',monospace; font-size:8.81pt; white-space:nowrap; }
+                .fen-check-score.ok { color:#007b4b; }
+                .fen-check-line.ok { color:#526b80; }
+                .fen-check-score.fail, .fen-check-line.fail { color:#b42318; }
+                .fen-check-score.na, .fen-check-line.na { color:#667a89; font-style:italic; }
+                .fen-check-score.pending, .fen-check-line.pending { color:#667a89; }
+                .fen-check-detail { color:#526b80; font-size:8.52pt; line-height:1.23; overflow-wrap:break-word; }
+                .fen-checks-compact .fen-check-item { padding:.84pt 3.15pt .9pt; }
+                .fen-checks-summary .fen-check-item { padding:.84pt 3.15pt .9pt; }
+                .fen-check-separator { color:#96a8b5; }
+                .fen-observations { min-height:118pt; margin-bottom:0; }
+                .fen-observation-text { min-height:63pt; font-family:'DejaVu Serif',Georgia,serif; font-size:11.6pt; line-height:1.43; font-style:italic; white-space:pre-line; }
+                .fen-empty-placeholder { color:#526b80; font-family:'Noto Sans','DejaVu Sans',Arial,sans-serif; font-size:8.8pt; font-style:italic; font-weight:normal; line-height:1.2; text-align:left; }
+                .fen-amber-note { margin-top:7pt; padding:5pt 6pt; border-left:2pt solid #d68d1e; background:#fff4e5; color:#8f5600; font-size:8.5pt; line-height:1.25; }
+                .fen-signatures { position:absolute; left:11.68pt; right:auto; bottom:40pt; width:calc(100% - 23.36pt); height:21pt; margin:0; padding:0; border-collapse:separate; border-spacing:0; table-layout:fixed; }
+                .fen-signatures td { width:25%; padding:0 7pt; vertical-align:bottom; }
+                .fen-sign-line { height:7.6pt; border-top:.58pt solid #8fa6b7; }
+                .fen-sign-label { padding-top:3pt; color:#526b80; font-family:'DejaVu Sans Mono','Courier New',monospace; font-size:8.6pt; line-height:1.06; text-transform:uppercase; white-space:nowrap; }
+                .fen-footer { position:absolute; left:8.6pt; right:8.6pt; bottom:8pt; padding-top:4.8pt; border-top:1px solid #8fa6b7; color:#526b80; font-size:9.2pt; letter-spacing:.016em; line-height:1.08; text-align:center; white-space:nowrap; }
+
+            </style>
+            <t t-call="mc_rov.report_shared_header_metadata_styles"/>
+            <div class="page fen-page">
+                <t t-set="mc_report_title" t-value="'Ficha de equipo nuevo'"/>
+                <t t-call="mc_rov.report_shared_header_metadata">
+                    <td class="mc-report-identity-cell" data-mc-report-id="1"><span class="mc-report-label">Fecha</span><t t-set="mc_report_metadata_value" t-value="o.fecha_emision.strftime('%d-%m-%Y') if o.fecha_emision else ''"/><t t-set="mc_report_metadata_compact_limit" t-value="14"/><t t-call="mc_rov.report_shared_metadata_value"/></td>
+                    <td class="mc-report-identity-cell" data-mc-report-id="1"><span class="mc-report-label">Equipo / modelo</span><t t-set="mc_report_metadata_value" t-value="o.lot_id.product_id.display_name or ''"/><t t-set="mc_report_metadata_compact_limit" t-value="25"/><t t-call="mc_rov.report_shared_metadata_value"/></td>
+                    <td class="mc-report-identity-cell" data-mc-report-id="1"><span class="mc-report-label">N° de serie</span><t t-set="mc_report_metadata_value" t-value="o.lot_id.name or ''"/><t t-set="mc_report_metadata_compact_limit" t-value="18"/><t t-call="mc_rov.report_shared_metadata_value"/></td>
+                    <td class="mc-report-identity-cell" data-mc-report-id="1"><span class="mc-report-label">Cliente</span><t t-set="mc_report_metadata_value" t-value="o.cliente_nombre or 'Pendiente'"/><t t-set="mc_report_metadata_compact_limit" t-value="26"/><t t-call="mc_rov.report_shared_metadata_value"/></td>
+                    <td class="mc-report-identity-cell" data-mc-report-id="1"><span class="mc-report-label">Responsable</span><t t-set="mc_report_metadata_value" t-value="(o.responsable_id.name or 'Pendiente').upper()"/><t t-set="mc_report_metadata_compact_limit" t-value="22"/><t t-call="mc_rov.report_shared_metadata_value"/></td>
+                </t>
+
+                <div class="fen-card">
+                    <h2 class="fen-section-title">Configuración del equipo</h2>
+                    <table class="fen-config-table"><tr>
+                        <td class="fen-config-col">
+                            <div class="fen-config-group"><h3 class="fen-subtitle">Estructura y propulsión</h3>
+                                <div class="fen-row"><span class="fen-key">Chasis</span><span class="fen-value" t-esc="o._ficha_etiqueta(o.lot_id, 'mc_chasis')"/></div>
+                                <div class="fen-row"><span class="fen-key">Motores</span><span class="fen-value"><t t-esc="o.lot_id.mc_n_motores"/> × <t t-esc="o._ficha_etiqueta(o.lot_id, 'mc_modelo_motores')"/> · <t t-esc="o._ficha_etiqueta(o.lot_id, 'mc_posicion_motores')"/></span></div>
+                                <div class="fen-row"><span class="fen-key">Pesos</span><span class="fen-value fen-value-weights">ROV <t t-esc="o._ficha_decimal(o.lot_id.mc_peso_rov)"/> kg · Consola <t t-esc="o._ficha_decimal(o.lot_id.mc_peso_consola)"/> kg</span></div>
+                            </div>
+                            <div class="fen-config-group"><h3 class="fen-subtitle">Umbilical</h3>
+                                <div class="fen-row"><span class="fen-key">N° serie</span><span class="fen-value" t-esc="o.lot_id.mc_n_serie_umbilical or 'Pendiente'"/></div>
+                                <div class="fen-row"><span class="fen-key">Longitud</span><span class="fen-value"><t t-esc="o._ficha_decimal(o.lot_id.mc_longitud)"/> m</span></div>
+                                <div class="fen-row"><span class="fen-key">Diámetro</span><span class="fen-value"><t t-esc="o._ficha_decimal(o.lot_id.mc_diametro)"/> mm</span></div>
+                                <div class="fen-row"><span class="fen-key">Peso</span><span class="fen-value"><t t-esc="o._ficha_decimal(o.lot_id.mc_peso_umbilical)"/> kg</span></div>
+                            </div>
+                            <div class="fen-config-group"><h3 class="fen-subtitle">Parámetros de trabajo</h3>
+                                <div class="fen-row"><span class="fen-key">Pilot gain</span><span class="fen-value"><t t-esc="o.lot_id.mc_limitacion_pilot_gain"/> %</span></div>
+                                <div class="fen-row"><span class="fen-key">Ganancia luz</span><span class="fen-value"><t t-esc="o.lot_id.mc_ganancia_luz"/> %</span></div>
+                            </div>
+                        </td>
+                        <td class="fen-config-col">
+                            <div class="fen-config-group"><h3 class="fen-subtitle">Periféricos</h3>
+                                <div class="fen-row"><span class="fen-key">Luces</span><span class="fen-value"><t t-esc="o.lot_id.mc_cantidad_luces"/> en el equipo</span></div>
+                                <div class="fen-row"><span class="fen-key">Brazo / salida</span><span class="fen-value"><t t-esc="o.lot_id.mc_brazo or 'Sin brazo'"/> · <t t-esc="'instalada' if o.lot_id.mc_salida_brazo else 'sin salida'"/></span></div>
+                                <div class="fen-row"><span class="fen-key">Dispositivos extra</span><span class="fen-value" t-esc="o.lot_id.mc_dispositivos_extra or 'Ninguno registrado'"/></div>
+                            </div>
+                            <div class="fen-config-group"><h3 class="fen-subtitle">Sensores e instrumentos</h3>
+                                <div class="fen-row"><span class="fen-key">Sensor de presión</span><span class="fen-value" t-esc="o._ficha_etiqueta(o.lot_id, 'mc_sensor_presion')"/></div>
+                                <div class="fen-row"><span class="fen-key">Tiene horómetro</span><span class="fen-value" t-esc="o._ficha_etiqueta(o.lot_id, 'mc_tiene_horometro')"/></div>
+                            </div>
+                            <div class="fen-config-group"><h3 class="fen-subtitle">Comunicación, software y control</h3>
+                                <div class="fen-row"><span class="fen-key">Tarjetas de comunicación</span><span class="fen-value">ROV <t t-esc="o._ficha_etiqueta(o.lot_id, 'mc_tarjeta_comunicacion_rov')"/> · Consola <t t-esc="o._ficha_etiqueta(o.lot_id, 'mc_tarjeta_comunicacion_consola')"/></span></div>
+                                <div class="fen-row"><span class="fen-key">Software de superficie</span><span class="fen-value"><t t-esc="o.lot_id.mc_software_superficie.name or 'Pendiente'"/> <t t-esc="o.lot_id.mc_version_software or ''"/></span></div>
+                                <div class="fen-row"><span class="fen-key">Firmware</span><span class="fen-value">ArduSub <t t-esc="o.lot_id.mc_version_ardusub or 'Pendiente'"/></span></div>
+                                <div class="fen-row"><span class="fen-key">Controlador de vuelo</span><span class="fen-value"><t t-esc="o.lot_id.mc_controlador_vuelo.name or 'Pendiente'"/> <t t-esc="o.lot_id.mc_version_controlador or ''"/></span></div>
+                            </div>
+                        </td>
+                    </tr></table>
+                </div>
+
+                <div class="fen-card fen-validation">
+                    <h2 class="fen-section-title">Validaciones de aceptación</h2>
+                    <t t-set="modo_chequeos" t-value="o._ficha_modo_chequeos()"/>
+                    <t t-foreach="[o.rnd_id, o.trn_id]" t-as="revision">
+                        <div class="fen-val-shell" data-fen-validation="1">
+                          <div t-att-class="'fen-val-frame fen-validation-%s' % (o._ficha_estado_css(revision) if revision else 'pending')">
+                           <table class="fen-val-table"><tr>
+                            <td class="fen-val-head">
+                                <div class="fen-revision-name" t-esc="revision.name if revision else ('RND pendiente' if revision_index == 0 else 'TRN pendiente')"/>
+                                <t t-if="revision">
+                                    <div class="fen-revision-meta"><t t-esc="revision.fecha.strftime('%d-%m-%Y')"/><br/><t t-esc="revision.responsable_id.name or 'Pendiente'"/></div>
+                                    <span t-att-class="'fen-status fen-status-%s' % o._ficha_estado_css(revision)" t-esc="o._ficha_etiqueta(revision, 'resultado')"/>
+                                </t>
+                                <span t-else="" class="fen-status fen-status-pending">Pendiente</span>
+                            </td>
+                            <td class="fen-val-mid">
+                                <t t-if="revision"><t t-call="mc_rov.ficha_equipo_nuevo_condiciones"/></t>
+                                <div t-else="" class="fen-vr-title">Prueba pendiente</div>
+                            </td>
+                            <td class="fen-val-side">
+                                <div class="fen-check-topline">
+                                    <div class="fen-vr-title">Chequeos realizados</div>
+                                    <div class="fen-check-legend"><span class="ok">Conforme</span> · <span class="fail">No conforme</span> · <span class="na">No aplica</span> · <span class="pending">Pendiente</span></div>
+                                </div>
+                                <div t-if="revision" t-att-class="'fen-check-grid fen-checks-' + modo_chequeos">
+                                    <table class="fen-check-grid-table"><tbody>
+                                        <tr t-foreach="o._ficha_pares_chequeos(revision)" t-as="pareja">
+                                            <td class="fen-check-item">
+                                                <t t-set="grupo" t-value="pareja[0]"/>
+                                                <t t-call="mc_rov.ficha_equipo_nuevo_check_group"/>
+                                            </td>
+                                            <td t-if="pareja[1]" class="fen-check-item">
+                                                <t t-set="grupo" t-value="pareja[1]"/>
+                                                <t t-call="mc_rov.ficha_equipo_nuevo_check_group"/>
+                                            </td>
+                                            <td t-else="" class="fen-check-empty"/>
+                                        </tr>
+                                    </tbody></table>
+                                </div>
+                            </td>
+                           </tr></table>
+                          </div>
+                        </div>
+                    </t>
+                </div>
+
+                <div class="fen-card fen-observations">
+                    <h2 class="fen-section-title">Observaciones</h2>
+                    <div t-if="o.observacion" class="fen-observation-text" t-esc="o.observacion"/>
+                    <div t-if="not o.observacion and not ((o.rnd_id and o.rnd_id.resultado == 'aprobado_con_observaciones' and o.rnd_id.hallazgo_ids) or (o.trn_id and o.trn_id.resultado == 'aprobado_con_observaciones' and o.trn_id.hallazgo_ids))" class="fen-empty-placeholder" data-fen-empty-observations="1">Sin observaciones registradas en sistema.</div>
+
+                    <t t-foreach="[o.rnd_id, o.trn_id]" t-as="revision">
+                        <t t-if="revision and revision.resultado == 'aprobado_con_observaciones' and revision.hallazgo_ids">
+                            <div class="fen-amber-note"><strong t-esc="revision.hallazgo_ids[0].componente_id.name"/>: <t t-esc="revision.hallazgo_ids[0].hallazgo_id.name"/>. Observación registrada en <t t-esc="revision.name"/>.</div>
+                        </t>
+                    </t>
+                </div>
+                <table class="fen-signatures"><tr>
+                    <td><div class="fen-sign-line"/><div class="fen-sign-label">Responsable técnico</div></td>
+                    <td><div class="fen-sign-line"/><div class="fen-sign-label">Jefe de taller</div></td>
+                    <td><div class="fen-sign-line"/><div class="fen-sign-label">Gerente General</div></td>
+                    <td><div class="fen-sign-line"/><div class="fen-sign-label">Aceptación del cliente</div></td>
+                </tr></table>
+                <div class="fen-footer">Ingeniería y Servicios Marine Connection SpA · RUT 76.957.685-1 · Pje. Chinquihue 136, Puerto Montt · +56 9 7646 3823 · marineconnection.cl</div>
+            </div>
+        </div>
+    </template>
+
+    <template id="ficha_equipo_nuevo_check_group">
+        <div class="fen-check-head"><span class="fen-check-name" t-esc="grupo['nombre'].capitalize()"/><span t-att-class="'fen-check-score %s' % grupo['estilo']"><t t-esc="grupo['conformes']"/> de <t t-esc="grupo['total']"/></span></div>
+        <div class="fen-check-detail">
+            <t t-if="modo_chequeos == 'summary'">
+                <t t-set="fallos" t-value="[linea for linea in grupo['lineas'] if linea['estado'] == 'no_ok']"/>
+                <t t-set="no_aplica" t-value="len([linea for linea in grupo['lineas'] if linea['estado'] == 'no_lo_tiene'])"/>
+                <t t-set="pendientes" t-value="len([linea for linea in grupo['lineas'] if linea['estado'] == 'pendiente'])"/>
+                <t t-foreach="fallos" t-as="linea"><span t-if="linea_index" class="fen-check-separator"> · </span><span class="fen-check-line fail" t-esc="linea['nombre']"/></t>
+                <span t-if="no_aplica" class="fen-check-line na"><t t-if="fallos" class="fen-check-separator"> · </t><t t-esc="no_aplica"/> No aplica</span>
+                <span t-if="pendientes" class="fen-check-line pending"><t t-if="fallos or no_aplica" class="fen-check-separator"> · </t><t t-esc="pendientes"/> Pendiente</span>
+                <span t-if="not (fallos or no_aplica or pendientes)" class="fen-check-line ok">Conforme</span>
+            </t>
+            <t t-else="">
+                <t t-foreach="grupo['lineas']" t-as="linea">
+                    <span t-if="linea_index" class="fen-check-separator"> · </span><span t-att-class="'fen-check-line %s' % {'ok':'ok','no_ok':'fail','no_lo_tiene':'na','pendiente':'pending'}[linea['estado']]" t-esc="linea['nombre']"/>
+                </t>
+            </t>
+        </div>
+    </template>
+
+    <template id="ficha_equipo_nuevo_condiciones">
+        <div class="fen-vr-section">
+            <div class="fen-vr-title">Condiciones</div>
+            <table class="fen-vr-pair"><tr>
+                <td>
+                    <t t-if="revision.tipo == 'rendimiento'">
+                        <div class="fen-vr-group-title">Montaje de prueba</div>
+                        <div class="fen-vr-line"><span>Umbilical</span><strong t-esc="o._ficha_etiqueta(revision, 'umbilical')"/></div>
+                    </t>
+                    <t t-else="">
+                        <div class="fen-vr-group-title">Entorno de prueba</div>
+                        <div class="fen-vr-line"><span>Lugar</span><strong t-esc="revision.lugar or 'Pendiente'"/></div>
+                        <div class="fen-vr-line"><span>Profundidad</span><strong><t t-esc="revision.profundidad"/> m</strong></div>
+                        <div class="fen-vr-line"><span>Corriente</span><strong><t t-esc="o._ficha_decimal(revision.velocidad_corriente)"/> kn</strong></div>
+                    </t>
+                </td>
+                <td>
+                    <div class="fen-vr-group-title">Alimentación</div>
+                    <div class="fen-vr-line"><span>Fuente</span><strong t-esc="o._ficha_etiqueta(revision, 'alimentacion')"/></div>
+                    <div class="fen-vr-line"><span>Tensión</span><strong><t t-esc="revision.tension_salida"/> V</strong></div>
+                </td>
+            </tr></table>
+        </div>
+        <div class="fen-vr-section">
+            <div class="fen-vr-title">Resultados</div>
+            <table class="fen-vr-pair"><tr>
+                <td>
+                    <div class="fen-vr-group-title">Funcionamiento continuo</div>
+                    <div class="fen-vr-line"><span>Resultado</span><strong t-att-class="'fen-ok' if revision.funcionamiento_continuo_resultado == 'ok' else ''" t-esc="o._ficha_etiqueta(revision, 'funcionamiento_continuo_resultado')"/></div>
+                    <div class="fen-vr-line"><span>Duración</span><strong><t t-esc="o._ficha_decimal(revision.funcionamiento_continuo_duracion)"/> h</strong></div>
+                </td>
+                <td>
+                    <div class="fen-vr-group-title">Ancho de banda</div>
+                    <div class="fen-vr-line"><span>Subida</span><strong><span class="fen-arrow">↑ </span><t t-esc="o._ficha_decimal(revision.subida)"/> Mbps</strong></div>
+                    <div class="fen-vr-line"><span>Bajada</span><strong><span class="fen-arrow">↓ </span><t t-esc="o._ficha_decimal(revision.bajada)"/> Mbps</strong></div>
+                </td>
+            </tr></table>
+            <table t-if="revision.tipo == 'rendimiento'" class="fen-vr-pair"><tr>
+                <td>
+                    <div class="fen-vr-group-title">Estanqueidad</div>
+                    <div class="fen-vr-line"><span>Presión</span><strong><t t-esc="o._ficha_decimal(revision.presion_bar)"/> bar</strong></div>
+                    <div class="fen-vr-line"><span>Tiempo a presión</span><strong><t t-esc="o._ficha_decimal(revision.presion_tiempo)"/> h</strong></div>
+                </td>
+                <td>
+                    <div class="fen-vr-group-title">Eléctrico</div>
+                    <div class="fen-vr-line"><span>Fuga</span><strong><t t-esc="o._ficha_decimal(revision.fuga_corriente, 3)"/> A</strong></div>
+                    <div class="fen-vr-line"><span>Reposo</span><strong><t t-esc="o._ficha_decimal(revision.consumo_reposo, 2)"/> kWh</strong></div>
+                    <div class="fen-vr-line"><span>Carga</span><strong><t t-esc="o._ficha_decimal(revision.consumo_carga, 2)"/> kWh</strong></div>
+                </td>
+            </tr></table>
+        </div>
+    </template>
+</odoo>

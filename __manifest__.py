@@ -1,6 +1,6 @@
 {
     "name": "Marine Connection - ROV",
-    "version": "19.0.23.5.1",
+    "version": "19.0.23.6.0",
     "category": "Inventory",
     "summary": "Gestión de equipos ROV y órdenes de reparación",
     "author": "Marine Connection",
@@ -44,6 +44,7 @@
         "views/mc_rov_revision_views.xml",
         "views/repair_order_views.xml",
         "views/stock_lot_views.xml",
+        "views/mc_rov_ficha_equipo_nuevo_views.xml",
         "views/mc_rov_mantencion_views.xml",
         "views/mc_rov_propietario_views.xml",
         "views/mc_rov_baja_wizard_views.xml",
@@ -57,6 +58,7 @@
         "views/product_template_views.xml",
         "views/mc_rov_menus.xml",
         "reports/ficha_report.xml",
+        "reports/ficha_equipo_nuevo_report.xml",
         "views/mc_rov_ficha_wizard_views.xml",
     ],
     "assets": {

@@ -1,3 +1,5 @@
+import base64
+import re
 from pathlib import Path
 from runpy import run_path
 
@@ -41,7 +43,7 @@ class TestReporteFicha(RevisionCommon):
         self._hallazgo_privado(revision)
         documento = self._imprimir_html(revision)
         texto = documento.text_content()
-        self.assertIn("BORRADOR", texto)
+        self.assertNotIn("BORRADOR", texto)
         self.assertIn("Pendiente", texto)
         self.assertNotIn("9876", texto)
         self.assertNotIn("Veredicto", texto)
@@ -56,18 +58,50 @@ class TestReporteFicha(RevisionCommon):
         revision = self._revision()
         documento = self._imprimir_html(revision)
 
-        self.assertTrue(documento.xpath("//*[@data-rov-header-band]"))
-        self.assertTrue(documento.xpath('//img[starts-with(@src, "data:image/png;base64,")]'))
+        # Conserva el ID público para las vistas heredadas de Studio.
+        self.assertTrue(self.env.ref("mc_rov.ficha_cabecera"))
+        cabecera_compartida = documento.xpath("//*[@data-mc-report-header]")
+        metadata_compartida = documento.xpath("//*[@data-mc-report-identity]")
+        componente_compartido = documento.xpath('//*[@data-mc-report-component="header-metadata"]')
+        self.assertEqual(len(cabecera_compartida), 1)
+        self.assertEqual(len(metadata_compartida), 1)
+        self.assertEqual(len(componente_compartido), 1)
+        self.assertTrue(documento.xpath('//*[@class="mc-report-revision-gutter"]'))
+        self.assertIn("Ficha de equipo reparado", cabecera_compartida[0].text_content())
+        self.assertIn(revision.name, cabecera_compartida[0].text_content())
+        self.assertEqual(len(metadata_compartida[0].xpath(".//*[@data-mc-report-id]")), 5)
+
+        estilos = "\n".join(documento.xpath("//style/text()"))
+        self.assertIn(".mc-report-header {", estilos)
+        self.assertIn("height:79pt; min-height:79pt;", estilos)
+        self.assertIn("margin:7.2pt -5pt 6.5pt;", estilos)
+        self.assertIn("width:133pt;", estilos)
+        self.assertIn("font-size:22pt;", estilos)
+        self.assertIn("width:16.34%;", estilos)
+        self.assertIn("width:22.37%;", estilos)
+        self.assertIn("width:18.48%;", estilos)
+        self.assertIn("width:22.96%;", estilos)
+        self.assertIn("width:19.85%;", estilos)
+        self.assertIn("height:40pt;", estilos)
+        self.assertIn(".mc-report-revision-gutter { margin:0 15.32px; }", estilos)
+        self.assertNotIn("rov-header-band", estilos)
+
+        self.assertTrue(documento.xpath("//*[@data-mc-report-header]"))
+        self.assertTrue(
+            documento.xpath(
+                '//img[contains(@class, "mc-report-logo") and starts-with(@src, "data:image/png;base64,")]'
+            )
+        )
         for etiqueta in ("Fecha", "Equipo", "N° de serie", "Propietario", "Técnico"):
             self.assertTrue(
-                documento.xpath(f'//*[@data-rov-identity-card and .//*[text()="{etiqueta}"]]'),
+                documento.xpath(f'//*[@data-mc-report-id and .//*[text()="{etiqueta}"]]'),
                 etiqueta,
             )
 
     def test_tira_reparacion_conserva_cinco_datos(self):
         revision = self._revision(tipo="reparacion")
         documento = self._imprimir_html(revision)
-        tarjetas = documento.xpath("//*[@data-rov-identity-card]")
+        tarjetas = documento.xpath("//*[@data-mc-report-id]")
 
         self.assertEqual(len(tarjetas), 5)
         self.assertFalse(documento.xpath('//*[text()="Tipo de prueba"]'))
@@ -266,6 +300,10 @@ class TestReporteFicha(RevisionCommon):
             estilos,
         )
         self.assertIn(
+            ".rov-ficha .rov-check-details .rov-check-ok { color: #526b80; }",
+            estilos,
+        )
+        self.assertIn(
             ".rov-ficha .rov-check-fail { color: #b42318; font-weight: 600; }",
             estilos,
         )
@@ -286,13 +324,173 @@ class TestReporteFicha(RevisionCommon):
         self.assertIn(".rov-ficha .rov-check-details {", estilos)
         self.assertIn("line-height: 1.346;", estilos)
 
+    def test_roles_visuales_compartidos_con_ficha_equipo_nuevo(self):
+        """REV y FEN comparten la geometría aprobada A5 de cabecera y metadata."""
+        documento = self._imprimir_html(self._revision())
+        estilos = " ".join(documento.xpath("//style/text()"))
+
+        def ultima_regla(selector):
+            reglas = re.findall(rf"{re.escape(selector)}\s*\{{([^{{}}]*)\}}", estilos)
+            self.assertTrue(reglas, f"Falta la regla CSS {selector}")
+            propiedades = {}
+            for declaracion in reglas[-1].split(";"):
+                if ":" in declaracion:
+                    clave, valor = declaracion.split(":", 1)
+                    propiedades[clave.strip()] = valor.strip()
+            return propiedades
+
+        titulo_cabecera = ultima_regla(".mc-report-header .mc-report-title")
+        self.assertEqual(titulo_cabecera["font-size"], "22pt")
+        self.assertIn("DejaVu Sans", titulo_cabecera["font-family"])
+        self.assertEqual(ultima_regla(".mc-report-title-wrap")["top"], "38pt")
+        self.assertEqual(ultima_regla(".mc-report-logo")["top"], "4.8pt")
+        self.assertEqual(ultima_regla(".mc-report-badge")["top"], "27.5pt")
+        self.assertEqual(ultima_regla(".mc-report-header")["height"], "79pt")
+        self.assertEqual(ultima_regla(".mc-report-header")["margin"], "7.2pt -5pt 6.5pt")
+        self.assertEqual(ultima_regla(".mc-report-logo")["width"], "133pt")
+        badge = ultima_regla(".mc-report-badge")
+        self.assertEqual(badge["font-size"], "10.6pt")
+        self.assertEqual(badge["top"], "27.5pt")
+        self.assertEqual(badge["background"], "#fff")
+        self.assertEqual(ultima_regla(".mc-report-label")["font-size"], "7.8pt")
+        self.assertEqual(ultima_regla(".mc-report-value")["font-size"], "9.7pt")
+        self.assertEqual(ultima_regla(".mc-report-value--compact")["font-size"], "8pt")
+        self.assertEqual(ultima_regla(".mc-report-value--compact")["line-height"], "1")
+        self.assertEqual(ultima_regla(".mc-report-head .mc-report-identity")["height"], "40pt")
+        self.assertEqual(
+            ultima_regla(".mc-report-head .mc-report-identity td.mc-report-identity-cell")[
+                "padding"
+            ],
+            "6.45pt 6.8pt 3.8pt",
+        )
+        titulo = ultima_regla(".rov-ficha .rov-section-title")
+        self.assertEqual(titulo["font-size"], "10pt")
+        self.assertEqual(titulo["letter-spacing"], ".088em")
+        self.assertIn("DejaVu Sans", titulo["font-family"])
+        self.assertEqual(ultima_regla(".rov-ficha .rov-measurement-name")["font-size"], "8.48pt")
+        self.assertRegex(
+            estilos,
+            r"\.rov-ficha \.rov-card-value,\s*\.rov-ficha \.rov-measurement-name,"
+            r"\s*\.rov-ficha \.rov-measurement-value,[^{]*\{\s*font-family:"
+            r"\s*'DejaVu Sans Mono'",
+        )
+        detalles = ultima_regla(".rov-ficha .rov-check-details")
+        self.assertEqual(detalles["font-size"], "8.75pt")
+        self.assertEqual(detalles["line-height"], "1.42")
+        self.assertEqual(detalles["font-weight"], "normal")
+        self.assertIn("DejaVu Sans", detalles["font-family"])
+        self.assertIn(
+            "DejaVu Sans Mono",
+            ultima_regla(".rov-ficha .rov-check-section-summary")["font-family"],
+        )
+        self.assertEqual(ultima_regla(".rov-ficha .rov-footer")["font-size"], "9.2pt")
+        self.assertIn("DejaVu Sans", ultima_regla(".rov-ficha .rov-footer")["font-family"])
+
+    def test_paleta_impresa_comparte_roles_y_preserva_estados(self):
+        """Los colores secundarios y estructurales usan tokens comunes sin tocar estados."""
+        documento = self._imprimir_html(self._revision())
+        estilos = " ".join(documento.xpath("//style/text()"))
+
+        def reglas(selector):
+            encontradas = re.findall(rf"{re.escape(selector)}\s*\{{([^{{}}]*)\}}", estilos)
+            self.assertTrue(encontradas, f"Falta la regla CSS {selector}")
+            return encontradas
+
+        def cascada(selector):
+            propiedades = {}
+            for regla in reglas(selector):
+                for declaracion in regla.split(";"):
+                    if ":" in declaracion:
+                        clave, valor = declaracion.split(":", 1)
+                        propiedades[clave.strip()] = valor.strip()
+            return propiedades
+
+        borde = re.search(
+            r"border:\s*1px solid (#[0-9a-fA-F]{6})",
+            " ".join(reglas(".mc-report-head .mc-report-identity td.mc-report-identity-cell")),
+        )
+        self.assertIsNotNone(borde)
+        color_borde = borde.group(1).lower()
+        self.assertEqual(color_borde, "#9fb4c3")
+        for selector in (
+            ".rov-ficha .rov-report-card",
+            ".rov-ficha .rov-measurements",
+            ".rov-ficha .rov-checks",
+            ".rov-ficha .rov-closing-cell",
+        ):
+            self.assertRegex(" ".join(reglas(selector)), rf"border:\s*1px solid {color_borde}")
+
+        identidad = cascada(".mc-report-head .mc-report-identity td.mc-report-identity-cell")
+        self.assertEqual(identidad.get("background"), "#e7eef3")
+        self.assertEqual(cascada(".mc-report-label").get("color"), "#526b80")
+        self.assertEqual(cascada(".rov-ficha .rov-card-label").get("color"), "#526b80")
+        panel_medicion = cascada(".rov-ficha .rov-measurement-grid td.rov-measurement-panel")
+        self.assertEqual(panel_medicion.get("background"), "#e3ecf3")
+        self.assertNotIn("border", panel_medicion)
+        self.assertEqual(cascada(".rov-ficha .rov-measurement-label").get("color"), "#526b80")
+        self.assertEqual(cascada(".rov-ficha .rov-check-details").get("color"), "#526b80")
+        self.assertEqual(
+            cascada(".rov-ficha .rov-check-details .rov-check-ok").get("color"), "#526b80"
+        )
+        subcubo = cascada(".rov-ficha .rov-check-section")
+        self.assertEqual(subcubo.get("border"), "0")
+        self.assertEqual(subcubo.get("border-radius"), "0")
+        self.assertEqual(subcubo.get("background"), "#fff")
+        self.assertEqual(cascada(".rov-ficha .rov-check-fail").get("color"), "#b42318")
+        self.assertEqual(cascada(".rov-ficha .rov-empty-placeholder").get("color"), "#526b80")
+        self.assertEqual(cascada(".rov-ficha .rov-signature-label").get("color"), "#526b80")
+        self.assertEqual(cascada(".rov-ficha .rov-footer").get("color"), "#526b80")
+        self.assertIn("#8fa6b7", " ".join(reglas(".rov-ficha .rov-signature-line")))
+        self.assertIn("#8fa6b7", " ".join(reglas(".rov-ficha .rov-footer")))
+        for selector, color in (
+            (".rov-ficha .rov-check-ok", "#007b4b"),
+            (".rov-ficha .rov-check-fail", "#b42318"),
+            (".rov-ficha .rov-check-na", "#657585"),
+            (".rov-ficha .rov-check-pending", "#657585"),
+        ):
+            self.assertEqual(cascada(selector).get("color"), color)
+
+    def test_metadata_larga_compacta_solo_values_y_conserva_labels(self):
+        """Los valores REV largos se compactan sin cambiar etiquetas ni valores normales."""
+        cliente = "CLIENTE DE PRUEBA EXTENDIDO SPA Y SERVICIOS SUBMARINOS"
+        tecnico = "RESPONSABLE DE INTEGRACION Y PRUEBAS DE ACEPTACION"
+        propietario = self.env["res.partner"].create({"name": cliente})
+        self.lot.mc_propietario_id = propietario
+        revision = self._revision()
+        revision.responsable_id.name = tecnico
+
+        documento = self._imprimir_html(revision)
+        valores = documento.xpath(
+            '//*[@data-mc-report-identity]//span[contains(concat(" ", normalize-space(@class), " "), '
+            '" mc-report-value ")]'
+        )
+        compactos = documento.xpath(
+            '//*[@data-mc-report-identity]//span[contains(concat(" ", normalize-space(@class), " "), '
+            '" mc-report-value--compact ")]'
+        )
+        etiquetas = documento.xpath(
+            '//*[@data-mc-report-identity]//span[@class="mc-report-label"]'
+        )
+
+        self.assertEqual(len(valores), 5)
+        self.assertEqual({valor.text_content() for valor in compactos}, {cliente, tecnico})
+        self.assertTrue(all("compact" not in etiqueta.get("class", "") for etiqueta in etiquetas))
+        self.assertTrue(any("ROV-PROT-001" in valor.text_content() for valor in valores))
+
+    def test_ficha_reparacion_usa_el_logo_recortado_de_fen(self):
+        documento = self._imprimir_html(self._revision())
+        src = documento.xpath("//img[contains(@class, 'mc-report-logo')]/@src")[0]
+        logo = Path(__file__).resolve().parents[1] / "static/src/img/logo_mc_blanco_fen.png"
+        esperado = "data:image/png;base64," + base64.b64encode(logo.read_bytes()).decode("ascii")
+        self.assertEqual(src, esperado)
+
     def test_cierre_deja_zona_de_firma_y_resumen_de_hallazgos(self):
         """La pasada final conserva aire de identificación y firma sin fijar el cierre."""
         documento = self._imprimir_html(self._revision())
         estilos = " ".join(documento.xpath("//style/text()"))
 
         self.assertIn(
-            ".rov-ficha .rov-identity-card { min-height: 50.5px; ",
+            ".mc-report-head .mc-report-identity { width:calc(100% + 7.4pt); height:40pt; margin:0 -3.7pt 4.9pt; ",
             estilos,
         )
         self.assertIn(
@@ -300,7 +498,7 @@ class TestReporteFicha(RevisionCommon):
             estilos,
         )
         self.assertIn(
-            ".rov-ficha .rov-signatures { margin-top: 12.66px; ",
+            ".rov-ficha .rov-signatures { margin-top: 26.66px; ",
             estilos,
         )
         self.assertIn(
@@ -308,11 +506,15 @@ class TestReporteFicha(RevisionCommon):
             estilos,
         )
         self.assertIn(
-            ".rov-ficha .rov-signature-label { font-size: 8.75pt; color: #536779; ",
+            ".rov-ficha .rov-signature-label { color: #526b80; "
+            "font-family: 'DejaVu Sans Mono', 'Courier New', monospace; "
+            "font-size: 8.6pt; font-weight: normal; line-height: 1.06; ",
             estilos,
         )
         self.assertIn(
-            ".rov-ficha .rov-footer { font-size: 8.7pt; color: #536779; ",
+            ".rov-ficha .rov-footer { color: #526b80; "
+            "font-family: 'DejaVu Sans', Arial, sans-serif; "
+            "font-size: 9.2pt; font-weight: normal; letter-spacing: .016em; line-height: 1.08; ",
             estilos,
         )
 
@@ -533,6 +735,8 @@ class TestReporteFicha(RevisionCommon):
         self.assertTrue(all(1 <= len(fila.xpath("./td")) <= 3 for fila in filas))
 
     def test_hallazgos_y_observaciones_se_adaptan_sin_perder_datos(self):
+        # El escenario integra tarjeta, resumen, diferencias y datos protegidos.
+        # pylint: disable=too-many-locals
         self.lot.mc_n_serie_umbilical = "4102"
         orden = self.env["repair.order"].create(
             {
@@ -568,6 +772,8 @@ class TestReporteFicha(RevisionCommon):
         self.assertTrue(observaciones.xpath(".//*[@data-rov-differences]"))
         self.assertIn("4471", observaciones.text_content())
         self.assertIn("4102", observaciones.text_content())
+        self.assertFalse(cierre.xpath(".//*[@data-rov-empty-findings]"))
+        self.assertFalse(cierre.xpath(".//*[@data-rov-empty-observations]"))
 
         sin_diferencias = self._imprimir_html(revision, {"diferencias": False})
         self.assertFalse(sin_diferencias.xpath("//*[@data-rov-differences]"))
@@ -575,11 +781,20 @@ class TestReporteFicha(RevisionCommon):
 
         solo_hallazgos = self._revision()
         self._hallazgo_privado(solo_hallazgos, "Hallazgo sin observaciones")
-        celda_hallazgos = self._imprimir_html(solo_hallazgos).xpath(
+        cierre_solo_hallazgos = self._imprimir_html(solo_hallazgos)
+        celda_hallazgos = cierre_solo_hallazgos.xpath(
             '//*[@data-rov-closing-layout]/tr/td[contains(@class, "rov-closing-cell")]'
         )
-        self.assertEqual(len(celda_hallazgos), 1)
-        self.assertIn("rov-closing-cell-full", celda_hallazgos[0].get("class", ""))
+        self.assertEqual(len(celda_hallazgos), 2)
+        self.assertTrue(
+            all("rov-closing-cell-half" in card.get("class", "") for card in celda_hallazgos)
+        )
+        self.assertIn("Hallazgo sin observaciones", celda_hallazgos[0].text_content())
+        self.assertIn(
+            "Sin observaciones registradas en sistema.",
+            celda_hallazgos[1].xpath(".//*[@data-rov-observations]")[0].text_content(),
+        )
+        self.assertFalse(celda_hallazgos[0].xpath(".//*[@data-rov-empty-findings]"))
 
         orden_solo_observaciones = self.env["repair.order"].create(
             {
@@ -592,12 +807,123 @@ class TestReporteFicha(RevisionCommon):
         celda_observaciones = self._imprimir_html(solo_observaciones).xpath(
             '//*[@data-rov-closing-layout]/tr/td[contains(@class, "rov-closing-cell")]'
         )
-        self.assertEqual(len(celda_observaciones), 1)
-        self.assertIn("rov-closing-cell-full", celda_observaciones[0].get("class", ""))
-
-        self.assertFalse(
-            self._imprimir_html(self._revision()).xpath("//*[@data-rov-closing-layout]")
+        self.assertEqual(len(celda_observaciones), 2)
+        self.assertIn(
+            "Sin hallazgos registrados en sistema.",
+            celda_observaciones[0].xpath(".//*[@data-rov-findings]")[0].text_content(),
         )
+        self.assertIn("Observación sin hallazgos", celda_observaciones[1].text_content())
+        self.assertFalse(celda_observaciones[1].xpath(".//*[@data-rov-empty-observations]"))
+        self.assertFalse(celda_observaciones[1].xpath(".//*[@data-rov-differences]"))
+
+        sin_texto_con_diferencia = self._revision(
+            repair_id=orden_solo_observaciones.id,
+            umbilical="equipo",
+            umbilical_serie="4471",
+        )
+        card_diferencia = self._imprimir_html(sin_texto_con_diferencia).xpath(
+            '//*[@data-rov-closing-layout]/tr/td[contains(@class, "rov-closing-cell")][2]'
+        )[0]
+        self.assertTrue(card_diferencia.xpath(".//*[@data-rov-differences]"))
+        self.assertFalse(card_diferencia.xpath(".//*[@data-rov-empty-observations]"))
+
+    def test_cierre_vacio_conserva_dos_tarjetas_para_escritura_manual(self):
+        documento = self._imprimir_html(self._revision())
+        cierre = documento.xpath("//*[@data-rov-closing-layout]")
+        self.assertEqual(len(cierre), 1)
+        tarjetas = cierre[0].xpath('./tr/td[contains(@class, "rov-closing-cell")]')
+        self.assertEqual(len(tarjetas), 2)
+        self.assertTrue(all("rov-closing-cell-half" in card.get("class", "") for card in tarjetas))
+        hallazgos = cierre[0].xpath(".//*[@data-rov-findings]")[0]
+        observaciones = cierre[0].xpath(".//*[@data-rov-observations]")[0]
+        self.assertEqual(
+            " ".join(
+                hallazgos.xpath(".//*[contains(@class, 'rov-closing-title')]")[0]
+                .text_content()
+                .split()
+            ),
+            "HALLAZGOS",
+        )
+        self.assertIn("Sin hallazgos registrados en sistema.", hallazgos.text_content())
+        self.assertIn("Sin observaciones registradas en sistema.", observaciones.text_content())
+        self.assertEqual(
+            " ".join(
+                observaciones.xpath(".//*[contains(@class, 'rov-closing-title')]")[0]
+                .text_content()
+                .split()
+            ),
+            "OBSERVACIONES",
+        )
+        self.assertTrue(cierre[0].xpath(".//*[@data-rov-empty-findings]"))
+        self.assertTrue(cierre[0].xpath(".//*[@data-rov-empty-observations]"))
+        self.assertFalse(cierre[0].xpath(".//*[@data-rov-differences]"))
+        self.assertFalse(cierre[0].xpath(".//*[@data-rov-findings-summary]"))
+        estilos = " ".join(documento.xpath("//style/text()"))
+        self.assertRegex(estilos, r"\.rov-empty-placeholder\s*\{[^}]*font-style:\s*italic")
+        self.assertRegex(estilos, r"\.rov-empty-placeholder\s*\{[^}]*font-weight:\s*normal")
+        self.assertRegex(
+            estilos, r"\.rov-empty-placeholder\s*\{[^}]*font-size:\s*[6-9](?:\.\d+)?pt"
+        )
+
+    def test_cierre_reserva_la_misma_banda_vertical_del_caso_full(self):
+        """El cierre vacÃ­o reserva la banda full para mantener firmes firmas y pie."""
+        documento = self._imprimir_html(self._revision())
+        estilos = " ".join(documento.xpath("//style/text()"))
+
+        def ultima_regla(selector):
+            reglas = re.findall(rf"{re.escape(selector)}\s*\{{([^{{}}]*)\}}", estilos)
+            self.assertTrue(reglas, f"Falta la regla CSS {selector}")
+            return {
+                clave.strip(): valor.strip()
+                for declaracion in reglas[-1].split(";")
+                if ":" in declaracion
+                for clave, valor in [declaracion.split(":", 1)]
+            }
+
+        altura_tarjeta = ultima_regla(".rov-ficha .rov-closing-card")["min-height"]
+        altura_reserva = ultima_regla(".rov-ficha .rov-observations-layout")["height"]
+        self.assertRegex(
+            estilos,
+            r"\.rov-ficha \.rov-closing-grid \{\s*width:\s*100%;\s*margin:\s*21\.33px 0 12\.26px;",
+        )
+        self.assertEqual(altura_tarjeta, "263.5px")
+        self.assertEqual(altura_reserva, "239.45px")
+        self.assertEqual(ultima_regla(".rov-ficha .rov-closing-card")["overflow"], "visible")
+        self.assertEqual(ultima_regla(".rov-ficha .rov-report-body")["padding-bottom"], "8px")
+        self.assertEqual(ultima_regla(".rov-ficha .rov-signatures")["margin-top"], "26.66px")
+        self.assertEqual(ultima_regla(".rov-ficha .rov-footer")["margin-top"], "17.26px")
+        self.assertFalse(documento.xpath("//*[contains(@class, 'rov-observations-sizer')]"))
+        self.assertNotIn("rov-observations-card-paired", estilos)
+
+    def test_descripciones_de_chequeos_ganan_aire_sin_alterar_la_grilla(self):
+        """El aire crece en las descripciones y mantiene la grilla de tres columnas."""
+        documento = self._imprimir_html(self._revision())
+        estilos = " ".join(documento.xpath("//style/text()"))
+
+        def ultima_regla(selector):
+            reglas = re.findall(rf"{re.escape(selector)}\s*\{{([^{{}}]*)\}}", estilos)
+            self.assertTrue(reglas, f"Falta la regla CSS {selector}")
+            return {
+                clave.strip(): valor.strip()
+                for declaracion in reglas[-1].split(";")
+                if ":" in declaracion
+                for clave, valor in [declaracion.split(":", 1)]
+            }
+
+        detalle = ultima_regla(".rov-ficha .rov-check-details")
+        self.assertEqual(detalle["font-size"], "8.75pt")
+        self.assertEqual(detalle["line-height"], "1.42")
+        self.assertEqual(ultima_regla(".rov-ficha .rov-check-section")["padding"], "3.45px 3.54px")
+        self.assertEqual(
+            ultima_regla(".rov-ficha .rov-check-section-head")["margin-bottom"], "3.2px"
+        )
+        self.assertEqual(
+            ultima_regla(".rov-ficha .rov-check-grid")["border-spacing"], "5.89px 6.5px"
+        )
+        grids = documento.xpath(
+            "//*[contains(concat(' ', normalize-space(@class), ' '), ' rov-check-grid ')]"
+        )
+        self.assertTrue(grids)
 
     def test_hallazgos_cortos_muestran_siete_y_resumen_sin_perder_las_lineas(self):
         revision = self._revision()
@@ -642,8 +968,8 @@ class TestReporteFicha(RevisionCommon):
         documento = self._imprimir_html(self._revision())
 
         marca = documento.xpath("//*[@data-rov-watermark]")
-        self.assertEqual(len(marca), 1)
-        self.assertEqual(marca[0].text_content().strip(), "BORRADOR")
+        self.assertFalse(marca)
+        self.assertNotIn("BORRADOR", documento.text_content())
 
         firmas = documento.xpath("//*[@data-rov-signatures]")[0]
         self.assertEqual(len(firmas.xpath('.//*[contains(@class, "rov-signature-line")]')), 2)

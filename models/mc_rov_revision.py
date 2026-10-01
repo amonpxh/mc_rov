@@ -9,8 +9,8 @@ from odoo.exceptions import UserError
 
 @lru_cache(maxsize=1)
 def _logo_blanco_ficha_uri():
-    """Carga la marca como data URI porque wkhtmltopdf no sirve rutas estáticas sin HTTP."""
-    path = Path(__file__).parent.parent / "static" / "src" / "img" / "logo_mc_blanco.png"
+    """Carga el mismo logo recortado de FEN como data URI para wkhtmltopdf."""
+    path = Path(__file__).parent.parent / "static" / "src" / "img" / "logo_mc_blanco_fen.png"
     if not path.is_file():
         return False
     with path.open("rb") as logo:

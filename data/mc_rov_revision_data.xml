@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
+    <record id="seq_mc_rov_ficha_equipo_nuevo" model="ir.sequence">
+        <field name="name">Ficha de equipo nuevo ROV</field>
+        <field name="code">mc.rov.ficha.equipo.nuevo</field>
+        <field name="prefix">FEN/</field>
+        <field name="padding">5</field>
+        <field name="company_id" eval="False"/>
+    </record>
+
     <!-- Una secuencia por tipo de prueba, desde 19.0.19.0.0.
 
          Las pruebas de aceptación son documentos que ve el cliente, y numerarlas dentro de
