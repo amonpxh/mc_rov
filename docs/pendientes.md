@@ -2,6 +2,23 @@
 
 > Actualizar esta sección al cerrar cada sesión de trabajo.
 
+**Despliegue cerrado - 2026-10-05:** PR #88 fusionado en main como
+`028af90f84074018e67308a2414f9a7d45b906b8`. CI: 343 pruebas, 0 fallos y 0 errores;
+lint aprobado. Produccion actualizada a `19.0.23.7.0` desde ese commit, con respaldo
+`/var/backups/mc-rov-prod-028af90-IoPH6H/odoo_prod.dump`. Upgrade sin ERROR/CRITICAL,
+registro cargado y servicio reiniciado: PID 1000443, activo desde 14:53:09 UTC.
+HTTP local verificado. Catalogo Electronica / Software separado; migracion de
+Parametros ejecutada, 0 filas por reclasificar en Hallazgos y Trabajos.
+Boton superior Imprimir ficha y seleccion FEN por tipo/equipo verificados.
+PDF real REV/00023: Letter, 1 pagina, footer completo, sin texto fuera de pagina;
+reserva hasta la caja de texto inferior 21,05 pt. FEN de QA transaccional:
+Letter, 1 pagina, footer completo, sin texto fuera de pagina, reserva 15,94 pt.
+Inspeccion visual de ambos sin clipping. FEN QA revertida; nombre explicito
+QA-PROD-028af90 no consume correlativo. Sin alteraciones del diseno aprobado.
+Evidencia local en `.tmp/prod-release-028af90/`: PDFs, PNGs, verification.json,
+pdf-inspection.json y upgrade.log, excluidos de Git. Esta entrada cierra los
+pendientes de commit/PR/merge/despliegue de las iteraciones anteriores.
+La actualizacion documental posterior no requiere otro upgrade ni reinicio.
 **Cierre de entrega - 2026-10-05:** QA manual aprobada: PDF FEN y acciones
 Vista previa / Emitir ficha correctas. La secuencia FEN es global por documento y
 se asigna al crear, incluso en borrador; no depende del numero de serie ROV.
