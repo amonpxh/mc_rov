@@ -76,6 +76,10 @@
             </t>
         </t>
     </template>
+    <template id="report_shared_corporate_footer">
+        <style>.rov-ficha .mc-report-footer, .fen-sheet .mc-report-footer { padding-top:4.8pt; border-top:1px solid #8fa6b7; color:#526b80; font-family:'DejaVu Sans',Arial,sans-serif; font-size:9.2pt; font-weight:normal; letter-spacing:.016em; line-height:1.08; text-align:center; white-space:nowrap; }</style>
+        <div t-att-class="'mc-report-footer ' + mc_report_footer_class" t-att-data-rov-footer="'1' if mc_report_footer_class == 'rov-footer' else None">Ingeniería y Servicios Marine Connection SpA · RUT 76.957.685-1 · Pje. Chinquihue 136, Puerto Montt · +56 9 7646 3823 · marineconnection.cl</div>
+    </template>
     <template id="report_ficha_document">
         <t t-set="company" t-value="o.lot_id.company_id or res_company"/>
         <t t-set="options" t-value="o.env.context.get('rov_options', {})"/>
@@ -215,7 +219,8 @@
                 .rov-ficha .rov-footer-item { margin-bottom: 2.49px; }
                 /* Escala final: +4 % sobre la composición aprobada. */
                 .rov-ficha, .rov-ficha.article { font-size: 12.87pt; }
-                .rov-ficha .rov-report-body { padding-bottom: 8px; }
+                /* Este padding generaba 2,3 pt de caja vacía en una segunda página. */
+                .rov-ficha .rov-report-body { padding-bottom: 0; }
                 .rov-ficha .rov-card-pair { margin-bottom: 12.66px; }
                 .rov-ficha .rov-report-card { min-height: 169.47px; padding-top: 12.66px; padding-bottom: 11.39px; }
                 .rov-ficha .rov-section-title { margin-bottom: 7.59px; font-size: 9.39pt; line-height: 1.296; }
@@ -250,7 +255,7 @@
                 .rov-ficha .rov-footer-item { margin-bottom: 2.53px; }
                 .rov-ficha .rov-finding-summary { margin-top: 8.5px; }
                 .rov-ficha .rov-observations-title { margin-bottom: 11.5px; }
-                .rov-ficha .rov-signatures { margin-top: 26.66px; }
+                .rov-ficha .rov-signatures { margin-top: 19.66px; }
                 .rov-ficha .rov-signature-line { height: 47px; margin-bottom: 4px; }
                 .rov-ficha .rov-signature-label { font-size: 8.75pt; color: #526b80; }
                 .rov-ficha .rov-footer { font-size: 8.7pt; color: #526b80; }
@@ -274,8 +279,15 @@
                 .rov-ficha .rov-check-details { color: #526b80; font-family: 'DejaVu Sans', Arial, sans-serif; font-size: 8.75pt; font-weight: normal; line-height: 1.42; }
                 .rov-ficha .rov-signature-line { border-bottom: .58pt solid #8fa6b7; }
                 .rov-ficha .rov-signature-label { color: #526b80; font-family: 'DejaVu Sans Mono', 'Courier New', monospace; font-size: 8.6pt; font-weight: normal; line-height: 1.06; }
-                .rov-ficha .rov-footer { color: #526b80; font-family: 'DejaVu Sans', Arial, sans-serif; font-size: 9.2pt; font-weight: normal; letter-spacing: .016em; line-height: 1.08; margin-top: 17.26px; border-top-color: #8fa6b7; }
+                .rov-ficha .rov-footer { color: #526b80; font-family: 'DejaVu Sans', Arial, sans-serif; font-size: 9.2pt; font-weight: normal; letter-spacing: .016em; line-height: 1.08; margin-top: 19.26px; margin-bottom: 0; margin-left: -4px; margin-right: -4px; border-top-color: #8fa6b7; }
                 .rov-ficha .rov-empty-placeholder { color: #526b80; font-family: 'DejaVu Sans', Arial, sans-serif; font-size: 8.8pt; font-style: italic; font-weight: normal; line-height: 1.2; text-align: left; }
+                /* El borde pertenece a la fila: ambas cajas acompañan el contenido mayor.
+                   La reserva equivale a cinco filas, sin fijar un techo al contenido. */
+                .rov-ficha .rov-card-pair-cell { width:49.43%; padding:0; border:1px solid #9fb4c3; border-radius:7px; background:#fff; }
+                .rov-ficha .rov-card-pair-cell + .rov-card-pair-cell { padding:0; }
+                .rov-ficha .rov-card-pair-gap { width:1.14%; padding:0; border:0; }
+                .rov-ficha .rov-card-pair-empty { width:49.43%; padding:0; border:0; }
+                .rov-ficha .rov-report-card { min-height:178px; border:0; background:transparent; }
 
             </style>
             <div class="page">
@@ -284,19 +296,15 @@
                 <div class="rov-report-body">
                     <table class="rov-card-pair"><tr>
                         <td class="rov-card-pair-cell"><t t-call="mc_rov.ficha_condiciones"/></td>
-                        <td class="rov-card-pair-cell"><t t-if="options.get('sellos', True)" t-call="mc_rov.ficha_sellos"/></td>
+                        <td class="rov-card-pair-gap"/>
+                        <td t-att-class="'rov-card-pair-cell' if options.get('sellos', True) else 'rov-card-pair-empty'"><t t-if="options.get('sellos', True)" t-call="mc_rov.ficha_sellos"/></td>
                     </tr></table>
                     <t t-call="mc_rov.ficha_mediciones"/>
                     <t t-call="mc_rov.ficha_chequeos"/>
                     <t t-call="mc_rov.ficha_hallazgos_observaciones"/>
                     <t t-if="options.get('firmas', True)" t-call="mc_rov.ficha_firmas"/>
-                    <div class="rov-footer" data-rov-footer="1">
-                        <span class="rov-footer-item">Ingeniería y Servicios Marine Connection SpA</span>
-                        <span class="rov-footer-item">· RUT 76.957.685-1</span>
-                        <span class="rov-footer-item">· Pje. Chinquihue 136, Puerto Montt</span>
-                        <span class="rov-footer-item">· +56 9 7646 3823</span>
-                        <span class="rov-footer-item">· marineconnection.cl</span>
-                    </div>
+                    <t t-set="mc_report_footer_class" t-value="'rov-footer'"/>
+                    <t t-call="mc_rov.report_shared_corporate_footer"/>
                 </div>
             </div>
         </div>
@@ -366,7 +374,7 @@
     </template>
     <template id="ficha_sellos">
         <t t-set="sellos_visibles" t-value="o.inspeccion_ids.filtered(lambda sello: sello.estado_sello != 'no_lo_tiene')"/>
-        <div t-if="sellos_visibles" class="rov-report-card" data-rov-seals="1">
+        <div class="rov-report-card" data-rov-seals="1">
             <h2 class="rov-section-title">SELLOS AL RECIBIR</h2>
             <div t-foreach="sellos_visibles" t-as="sello" class="rov-card-row" t-att-data-rov-seal="sello.id">
                 <span class="rov-card-label" t-field="sello.componente_id"/>

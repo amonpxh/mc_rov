@@ -38,6 +38,37 @@ class TestReporteFicha(RevisionCommon):
             }
         )
 
+    def test_footer_corporativo_es_identico_en_rev_y_fen(self):
+        esperado = (
+            "Ingeniería y Servicios Marine Connection SpA · RUT 76.957.685-1 · "
+            "Pje. Chinquihue 136, Puerto Montt · +56 9 7646 3823 · marineconnection.cl"
+        )
+        rev = self._imprimir_html(self._revision())
+        ficha = self.env["mc.rov.ficha.equipo.nuevo"].create({"lot_id": self.lot.id})
+        contenido, _ = self.env["ir.actions.report"]._render_qweb_html(
+            "mc_rov.action_report_ficha_equipo_nuevo", ficha.ids
+        )
+        fen = html.fromstring(contenido)
+        for documento, selector in (
+            (rev, "//*[@data-rov-footer]"),
+            (fen, "//*[contains(@class, 'fen-footer')]"),
+        ):
+            pie = documento.xpath(selector)[0]
+            self.assertEqual(pie.text_content().strip(), esperado)
+            self.assertFalse(pie.xpath(".//*[contains(@class, 'rov-footer-item')]"))
+
+    def test_tarjetas_superiores_comparten_fila_incluso_sin_sellos_visibles(self):
+        revision = self._revision()
+        revision.inspeccion_ids.write({"estado_sello": "no_lo_tiene"})
+        documento = self._imprimir_html(revision)
+        condiciones = documento.xpath("//*[@data-rov-conditions]")[0]
+        sellos = documento.xpath("//*[@data-rov-seals]")[0]
+        self.assertEqual(condiciones.getparent().getparent(), sellos.getparent().getparent())
+        self.assertEqual(condiciones.getparent().get("class"), "rov-card-pair-cell")
+        self.assertEqual(sellos.getparent().get("class"), "rov-card-pair-cell")
+        self.assertIn("SELLOS AL RECIBIR", sellos.text_content())
+        self.assertFalse(sellos.xpath(".//*[@data-rov-seal]"))
+
     def test_borrador_no_inventa_respuestas_ni_filtra_internos(self):
         revision = self._revision(temperatura_interior=9876.5)
         self._hallazgo_privado(revision)
@@ -498,7 +529,7 @@ class TestReporteFicha(RevisionCommon):
             estilos,
         )
         self.assertIn(
-            ".rov-ficha .rov-signatures { margin-top: 26.66px; ",
+            ".rov-ficha .rov-signatures { margin-top: 19.66px; ",
             estilos,
         )
         self.assertIn(
@@ -889,9 +920,9 @@ class TestReporteFicha(RevisionCommon):
         self.assertEqual(altura_tarjeta, "263.5px")
         self.assertEqual(altura_reserva, "239.45px")
         self.assertEqual(ultima_regla(".rov-ficha .rov-closing-card")["overflow"], "visible")
-        self.assertEqual(ultima_regla(".rov-ficha .rov-report-body")["padding-bottom"], "8px")
-        self.assertEqual(ultima_regla(".rov-ficha .rov-signatures")["margin-top"], "26.66px")
-        self.assertEqual(ultima_regla(".rov-ficha .rov-footer")["margin-top"], "17.26px")
+        self.assertEqual(ultima_regla(".rov-ficha .rov-report-body")["padding-bottom"], "0")
+        self.assertEqual(ultima_regla(".rov-ficha .rov-signatures")["margin-top"], "19.66px")
+        self.assertEqual(ultima_regla(".rov-ficha .rov-footer")["margin-top"], "19.26px")
         self.assertFalse(documento.xpath("//*[contains(@class, 'rov-observations-sizer')]"))
         self.assertNotIn("rov-observations-card-paired", estilos)
 

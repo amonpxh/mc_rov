@@ -6,9 +6,15 @@
         <field name="inherit_id" ref="stock.view_production_lot_form"/>
         <field name="arch" type="xml">
 
-            <!-- Sin header ni botones en el formulario: la baja vive en el menú de
-                 acciones (engranaje), junto a Duplicar y Eliminar, que es la familia a
-                 la que pertenece. Ver views/mc_rov_baja_wizard_views.xml. -->
+            <!-- La ficha documental se prepara desde la cabecera; las pruebas siguen
+                 juntas en su pestaña. El asistente mantiene visible la selección RND/TRN. -->
+            <xpath expr="//sheet" position="before">
+                <header>
+                    <button name="action_preparar_ficha_equipo_nuevo" type="object"
+                            string="Imprimir ficha" class="btn-primary"
+                            invisible="not es_un_rov"/>
+                </header>
+            </xpath>
 
             <!-- Una cinta se ve al abrir la ficha; un campo de estado hay que ir a leerlo.
                  Un equipo de baja no debería poder confundirse con uno operativo. -->
@@ -16,7 +22,7 @@
                 <widget name="web_ribbon"
                         title="De baja"
                         bg_color="text-bg-danger"
-                        invisible="not mc_fecha_baja"/>
+                        invisible="not es_un_rov or not mc_fecha_baja"/>
             </xpath>
 
             <!-- Campos de identificación y estado ROV -->
@@ -38,8 +44,8 @@
 
                 <!-- La baja solo se muestra cuando existe: un equipo vigente no tiene por
                      qué mostrar campos vacíos de un evento que no ocurrió. -->
-                <field name="mc_fecha_baja" invisible="not mc_fecha_baja"/>
-                <field name="mc_motivo_baja" invisible="not mc_fecha_baja"/>
+                <field name="mc_fecha_baja" invisible="not es_un_rov or not mc_fecha_baja"/>
+                <field name="mc_motivo_baja" invisible="not es_un_rov or not mc_fecha_baja"/>
             </xpath>
 
             <!-- Pestañas de ficha técnica ROV (ocultas si no es ROV) -->
@@ -242,7 +248,7 @@
                         <div class="mb-3">
                             <button name="action_nueva_revision_rendimiento" type="object"
                                     string="Nueva prueba de rendimiento"
-                                    class="btn-primary"/>
+                                    class="btn-secondary"/>
                             <!-- La prueba en terreno vivía como pestaña de este mismo
                                  formulario hasta 19.0.16.0.0, donde se retiró porque guardaba
                                  el resultado de un evento como si fuera ficha. Su casa nueva
@@ -250,9 +256,6 @@
                                  desde el número de serie. -->
                             <button name="action_nueva_revision_terreno" type="object"
                                     string="Nueva prueba en terreno"
-                                    class="btn-secondary ms-2"/>
-                            <button name="action_preparar_ficha_equipo_nuevo" type="object"
-                                    string="Preparar ficha de equipo nuevo"
                                     class="btn-secondary ms-2"/>
                         </div>
                         <!-- La prueba se abre **en su propia pantalla**, no en un diálogo dentro
