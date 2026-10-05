@@ -249,7 +249,7 @@ class StockLot(models.Model):
         return self._abrir_revision_nueva("terreno")
 
     def action_preparar_ficha_equipo_nuevo(self):
-        """Propone las últimas pruebas aceptadas; la persona confirma ambas en el wizard."""
+        """Propone la última prueba de cada tipo, incluyendo borradores para vista previa."""
         self.ensure_one()
         if not self.es_un_rov:
             raise UserError("La ficha de equipo nuevo requiere un número de serie ROV.")
@@ -261,6 +261,9 @@ class StockLot(models.Model):
                     ("lot_id", "=", self.id),
                     ("tipo", "=", tipo),
                     ("repair_id", "=", False),
+                    "|",
+                    ("estado", "=", "borrador"),
+                    "&",
                     ("estado", "=", "confirmado"),
                     ("resultado", "in", ["aprobado", "aprobado_con_observaciones"]),
                 ],

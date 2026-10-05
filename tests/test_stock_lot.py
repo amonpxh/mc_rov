@@ -1,5 +1,7 @@
 from dateutil.relativedelta import relativedelta
 
+from lxml import etree
+
 from odoo import fields
 from odoo.exceptions import UserError
 from odoo.tests.common import TransactionCase
@@ -877,3 +879,34 @@ class TestStockLotFichaCompleta(StockLotPropiedadCommon):
 
         self.assertFalse(componente.es_un_rov)
         self.assertFalse(componente.mc_ficha_completa)
+
+
+@tagged("post_install", "-at_install")
+class TestAccionesROV(TransactionCase):
+    """Las acciones del equipo se distinguen y no aparecen en lotes ajenos a ROV."""
+
+    def test_formulario_ubica_fen_arriba_y_oculta_controles_rov(self):
+        vista = self.env["stock.lot"].get_view(
+            view_id=self.env.ref("stock.view_production_lot_form").id, view_type="form"
+        )
+        form = etree.fromstring(vista["arch"])
+        botones = form.xpath("//button[@name='action_preparar_ficha_equipo_nuevo']")
+        self.assertEqual(len(botones), 1)
+        boton = botones[0]
+        self.assertEqual(boton.getparent().tag, "header")
+        self.assertEqual(boton.get("string"), "Imprimir ficha")
+        self.assertIn("not es_un_rov", boton.get("invisible", ""))
+        pruebas = form.xpath("//page[@name='page_revisiones']")[0]
+        self.assertIn("not es_un_rov", pruebas.get("invisible", ""))
+        rnd = pruebas.xpath(".//button[@name='action_nueva_revision_rendimiento']")[0]
+        trn = pruebas.xpath(".//button[@name='action_nueva_revision_terreno']")[0]
+        self.assertEqual(
+            set(rnd.get("class").split()) - {"ms-2"}, set(trn.get("class").split()) - {"ms-2"}
+        )
+        for nombre in ("page_especificaciones", "page_propietarios"):
+            paginas = form.xpath(f"//page[@name='{nombre}']")
+            self.assertEqual(len(paginas), 1)
+            self.assertIn("not es_un_rov", paginas[0].get("invisible", ""))
+        for nombre in ("mc_fecha_baja", "mc_motivo_baja"):
+            for campo in form.xpath(f"//field[@name='{nombre}']"):
+                self.assertIn("not es_un_rov", campo.get("invisible", ""))

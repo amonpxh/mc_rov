@@ -2,6 +2,108 @@
 
 > Actualizar esta sección al cerrar cada sesión de trabajo.
 
+**Cierre de entrega - 2026-10-05:** QA manual aprobada: PDF FEN y acciones
+Vista previa / Emitir ficha correctas. La secuencia FEN es global por documento y
+se asigna al crear, incluso en borrador; no depende del numero de serie ROV.
+Se cierra el diff en `fix/rev-letter-footer-y-acciones-rov`, incluyendo la separacion
+Electronica/Software previamente probada. Hooks completos aprobados y 56 pruebas
+focalizadas STAGING sin fallos. No se incluyen artefactos `.tmp`.
+Siguiente etapa: PR contra main, suite completa CI, merge y despliegue controlado
+con upgrade/reinicio de produccion. Produccion aun no actualizada en esta etapa.
+Las entradas anteriores son evidencia historica; esta aprobacion resuelve el QA
+manual pendiente y la preferencia de borradores para vista previa.
+**Vista previa FEN con borradores - 2026-10-05:** usuario aprobo permitir
+borradores para vista previa y mantener bloqueo de emision final. Implementado
+localmente: propuesta mas reciente por tipo/equipo entre borradores y confirmadas
+aprobadas, sin aceptar reparaciones, otros equipos ni confirmadas rechazadas.
+Dominios del wizard y de la ficha alineados, aviso de requisitos de emision en el
+wizard. Boton superior Imprimir ficha. La regla action_emitir permanece intacta.
+Ampliadas pruebas de propuesta reciente, dominios reales, guardado de borrador y
+bloqueo final. Hooks/sintaxis/diff aprobados. STAGING instalado: 56 pruebas, 0 fallos
+y 0 errores; servicio activo. Equipo 26-02 propone TRN/00003 (borrador), RND vacia
+porque no existe; emision final bloqueada. PDF verificado: Letter 612 x 792 pt,
+una pagina, sin texto fuera de pagina, footer completo y sin clipping visual.
+QWeb FEN/REV mantiene ambos hashes. La fixture se revirtio con SAVEPOINT/rollback.
+Evidencia en `.tmp/fen-draft-preview-qa/`: PDF, PNG, verification.json y tests.log.
+El fallo anterior de revision automatica por creditos impidio la comprobacion del
+02-10; se retomo y los checks locales pasaron. Sin commit ni produccion.
+Tras QA final: revisar diff conjunto, commit/PR y despliegue controlado posterior.
+
+**QA manual del selector FEN - 2026-10-02:** usuario aprobo color RND/TRN,
+controles ocultos en no-ROV y flujo REV. Etiqueta superior Imprimir ficha cambiada
+localmente junto con asercion de vista; hooks aprobados, no instalada aun.
+Sonda READ ONLY confirmo dominios correctos por equipo/tipo/sin repair_id/confirmado
+/aprobado. Equipo 26-02 (lot id 3) no tiene RND: solo TRN/00002 y TRN/00003, ambas
+borrador sin resultado, mas REV/00004 de reparacion. Ninguna es elegible para emision.
+En 0000008 se propone REV/00008 (id 8), una prueba real de rendimiento confirmada y
+aprobada con prefijo historico; no se propone ninguna reparacion. La ultima aprobada
+se elige por fecha desc, id desc. No hay dos fallos de filtrado: hay ambiguedad del
+nombre historico y ausencia de pruebas elegibles. Pendiente preferencia del usuario
+sobre permitir borradores en seleccion/vista previa, sin relajar emision final.
+No se renumeraron pruebas ni se cambiaron reglas de negocio. Evidencia local:
+`.tmp/fen-selector-diagnosis.json`. No modifica PDF ni produccion.
+
+**Auditoria de evidencia FEN - 2026-10-02:** completada, sin cambios funcionales
+ni visuales adicionales. REV/00014 es mc.rov.revision id 14, tipo rendimiento,
+equipo id 5, sin repair_id, confirmado, rechazado y documento_emitido=True.
+Clasificacion: fixture QA inadecuada + numero historico conservado por la migracion
+19.0.19.0.0; no es una reparacion ni un fallback. El generador antiguo de paleta
+filtraba por tipo/equipo/sin repair_id/documento emitido, sin exigir aprobacion.
+El selector normal propone id 8 y excluye id 14 por resultado. El modelo FEN valida
+el tipo/equipo/sin reparacion y la emision exige ambas pruebas aprobadas.
+No se renumeraron revisiones historicas: una RND antigua puede conservar REV en su
+nombre; la validacion funcional es por tipo, no por prefijo textual.
+Ampliadas pruebas de slots ausentes, rechazo de reparaciones en ambos slots y
+exclusion de reparaciones de las propuestas. STAGING: 53 pruebas focalizadas,
+0 fallos y 0 errores. Los tests remotos se restauraron y Odoo quedo activo.
+Nueva fixture independiente con RND/TRN aprobadas: cinco PDFs FEN (ambas, RND
+pendiente, TRN pendiente, ambas pendientes y equipo con REV pero sin RND), todos
+Letter 612 x 792 pt, una pagina, footer completo, reserva 10,10 pt y sin texto
+fuera de pagina. Texto extraido sin identificadores REV en las validaciones.
+REV regression es identica pixel a pixel a REV antes. QWeb FEN/REV conserva sus
+hashes; sin cambios de estilo/Python funcional. Fixtures revertidas por SAVEPOINT
+y rollback. Evidencia en `.tmp/fen-evidence-qa/`: audit.json, PDFs, HTML, texto,
+crops, pdf-verification.json y tests.log. Sustituye la muestra de paleta rechazada
+como QA de evidencia; no reutilizar esa muestra antigua para validar aceptacion.
+Sin commit ni produccion. Cambios anteriores de vista/geometria quedan intactos.
+
+**REV/00023 y acciones ROV - 2026-10-02:** trabajo sin commit en
+`fix/rev-letter-footer-y-acciones-rov`, basado en el commit de catalogo.
+La captura real reproduce las dos paginas Letter del PDF adjunto. El diagnostico
+controlado confirmo que `padding-bottom:8px` del cuerpo genera la pagina vacia;
+quitarlo deja una pagina sin reducir Hallazgos/Observaciones.
+Localmente se elimino ese padding, se igualaron las tarjetas superiores con reserva
+minima para cinco sellos y se reutiliza un footer corporativo unico en FEN/REV.
+Se ajusto la banda de firmas/footer de REV a la referencia FEN; pendiente medir los
+renders finales. FEN conserva el resto de su composicion.
+FEN tiene un unico boton de cabecera para imprimir la ficha de equipo nuevo, con
+el selector existente; Rendimiento y Terreno tienen igual color. La cinta y campos
+de baja quedan ocultos en no-ROV, ademas de las pestanas ya protegidas.
+STAGING instalado y validado: 53 pruebas, 0 fallos y 0 errores; servicio activo.
+PDFs REV full, FEN antes/despues y replay de la captura real REV/00023 con cinco/cuatro
+sellos: todos Letter 612 x 792 pt, una pagina, sin texto fuera de pagina. REV/00023
+no existe en STAGING: el replay usa su captura real con el QWeb instalado.
+Tarjetas superiores: 103,73 pt en ambos lados y ambos casos. Footer REV/00023 y FEN
+con baseline 780,27 pt, reserva 10,10 pt; REV full baseline 780,85 pt, reserva 9,52 pt.
+Zona util de firma REV: 38,03 pt. FEN antes/despues identico pixel a pixel.
+REV full: 8 hallazgos, 7 visibles y resumen de uno adicional; observaciones y nota
+visibles. Fixtures revertidas por rollback. Evidencia en `.tmp/rev23-final-qa/`,
+incluidos PDFs, crops superiores/inferiores, medidas y log de pruebas.
+Sin commit, publicacion ni despliegue a produccion. Pendiente aprobacion visual.
+
+**Separación Electrónica / Software — 2026-10-01:** implementación local en
+`feature/separar-electronica-software`, versión `19.0.23.7.0`. Electrónica conserva
+los subtipos físicos; Software / Configuración contiene Software de superficie,
+Firmware y Parámetros / Configuración. El upgrade reclasifica los hallazgos y trabajos
+del subtipo Parámetros que todavía usan Electrónica; sin subtipo permanecen en
+Electrónica porque no se puede inferir su naturaleza. No se conserva una categoría
+mixta histórica. Chequeos y diseño PDF permanecen intactos. Validación local del XML
+y SQL de migración y hooks de pre-commit aprobados. STAGING instaló `19.0.23.7.0`:
+20 pruebas, 0 fallos y 0 errores; catálogo verificado, sin hallazgos ni trabajos de
+Parámetros todavía asociados a Electrónica; servicio activo. Evidencia recibida del
+runner el 2026-10-01. Los avisos existentes de campos calculados quedaron fuera de alcance.
+Pendientes publicación del commit, PR, merge y despliegue a producción.
+
 **Cierre FEN/REV — 2026-10-01:** PR #87 se fusionó en `main` como
 `1fad9963f4fbe7f064e7f44e3e2889e523c5c2fa`; checks de `pre-commit` y de la suite Odoo
 pasaron. La versión `19.0.23.6.0` se actualizó en producción y `odoo` quedó activo.
@@ -1050,10 +1152,9 @@ de la vista. Los dos se habían deducido de una captura, sin poder leer el arch 
   que nunca tuvieron causa quedaron ahí, así que un `desconocida` anterior a `19.0.13.0.0`
   puede significar «no se pudo determinar» o «nadie lo llenó», y eso ya no se distingue.
 
-- [ ] **`comp_electronica` se llama «Electrónica / Software» y mezcla dos cosas en una
-  etiqueta.** Apareció al agregar los componentes que faltaban: fue la razón por la que
-  «Software de superficie» no entró como componente propio. Separarlas obliga a decidir qué
-  pasa con las filas que ya la usan, así que queda anotado.
+- [ ] **Separar Electrónica y Software / Configuración:** implementado y validado en
+  STAGING (`19.0.23.7.0`, 20 pruebas); pendientes PR y producción. Parámetros y
+  sus hallazgos/trabajos se reclasifican; los registros sin subtipo quedan en Electrónica.
 
 - [ ] **Medir la tasa de llenado de `hallazgo_origen_id`** antes de confiar en cualquier
   análisis que cruce hallazgos con orígenes. Es opcional, y sin él la línea de trabajo tiene

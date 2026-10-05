@@ -69,7 +69,10 @@
         <field name="name">Umbilical</field>
     </record>
     <record id="comp_electronica" model="mc.rov.componente">
-        <field name="name">Electrónica / Software</field>
+        <field name="name">Electrónica</field>
+    </record>
+    <record id="comp_software" model="mc.rov.componente">
+        <field name="name">Software / Configuración</field>
     </record>
     <record id="comp_estructura" model="mc.rov.componente">
         <field name="name">Estructura / Chasis</field>
@@ -91,9 +94,8 @@
          los tenía: el cliente veía "las luces no prenden" y no tenía de qué sospechar, con
          lo que el cruce entre lo reportado y lo encontrado se caía justo ahí.
 
-         No se agrega "Software de superficie": `comp_electronica` ya se llama "Electrónica /
-         Software" y dos entradas que significan lo mismo rompen el conteo, que es lo único
-         que un catálogo tiene que proteger.
+         Software de superficie se clasifica como subtipo de Software / Configuración;
+         no como otro componente que duplique esa categoría.
 
          Ninguno es inspeccionable — no se revisan buscando sellos de terceros — así que no
          agregan filas a la inspección física de cada revisión. -->
@@ -194,7 +196,15 @@
     </record>
     <record id="sub_elec_parametros" model="mc.rov.subtipo">
         <field name="name">Parámetros / Configuración</field>
-        <field name="componente_id" ref="comp_electronica"/>
+        <field name="componente_id" ref="comp_software"/>
+    </record>
+    <record id="sub_soft_superficie" model="mc.rov.subtipo">
+        <field name="name">Software de superficie</field>
+        <field name="componente_id" ref="comp_software"/>
+    </record>
+    <record id="sub_soft_firmware" model="mc.rov.subtipo">
+        <field name="name">Firmware</field>
+        <field name="componente_id" ref="comp_software"/>
     </record>
     <record id="sub_elec_pcb" model="mc.rov.subtipo">
         <field name="name">PCB / Placa</field>

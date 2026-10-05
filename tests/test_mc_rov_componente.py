@@ -1,3 +1,6 @@
+import runpy
+from pathlib import Path
+
 from odoo.tests.common import TransactionCase
 from odoo.tests import tagged
 
@@ -191,3 +194,80 @@ class TestMcRovComponente(TransactionCase):
         )
         self.assertEqual(linea1.accion_id, self.accion)
         self.assertEqual(linea2.accion_id, accion2)
+
+
+@tagged("post_install", "-at_install")
+class TestSeparacionElectronicaSoftware(TransactionCase):
+    """Catalogo separado y reclasificacion de datos existentes durante el upgrade."""
+
+    def setUp(self):
+        super().setUp()
+        self.product = self.env["product.product"].create(
+            {"name": "QA Software", "tracking": "serial"}
+        )
+        self.order = self.env["repair.order"].create({"product_id": self.product.id})
+        self.accion = self.env.ref("mc_rov.accion_reparacion")
+
+    def test_catalogo_separa_electronica_y_software(self):
+        electronica = self.env.ref("mc_rov.comp_electronica")
+        software = self.env.ref("mc_rov.comp_software")
+        self.assertEqual(electronica.name, "Electrónica")
+        self.assertEqual(software.name, "Software / Configuración")
+        self.assertFalse(software.es_inspeccionable)
+        for xml_id in ("sub_elec_parametros", "sub_soft_superficie", "sub_soft_firmware"):
+            self.assertEqual(self.env.ref("mc_rov." + xml_id).componente_id, software)
+        for xml_id in (
+            "sub_elec_microsd",
+            "sub_elec_fuente",
+            "sub_elec_esc",
+            "sub_elec_tarjeta",
+            "sub_elec_raspberry",
+            "sub_elec_navigator",
+            "sub_elec_pcb",
+        ):
+            self.assertEqual(self.env.ref("mc_rov." + xml_id).componente_id, electronica)
+
+    def test_migracion_reclasifica_solo_parametros_y_es_idempotente(self):
+        electronica = self.env.ref("mc_rov.comp_electronica")
+        software = self.env.ref("mc_rov.comp_software")
+        parametros = self.env.ref("mc_rov.sub_elec_parametros")
+        tarjeta = self.env.ref("mc_rov.sub_elec_tarjeta")
+        lot = self.env["stock.lot"].create({"name": "QA-SOFTWARE", "product_id": self.product.id})
+        revision = self.env["mc.rov.revision"].create({"lot_id": lot.id, "tipo": "reparacion"})
+        hallazgos = self.env["mc.rov.revision.hallazgo"]
+        trabajos = self.env["mc.rov.linea.falla"]
+        for subtipo in (parametros, tarjeta, self.env["mc.rov.subtipo"]):
+            hallazgo = self.env["mc.rov.revision.hallazgo"].create(
+                {
+                    "revision_id": revision.id,
+                    "componente_id": electronica.id,
+                    "subtipo_id": subtipo.id,
+                    "hallazgo_id": self.env.ref("mc_rov.hallazgo_corrosion").id,
+                    "detalle": "Conservar el detalle original",
+                }
+            )
+            trabajo = self.env["mc.rov.linea.falla"].create(
+                {
+                    "repair_id": self.order.id,
+                    "componente_id": electronica.id,
+                    "subtipo_id": subtipo.id,
+                    "accion_id": self.accion.id,
+                    "hallazgo_origen_id": hallazgo.id,
+                }
+            )
+            hallazgos |= hallazgo
+            trabajos |= trabajo
+        self.env.flush_all()
+        migrate = runpy.run_path(
+            str(Path(__file__).resolve().parents[1] / "migrations/19.0.23.7.0/post-migrate.py")
+        )["migrate"]
+        for _ in range(2):
+            migrate(self.env.cr, "19.0.23.6.0")
+            self.env.invalidate_all()
+            self.assertEqual(hallazgos[0].componente_id, software)
+            self.assertEqual(trabajos[0].componente_id, software)
+            self.assertEqual(hallazgos[1:].mapped("componente_id"), electronica)
+            self.assertEqual(trabajos[1:].mapped("componente_id"), electronica)
+            self.assertEqual(trabajos.mapped("hallazgo_origen_id"), hallazgos)
+            self.assertTrue(all(h.detalle == "Conservar el detalle original" for h in hallazgos))
+            self.assertEqual(trabajos.mapped("accion_id"), self.accion)

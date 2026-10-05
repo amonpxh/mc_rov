@@ -221,7 +221,8 @@
                     <td><div class="fen-sign-line"/><div class="fen-sign-label">Gerente General</div></td>
                     <td><div class="fen-sign-line"/><div class="fen-sign-label">Aceptación del cliente</div></td>
                 </tr></table>
-                <div class="fen-footer">Ingeniería y Servicios Marine Connection SpA · RUT 76.957.685-1 · Pje. Chinquihue 136, Puerto Montt · +56 9 7646 3823 · marineconnection.cl</div>
+                <t t-set="mc_report_footer_class" t-value="'fen-footer'"/>
+                <t t-call="mc_rov.report_shared_corporate_footer"/>
             </div>
         </div>
     </template>

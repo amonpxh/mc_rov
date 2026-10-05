@@ -4,6 +4,7 @@ import re
 from lxml import html
 
 from odoo.exceptions import UserError, ValidationError
+from odoo.tools.safe_eval import safe_eval
 
 from .test_mc_rov_revision import RevisionCommon
 
@@ -34,15 +35,64 @@ class TestFichaEquipoNuevo(RevisionCommon):
         rnd_anterior = self._aprobada("rendimiento", fecha="2026-09-21")
         rnd_nueva = self._aprobada("rendimiento", fecha="2026-09-23")
         trn = self._aprobada("terreno", fecha="2026-09-22")
-        self._revision(tipo="terreno", fecha="2026-09-24", estado="borrador")
+        trn_reciente = self._revision(tipo="terreno", fecha="2026-09-24", estado="borrador")
         accion = self.lot.action_preparar_ficha_equipo_nuevo()
         self.assertEqual(accion["res_model"], "mc.rov.ficha.equipo.nuevo.wizard")
         self.assertEqual(accion["context"]["default_rnd_id"], rnd_nueva.id)
-        self.assertEqual(accion["context"]["default_trn_id"], trn.id)
+        self.assertEqual(accion["context"]["default_trn_id"], trn_reciente.id)
         wizard = self.env["mc.rov.ficha.equipo.nuevo.wizard"].create(
             {"lot_id": self.lot.id, "rnd_id": rnd_anterior.id, "trn_id": trn.id}
         )
         self.assertEqual(wizard.rnd_id, rnd_anterior)
+
+    def test_selectores_permiten_borradores_del_tipo_y_excluyen_rechazadas(self):
+        rnd = self._revision(tipo="rendimiento")
+        trn = self._revision(tipo="terreno")
+        self._revision(tipo="reparacion")
+        rechazada = self._revision(tipo="rendimiento")
+        self._responder_todo(rechazada)
+        self._corrida_completa(rechazada, funcionamiento_continuo_resultado="con_problemas")
+        self._emitir(rechazada)
+        aprobada = self._aprobada("rendimiento")
+        otro_lote = self.env["stock.lot"].create(
+            {"name": "ROV-OTRO-SELECTOR", "product_id": self.product.id}
+        )
+        self.env["mc.rov.revision"].create({"lot_id": otro_lote.id, "tipo": "rendimiento"})
+        for xml_id, modelo in (
+            ("view_ficha_equipo_nuevo_wizard_form", "mc.rov.ficha.equipo.nuevo.wizard"),
+            ("view_ficha_equipo_nuevo_form", "mc.rov.ficha.equipo.nuevo"),
+        ):
+            vista = self.env[modelo].get_view(
+                view_id=self.env.ref("mc_rov." + xml_id).id, view_type="form"
+            )
+            documento = html.fromstring(vista["arch"])
+            for campo, esperadas in (("rnd_id", rnd | aprobada), ("trn_id", trn)):
+                with self.subTest(vista=xml_id, campo=campo):
+                    dominio = safe_eval(
+                        documento.xpath(f"//field[@name='{campo}']")[0].get("domain"),
+                        {"lot_id": self.lot.id},
+                    )
+                    self.assertEqual(
+                        set(self.env["mc.rov.revision"].search(dominio).ids), set(esperadas.ids)
+                    )
+
+    def test_wizard_guarda_vista_previa_con_borradores_pero_no_emite(self):
+        rnd = self._revision(tipo="rendimiento")
+        trn = self._revision(tipo="terreno")
+        accion = self.lot.action_preparar_ficha_equipo_nuevo()
+        self.assertEqual(accion["context"]["default_rnd_id"], rnd.id)
+        self.assertEqual(accion["context"]["default_trn_id"], trn.id)
+        wizard = self.env["mc.rov.ficha.equipo.nuevo.wizard"].create(
+            {"lot_id": self.lot.id, "rnd_id": rnd.id, "trn_id": trn.id}
+        )
+        ficha_accion = wizard.action_guardar_borrador()
+        ficha = self.env["mc.rov.ficha.equipo.nuevo"].browse(ficha_accion["res_id"])
+        self.assertEqual(ficha.rnd_id, rnd)
+        self.assertEqual(ficha.trn_id, trn)
+        self.assertEqual(ficha.estado, "borrador")
+        with self.assertRaises(UserError):
+            ficha.action_emitir()
+        self.assertFalse(ficha.pdf_attachment_id)
 
     def test_no_mezcla_pruebas_de_otro_equipo_ni_tipos(self):
         rnd = self._revision(tipo="rendimiento")
@@ -57,19 +107,42 @@ class TestFichaEquipoNuevo(RevisionCommon):
 
     def test_fen_no_sustituye_rnd_ausente_por_una_revision_de_reparacion(self):
         reparacion = self._revision(tipo="reparacion")
-        trn = self._revision(tipo="terreno")
-        ficha = self._ficha(trn=trn)
+        rnd = self._aprobada("rendimiento")
+        trn = self._aprobada("terreno")
+        for prueba_rnd, prueba_trn in ((rnd, trn), (None, trn), (rnd, None), (None, None)):
+            with self.subTest(rnd=bool(prueba_rnd), trn=bool(prueba_trn)):
+                ficha = self._ficha(prueba_rnd, prueba_trn)
+                contenido, _ = self.env["ir.actions.report"]._render_qweb_html(
+                    "mc_rov.action_report_ficha_equipo_nuevo", ficha.ids
+                )
+                documento = html.fromstring(contenido)
+                validaciones = documento.xpath("//*[@data-fen-validation]")
+                self.assertEqual(len(validaciones), 2)
+                nombres = [
+                    v.xpath('.//*[@class="fen-revision-name"]')[0].text_content()
+                    for v in validaciones
+                ]
+                self.assertEqual(
+                    nombres,
+                    [
+                        prueba_rnd.name if prueba_rnd else "RND pendiente",
+                        prueba_trn.name if prueba_trn else "TRN pendiente",
+                    ],
+                )
+                self.assertFalse(any(nombre.startswith("REV/") for nombre in nombres))
+                self.assertNotIn(reparacion.name, " ".join(v.text_content() for v in validaciones))
 
-        contenido, _ = self.env["ir.actions.report"]._render_qweb_html(
-            "mc_rov.action_report_ficha_equipo_nuevo", ficha.ids
-        )
-        documento = html.fromstring(contenido)
-        validaciones = documento.xpath("//*[@data-fen-validation]")
-
-        self.assertEqual(len(validaciones), 2)
-        self.assertIn("RND pendiente", validaciones[0].text_content())
-        self.assertIn(trn.name, validaciones[1].text_content())
-        self.assertNotIn(reparacion.name, " ".join(v.text_content() for v in validaciones))
+    def test_reparacion_no_es_evidencia_ni_propuesta_de_fen(self):
+        reparacion = self._revision(tipo="reparacion")
+        self._responder_todo(reparacion)
+        self._corrida_completa(reparacion)
+        self._emitir(reparacion)
+        accion = self.lot.action_preparar_ficha_equipo_nuevo()
+        self.assertFalse(accion["context"]["default_rnd_id"])
+        self.assertFalse(accion["context"]["default_trn_id"])
+        for campo in ("rnd_id", "trn_id"):
+            with self.subTest(campo=campo), self.assertRaises(ValidationError):
+                self._ficha(**{campo: reparacion.id})
 
     def test_borrador_no_se_emite_si_falta_una_prueba_aprobada(self):
         rnd = self._revision(tipo="rendimiento")
