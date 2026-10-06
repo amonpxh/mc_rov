@@ -1,5 +1,5 @@
 from odoo import api, models, fields
-from odoo.exceptions import UserError
+from odoo.exceptions import AccessError, UserError
 
 
 class RepairOrder(models.Model):
@@ -105,6 +105,52 @@ class RepairOrder(models.Model):
         store=True,
         help="Se enciende cuando alguna revisión técnica de esta visita quedó en borrador.",
     )
+
+    mc_aviso_cierre = fields.Char(
+        string="Antes de cerrar",
+        compute="_compute_mc_aviso_cierre",
+        compute_sudo=False,
+        help="Carencias de datos para el cierre; no acredita revisión ni entrega del equipo.",
+    )
+
+    @api.depends_context("uid")
+    @api.depends(
+        "state",
+        "tipo_intervencion_ids",
+        "linea_falla_ids.origen",
+        "linea_falla_ids.accion_id.consume_repuesto",
+        "move_ids",
+    )
+    def _compute_mc_aviso_cierre(self):
+        """Anticipa las reglas de cierre sin añadir pasos ni certificar datos completos."""
+        for order in self:
+            if order.state in ("done", "cancel"):
+                order.mc_aviso_cierre = False
+                continue
+            motivos = []
+            if not order.tipo_intervencion_ids:
+                motivos.append("selecciona el Tipo de intervención")
+            try:
+                lines = order.linea_falla_ids
+                lines.check_access("read")
+                sin_origen = len(lines.filtered(lambda line: not line.origen))
+                if sin_origen:
+                    unidad = "trabajo" if sin_origen == 1 else "trabajos"
+                    motivos.append(f"completa el Origen de {sin_origen} {unidad} en Cierre")
+                if (
+                    lines.filtered(lambda line: line.accion_id.consume_repuesto)
+                    and not order.move_ids
+                ):
+                    motivos.append("registra los repuestos en Repuestos")
+            except AccessError:
+                # Datos inaccesibles no significan cero: no inventar avisos ni elevar permisos.
+                pass
+            texto = (
+                ", ".join(motivos[:-1]) + " y " + motivos[-1]
+                if len(motivos) > 1
+                else "".join(motivos)
+            )
+            order.mc_aviso_cierre = texto + "." if texto else False
 
     @api.depends("revision_ids.estado")
     def _compute_mc_revision_pendiente(self):

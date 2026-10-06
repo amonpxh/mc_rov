@@ -1,0 +1,404 @@
+# Recorridos guiados de reparación y fabricación / aceptación
+
+**Decisión 2026-10-06:** el panel de guía junto al chatter (secciones de integración
+más abajo) se descarta tras QA real: repetía las pestañas sin explicar qué tarea
+seguir. Se retira su código y pruebas específicas. La auditoría de recorridos y
+aplicabilidad se conserva. El sustituto aprobado es un aviso contextual de carencias concretas, inspirado
+en el aviso de datos técnicos faltantes del equipo y ya validado en STAGING.
+Las propuestas de panel inferiores quedan como antecedente histórico.
+
+### Diseño aprobado: aviso de cierre (2026-10-06)
+
+El usuario aprobó mostrar tres carencias verificables: tipo de intervención vacío,
+trabajos sin origen y consumo de repuestos sin movimientos en la orden. Coinciden
+con `_validar_tipo_intervencion`, `_validar_origen` y `_validar_repuestos` actuales;
+no se añade un requisito nuevo. Revisiones borrador no bloquean cierre.
+
+Maqueta descartable en `.tmp/repair-contextual-preview/index.html`, disponible en
+`http://localhost:8079/`: refinamiento aprobado, franja ámbar sobre las pestañas con
+una frase «Antes de cerrar: …», solo los motivos aplicables, sin enlaces ni botones.
+Nombra Tipo de intervención, Origen en Cierre y Repuestos. No hay título separado
+ni tres filas. Desaparece sin carencias o en done/cancel;
+diagnóstico sin trabajos no exige trabajos ni repuestos. Conteos corresponden a
+trabajos sin origen, no a porcentaje de avance ni pasos pendientes universales.
+
+Escenarios visuales: tres requisitos, solo origen, solo repuestos, diagnóstico
+completo y orden cerrada. Ausencia de franja en orden cerrada comprobada en navegador;
+versión compacta verificada sin enlaces/botones. Captura
+`.tmp/repair-contextual-preview/preview.png`. Implementado y validado en STAGING: 349 pruebas sin fallos ni errores y QA visual;
+el ajuste de separación pasó seis pruebas adicionales. El aviso comprueba datos faltantes, nunca si una persona «revisó» un registro
+ni si abrió una pestaña. No se añade una casilla Revisado.
+El código conserva permisos, guardado y navegación nativos; datos no
+accesibles no equivalen a cero. Este aviso no resuelve todavía conexiones entre
+procesos ni el centro de trabajo. No debe anunciar «listo para entregar».
+
+Revisión: 2026-10-05. Base auditada: main c1d359f; versión funcional 19.0.23.7.0.
+Estado: diseño en revisión. Código inspeccionado y primer recorrido de pantalla
+realizado en STAGING; práctica de taller y casos restantes por contrastar.
+No hay implementación de navegación nueva.
+
+## 1. Qué queremos resolver
+
+Una persona debe saber qué hacer y cómo continuar desde el registro que está usando,
+sin memorizar aplicaciones ni pestañas. Abrir el registro correcto es una parte;
+llegar al apartado donde se trabaja también importa.
+
+El éxito se comprueba recorriendo una reparación y una aceptación de equipo nuevo:
+la persona entiende la tarea, encuentra la acción, conserva sus datos y puede volver
+al registro de origen sin buscar manualmente el equipo o la orden.
+
+No se crea un proceso paralelo ni un estado manual de avance. Se conservan los estados,
+relaciones y validaciones actuales. No se modifican PDFs, presupuesto adaptativo,
+catálogos, permisos ni reglas de entrega en esta etapa. Centro de trabajo posterior.
+
+## 2. Qué prueba esta auditoría y qué no
+
+- **Comprobado en código:** campos, acciones y condiciones descritos abajo.
+- **Hipótesis de usabilidad:** un enlace existente puede ser poco visible. No equivale
+  a demostrar que el usuario se pierde ni a justificar otro botón automáticamente.
+- **Pendiente de pantalla:** formulario combinado de Odoo, personalizaciones, acciones
+  nativas, comportamiento de guardado y apertura de pestañas.
+- **Pendiente de taller:** orden real de tareas, responsables y excepciones del proceso.
+
+Las propuestas se implementan solo donde la comprobación encuentre una dificultad real.
+No convertir documentación antigua ni comentarios de código en evidencia de pantalla.
+
+## 3. Reparación: recorrido vigente
+
+| Momento | Conexión comprobada | Evaluación / límite |
+| --- | --- | --- |
+| Recepción | Orden con serie, síntomas, sospechas y equipos recibidos | La pestaña existe. Comprobar si basta su organización o hace falta orientación visible. |
+| Entrada al taller | Al salir de draft hacia un estado distinto de draft/cancel, se crea una REV de reparación para un ROV si la visita no tiene otra | Se crea la revisión, pero esa operación no devuelve una acción para abrirla. No crear revisiones por navegar. |
+| Diagnóstico | Lista de revisiones de la visita con Editar/Abrir; acceso al historial completo del equipo | Abrir ya existe. Evaluar visibilidad antes de añadir Continuar revisión. Historial del equipo y revisión de esta visita no son intercambiables. |
+| Trabajos y repuestos | Pestañas Trabajos realizados y Repuestos | El registro vuelve a ser la orden. La revisión tiene enlace Many2one a ella; falta comprobar si el retorno resulta evidente. |
+| Verificación del resultado | Nueva revisión crea otro pase de la visita; motivo distingue re-test y comparación | Crear otra prueba es una decisión. No deducir que todo trabajo exige re-test ni reutilizar un diagnóstico como verificación final. |
+| Ficha reparada | Imprimir ficha propone la reparación más reciente por fecha/id de la visita; el wizard permite cambiarla | Una propuesta reciente no identifica por sí sola el pase final. Conservar selección visible y mostrar contexto de la revisión. |
+| Cierre | Exige tipo de intervención, origen de trabajos y al menos un repuesto si alguna acción lo consume; sella fecha si falta | Revisión en borrador no bloquea. No añadir restricciones nuevas para representar el recorrido. Cierre de orden y entrega física no deben confundirse. |
+
+Una visita de diagnóstico sin trabajos puede cerrarse. Las etapas son orientación,
+no un checklist obligatorio idéntico para todas las órdenes.
+
+Fuentes: [orden](../../models/repair_order.py), [vista de orden](../../views/repair_order_views.xml),
+[revisión](../../models/mc_rov_revision.py), [vista de revisión](../../views/mc_rov_revision_views.xml),
+[asistente de impresión](../../wizards/mc_rov_ficha_wizard.py).
+
+## 4. Fabricación y aceptación: recorrido vigente
+
+| Momento | Conexión comprobada | Evaluación / límite |
+| --- | --- | --- |
+| Fabricar | MO nativa y lecciones del modelo; al terminar, series producidas se añaden a alertas sin alcance | mc_rov no aporta botón MO → equipo. Comprobar enlaces nativos antes de construirlo. No afirmar que la serie nace exclusivamente al finalizar. |
+| Configurar | Serie con Especificaciones y aviso de datos faltantes | La ficha técnica registra lo que el equipo es. El software puede precargarse y completarse desde RND; no ordenar dejarlo vacío. |
+| Rendimiento | Nueva prueba de rendimiento crea una RND del equipo | Siempre crea. Diferenciar iniciar otro intento de continuar uno ya abierto. |
+| Terreno | Nueva prueba en terreno crea TRN; historial común por equipo | No hay acción propia RND → TRN. La secuencia de trabajo debe validarse; no imponer bloqueo ni iniciar terreno automáticamente al confirmar RND. |
+| Preparar FEN | Imprimir ficha abre wizard; propone pruebas del equipo/tipo correcto, sin reparación, entre borradores y confirmadas aceptadas | Preparar desde este botón puede crear otra ficha al guardar/emitir. Retomar una FEN existente debe abrir su registro, no repetir la creación. |
+| Emitir FEN | Requiere RND y TRN confirmadas y aprobadas o aprobadas con observaciones; guarda PDF final | Vista previa no es emisión. FEN emitida conserva documento y referencias aunque aparezcan revisiones nuevas. |
+| Entregar | Operaciones nativas de Inventario/Ventas/Alquiler | No se encontró en mc_rov un bloqueo de entrega por RND/TRN/FEN. Su existencia en personalizaciones y su conveniencia son asuntos distintos. |
+
+Una MO puede producir varias series: si se agrega navegación, una abre formulario y
+varias abren una lista limitada a esas series; nunca elegir silenciosamente la primera.
+También hay equipos anteriores al sistema, sin MO en Odoo: aceptación debe seguir
+siendo accesible desde la serie, sin exigir fabricación registrada.
+
+No se incorpora una batería de controles de armado: el diseño previo la descartó.
+Odoo admite controles de calidad configurados, pero no se asume su contenido ni que
+haya una batería operativa instalada. Verificar la configuración real con taller.
+
+Fuentes: [fabricación](../../models/mrp_production.py), [vista MO](../../views/mrp_production_views.xml),
+[equipo](../../models/stock_lot.py), [vista equipo](../../views/stock_lot_views.xml),
+[FEN](../../models/mc_rov_ficha_equipo_nuevo.py),
+[asistente FEN](../../wizards/mc_rov_ficha_equipo_nuevo_wizard.py).
+
+## 5. Reglas de navegación que deben quedar explícitas
+
+1. **Continuar abre; Nueva crea.** No cambiar silenciosamente las acciones actuales
+   Nueva revisión / Nueva prueba. Si existe borrador, ofrecer retomarlo separadamente.
+2. **Cero, uno o varios candidatos:** cero explica qué falta; uno puede abrirse directo;
+   varios requieren selección con referencia, fecha, tipo, estado, responsable y motivo
+   cuando exista. No reducir ambiguamente todo el historial a «la última».
+3. **Ámbito preciso:** una orden retoma sus revisiones de reparación; RND/TRN de aceptación
+   pertenecen a la serie y no a una reparación. FEN retoma fichas de esa serie.
+4. **Confirmado no significa aprobado.** Un rechazado sigue visible en el historial;
+   un borrador no tiene veredicto. No anunciar «listo para entregar» desde un conteo.
+5. **Último intento y evidencia seleccionable son distintos.** FEN excluye confirmadas
+   rechazadas y propone la candidata más reciente elegible. La guía no debe ocultar que
+   hay un intento posterior rechazado ni cambiar por sí sola la selección aprobada.
+6. **Navegar no altera negocio:** no confirma pruebas, cierra órdenes, emite FEN,
+   cambia propietarios ni crea series. El guardado normal del formulario sigue aplicando.
+7. **Guardar y volver:** comprobar cambios sin guardar, validaciones y cancelación.
+   Un botón Volver no puede perder datos ni desviar al equipo/orden equivocado.
+8. **Pestaña de destino:** no dar por válido un contexto inventado. Verificar el soporte
+   del cliente Odoo 19. Si abrir solo el registro deja la tarea escondida, el enlace no
+   se considera solución completa; evaluar acceso directo al apartado sin rediseño global.
+9. **ROV/no-ROV y permisos:** ocultar guía específica en otros equipos y respetar los
+   permisos existentes. No usar sudo para que un enlace funcione.
+
+## 6. Propuesta acotada, por orden de trabajo
+
+### A. Validar dos recorridos antes de añadir botones
+
+Recorrer en STAGING una visita de reparación y una MO/aceptación. Registrar:
+registro de partida, tarea, acción actual, destino, pestaña y dónde se necesita ayuda.
+Incluir retomar un trabajo a medias y un equipo sin MO. Reparación es el piloto
+recomendado, no una prioridad ya confirmada por el usuario.
+
+### B. Resolver los cortes comprobados
+
+Candidatos, sujetos al recorrido de pantalla:
+- **Continuar revisión** en la orden, solo si mejora el acceso Editar/Abrir existente.
+- **Abrir orden de reparación** desde REV y **Abrir equipo** desde revisiones/FEN:
+  destinos explícitos, no dependientes de haber llegado desde una pantalla concreta.
+- **Abrir equipo / Ver equipos producidos** desde MO si la acción nativa no resuelve el paso.
+- Accesos para retomar RND, TRN o FEN en borrador desde el equipo cuando el historial
+  no permita hacerlo con claridad. Reutilizar las listas y formularios existentes.
+
+No añadir todos estos botones por defecto. Mantener una acción principal clara y los
+accesos secundarios agrupados; evitar una cabecera llena de acciones equivalentes.
+
+### C. Orientación dentro del registro
+
+Mostrar tarea y faltantes relevantes, con acceso al apartado donde se resuelven.
+No solo enlaces entre módulos: Recepción, Revisiones, Trabajos, Repuestos y Cierre
+necesitan también continuidad dentro de la orden.
+
+Reutilizar el aviso de ficha incompleta y los criterios actuales de confirmación/cierre.
+Si se muestran requisitos antes de actuar, la validación y el aviso deben compartir
+la misma regla, sin duplicar cálculos que puedan discrepar. No poner todas las tareas
+bajo «Pendiente»: distinguir requisito bloqueante, advertencia y paso opcional.
+
+### D. Centro de trabajo, después
+
+Con los recorridos validados, reunir tareas operativas y accesos por proceso. Sin
+indicadores de desempeño ni cambios de permisos, carga o pipeline en esta etapa.
+
+## 7. Validación y criterio de aceptación
+
+### Guion de comprobación en pantalla
+
+Usar registros existentes, sin crear revisiones, emitir fichas ni cambiar estados.
+Abrir selectores y cancelarlos cuando sea necesario comprobar una propuesta.
+
+| Recorrido | Comprobación concreta |
+| --- | --- |
+| Orden → REV | Desde Revisiones, abrir un pase de esta visita y comprobar si su estado, resultado y motivo permiten reconocer cuál retomar. |
+| REV → orden | Comprobar el enlace a la orden y cómo regresar a Trabajos realizados o Repuestos sin buscarla nuevamente. |
+| Orden → ficha | Abrir Imprimir ficha, comprobar propuesta y opciones de esta visita; cancelar. No confundir reciente con re-test final. |
+| Orden → cierre | Leer avisos y campos de Cierre sin ejecutar el cierre; contrastar requisitos con las reglas auditadas. |
+| MO → serie | Buscar primero el acceso nativo al equipo producido, incluyendo el caso de varias series. |
+| Serie → configuración | Comprobar dónde se completan Especificaciones y cómo se reconocen los datos faltantes. |
+| Serie → RND/TRN | Abrir revisiones existentes desde Pruebas; distinguir retomar de Nueva prueba y comprobar retorno al equipo. |
+| Serie → FEN | Abrir una ficha existente y comprobar acceso a sus evidencias. Revisar el selector sin guardar otra ficha. |
+
+Por cada paso registrar: registro usado, acción visible, destino/pestaña, dificultad
+observada y evidencia. Marcar lo que no pudo probarse; no completar el resultado
+por inferencia del código. Priorizar pérdida de contexto, creación accidental de
+duplicados y dificultad para retomar antes de añadir accesos meramente convenientes.
+
+| Caso | Resultado esperado |
+| --- | --- |
+| REV: cero / una / varias revisiones pendientes | Mensaje, acceso directo o selección; ninguna creación al continuar. |
+| REV: diagnóstico sin trabajos / reparación con re-test | Ambos recorridos posibles; motivo y pase elegido visibles. |
+| Revisión rechazada / borrador / confirmada aceptada | Estado y resultado no se confunden; no cerrar ni aprobar al navegar. |
+| MO: sin serie / una / varias / producto no ROV | Orientación o destino preciso; no inventar series ni mostrar guía ROV fuera de alcance. |
+| Equipo sin MO | Configuración y aceptación accesibles desde la serie. |
+| RND/TRN: varios intentos, tipos/equipos distintos | Continuación sin duplicar ni mezclar; intentos rechazados permanecen consultables. |
+| FEN: borrador existente / emitida / pruebas ausentes | Retomar sin crear otra; vista previa permitida; emisión conserva sus bloqueos. |
+| Cambios sin guardar / formulario inválido / cancelación | Sin pérdida de datos ni navegación engañosa. |
+| Usuario sin acceso al destino | Respeto de permisos y explicación; sin elevación de privilegios. |
+
+La QA incluye navegador, además de pruebas de acciones y dominios. No basta comprobar
+que un método devuelve una acción: hay que demostrar que el usuario llega donde trabaja.
+Los PDF y su composición quedan fuera del cambio; confirmar que sus rutas no se alteraron.
+
+## 8. Primer recorrido real de STAGING — 2026-10-05
+
+Sesión administrativa; inspección de registros existentes, sin editar campos,
+confirmar revisiones, cerrar órdenes ni guardar/emitir FEN. Se abrieron dos
+asistentes y se cancelaron. Esto valida accesos de estas muestras, no todos los
+perfiles, dominios ni escenarios de la matriz anterior.
+
+| Muestra / paso | Resultado observado | Consecuencia para la propuesta |
+| --- | --- | --- |
+| WH/RO/00019 → Revisiones | Lista con REV/00022, REV/00019 y REV/00016, todas en borrador; Editar disponible | Retomar ya está resuelto técnicamente. No añadir otro botón equivalente por defecto. |
+| Editar REV/00022 | Abre formulario completo; motivo Primer diagnóstico y enlace interno a la orden visibles | Hay contexto de la visita. El motivo no figura en la lista de la orden, por lo que allí cuesta distinguir pases sin abrirlos. |
+| REV/00022 → WH/RO/00019 | La ruta superior vuelve a la orden; Trabajos realizados se abre después | No hay un corte entre registros. La tarea siguiente y su pestaña siguen dependiendo del conocimiento del usuario. |
+| Orden → Imprimir ficha | Propone REV/00022 y permite escoger; asistente cancelado | La propuesta reciente funciona; no acredita que sea la verificación final. |
+| Orden → Cierre | Fecha de entrega, análisis de origen y texto al cliente visibles | Ya hay explicación del origen. No se probó ejecutar cierre; la orden está Reparado pese a sus revisiones en borrador. No inventar un bloqueo nuevo. |
+| WH/MO/00011 | Por cerrar, sin serie seleccionada | No permite comprobar continuidad a un equipo producido; no generar una serie durante la auditoría. |
+| WH/MO/00010 → Números de serie | Botón nativo abre lista con 0000008; la fila abre el equipo | El enlace nativo existe y funciona, incluso si una sola serie requiere abrir la fila. No añadir Abrir equipo duplicado sin justificarlo. |
+| Equipo 0000008 → Especificaciones / Pruebas | Configuración accesible; Pruebas mezcla reparaciones, rendimiento y terreno, con Editar/Abrir por fila | Separar orientación de aceptación del historial general; no eliminar registros históricos. |
+| Equipo → Editar REV/00020 | Abre Prueba de rendimiento existente; ruta superior conserva enlace al equipo | No es necesario crear otra RND para continuar. Los botones Nueva prueba destacan más que la continuación del historial. |
+| Equipo → Editar REV/00021 → equipo | Abre Prueba en terreno existente y el enlace superior permite regresar al equipo | Continuar TRN también funciona sin crear otra revisión. |
+| Equipo → Imprimir ficha | Propone rendimiento REV/00020 y terreno REV/00021; aviso diferencia borrador de emisión; cancelado | Selección por tipo funciona en esta muestra. Los prefijos históricos REV no significan tipo Reparación. |
+| Historial FEN de 0000008 | Vacío | Retomar una FEN existente no se pudo probar en este equipo; queda pendiente, no marcarlo validado. |
+| Inventario → series → 26-02 → FEN/00878 | La fila FEN abre un formulario modal de la ficha existente, con Vista previa, Emitir ficha y enlace a TRN/00003; RND ausente | Retomar existe, pero queda debajo del historial de pruebas. La guía debe señalar la ficha existente y sus evidencias ausentes, sin guardar otra. Modal cerrado sin cambios. |
+| Equipo 26-02 fuera del contexto MO | Especificaciones, Pruebas y FEN accesibles desde Inventario; aviso enumera cuatro datos técnicos faltantes | La aceptación es accesible sin entrar desde fabricación. No se ha demostrado que este equipo carezca de MO; solo que esta ruta no la necesita. |
+
+**Primera mejora recomendada:** orientación dentro de la orden y del equipo, antes
+de sumar enlaces entre módulos. En reparación, hacer visibles los pases y su motivo
+y ofrecer acceso al apartado de trabajo correspondiente. En aceptación, mostrar
+RND, TRN y FEN como tareas diferenciadas con estado y resultado, priorizando retomar
+borradores existentes sobre crear otra prueba. No declarar un único siguiente paso
+cuando existan varias revisiones o cuando taller deba decidir si corresponde re-test.
+
+Pendiente de QA: equipo realmente sin MO, varias series,
+usuario de taller con permisos habituales y navegación con cambios sin guardar.
+La muestra no permite evaluar esos casos ni definir por sí sola el orden de taller.
+
+## 9. Propuesta de primer piloto para revisar con taller
+
+Un panel compacto de **Guía de trabajo** en la columna del chatter, encima de
+mensajes y actividades, dentro de la orden ROV y del equipo ROV. Dirección visual
+elegida durante la revisión de la maqueta; integración real en Odoo aún pendiente.
+No una barra de etapas que declare el proceso completo o imponga un orden rígido.
+Tareas expresadas en lenguaje de taller, con acceso al registro o apartado actual.
+Los historiales, botones actuales y estados de Odoo se conservan.
+
+### Orden de reparación
+
+| Tarea visible | Información / acceso propuesto |
+| --- | --- |
+| Revisar recepción | Abrir Recepción. No marcarla completa por rellenar un campo opcional. |
+| Retomar revisión de esta visita | Mostrar cantidad de borradores y contexto de pases; con uno, abrirlo; con varios, mostrar selección de esta visita con fecha, motivo, responsable, estado y resultado. Sin borradores, consultar revisiones; crear otra sigue siendo decisión explícita. |
+| Registrar trabajos y repuestos | Acceder a las pestañas correspondientes. No inferir que toda visita requiere trabajos: diagnóstico sin reparación es válido. |
+| Preparar ficha y cierre | Acceder al selector actual y a Cierre. Mostrar requisitos bloqueantes de las validaciones existentes por separado de avisos; revisión pendiente no se convierte en nuevo bloqueo. |
+
+Añadir Motivo a la lista de revisiones de la visita facilita distinguir diagnóstico,
+re-test y comparación sin abrir cada fila. No elegir automáticamente el re-test final.
+Desde REV, conservar retorno nativo y ofrecer acceso explícito a Trabajos de su orden
+solo si la guía necesita llevar a esa pestaña; no duplicar un simple enlace a la orden.
+
+### Equipo: configuración y aceptación
+
+| Tarea visible | Información / acceso propuesto |
+| --- | --- |
+| Completar configuración | Reutilizar aviso y lista de faltantes de ficha técnica; acceso a Especificaciones. No calcular otra definición de ficha completa. |
+| Rendimiento | Distinguir borradores, confirmadas aceptadas y rechazadas; retomar o consultar pruebas de este equipo y tipo, sin reparación asociada. Nueva prueba es acción secundaria explícita. |
+| Terreno | Misma regla que rendimiento, con su tipo propio. No exigir secuencia RND antes de TRN sin decisión de taller. |
+| Ficha de equipo nuevo | Priorizar fichas existentes: retomar borrador o consultar emitida. Con varias, selección visible; preparar nueva conserva el asistente actual y sus reglas. Mostrar qué evidencia falta en el borrador consultado, sin sustituir sus referencias automáticamente. |
+
+Con cero registros, explicar que todavía no existe la prueba/ficha; con uno, abrir
+directamente; con varios, mostrar selección contextual. Continuar nunca crea registros.
+No representar una aceptación completa por contar RND/TRN: resultado, estado y
+referencias explícitas de la FEN siguen mandando. FEN emitida permanece congelada.
+
+### Alcance y comprobación del piloto
+
+Primero reparación; luego la misma pauta de orientación para equipo/aceptación.
+No añadir un botón MO → equipo: el acceso nativo ya está comprobado para una serie.
+Probar varias series si existe una muestra; si no, cubrir acción/domino con pruebas
+al implementar y registrar la limitación de QA, sin fabricar evidencia de pantalla.
+
+No cambiar modelos de documentos, PDFs, estados, permisos ni reglas comerciales.
+Las pruebas de implementación deben cubrir selección cero/uno/varios, contexto de
+visita/tipo/equipo y ausencia de creación al continuar. La apertura efectiva de
+pestaña y el guardado requieren QA de navegador; no afirmar que funcionan mediante
+un contexto XML supuesto. Validar un usuario habitual de taller antes del despliegue,
+sin cambiar permisos como parte de este piloto.
+
+Esta propuesta todavía no está implementada. La revisión con taller debe confirmar
+que los nombres y accesos reflejan tareas reales antes de definir detalles de interfaz.
+
+## 10. Aplicabilidad, ubicación y conteos de la guía
+
+Antes de implementar, clasificar cada tarea como requisito de una acción concreta,
+condicional, recomendación u opción. No convertir el recorrido orientativo en una
+lista universal de obligaciones. La existencia de un enlace no demuestra que el paso
+sea necesario; la ausencia de un documento tampoco implica un pendiente obligatorio.
+
+| Proceso / tarea | Criterio de aplicabilidad |
+| --- | --- |
+| Fabricación con diseño vigente | Utilizar la configuración y BoM que correspondan al trabajo. No exigir actualizar la BoM ni crear una orden de cambio para cada fabricación. |
+| Cambio de diseño / BoM | Rama condicional cuando realmente cambia el diseño; confirmar con taller el procedimiento de PLM aplicable. No generar ECO automáticamente por fabricar o reparar. |
+| Controles de fabricación | Dependen de los controles configurados y del producto/operación. No inventar una batería universal ni marcar pruebas inexistentes como tareas incumplidas. |
+| Configuración del equipo | Mostrar los faltantes que ya calcula el sistema como orientación. No transformarlos en bloqueos adicionales de fabricación, aceptación o entrega. |
+| RND / TRN | Evidencias requeridas para emitir FEN según las reglas actuales; no declarar que bloquean por sí mismas el cierre de MO o la entrega comercial. Repetición según necesidad, sin imponer un único intento ni un orden nuevo. |
+| Preparar FEN | Puede iniciarse como borrador con evidencia incompleta. Emitir exige las dos revisiones seleccionadas confirmadas y aceptadas. Consultar una FEN emitida no requiere otra emisión. |
+| Reparación: recepción / diagnóstico | Orientar hacia los datos y revisiones existentes. Los campos opcionales de recepción siguen siendo opcionales. |
+| Reparación: trabajos / repuestos | Condicionales a lo que se hizo. Con trabajos registrados, respetar requisitos de origen; con acciones que consumen repuestos, respetar su validación existente. No exigir trabajos para un diagnóstico sin intervención. |
+| Reparación: re-test | Decisión de taller según intervención y resultado. No añadir un bloqueo general por revisión en borrador ni imponer re-test a toda visita. |
+| Reparación: cierre | El tipo de intervención es requisito actual de cierre. Origen y repuestos dependen de los trabajos registrados; una revisión en borrador no se convierte en bloqueo nuevo. |
+| Calidad / lección / cambio de diseño | Ramas condicionales a una incidencia y al análisis aplicable. No exigir alerta, lección o ECO para cada orden. |
+
+Esta tabla distingue reglas comprobadas de decisiones de taller pendientes; no
+certifica todas las combinaciones del ERP. Para cerrar la aplicabilidad, contrastar
+cada rama con código, una muestra de pantalla y el responsable del proceso. Añadir
+casos sin cambios de diseño, diagnóstico sin intervención, prueba repetida, evidencia
+rechazada y equipo sin contexto de MO a la revisión con taller.
+
+### Ubicación y lectura visual propuestas
+
+Ubicar **Guía de trabajo** encima del chatter, compartiendo su columna derecha:
+formulario a la izquierda, guía y chatter apilados a la derecha. Dos columnas,
+sin panel superpuesto ni tercera columna. En la orden para reparación y en la serie
+para configuración/aceptación. La propuesta inicial antes de pestañas se descartó
+porque desplaza el trabajo; la nueva maqueta B representa esta decisión. En MO, aprovechar primero
+los accesos nativos y añadir orientación solo donde la auditoría demuestre una dificultad.
+
+La guía inicia visible y tiene botón Ocultar/Mostrar. Al ocultarla permanece su
+cabecera y el chatter recupera espacio; cambiar pestaña no cambia esta preferencia.
+No ocultar alertas importantes dentro de la guía. En ancho estrecho, la maqueta apila
+formulario y columna auxiliar; el comportamiento definitivo debe contrastarse con
+la recolocación nativa del chatter de Odoo y no reducir artificialmente el formulario.
+
+Cada fila tendrá tarea, situación concreta y una acción para abrir el destino. Por
+ejemplo: «Rendimiento — sin prueba registrada — Ver / iniciar prueba» o «Ficha de
+equipo nuevo — borrador existente; falta RND válida — Retomar ficha». La creación
+seguirá siendo una acción explícita; abrir la guía o continuar no creará documentos.
+
+Mostrar recomendaciones y ramas opcionales en **Otras acciones**, sin tratarlas como
+errores. Un requisito bloqueante debe indicar para qué acción lo es, por ejemplo
+**Falta RND válida para emitir esta ficha**, evitando un genérico «Equipo incompleto».
+No usar un porcentaje de avance ni una secuencia numerada obligatoria antes de
+resolver aplicabilidad y responsabilidades.
+
+Los números expresarán registros o faltantes verificables: «3 revisiones en borrador»,
+«4 datos de configuración faltantes» o «1 ficha en borrador». No sumarlos como cinco
+tareas obligatorias: pueden pertenecer a intentos anteriores, ser recomendaciones
+o bloquear acciones distintas. Revisar también el caso de pruebas históricas frente
+a evidencia seleccionada para la FEN antes de llamar a una revisión «pendiente».
+
+El futuro **Centro de trabajo ROV** será la entrada central para encontrar y retomar
+registros. Abrirá estas mismas guías en su contexto y reutilizará sus criterios de
+aplicabilidad; no mantendrá otra definición de pendiente ni otro proceso paralelo.
+Los conteos personales por responsable requieren definir asignación y permisos antes
+de presentarlos como «Mis tareas».
+
+### Maqueta local de revisión — 2026-10-05
+
+Prototipo descartable en `../.tmp/flujo-guiado-prototype/index.html`, sin conexión a
+Odoo, sin escrituras ni persistencia. Representa un formulario simplificado, no una
+captura del Odoo instalado. Los casos y números son ejemplos para revisar la interfaz,
+no una consulta del estado vivo de las órdenes. La franja amarilla y el selector de
+diseño son controles del prototipo y no se implementarían en el producto.
+
+Tres alternativas, con la misma aplicabilidad: A, panel antes de pestañas; B, guía
+lateral; C, resumen desplegable. A fue la recomendación inicial, pero el usuario
+señaló que un panel intermedio distrae y desplaza el trabajo. C comparte esa ubicación.
+B se corrigió para incluir el chatter que faltaba en la primera maqueta; guía plegable
+arriba, chatter debajo, dentro de la misma columna. El usuario acepta esta dirección.
+No implica aprobación de una integración técnica que todavía no existe.
+
+Casos disponibles: diagnóstico sin intervención, varios pases, cambio sin repuesto,
+verificación disponible; FEN incompleta, pruebas aceptadas, intento repetido y ficha
+emitida; fabricación con diseño vigente, cambio de diseño y varias series. Las ramas
+de diseño y controles configurados son hipótesis de aplicabilidad que taller debe
+validar, no reglas nuevas ni verificaciones completas de fabricación nativa.
+
+Comprobado en el navegador del prototipo: acceso a Trabajos realizados, selector de
+varios pases, apertura simulada del borrador FEN, separación de requisitos de emisión,
+BoM fuera de pendientes en diseño vigente y cambio entre las tres ubicaciones. Esto
+valida la maqueta, no el guardado, los permisos ni la navegación real futura de Odoo.
+En B revisada se comprobó además Ocultar/Mostrar, chatter visible con guía oculta y
+estado de apertura conservado al cambiar pestaña. Captura de referencia local:
+`../.tmp/flujo-guiado-prototype/guia-chatter.jpg`. El límite de altura del listado con
+scroll pertenece solo al prototipo; no define alturas del formulario productivo.
+
+## 11. Decisiones que faltan, sin bloquear la auditoría
+
+- Quién realiza recepción, diagnóstico, reparación, re-test y aceptación en taller.
+- Qué tareas se repiten y quién decide qué revisión acompaña la entrega.
+- Qué acceso nativo de MO funciona realmente y cuándo se asignan las series.
+- Si la entrega comercial necesita controles adicionales: decisión posterior, no asumida.
+- Qué enlaces necesitan apertura de pestaña y cuáles ya funcionan con navegación nativa.
+
+La lista anterior ordena la comprobación; no propone campos obligatorios nuevos.

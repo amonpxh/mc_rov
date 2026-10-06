@@ -1,3 +1,7 @@
+from pathlib import Path
+
+from lxml import etree
+
 from odoo.exceptions import UserError
 from odoo.tests.common import TransactionCase
 from odoo.tests import tagged
@@ -466,15 +470,24 @@ class TestRazonesDeCalidad(CalidadCommon):
             razon = self.env.ref(f"mc_rov.quality_reason_{origen}", raise_if_not_found=False)
             self.assertTrue(razon, f"Falta quality.reason para el origen «{origen}»")
 
-    def test_las_etiquetas_dicen_lo_mismo_en_las_dos_listas(self):
-        """Dos listas que dicen lo mismo con palabras distintas se desalinean sin que nadie lo note.
+    def test_las_etiquetas_iniciales_dicen_lo_mismo_en_las_dos_listas(self):
+        """Las etiquetas de fábrica coinciden; el catálogo instalado puede renombrarse.
 
-        Y el paréntesis es lo que hace que un técnico elija bien: «Diseño o especificación» a
-        secas se confunde con «lo hicimos mal».
+        `noupdate` protege las personalizaciones del taller y el puente resuelve XML ID,
+        no nombres. Comparar registros de una BD existente con etiquetas de fábrica
+        rechazaría una personalización expresamente admitida por el módulo.
         """
+        catalogo = etree.parse(
+            str(Path(__file__).resolve().parents[1] / "data" / "mc_rov_calidad_data.xml")
+        )
+        registros = {
+            registro.get("id"): registro
+            for registro in catalogo.xpath("//record[@model='quality.reason']")
+        }
         for origen, etiqueta in ORIGENES:
-            razon = self.env.ref(f"mc_rov.quality_reason_{origen}")
-            self.assertEqual(razon.name, etiqueta)
+            registro = registros[f"quality_reason_{origen}"]
+            self.assertEqual(registro.findtext("field[@name='name']"), etiqueta)
+            self.assertEqual(registro.getparent().get("noupdate"), "1")
 
 
 @tagged("post_install", "-at_install")

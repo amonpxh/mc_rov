@@ -2,6 +2,27 @@
 
 > Actualizar esta sección al cerrar cada sesión de trabajo.
 
+**Aviso de cierre aprobado — 2026-10-06.** Implementado y validado en STAGING:
+franja ámbar nativa antes de las pestañas, sin enlaces ni botones. Anticipa únicamente
+Tipo de intervención vacío, trabajos sin Origen y acciones que consumen repuestos
+sin movimientos registrados en la orden. No añade requisitos ni certifica que los
+repuestos estén completos; conserva los validadores actuales. Se oculta en órdenes
+terminadas/canceladas y cuando no hay carencias comprobables. Respeta permisos sin sudo.
+
+- Piloto Guía + chatter descartado y retirado, incluidas sus pruebas y assets:
+  duplicaba las pestañas sin orientar claramente el siguiente trabajo.
+- Se conservan la auditoría de procesos y el diseño en `docs/designs/flujo-guiado.md`.
+  La navegación entre procesos y el futuro centro de trabajo siguen pendientes.
+- Seis pruebas nuevas del aviso: RED confirmado; suite completa GREEN en STAGING,
+  **349 pruebas, cero fallos y errores**. Separación título/texto verificada con
+  seis pruebas y QA visual. Chatter nativo, validadores y fuentes PDF intactos.
+- Corregida una prueba de Calidad que confundía etiquetas iniciales del catálogo
+  con etiquetas editables de la base. Se comprueba la semilla sin modificar datos.
+- Usuario aprobó el resultado y autorizó commit/PR/merge y despliegue a producción.
+  Cierre de rama y despliegue en curso; producción aún no actualizada.
+- Evidencia operativa en `.tmp/repair-guide-source` (fuera del repositorio).
+  No repetir la suite completa sin cambios relevantes. No publicar archivos `.tmp`.
+
 **Despliegue cerrado - 2026-10-05:** PR #88 fusionado en main como
 `028af90f84074018e67308a2414f9a7d45b906b8`. CI: 343 pruebas, 0 fallos y 0 errores;
 lint aprobado. Produccion actualizada a `19.0.23.7.0` desde ese commit, con respaldo

@@ -1,5 +1,7 @@
 from datetime import date
 
+from lxml import etree
+
 from odoo import fields
 from odoo.exceptions import UserError
 from odoo.tests.common import TransactionCase
@@ -167,3 +169,111 @@ class TestRepairOrder(TransactionCase):
         """Solo la transición a done exige el tipo; editar la orden no."""
         self.order.falla_reportada = "No enciende"
         self.assertEqual(self.order.falla_reportada, "No enciende")
+
+
+@tagged("post_install", "-at_install")
+class TestRepairClosingNotice(TransactionCase):
+    """El aviso anticipa carencias reales de cierre; no certifica revisión ni entrega."""
+
+    def setUp(self):
+        super().setUp()
+        self.product = self.env["product.product"].create({"name": "Equipo aviso QA"})
+        self.order = self.env["repair.order"].create({"product_id": self.product.id})
+        self.component = self.env["mc.rov.componente"].create({"name": "Componente aviso QA"})
+        self.action = self.env["mc.rov.accion"].create({"name": "Acción aviso QA"})
+
+    def _notice(self):
+        self.assertIn("mc_aviso_cierre", self.order._fields, "Falta el aviso contextual de cierre")
+        return self.order.mc_aviso_cierre or ""
+
+    def _type(self):
+        self.order.tipo_intervencion_ids = [(6, 0, self.env.ref("mc_rov.tipo_diagnostico").ids)]
+
+    def _line(self, **values):
+        return self.env["mc.rov.linea.falla"].create(
+            {
+                "repair_id": self.order.id,
+                "componente_id": self.component.id,
+                "accion_id": self.action.id,
+                **values,
+            }
+        )
+
+    def test_tipo_faltante_y_diagnostico_sin_trabajos(self):
+        self.assertEqual(self._notice(), "selecciona el Tipo de intervención.")
+        self._type()
+        self.assertFalse(self._notice())
+        self.order._validar_tipo_intervencion()
+        self.order._validar_origen()
+        self.order._validar_repuestos()
+
+    def test_origen_se_actualiza_al_completar_las_lineas(self):
+        self._type()
+        first = self._line()
+        second = self._line()
+        self.assertEqual(self._notice(), "completa el Origen de 2 trabajos en Cierre.")
+        first.origen = "desconocida"
+        self.assertEqual(self._notice(), "completa el Origen de 1 trabajo en Cierre.")
+        second.origen = "desconocida"
+        self.assertFalse(self._notice())
+        self.order._validar_origen()
+
+    def test_repuesto_de_otra_orden_no_resuelve_el_aviso(self):
+        self._type()
+        self.action.consume_repuesto = True
+        self._line(origen="desconocida")
+        self.assertEqual(self._notice(), "registra los repuestos en Repuestos.")
+        part = self.env["product.product"].create({"name": "Repuesto aviso QA", "type": "consu"})
+        other = self.env["repair.order"].create({"product_id": self.product.id})
+
+        def add_part(order):
+            return self.env["stock.move"].create(
+                {
+                    "repair_id": order.id,
+                    "repair_line_type": "add",
+                    "product_id": part.id,
+                    "product_uom_qty": 1,
+                    "location_id": order.location_id.id,
+                    "location_dest_id": order.location_dest_id.id,
+                }
+            )
+
+        add_part(other)
+        self.assertTrue(self._notice())
+        with self.assertRaises(UserError):
+            self.order._validar_repuestos()
+        add_part(self.order)
+        self.assertFalse(self._notice())
+        self.order._validar_repuestos()
+
+    def test_combina_solo_carencias_aplicables(self):
+        line = self._line()
+        self.action.consume_repuesto = True
+        self.assertEqual(
+            self._notice(),
+            "selecciona el Tipo de intervención, completa el Origen de 1 trabajo en Cierre "
+            "y registra los repuestos en Repuestos.",
+        )
+        self.action.consume_repuesto = False
+        line.origen = "desconocida"
+        self.assertEqual(self._notice(), "selecciona el Tipo de intervención.")
+
+    def test_cerrada_o_cancelada_no_anuncia_pendientes(self):
+        self.assertTrue(self._notice())
+        self.order.state = "cancel"
+        self.assertFalse(self._notice())
+        self._type()
+        self.order.state = "done"
+        self.assertFalse(self._notice())
+
+    def test_vista_muestra_aviso_sin_enlaces_y_con_chatter_nativo(self):
+        view = self.env["repair.order"].get_view(
+            view_id=self.env.ref("repair.view_repair_order_form").id, view_type="form"
+        )
+        root = etree.fromstring(view["arch"].encode())
+        nodes = root.xpath("//div[@name='mc_aviso_cierre']")
+        self.assertEqual(len(nodes), 1, "Falta la franja contextual")
+        self.assertFalse(nodes[0].xpath(".//button | .//a"))
+        self.assertEqual(nodes[0].get("invisible"), "not mc_aviso_cierre")
+        self.assertEqual(len(root.xpath("//chatter")), 1)
+        self.assertNotEqual(root.get("js_class"), "mc_rov_repair_guided_form")
