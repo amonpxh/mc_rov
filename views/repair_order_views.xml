@@ -56,6 +56,13 @@
                  Cierre. Antes tres de los cuatro eran pestañas y el primero vivía suelto en
                  la cabecera, repartido entre las dos columnas y mezclado con los campos
                  nativos de Odoo — así que la barra de pestañas no contaba el proceso. -->
+            <notebook position="before">
+                <div name="mc_aviso_cierre" class="alert alert-warning py-2" role="alert"
+                     invisible="not mc_aviso_cierre">
+                    <strong class="me-1">Antes de cerrar:</strong>
+                    <field name="mc_aviso_cierre" readonly="1" nolabel="1" class="oe_inline"/>
+                </div>
+            </notebook>
             <notebook position="inside">
                 <page string="Recepción" name="recepcion">
                     <!-- Es la única ventana en que hay a quién preguntarle: el cliente se va
