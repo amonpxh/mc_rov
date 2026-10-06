@@ -37,6 +37,57 @@ Estado: diseño en revisión. Código inspeccionado y primer recorrido de pantal
 realizado en STAGING; práctica de taller y casos restantes por contrastar.
 No hay implementación de navegación nueva.
 
+## Auditoría de conexiones en pantalla — 2026-10-06
+
+Base: main `ba6580b`, código funcional `d6e6e5c`, mc_rov 19.0.23.8.0.
+Inspección de producción en lectura, sin crear pruebas, fichas ni modificar órdenes.
+El túnel STAGING perdió conexión al abrir una revisión; se comprobó el recorrido
+con la sesión de producción ya abierta del usuario, sin ejecutar acciones de negocio.
+
+| Tramo | Evidencia de pantalla | Decisión |
+| --- | --- | --- |
+| MO → equipo | WH/MO/00010 tiene botón nativo «1 Números de serie»; abre lista con 0000008 y permite abrir su ficha | Conservar. No agregar otro botón de equipos producidos. |
+| Equipo → prueba existente | 26-02 → Pruebas → Editar en RND/00004 abre el formulario completo | Conservar. No agregar Continuar prueba duplicado. |
+| RND → equipo de origen | Al entrar desde 26-02, la ruta superior incluye el equipo y permite regresar | Conservar retorno nativo por esa ruta. |
+| Orden → revisión | WH/RO/00019 → Revisiones → Editar en REV/00023 abre su formulario | Conservar. No agregar Continuar revisión duplicado. |
+| REV → orden de origen | La ruta superior conserva WH/RO/00019 al entrar desde esa orden | Conservar retorno nativo cuando existe ese contexto. |
+| Menú general → REV | Revisiones técnicas → REV/00023 deja solo Revisiones técnicas en la ruta; no la orden/equipo | Corte de orientación: estudiar accesos explícitos a los registros vinculados. |
+| Campos vinculados de REV | Número de serie y Orden tienen la flecha nativa Enlace interno; en reposo está oculta por CSS | La relación existe; el problema es descubrimiento y continuidad, no falta de datos. |
+| Equipo → FEN existente | La lista está en Pruebas; ambos equipos inspeccionados carecen de FEN registradas | No afirmar que se validó abrir/retomar FEN. Comprobar con un borrador QA en STAGING. |
+| RND → TRN → FEN | El equipo reúne ambas pruebas y preparación de ficha; no hay secuencia obligatoria implementada | No encadenar creación ni imponer RND antes de TRN automáticamente. |
+
+### Primer cambio acotado propuesto
+
+Dos accesos nativos en el área de botones inteligentes de la revisión:
+- **Orden de reparación**, solo si `repair_id` existe: abre esa orden en pantalla completa.
+- **Equipo**, si `lot_id` existe: abre esa serie en pantalla completa.
+
+Se nombran destinos, no «siguiente paso» ni «volver»: funcionan aunque el usuario
+no haya pasado antes por esos registros. Se conserva la cabecera de Confirmar / Imprimir
+ficha y no se crea panel, porcentaje, contador de tareas ni estados nuevos.
+No cambiar datos, confirmar, emitir ni crear al navegar. Guardado y descarte deben
+seguir el comportamiento nativo. Sin sudo; acceso sujeto a permisos reales del destino.
+No prometer apertura de una pestaña específica sin verificar la API del cliente Odoo.
+
+Es propuesta presentada al usuario, pendiente aprobación específica antes de programar.
+Después se comprobará retomar FEN existente; no añadir más botones por anticipación.
+
+### Pruebas necesarias para este tramo
+
+- REV vinculada abre su orden exacta; RND/TRN sin reparación no muestran ese acceso.
+- Equipo exacto accesible desde cada tipo; no elevar permisos ni revelar registros inaccesibles.
+- Entrada desde menú independiente y desde orden/equipo: mismo destino.
+- Guardar, cancelar guardado y validación de datos pendientes: navegación sin pérdida de datos.
+- Confirmadas siguen consultables, sin desbloquear edición ni cambiar resultados.
+- Abrir una relación no crea otra revisión/FEN ni altera referencias o PDFs.
+
+### Casos por completar en STAGING
+
+MO sin serie / varias series; equipo sin MO; revisión confirmada; usuarios con
+permisos reducidos; FEN borrador/emitida y retorno a su equipo; entrega nativa según
+Ventas/Inventario/Alquiler. Diseño/BOM, repuestos y re-test siguen siendo condicionales,
+no pasos universales. No transformar datos ausentes en obligaciones nuevas.
+
 ## 1. Qué queremos resolver
 
 Una persona debe saber qué hacer y cómo continuar desde el registro que está usando,

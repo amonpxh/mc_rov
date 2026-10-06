@@ -2,6 +2,18 @@
 
 > Actualizar esta sección al cerrar cada sesión de trabajo.
 
+**Recorridos entre procesos — auditoría de pantalla 2026-10-06.** Rama
+`feature/navegacion-revisiones`. MO → series, orden → REV y equipo → RND/TRN ya
+funcionan con accesos nativos: no duplicarlos. Retorno por ruta superior también
+funciona si se entró desde orden/equipo. Al entrar por Revisiones técnicas, falta
+un destino explícito hacia los registros vinculados; las flechas de campos están
+ocultas en reposo. Propuesta acotada: botones inteligentes Equipo / Orden de reparación
+(solo con vínculo), sin panel ni tareas/estados nuevos. Pendiente aprobación del
+usuario antes de programar. Auditoría ampliada en `docs/designs/flujo-guiado.md`.
+STAGING perdió conexión; comprobaciones efectuadas en producción solo en lectura,
+sin alterar datos. Retomar FEN pendiente de QA: equipos inspeccionados sin FEN.
+
+
 **Aviso de cierre desplegado — 2026-10-06.** Implementado y validado en STAGING y producción:
 franja ámbar nativa antes de las pestañas, sin enlaces ni botones. Anticipa únicamente
 Tipo de intervención vacío, trabajos sin Origen y acciones que consumen repuestos
