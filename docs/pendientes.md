@@ -2,7 +2,7 @@
 
 > Actualizar esta sección al cerrar cada sesión de trabajo.
 
-**Aviso de cierre aprobado — 2026-10-06.** Implementado y validado en STAGING:
+**Aviso de cierre desplegado — 2026-10-06.** Implementado y validado en STAGING y producción:
 franja ámbar nativa antes de las pestañas, sin enlaces ni botones. Anticipa únicamente
 Tipo de intervención vacío, trabajos sin Origen y acciones que consumen repuestos
 sin movimientos registrados en la orden. No añade requisitos ni certifica que los
@@ -18,9 +18,21 @@ terminadas/canceladas y cuando no hay carencias comprobables. Respeta permisos s
   seis pruebas y QA visual. Chatter nativo, validadores y fuentes PDF intactos.
 - Corregida una prueba de Calidad que confundía etiquetas iniciales del catálogo
   con etiquetas editables de la base. Se comprueba la semilla sin modificar datos.
-- Usuario aprobó el resultado y autorizó commit/PR/merge y despliegue a producción.
-  Cierre de rama y despliegue en curso; producción aún no actualizada.
-- Evidencia operativa en `.tmp/repair-guide-source` (fuera del repositorio).
+- PR #90 fusionado: commit funcional `1b3d7dd`, merge `d6e6e5c`. Lint y 349 pruebas
+  sin fallos/errores en CI del PR y de main. Producción en `19.0.23.8.0`.
+- Respaldo `/var/backups/mc-rov-prod-closing-notice-jy7lqh/odoo_prod.dump`:
+  22.058.983 bytes. Upgrade terminado sin ERROR/CRITICAL; servicio activo, PID 1020875,
+  reiniciado el 2026-10-06 a las 20:14:17 UTC. HTTP y checkout main limpio verificados.
+- Verificación final PASSED sobre 13 órdenes reales: texto acorde a datos, aviso ausente
+  en cerradas/canceladas, campo no almacenado sin sudo, chatter nativo y cero enlaces.
+  Consulta con rollback; sin datos QA creados. Hashes de ambos QWeb PDF sin cambios.
+- Incidencias del runner resueltas fuera del repo: cierre SSH inicial sin ejecución;
+  PowerShell trató warnings nativos como error; comparación con tilde dañada por el pipe.
+  El upgrade ya había terminado: se completó solo la verificación, sin reinstalar.
+- Advertencias existentes de métodos compute compartidos en stock.lot (mc_ficha_*) y
+  mc.rov.revision (software_difiere/software_diferencias), por store/compute_sudo mixtos:
+  registrar para revisión técnica separada; no modificados durante este cierre.
+- Evidencia en `.tmp/repair-guide-source` y `.tmp/prod-closing-notice` (fuera del repo).
   No repetir la suite completa sin cambios relevantes. No publicar archivos `.tmp`.
 
 **Despliegue cerrado - 2026-10-05:** PR #88 fusionado en main como
