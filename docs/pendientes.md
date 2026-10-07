@@ -5,7 +5,7 @@
 **Recorridos entre procesos — 2026-10-07.** Rama
 `feature/navegacion-revisiones`. MO → series, orden → REV y equipo → RND/TRN ya
 funcionan con accesos nativos: no duplicarlos. Al entrar por Revisiones técnicas,
-falta un destino explícito hacia equipo/orden. Usuario aprobó dos botones nativos.
+faltaba un destino explícito hacia equipo/orden. Usuario aprobó dos botones nativos.
 
 - Implementados localmente e instalados en STAGING Equipo / Orden de reparación,
   visibles solo con vínculo.
@@ -29,8 +29,11 @@ falta un destino explícito hacia equipo/orden. Usuario aprobó dos botones nati
 - Hooks locales aprobados. Las mismas tres pruebas se separaron en
   `tests/test_revision_navegacion.py` para respetar el límite de 1.400 líneas del
   archivo original; ningún caso añadido ni comportamiento cambiado. STAGING ejecutó
-  esos casos antes de separarlos; descubrimiento del nuevo archivo pendiente en CI.
-- Después: commit/PR/checks y despliegue conforme al flujo del repo. Producción intacta.
+  esos casos antes de separarlos; CI confirmó el descubrimiento y ejecución de los tres.
+- Commit funcional `0c7e5f5`, publicado en PR #92 (borrador):
+  https://github.com/amonpxh/mc_rov/pull/92. CI del commit: **352 pruebas, cero fallos
+  y errores**, y pre-commit aprobado. QA visual de destinos completada sin escrituras.
+- Después: revisión/merge del PR y despliegue conforme al flujo del repo. Producción intacta.
   Documentación de auditoría en `docs/designs/flujo-guiado.md`; retorno FEN todavía
   pendiente de QA porque equipos inspeccionados no tenían FEN.
 
