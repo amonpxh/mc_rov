@@ -69,7 +69,15 @@ No cambiar datos, confirmar, emitir ni crear al navegar. Guardado y descarte deb
 seguir el comportamiento nativo. Sin sudo; acceso sujeto a permisos reales del destino.
 No prometer apertura de una pestaña específica sin verificar la API del cliente Odoo.
 
-Es propuesta presentada al usuario, pendiente aprobación específica antes de programar.
+Aprobado por el usuario el 2026-10-07. Implementación local: dos acciones de lectura
+con comprobación de acceso, botones inteligentes nativos visibles solo con vínculo,
+sin cambiar procesos ni documentos PDF. RED comprobado en STAGING: métodos ausentes
+en los ocho subcasos de tres pruebas. GREEN confirmado en STAGING: tres pruebas
+focalizadas y 352 de suite completa sin fallos/errores; rutas reales de los tres tipos
+verificadas con rollback y QWeb PDF intactos. QA visual comprobada el 2026-10-07:
+REV/00022 abre orden WH/RO/00019 y serie 0000008; rendimiento histórico REV/00020
+y TRN/00003 ocultan Orden de reparación y abren sus equipos. Se conserva la ruta
+superior para volver; sin editar datos ni renumerar documentos históricos.
 Después se comprobará retomar FEN existente; no añadir más botones por anticipación.
 
 ### Pruebas necesarias para este tramo

@@ -2,17 +2,37 @@
 
 > Actualizar esta sección al cerrar cada sesión de trabajo.
 
-**Recorridos entre procesos — auditoría de pantalla 2026-10-06.** Rama
+**Recorridos entre procesos — 2026-10-07.** Rama
 `feature/navegacion-revisiones`. MO → series, orden → REV y equipo → RND/TRN ya
-funcionan con accesos nativos: no duplicarlos. Retorno por ruta superior también
-funciona si se entró desde orden/equipo. Al entrar por Revisiones técnicas, falta
-un destino explícito hacia los registros vinculados; las flechas de campos están
-ocultas en reposo. Propuesta acotada: botones inteligentes Equipo / Orden de reparación
-(solo con vínculo), sin panel ni tareas/estados nuevos. Pendiente aprobación del
-usuario antes de programar. Auditoría ampliada en `docs/designs/flujo-guiado.md`.
-STAGING perdió conexión; comprobaciones efectuadas en producción solo en lectura,
-sin alterar datos. Retomar FEN pendiente de QA: equipos inspeccionados sin FEN.
+funcionan con accesos nativos: no duplicarlos. Al entrar por Revisiones técnicas,
+falta un destino explícito hacia equipo/orden. Usuario aprobó dos botones nativos.
 
+- Implementados localmente e instalados en STAGING Equipo / Orden de reparación,
+  visibles solo con vínculo.
+  Abren el registro exacto, sin sudo ni cambios en la revisión; comprueban lectura
+  de revisión y destino. Sin panel, estados, requisitos o modificaciones PDF.
+- Versión local `19.0.24.0.0`. Tres pruebas nuevas: destinos en borrador/confirmado
+  sin efectos, RND/TRN independientes y reglas de acceso al destino.
+- RED confirmado en log STAGING: **8 subcasos fallidos, 0 errores en 3 pruebas**,
+  todos por métodos ausentes. El runner interpretó mal el conteo, no el ensayo;
+  comprobación corregida. Pruebas remotas restauradas; servicio reiniciado por cleanup.
+- GREEN confirmado el 2026-10-07: **3 pruebas focalizadas y 352 de la suite completa,
+  cero fallos/errores**. Vista instalada, destinos reales REV/RND/TRN comprobados
+  sin escrituras; sonda revertida. Hashes QWeb PDF intactos; servicio activo.
+  Respaldo `/var/tmp/mc-rov-revision-navigation-QOXwzx`; evidencia en
+  `.tmp/repair-guide-source/revision-navigation-green-*` fuera del repositorio.
+- QA visual aprobada el 2026-10-07 tras reabrir el túnel: desde Revisiones técnicas,
+  REV/00022 abre WH/RO/00019 y serie 0000008; se vuelve por la ruta superior.
+  Rendimiento (registro histórico REV/00020) y TRN/00003 solo muestran Equipo y
+  abren sus series 0000008 / 26-02. Sin datos editados. Capturas y resultado en
+  `.tmp/revision-navigation-qa` fuera del repositorio. No renumerar registros históricos.
+- Hooks locales aprobados. Las mismas tres pruebas se separaron en
+  `tests/test_revision_navegacion.py` para respetar el límite de 1.400 líneas del
+  archivo original; ningún caso añadido ni comportamiento cambiado. STAGING ejecutó
+  esos casos antes de separarlos; descubrimiento del nuevo archivo pendiente en CI.
+- Después: commit/PR/checks y despliegue conforme al flujo del repo. Producción intacta.
+  Documentación de auditoría en `docs/designs/flujo-guiado.md`; retorno FEN todavía
+  pendiente de QA porque equipos inspeccionados no tenían FEN.
 
 **Aviso de cierre desplegado — 2026-10-06.** Implementado y validado en STAGING y producción:
 franja ámbar nativa antes de las pestañas, sin enlaces ni botones. Anticipa únicamente
