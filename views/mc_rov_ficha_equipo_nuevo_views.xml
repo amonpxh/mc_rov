@@ -48,6 +48,20 @@
                     <field name="estado" widget="statusbar" statusbar_visible="borrador,emitida"/>
                 </header>
                 <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_abrir_equipo" type="object"
+                                class="oe_stat_button" icon="fa-ship" invisible="not lot_id">
+                            <span class="o_stat_text">Equipo</span>
+                        </button>
+                        <button name="action_abrir_rendimiento" type="object"
+                                class="oe_stat_button" icon="fa-tachometer" invisible="not rnd_id">
+                            <span class="o_stat_text">Rendimiento</span>
+                        </button>
+                        <button name="action_abrir_terreno" type="object"
+                                class="oe_stat_button" icon="fa-map-marker" invisible="not trn_id">
+                            <span class="o_stat_text">Terreno</span>
+                        </button>
+                    </div>
                     <h1><field name="name" readonly="1"/></h1>
                     <group>
                         <group>

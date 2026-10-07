@@ -607,11 +607,30 @@ Capturas: `serie-trazabilidad-fabricacion.png`, `fen-trn-apertura.png`,
 `fen-equipo-apertura.png` y `calidad-orden-apertura.png` en la carpeta de evidencia.
 QA realizada con el usuario administrador de STAGING, no certifica permisos de taller.
 
-Recomendación concreta siguiente, todavía sin implementar: facilitar Abrir/Retomar
-en las filas de FEN existentes y evaluar botones inteligentes para sus referencias
+Alcance aprobado e instalado en STAGING (2026-10-07): Abrir/Retomar
+en las filas de FEN existentes y botones inteligentes para sus referencias
 Equipo / Rendimiento / Terreno cuando existan. Deben abrir exactamente lo seleccionado,
 sin sustituirlo por la última prueba ni crear otra ficha. Conservar edición de las
 referencias en borrador y restricciones de la emitida. No modificar PDF.
+
+Validación: cuatro contratos de navegación pasaron tras RED observado, suite completa
+359/359 y servicio activo. En pantalla, Retomar abrió FEN/00878; Terreno abrió su
+TRN/00003 y Equipo abrió 26-02. Rendimiento no aparece al faltar RND seleccionada.
+Referencias antiguas, emitidas y permisos verificados con fixtures transaccionales;
+no confundirlos con muestras reales emitidas. Evidencia y captura en
+`../.tmp/fen-navigation-qa`. Los hashes QWeb FEN/REV permanecen iguales.
+Aprobación manual y despliegue autorizados por el usuario; cierre git/despliegue en curso.
+
+Ajuste aprobado después de esa QA: FEN es documentación de aceptación, no una prueba.
+Su historial pasa a pestaña **Fichas**, sin repetir un título interior.
+Pruebas conserva revisiones y creación RND/TRN. **Imprimir ficha** queda disponible
+en cabecera y Fichas; ambos accesos usan la acción y asistente existentes.
+**Retomar / Abrir** continúa abriendo el documento elegido, sin crear otra emisión.
+Todo el bloque Fichas y sus accesos se ocultan para no-ROV. Sin cambios de PDF,
+selección de evidencia ni requisitos de emisión. RED observado y GREEN confirmado:
+cinco pruebas focalizadas y suite completa 359/359; STAGING activo y QWeb conservados.
+QA de pantalla: pestañas separadas e Imprimir ficha en ambas abre el mismo asistente;
+cancelado sin guardar ni emitir. Captura `fen-tab-fichas.png` en la carpeta de evidencia.
 
 Para Calidad → fabricación faltan alertas con MO/control de origen. No crear un
 botón por la sola ausencia en esta muestra ni declarar la ruta comprobada; cerrar
