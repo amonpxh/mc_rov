@@ -9,6 +9,12 @@
         <field name="model">quality.alert</field>
         <field name="inherit_id" ref="quality_control.quality_alert_view_form"/>
         <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <field name="production_id" invisible="1"/>
+                <button name="action_mc_abrir_fabricacion" type="object"
+                        string="Fabricación" icon="fa-industry" class="oe_stat_button"
+                        invisible="not production_id"/>
+            </xpath>
 
             <!-- Al lado de la causa raíz y no en una pestaña: la pregunta que sigue a
                  "por qué pasó" es "y qué cambiamos", y separarlas es lo que hace que la

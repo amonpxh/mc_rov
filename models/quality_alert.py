@@ -156,3 +156,20 @@ class QualityAlert(models.Model):
         "sabía que uno venía del otro. Encadenados en orden son el historial de "
         "maduración del diseño.",
     )
+
+    def action_mc_abrir_fabricacion(self):
+        """Consulta la MO guardada; el producto puede tener otras fabricaciones."""
+        self.ensure_one()
+        self.check_access("read")
+        fabricacion = self.production_id
+        if not fabricacion:
+            return False
+        fabricacion.check_access("read")
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Fabricación"),
+            "res_model": "mrp.production",
+            "res_id": fabricacion.id,
+            "view_mode": "form",
+            "target": "current",
+        }

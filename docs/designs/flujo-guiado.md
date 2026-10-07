@@ -688,7 +688,7 @@ del cambio solicitado. El acceso a las series se limita a los IDs de
 alertas de MO usa los IDs de `quality_alert_ids` y abre formulario si hay una.
 El botón Controles de calidad toma los controles pendientes de `check_ids`.
 
-Recomendación concreta, pendiente de aprobación: botón inteligente **Fabricación**
+Alcance aprobado por el usuario: botón inteligente **Fabricación**
 en `quality.alert`, visible únicamente cuando exista `production_id`, que abra esa
 MO exacta sin buscar por producto/serie, reasignar origen ni crear una fabricación.
 Es un destino único: no necesita conteo ni selector. Mantener el enlace al control
@@ -699,5 +699,13 @@ El resto de conexiones auditadas conserva el comportamiento nativo. No añadir
 obligaciones a fabricación, aceptación, reparación ni entrega. La validación en
 pantalla con controles, ECO, variantes y varias series sigue limitada por falta de
 muestras; requerirá datos existentes o fixtures transaccionales explícitas, sin
-consumir correlativos. No implementar el botón ni configurar puntos de control
-como parte de esta auditoría.
+consumir correlativos. La auditoría no configuró puntos de control ni modificó Odoo.
+
+Implementación posterior aprobada: botón instalado en STAGING `19.0.24.2.0` con
+acción de lectura y tres contratos: destino exacto sin creación, permisos normales
+de alerta/MO y visibilidad sin vínculo. RED observado y GREEN confirmado: tres
+contratos y suite 362/362 sin fallos/errores. Vista instalada verificada, sonda
+revertida, servicio activo y hashes QWeb conservados. La muestra real de tres
+alertas no tiene MO; el caso positivo se probó con fixtures transaccionales, no en
+pantalla con un registro real. Evidencia en `../.tmp/quality-navigation-qa`.
+Producción aún no tiene este cambio; no configurar puntos de control al desplegarlo.
