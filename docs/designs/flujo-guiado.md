@@ -708,4 +708,11 @@ contratos y suite 362/362 sin fallos/errores. Vista instalada verificada, sonda
 revertida, servicio activo y hashes QWeb conservados. La muestra real de tres
 alertas no tiene MO; el caso positivo se probó con fixtures transaccionales, no en
 pantalla con un registro real. Evidencia en `../.tmp/quality-navigation-qa`.
-Producción aún no tiene este cambio; no configurar puntos de control al desplegarlo.
+Despliegue completado en producción: `19.0.24.2.0`, PR #98, commit `54c177d`.
+Tests y lint del PR y del merge aprobados. Upgrade/reinicio verificados; servicio
+activo desde 20:28:17 UTC, PID 1041544. Sonda de vista y acciones revertida, hashes
+QWeb FEN/REV conservados. Producción tiene tres alertas sin MO vinculada: se comprobó
+el caso sin origen, no una apertura positiva real. No se configuraron puntos de
+control ni se crearon datos QA persistentes. Evidencia en
+`../.tmp/prod-quality-navigation`; respaldo
+`/var/backups/mc-rov-prod-quality-navigation-KvN70P/odoo_prod.dump`.
