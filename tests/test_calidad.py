@@ -2,9 +2,10 @@ from pathlib import Path
 
 from lxml import etree
 
-from odoo.exceptions import UserError
-from odoo.tests.common import TransactionCase
+from odoo.exceptions import AccessError, UserError
+from odoo.tests.common import TransactionCase, new_test_user
 from odoo.tests import tagged
+from odoo.tools.safe_eval import safe_eval
 
 from odoo.addons.mc_rov.models.mc_rov_componente import ORIGENES
 from odoo.addons.mc_rov.models.stock_lot import ROV_CATEG_PARAM
@@ -564,3 +565,68 @@ class TestDescartarConMotivo(CalidadCommon):
         )
 
         self.assertIn(self.equipo.name, valores["resumen"])
+
+
+class TestAlertaNavegacion(CalidadCommon):
+    """Consultar el origen abre su MO exacta sin crear datos ni elevar permisos."""
+
+    def _accion_fabricacion(self, alerta):
+        metodo = getattr(alerta, "action_mc_abrir_fabricacion", None)
+        self.assertTrue(callable(metodo), "Falta el acceso Fabricación en la alerta")
+        return metodo()
+
+    def test_abre_mo_guardada_sin_crear_ni_cambiar_origen(self):
+        modelo = self.env["mrp.production"]
+        mo = modelo.create({"product_id": self.producto.id, "product_qty": 1})
+        alerta = self._leccion(production_id=mo.id)
+        modelo.create({"product_id": self.producto.id, "product_qty": 1})
+        antes = alerta.read()
+        cantidad = modelo.search_count([])
+        accion = self._accion_fabricacion(alerta)
+        self.assertEqual(accion["type"], "ir.actions.act_window")
+        self.assertEqual(accion["res_model"], "mrp.production")
+        self.assertEqual(accion["res_id"], mo.id)
+        self.assertEqual(accion["view_mode"], "form")
+        self.assertEqual(accion["target"], "current")
+        self.assertEqual(modelo.search_count([]), cantidad)
+        self.assertEqual(alerta.read(), antes)
+        self.assertFalse(self._accion_fabricacion(self._leccion()))
+
+    def test_respeta_lectura_de_alerta_y_fabricacion(self):
+        usuario = new_test_user(
+            self.env,
+            login="calidad_navegacion_mo",
+            groups="quality.group_quality_user,mrp.group_mrp_user",
+        )
+        mo = self.env["mrp.production"].create({"product_id": self.producto.id, "product_qty": 1})
+        alerta = self._leccion(production_id=mo.id).with_user(usuario)
+        self.assertEqual(self._accion_fabricacion(alerta)["res_id"], mo.id)
+        for modelo, registro in (("quality.alert", alerta.id), ("mrp.production", mo.id)):
+            regla = self.env["ir.rule"].create(
+                {
+                    "name": "Origen de Calidad no accesible",
+                    "model_id": self.env["ir.model"]._get_id(modelo),
+                    "domain_force": str([("id", "!=", registro)]),
+                }
+            )
+            with self.assertRaises(AccessError):
+                self._accion_fabricacion(alerta)
+            regla.unlink()
+
+    def test_boton_nativo_solo_con_fabricacion_vinculada(self):
+        vista = self.env["quality.alert"].get_view(
+            view_id=self.env.ref("quality_control.quality_alert_view_form").id,
+            view_type="form",
+        )
+        form = etree.fromstring(vista["arch"])
+        botones = form.xpath(
+            "//div[@name='button_box']/button[@name='action_mc_abrir_fabricacion']"
+        )
+        self.assertEqual(len(botones), 1, "Falta el botón Fabricación en Calidad")
+        boton = botones[0]
+        self.assertEqual(boton.get("string"), "Fabricación")
+        self.assertEqual(boton.get("type"), "object")
+        self.assertIn("oe_stat_button", boton.get("class", ""))
+        self.assertTrue(form.xpath("//field[@name='production_id']"))
+        self.assertTrue(safe_eval(boton.get("invisible"), {"production_id": False}))
+        self.assertFalse(safe_eval(boton.get("invisible"), {"production_id": 1}))

@@ -34,8 +34,9 @@
   → fabricación de origen funciona; alerta → reparación abre la orden exacta.
   Reparaciones/alertas del equipo son botones inteligentes nativos, no pestañas.
   Calidad → fabricación: corte directo confirmado en la vista instalada; la alerta
-  guarda la MO sin ofrecer acceso a ella. Propuesta mínima en diseño § 14, aún sin
-  implementar. La ruta indirecta por control no tiene muestra para QA de pantalla.
+  guardaba la MO sin ofrecer acceso a ella. Botón Fabricación implementado e
+  instalado en STAGING `19.0.24.2.0`, tres contratos y suite 362/362 aprobados.
+  Producción conserva `19.0.24.1.0`; no tiene este botón todavía.
 
 ## Próximos pasos acordados, en orden
 
@@ -76,12 +77,23 @@ ofrece conexiones nativas a alertas e ingeniería. Muestra: 11 MO, una BoM, tres
 alertas; cero puntos/controles/ECO y ninguna MO con varias series. Lectura heredada
 completada: Reparación → fabricaciones consulta `reference_ids.production_ids`, no
 la serie; BoM se propone por compatibilidad y prioridad, no por fecha más reciente.
-Recomendación pendiente de aprobación: botón **Fabricación** en la alerta, visible
-con `production_id` y hacia esa MO exacta. Conservar los demás accesos nativos.
-Auditoría documentada en diseño § 14; sin cambios funcionales,
-sin nuevas pruebas, instalación ni reinicio. Evidencia `manufacturing.json` en
-`../.tmp/process-navigation-audit`.
+Botón **Fabricación** aprobado e implementado en `feature/quality-production-navigation`,
+versión `19.0.24.2.0`. RED observado: tres fallos esperados. GREEN instalado en
+STAGING: tres contratos y suite completa **362 pruebas, cero fallos/errores**.
+Sonda de la vista instalada aprobada, rollback confirmado y Odoo activo. Reportes
+QWeb FEN/REV con hashes conservados. Hooks locales aprobados.
 
+La muestra real sigue siendo QA00002/3/4 sin `production_id`; el caso con MO se
+verificó con pruebas transaccionales, no mediante un clic sobre una alerta real.
+Se mantiene pendiente la comprobación de pantalla con una muestra vinculada cuando
+exista. No se crearon alertas de QA persistentes ni se tocaron controles o PDFs.
+Respaldo STAGING: `/var/tmp/mc-rov-quality-navigation-z394km`.
+Evidencia: `../.tmp/quality-navigation-qa` (GREEN y vista instalada) y
+`../.tmp/process-navigation-audit/manufacturing.json` (auditoría).
+Cambio publicado en PR #98 (commit funcional `fac231c`); pendiente CI/merge y
+posterior despliegue de producción. No afirmar que el
+cambio esté en producción. La primera sonda GREEN falló por conversión ASCII de la
+tilde en Windows PowerShell; corregida con escape Unicode, sin cambiar el botón.
 
 ### 3. Centro de trabajo ROV, después de los recorridos
 
