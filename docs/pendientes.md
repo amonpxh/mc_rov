@@ -33,8 +33,9 @@
   secuencia obligatoria. Auditoría y límites en diseño § 12–13. Equipo → Trazabilidad
   → fabricación de origen funciona; alerta → reparación abre la orden exacta.
   Reparaciones/alertas del equipo son botones inteligentes nativos, no pestañas.
-  Calidad → fabricación sigue sin muestra con MO/control de origen; no duplicar
-  accesos por su sola ausencia en el inventario.
+  Calidad → fabricación: corte directo confirmado en la vista instalada; la alerta
+  guarda la MO sin ofrecer acceso a ella. Propuesta mínima en diseño § 14, aún sin
+  implementar. La ruta indirecta por control no tiene muestra para QA de pantalla.
 
 ## Próximos pasos acordados, en orden
 
@@ -67,6 +68,20 @@ Contrastar los casos restantes con Odoo y taller:
 
 Entregable: matriz de conexiones existentes, cortes demostrados y aplicabilidad de
 cada paso. Proponer cambios solo donde haya una dificultad real, antes de implementarlos.
+
+Sonda focalizada completada con rollback sobre `19.0.24.1.0`; matriz en diseño § 14.
+Confirmado: la alerta guarda `production_id`, pero no ofrece acceso directo a MO;
+existe ruta indirecta por control cuando está vinculado y visible. Fabricación ya
+ofrece conexiones nativas a alertas e ingeniería. Muestra: 11 MO, una BoM, tres
+alertas; cero puntos/controles/ECO y ninguna MO con varias series. Lectura heredada
+completada: Reparación → fabricaciones consulta `reference_ids.production_ids`, no
+la serie; BoM se propone por compatibilidad y prioridad, no por fecha más reciente.
+Recomendación pendiente de aprobación: botón **Fabricación** en la alerta, visible
+con `production_id` y hacia esa MO exacta. Conservar los demás accesos nativos.
+Auditoría documentada en diseño § 14; sin cambios funcionales,
+sin nuevas pruebas, instalación ni reinicio. Evidencia `manufacturing.json` en
+`../.tmp/process-navigation-audit`.
+
 
 ### 3. Centro de trabajo ROV, después de los recorridos
 

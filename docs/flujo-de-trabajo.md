@@ -47,8 +47,11 @@ los módulos entre sí ni seleccionar silenciosamente el primer registro.
 
 La BoM de una fabricación describe cómo se fabricó; la configuración actual de la
 serie puede haber cambiado. Desde reparación, consultar el origen por Equipo →
-Fabricación relacionada → BoM utilizada, sin presentar una supuesta «BoM del equipo»
-única. Reparar una unidad no crea por sí mismo otra fabricación.
+Trazabilidad → fabricación de origen → BoM vinculada, sin presentar una supuesta «BoM del equipo»
+única. La referencia a la BoM no garantiza una copia inmutable de su contenido
+histórico. Reparar una unidad no crea por sí mismo otra fabricación. El botón nativo
+de fabricaciones de la reparación abre las MO ligadas a sus referencias, no busca
+la fabricación original por número de serie.
 
 ## Dónde interviene Calidad
 
