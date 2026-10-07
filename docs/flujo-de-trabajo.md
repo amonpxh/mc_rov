@@ -76,7 +76,7 @@ Un modelo nuevo o una mejora solicitada también pueden originar ingeniería sin
 | Probar rendimiento o terreno | Equipo → Pruebas → Nueva prueba de rendimiento / Nueva prueba en terreno |
 | Retomar una prueba | Equipo → Pruebas → Editar/Abrir el registro existente |
 | Preparar FEN | Equipo → Imprimir ficha → seleccionar RND/TRN |
-| Retomar una FEN | Equipo → Pruebas → Fichas de equipo nuevo → abrir la ficha |
+| Retomar una FEN | Equipo → Fichas → Retomar / Abrir la ficha |
 | Recibir y reparar | Reparaciones → Órdenes |
 | Completar una revisión de la visita | Orden → Revisiones → Editar/Abrir |
 | Imprimir ficha reparada | Orden → Revisiones → Imprimir ficha → verificar revisión seleccionada |

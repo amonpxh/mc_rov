@@ -5,89 +5,49 @@
 
 ## Estado vigente — 2026-10-07
 
-- Producción: `mc_rov 19.0.24.0.0`, código funcional `1fe6fcc` (merge del PR #92).
-  Upgrade y reinicio completos verificados; servicio activo desde 15:37:29 UTC,
-  PID 1035666. Los accesos de 21 revisiones reales se comprobaron con rollback.
-- Último cierre documental en main: `54f9791` (PR #94, orden del backlog). No requiere otro despliegue.
-- STAGING: navegación instalada y aprobada manualmente por el usuario. CI del merge
-  funcional: **352 pruebas, cero fallos/errores**, lint aprobado.
+- Producción: `mc_rov 19.0.24.1.0`, código funcional `9731f68` (merge del
+  [PR #95](https://github.com/amonpxh/mc_rov/pull/95)). Upgrade y reinicio completos
+  verificados; servicio activo desde 19:23:57 UTC, PID 1039946.
+- Navegación FEN terminada y aprobada manualmente: historial en **Fichas**, sin título
+  interior adicional. **Pruebas** conserva revisiones y creación RND/TRN.
+  **Imprimir ficha** aparece en cabecera y Fichas, no en Pruebas; ambos accesos
+  abren el mismo asistente. Fichas y sus accesos se ocultan para no-ROV.
+- **Retomar / Abrir** abre la FEN elegida, sin crear otra. Sus botones inteligentes
+  **Equipo / Rendimiento / Terreno** abren las referencias guardadas, cuando existen;
+  no sustituyen la evidencia por pruebas posteriores. Emisión y PDFs sin cambios.
+- Verificación: STAGING pasó la suite completa de **359 pruebas, cero fallos/errores**;
+  después de retirar el botón de Pruebas pasó el contrato del formulario (1/1).
+  CI del PR y del merge funcional: **356 pruebas, cero fallos/errores**, lint aprobado.
+  QA manual: FEN/00878 → TRN/00003 y equipo 26-02; retorno por breadcrumb comprobado.
+  Emitidas, varias fichas, referencias antiguas y permisos cubiertos por pruebas
+  transaccionales; no confundirlas con muestras reales emitidas.
+- Producción confirmó pestaña Fichas y ubicación final de Imprimir ficha mediante
+  vista instalada. Contiene **cero FEN**: no se certificó apertura de una FEN real
+  allí. La sonda se revirtió, sin emitir documentos ni consumir correlativos.
+  Ambos reportes QWeb conservaron sus hashes antes/después del despliegue.
 - Respaldo de producción:
-  `/var/backups/mc-rov-prod-revision-navigation-C5c2EN/odoo_prod.dump`.
-  Evidencia local en `../.tmp/prod-revision-navigation`; no publicar archivos `.tmp`.
-- Trabajo actual: auditoría de los recorridos FEN y fabricación. Inventario STAGING
-  consultado con rollback; resultados y límites en el diseño § 12. Sin cambios funcionales.
-- Mapa conceptual aprobado: recorridos abiertos y ramas por escenario, no secuencia
-  obligatoria. Documentado en Flujo de trabajo y diseño § 13. Próxima comprobación:
-  Equipo → fabricación, Calidad → origen y FEN → evidencia seleccionada.
-- Sonda de relaciones terminada con rollback: accesos nativos confirmados en vistas,
-  ECO → Producción ya existe. QA00004 muestra orden y serie. Posibles cortes por
-  verificar: Equipo → fabricación y alerta de fabricación → MO; detalle en diseño § 13.
-  Muestra: tres alertas, cero controles y cero ECO; no certificar esos casos por pantalla.
-- QA posterior: serie → Trazabilidad → MO de origen funciona; FEN → equipo/TRN y
-  alerta → reparación abren referencias exactas mediante Enlace interno. RND vacía
-  en la muestra. Calidad → fabricación sigue sin muestra; no crear enlaces duplicados.
-- Patrón visual de conexiones: botones inteligentes nativos. Comprobados arriba en
-  serie 0000008 (reparaciones/alertas) y WH/RO/00016 (alertas); no son pestañas.
-- Accesos FEN aprobados: Abrir/Retomar en sus filas del equipo y botones inteligentes
-  Equipo / Rendimiento / Terreno en la ficha, hacia las referencias guardadas.
-  Implementados en `feature/fen-navigation` e instalados en STAGING, versión
-  `19.0.24.1.0`. RED: cuatro fallos esperados; GREEN: cuatro pruebas focalizadas y
-  suite completa de **359 pruebas, cero fallos/errores**. Servicio activo.
-  QA inicial de pantalla: 26-02 → Pruebas → Retomar abre FEN/00878 existente; Terreno abre
-  TRN/00003 y Equipo vuelve a 26-02. Rendimiento oculto porque falta RND seleccionada.
-  Retorno por breadcrumb comprobado, sin editar ni emitir registros. Emitidas, varias
-  fichas, referencias antiguas y permisos cubiertos por pruebas; sin muestra real emitida.
-  QWeb FEN/REV conservan sus hashes; reglas de emisión y PDFs sin cambios.
-  Evidencia: `../.tmp/fen-navigation-qa`, captura `fen-navigation-buttons.png`.
-  Respaldo STAGING: `/var/tmp/mc-rov-fen-navigation-MYOrS4`.
-  Usuario aprobó los accesos y autorizó producción. Hooks locales aprobados;
-  cierre de rama/PR/CI/merge y despliegue en curso. Producción sin este ajuste todavía.
-- Ajuste posterior aprobado: separar el historial FEN a pestaña **Fichas** sin título
-  interior adicional y mantener **Imprimir ficha** en cabecera y Fichas,
-  hacia el mismo asistente. No alterar emisión ni PDF.
-  Prueba existente `TestAccionesROV` actualizada; RED observado en STAGING:
-  un fallo esperado, cero errores, pruebas restauradas y servicio activo.
-  Vista instalada en STAGING: cinco pruebas focalizadas y suite completa **359/359**,
-  cero fallos/errores, servicio activo. Ambos hashes QWeb conservados.
-  QA de pantalla: pestaña Fichas contiene FEN/00878 con Retomar; Pruebas conserva solo
-  revisiones. Imprimir ficha en ambas pestañas abre el mismo asistente para 26-02;
-  se canceló sin guardar ni emitir. Cabecera conservada. Captura `fen-tab-fichas.png`
-  y evidencia `tabs-green-*` en `../.tmp/fen-navigation-qa`.
-  Respaldo STAGING: `/var/tmp/mc-rov-fen-tabs-WOLatR`.
-  Aprobación manual terminada; cierre git/PR/producción autorizado y en curso.
-  Última corrección solicitada: quitar el título interior «Fichas de equipo nuevo».
-  Instalada y verificada en STAGING: upgrade RC=0, `FEN_TITLE_REMOVED=True`,
-  botones/lista conservados, sonda revertida y servicio activo. Ambos hashes QWeb
-  intactos. Sin repetir la suite por esta eliminación de un rótulo; la última suite
-  sigue siendo 359/359 anterior al cambio. Evidencia `tabs-title-*` en la carpeta QA;
-  respaldo `/var/tmp/mc-rov-fen-title-RRcMtH`. Producción todavía sin estos accesos/pestaña.
-  Última petición: retirar Imprimir ficha de Pruebas. Instalada en STAGING y prueba
-  existente del formulario aprobada (1/1, cero fallos/errores); cabecera + Fichas
-  confirmados mediante vista instalada. Servicio activo, sonda revertida y ambos
-  hashes QWeb intactos. Evidencia `print-placement-*` en la carpeta QA; respaldo
-  `/var/tmp/mc-rov-fen-print-LQDHXv`. Suite completa anterior 359/359, sin repetirla
-  por esta eliminación de botón. Pendiente cierre git/PR/merge y producción.
+  `/var/backups/mc-rov-prod-fen-navigation-NwTnL0/odoo_prod.dump`.
+  Evidencia: `../.tmp/prod-fen-navigation` y `../.tmp/fen-navigation-qa`.
+  No publicar archivos `.tmp`. No queda despliegue pendiente para esta entrega.
+- Mapa de relaciones aprobado: recorridos abiertos y ramas por escenario, no una
+  secuencia obligatoria. Auditoría y límites en diseño § 12–13. Equipo → Trazabilidad
+  → fabricación de origen funciona; alerta → reparación abre la orden exacta.
+  Reparaciones/alertas del equipo son botones inteligentes nativos, no pestañas.
+  Calidad → fabricación sigue sin muestra con MO/control de origen; no duplicar
+  accesos por su sola ausencia en el inventario.
 
 ## Próximos pasos acordados, en orden
 
-### 1. Retomar una FEN existente
+### 1. Muestras adicionales de FEN cuando existan
 
-Comprobar en STAGING el acceso desde Equipo → Pruebas → fichas de equipo nuevo:
+La implementación y el despliegue de navegación están cerrados. La ruta actual es
+**Equipo → Fichas → Retomar / Abrir**, con acceso a la evidencia exacta seleccionada.
+La muestra manual de STAGING contiene una FEN en borrador; producción aún no tiene FEN.
 
-- FEN en borrador: abrir el registro existente, consultar la RND/TRN seleccionadas
-  y localizar Vista previa / Emitir ficha según su estado.
-- FEN emitida: abrir y consultar el documento almacenado, sin crear otra emisión
-  ni reemplazar automáticamente las pruebas seleccionadas.
-- Distinguir cero, una y varias fichas. No seleccionar silenciosamente una ficha distinta.
-- Verificar retorno al equipo y continuidad al entrar por el menú general.
-
-La lista y el modelo ya existen; no crear otro modelo ni rediseñar el PDF.
-Comprobado: serie 26-02 → Pruebas → FEN/00878 → modal → Expandir → formulario
-con Vista previa / Emitir ficha; retorno al equipo. La muestra actual contiene una
-sola FEN, en borrador. Faltan emisión almacenada y selección entre varias fichas.
-No existe un menú general de FEN en las vistas actuales; no darlo por disponible.
-Preferir registros existentes; si se necesita una fixture, identificarla y acordar
-su limpieza. No emitir fichas de clientes ni consumir correlativos para probar navegación.
+Cuando existan documentos reales emitidos o varias fichas de una unidad, completar
+la comprobación manual de esos escenarios. Ya tienen cobertura automatizada; no
+bloquean esta entrega. No emitir fichas de clientes ni consumir correlativos solo
+para probar navegación. No existe un menú general de FEN en las vistas actuales.
 
 ### 2. Completar la auditoría de fabricación
 
