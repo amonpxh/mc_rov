@@ -1,11 +1,70 @@
 # Cómo se sigue el trabajo entre los módulos
 
-Actualizado: 2026-10-05, según el código de mc_rov 19.0.23.7.0.
+Actualizado: 2026-10-07, según el código de mc_rov 19.0.24.0.0 y los recorridos acordados.
 Para taller, fabricación y responsables de aceptación.
 
 Este documento describe el flujo disponible, no una nueva navegación ya implementada.
 La propuesta de ayuda dentro de Odoo está en [Recorridos guiados](designs/flujo-guiado.md).
 Los nombres de menús base y controles configurados deben comprobarse en la instalación.
+
+## Cómo leer los recorridos
+
+Este es un mapa de relaciones, no una secuencia obligatoria. Se puede comenzar en una
+orden, una serie, una prueba o una incidencia y continuar según el trabajo. Consultar
+un registro relacionado no crea otro. Una flecha expresa continuidad posible, no un
+bloqueo ni una obligación. Los requisitos pertenecen a acciones concretas, como emitir FEN.
+
+| Escenario | Recorrido orientativo | Rama condicional |
+| --- | --- | --- |
+| Modelo conocido sin cambios | Modelo/BoM vigente → fabricación → serie → configuración y aceptación | Controles configurados e incidencias, cuando existan. No modificar diseño por defecto. |
+| Modelo nuevo | Definición del diseño/configuración → fabricación de validación → pruebas → ajustes → aceptación | Desarrollo y repetición según necesidad. El procedimiento de desarrollo y aprobación aún debe concretarse con taller/ingeniería. |
+| Modelo conocido con variante o cambio | Definir la diferencia → configuración/BoM adecuada → fabricación → validación | Distinguir opción prevista, configuración particular y cambio de diseño. No toda diferencia requiere ECO. |
+| Reparación/mantención de cliente | Orden → equipo/revisiones → intervención si corresponde → verificación → ficha/entrega | Repuestos y pruebas adicionales según intervención. Diagnóstico sin trabajos también es válido. |
+| Reparación con actualización/mejora | Recorrido de reparación con una rama hacia ingeniería si corresponde | La mejora puede afectar solo a esa unidad. Una solicitud de mejora no necesita una alerta de Calidad si no hay incidencia. |
+| Incidencia que requiere prevención | Origen → Calidad → procedimiento o diseño → futuras operaciones | Una sola incidencia puede justificar prevención; no esperar repeticiones ni asumir una causa por su frecuencia. |
+
+## Relaciones para continuar el trabajo
+
+Mapa acordado de destinos útiles, no certificación de que todos los accesos estén
+instalados o comprobados en pantalla. La auditoría distingue esos estados en
+[Recorridos guiados](designs/flujo-guiado.md), § 12–13.
+
+| Desde | Destino y motivo |
+| --- | --- |
+| Fabricación | BoM utilizada; series producidas; controles de esa orden; alertas de esa orden; lecciones del modelo y cambios realmente vinculados/aplicables. |
+| Equipo/serie | Reparaciones, revisiones y FEN de esa unidad; fabricaciones realmente relacionadas; alertas que afectan a la unidad. |
+| Reparación | Equipo e historial de revisiones; alertas de la visita; ingeniería solo si una mejora/incidencia lo requiere. |
+| REV/RND/TRN | Equipo y orden vinculada, cuando exista. Los botones Equipo / Orden de reparación ya están desplegados. |
+| FEN | Equipo y RND/TRN explícitamente seleccionadas; conservar el documento emitido y su evidencia. |
+| Alerta de calidad | Orden/control de origen, unidades afectadas y cambio de ingeniería cuando la resolución lo requiera. |
+| Cambio de ingeniería | Producto/BoM, alertas que lo motivaron cuando existan y fabricación de validación cuando se haya vinculado. |
+| Producto/modelo o BoM | Configuración/BoM adecuada, fabricaciones y cambios relacionados, con selección visible si hay varios. |
+
+Un vínculo único puede ofrecer un botón como Equipo; una colección, un acceso con
+conteo y lista filtrada; una referencia como BoM, un campo relacionado. Crear prueba,
+alerta, fabricación o cambio es una acción diferente y explícita. No conectar todos
+los módulos entre sí ni seleccionar silenciosamente el primer registro.
+
+La BoM de una fabricación describe cómo se fabricó; la configuración actual de la
+serie puede haber cambiado. Desde reparación, consultar el origen por Equipo →
+Fabricación relacionada → BoM utilizada, sin presentar una supuesta «BoM del equipo»
+única. Reparar una unidad no crea por sí mismo otra fabricación.
+
+## Dónde interviene Calidad
+
+Los controles nativos verifican operaciones configuradas; las alertas investigan y
+documentan incidencias, corrección, alcance y prevención. RND/TRN son revisiones de
+aceptación independientes: un No conforme en sus chequeos no equivale automáticamente
+a un fallo de un control nativo ni genera por esa sola razón la misma alerta.
+
+Hoy un control nativo fallido de un producto ROV registra una alerta vinculada.
+Los trabajos de reparación pueden evaluarse mediante Candidatas a lección. Una
+alerta puede enlazarse a un cambio de ingeniería; cerrada y con acción preventiva
+puede aparecer como lección para futuras fabricaciones del modelo.
+
+No toda avería de cliente es un defecto del modelo, ni toda alerta requiere cambiar
+la BoM. La resolución puede ser corregir armado, configuración o procedimiento.
+Un modelo nuevo o una mejora solicitada también pueden originar ingeniería sin alerta.
 
 ## Mapa rápido
 

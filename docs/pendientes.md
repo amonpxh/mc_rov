@@ -16,6 +16,9 @@
   Evidencia local en `../.tmp/prod-revision-navigation`; no publicar archivos `.tmp`.
 - Trabajo actual: auditoría de los recorridos FEN y fabricación. Inventario STAGING
   consultado con rollback; resultados y límites en el diseño § 12. Sin cambios funcionales.
+- Mapa conceptual aprobado: recorridos abiertos y ramas por escenario, no secuencia
+  obligatoria. Documentado en Flujo de trabajo y diseño § 13. Próxima comprobación:
+  Equipo → fabricación, Calidad → origen y FEN → evidencia seleccionada.
 
 ## Próximos pasos acordados, en orden
 

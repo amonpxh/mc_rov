@@ -519,3 +519,33 @@ solo por código no se presentan como comprobados en navegador.
 Con taller queda confirmar quién asigna series, quién decide repetir/seleccionar
 pruebas y cómo se enlaza aceptación con entrega. El centro de trabajo vendrá después:
 debe retomar estos mismos registros y reglas, sin inventar otra definición de pendiente.
+
+## 13. Mapa de relaciones y escenarios aprobado — 2026-10-07
+
+El usuario confirma que los recorridos permiten comenzar en distintos registros,
+continuar o no y tomar ramas según la situación. No son una secuencia de tareas
+obligatorias. Escenarios y destinos se mantienen en [Flujo de trabajo](../flujo-de-trabajo.md),
+apartados Cómo leer los recorridos, Relaciones y Calidad.
+
+Separar fabricación repetida, modelo nuevo, variante/cambio y reparación con o sin
+mejora. Calidad e ingeniería son procedimientos anexos: una incidencia puede requerir
+prevención desde el primer caso; una mejora solicitada puede requerir ingeniería sin
+incidencia. No crear alerta o ECO automáticamente al navegar ni imponerlos a cada orden.
+
+El acuerdo conceptual no certifica accesos no auditados ni define nuevas reglas de
+desarrollo/aprobación. Queda por verificar:
+
+- Equipo → fabricación: relación real con las series, cardinalidad y acción nativa.
+- Calidad → origen: control/orden de fabricación o reparación y unidades afectadas;
+  distinguir colección de alertas de consulta del registro de origen.
+- FEN → equipo y evidencia seleccionada: apertura efectiva de referencias y retorno;
+  mantener los casos pendientes de emitida y varias fichas del § 12.
+- Producto/BoM/ingeniería: accesos nativos, tratamiento real de variantes y vínculo
+  con fabricación de validación. No inferir qué revisión de BoM se usó por ser la actual.
+- Mejora desde reparación: existe la ruta por lección/alerta cuando hay incidencia;
+  no se ha diseñado un vínculo directo para una mejora sin incidencia. Definirlo solo
+  si se confirma un corte real, sin forzar el paso por Calidad.
+
+Priorizar lectura de código/vistas instaladas y QA con registros existentes. No añadir
+botones antes de demostrar la dificultad. El centro de trabajo reutilizará estas
+relaciones y criterios; no sustituirá los accesos contextuales ni creará otro proceso.
