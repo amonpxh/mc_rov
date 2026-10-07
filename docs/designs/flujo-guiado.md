@@ -566,7 +566,7 @@ efectiva ni permisos de taller únicamente por encontrar un campo en una vista.
 | Ingeniería → fabricación | Botón nativo Producción cuando hay production_id; la acción apunta a esa MO. | Código/vista comprobados; sin ECO existente para QA de pantalla. No implementarlo otra vez. |
 | Ingeniería → BoM / lecciones | Campos BoM y botón de lecciones vinculadas disponibles. | Sin ECO existente para probar el recorrido completo. |
 | Producto/modelo → BoM / fabricación / ingeniería | Accesos nativos en la vista; algunos condicionados por tipo, BoM y cantidades. La acción BoM contempla opciones de variante o plantilla. | No sustituirlos con botones genéricos. Falta QA de escenarios configurados; existencia de soporte de variantes no define el procedimiento de taller. |
-| Reparación → fabricación | Existe acción nativa action_view_mrp_productions, condicionada por production_count y estado. | No asumir que representa la fabricación original de la serie: falta verificar su dominio antes de recomendarla para investigar origen. |
+| Reparación → fabricación | Acción nativa `action_view_mrp_productions`, condicionada por conteo y estado; consulta `reference_ids.production_ids`. | Abre las MO ligadas a las referencias de la reparación, no las MO por serie. No usarla para deducir el origen del ROV; ver auditoría § 14. |
 | FEN → equipo / RND / TRN | FEN/00878 → Enlace interno abre serie 26-02 y TRN/00003 seleccionada; retorno a FEN por breadcrumb comprobado desde TRN. | Equipo y TRN comprobados. RND está vacía en la muestra, por lo que no se certifica su apertura en pantalla. |
 
 La muestra contiene tres alertas: dos vinculadas a reparación y todas a serie 0000008;
@@ -643,3 +643,61 @@ confirmada en producción.
 Para Calidad → fabricación faltan alertas con MO/control de origen. No crear un
 botón por la sola ausencia en esta muestra ni declarar la ruta comprobada; cerrar
 ese caso con una muestra acordada o consulta focalizada del código instalado.
+
+## 14. Auditoría focalizada de fabricación y Calidad — 2026-10-07
+
+Sonda sobre fuentes y formularios combinados de STAGING `19.0.24.1.0`, con rollback,
+sin crear datos, ejecutar acciones de fabricación ni reiniciar servicios.
+Evidencia: `../.tmp/process-navigation-audit/manufacturing.json`.
+La nueva lectura descubre los archivos instalados; las extensiones de Calidad
+están en `quality.py` y `repair.py`, no en los nombres supuestos por la sonda previa.
+
+### Matriz de conexiones y límites
+
+| Origen → destino | Comprobación | Decisión |
+| --- | --- | --- |
+| Fabricación → BoM seleccionada | `bom_id` está en el formulario; elección limitada a compañía, producto/plantilla y BoM normal. La propuesta se calcula con `_bom_find`. | Conservar el campo nativo. Consultar la BoM vinculada no demuestra que su contenido actual sea una copia inmutable del contenido usado históricamente. |
+| Fabricación → series | `lot_producing_ids` admite varias; su presentación cambia por seguimiento y cantidad. Las rutas de cero/una serie se probaron antes. | Conservar navegación nativa. Falta muestra de varias series; no generar series solo para auditar. |
+| Fabricación → controles | Botón Controles de calidad condicionado por pendientes; puntos definidos por producto/categoría y operación. | Condicional a configuración. No convertir RND/TRN en controles de armado ni agregar controles universales. |
+| Fabricación → alertas | Botón inteligente `open_quality_alert_mo` oculto cuando el conteo es cero. | Ya existe. No añadir otro acceso ni interpretar su ausencia actual como fallo. |
+| Fabricación → ingeniería | Botón `action_open_eco` condicionado por `eco_count`; un ECO abre su formulario, varios una lista filtrada. | Ya existe. Cambio de diseño opcional salvo necesidad concreta. |
+| Alerta → fabricación | `production_id` existe en el modelo, pero no figura como campo o botón en el formulario combinado. | Corte directo confirmado en la vista. Proponer acceso a la fabricación guardada solo cuando exista vínculo; no buscar por producto ni asignar una MO automáticamente. |
+| Alerta → control → fabricación | `action_see_check` abre el control exacto. Este presenta `production_id`, condicionado por estado/contexto; además tiene una ocurrencia técnica oculta. | Ruta indirecta disponible por código/vista cuando existe control y su contexto permite mostrar el origen. No sustituye el acceso directo para alertas sin control. Sin muestra para QA de pantalla. |
+| Alerta → reparación | `repair_id` visible solo con vínculo; apertura comprobada anteriormente en QA00004. | Conservar referencia exacta. Unificar su presentación con un eventual botón Fabricación solo al aprobar ese ajuste. |
+| Reparación → fabricaciones | Implementación cargada de `mrp_repair/models/repair.py`: consulta `reference_ids.production_ids`; una MO abre formulario, varias una lista filtrada por sus IDs. El conteo usa esa misma relación. | Acceso contextual existente, sin búsqueda por `lot_id`. No representa necesariamente la fabricación original de la serie; investigar origen desde Equipo → Trazabilidad. |
+| BoM → ingeniería | Botón nativo `button_mrp_eco` presente. | Conservar; sin ECO existente para verificar apertura real. |
+
+### Cobertura de la muestra
+
+- 11 MO: ninguna con varias series ni controles/alertas/ECO asociados.
+- Una BoM, Patagonia MC, sin variante específica (`product_id` vacío). Hay MO canceladas
+  vinculadas a ella; las dos fabricaciones terminadas con serie no tienen BoM vinculada.
+  Esto describe los datos de prueba, no impone reconstruir el pasado ni invalida esas MO.
+- Tres alertas: dos vinculadas a reparación; ninguna a fabricación o control.
+- Cero puntos de control, cero controles y cero ECO. No certificar procesos configurados
+  ni variantes/modificaciones por haber encontrado sus campos o acciones.
+
+### Alcance siguiente
+
+La lectura heredada quedó completada con `inspect.getsource` sobre el registro
+instalado: evita suponer qué addon implementa cada método. `_bom_find` propone una
+BoM compatible, ordenada por `sequence, product_id, id`; no busca la más reciente
+ni determina si taller debe crear una variante o un ECO. Ese procedimiento depende
+del cambio solicitado. El acceso a las series se limita a los IDs de
+`lot_producing_ids`, sin permitir crear/eliminar desde esa acción. La lista de
+alertas de MO usa los IDs de `quality_alert_ids` y abre formulario si hay una.
+El botón Controles de calidad toma los controles pendientes de `check_ids`.
+
+Recomendación concreta, pendiente de aprobación: botón inteligente **Fabricación**
+en `quality.alert`, visible únicamente cuando exista `production_id`, que abra esa
+MO exacta sin buscar por producto/serie, reasignar origen ni crear una fabricación.
+Es un destino único: no necesita conteo ni selector. Mantener el enlace al control
+existente y el campo de reparación; añadir más botones por uniformidad no resuelve
+otro corte demostrado. Respetar acceso de lectura a alerta y destino, sin `sudo`.
+
+El resto de conexiones auditadas conserva el comportamiento nativo. No añadir
+obligaciones a fabricación, aceptación, reparación ni entrega. La validación en
+pantalla con controles, ECO, variantes y varias series sigue limitada por falta de
+muestras; requerirá datos existentes o fixtures transaccionales explícitas, sin
+consumir correlativos. No implementar el botón ni configurar puntos de control
+como parte de esta auditoría.
