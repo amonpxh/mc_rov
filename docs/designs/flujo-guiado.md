@@ -549,3 +549,32 @@ desarrollo/aprobación. Queda por verificar:
 Priorizar lectura de código/vistas instaladas y QA con registros existentes. No añadir
 botones antes de demostrar la dificultad. El centro de trabajo reutilizará estas
 relaciones y criterios; no sustituirá los accesos contextuales ni creará otro proceso.
+
+### Resultado de la sonda de relaciones instaladas
+
+Evidencia: `../.tmp/process-navigation-audit/relations.json`, consulta con rollback.
+Se inspeccionaron relaciones ORM y formularios combinados; no se deduce apertura
+efectiva ni permisos de taller únicamente por encontrar un campo en una vista.
+
+| Enlace | Hallazgo en STAGING | Estado |
+| --- | --- | --- |
+| Equipo → fabricación | No hay botón directo en el formulario combinado ni relación directa a MO entre los campos relacionales inspeccionados. La serie tiene trazabilidad nativa. | Posible corte: comprobar primero si la trazabilidad permite llegar suficientemente bien a la fabricación de origen. No confundir fabricación del mismo producto con fabricación de esta serie. |
+| Equipo → reparación / Calidad | Existen acciones nativas de reparaciones, alertas y controles, estos últimos según conteos. | Conservar y validar con datos que activen cada acceso. No duplicar pestañas. |
+| Calidad → reparación / serie | La alerta tiene repair_id y lot_ids. Pantalla QA00004 muestra WH/RO/00016 y serie 0000008. | Referencias visibles comprobadas; apertura de destino todavía no verificada. |
+| Calidad → fabricación | production_id existe en el modelo, pero no apareció entre los campos ni botones del formulario combinado inspeccionado. | Posible corte para alertas de fabricación; falta muestra vinculada y comprobar el acceso por control de origen. |
+| Calidad → ingeniería | Campo mc_eco_id visible. | Relación disponible; no hay ECO en la base para QA de apertura. |
+| Ingeniería → fabricación | Botón nativo Producción cuando hay production_id; la acción apunta a esa MO. | Código/vista comprobados; sin ECO existente para QA de pantalla. No implementarlo otra vez. |
+| Ingeniería → BoM / lecciones | Campos BoM y botón de lecciones vinculadas disponibles. | Sin ECO existente para probar el recorrido completo. |
+| Producto/modelo → BoM / fabricación / ingeniería | Accesos nativos en la vista; algunos condicionados por tipo, BoM y cantidades. La acción BoM contempla opciones de variante o plantilla. | No sustituirlos con botones genéricos. Falta QA de escenarios configurados; existencia de soporte de variantes no define el procedimiento de taller. |
+| Reparación → fabricación | Existe acción nativa action_view_mrp_productions, condicionada por production_count y estado. | No asumir que representa la fabricación original de la serie: falta verificar su dominio antes de recomendarla para investigar origen. |
+| FEN → equipo / RND / TRN | Campos relacionados visibles, sin no_open explícito en las opciones inspeccionadas. | No equivale a QA de apertura; continuar validación desde el borrador existente. |
+
+La muestra contiene tres alertas: dos vinculadas a reparación y todas a serie 0000008;
+cero controles nativos y cero ECO. No hay una alerta vinculada a fabricación para
+comprobar ese retorno en pantalla. La ausencia de registros limita QA, no demuestra
+que los procesos estén deshabilitados.
+
+En la alerta, la etiqueta nativa Equipo identifica al equipo de Calidad (Main Quality
+Team), mientras Lote identifica al ROV. Tenerlo presente en instrucciones de usuario;
+no confundir ese campo con el botón Equipo de las revisiones. Sin cambio de etiquetas
+autorizado ni realizado en esta auditoría.

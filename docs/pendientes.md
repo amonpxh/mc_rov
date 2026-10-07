@@ -19,6 +19,10 @@
 - Mapa conceptual aprobado: recorridos abiertos y ramas por escenario, no secuencia
   obligatoria. Documentado en Flujo de trabajo y diseño § 13. Próxima comprobación:
   Equipo → fabricación, Calidad → origen y FEN → evidencia seleccionada.
+- Sonda de relaciones terminada con rollback: accesos nativos confirmados en vistas,
+  ECO → Producción ya existe. QA00004 muestra orden y serie. Posibles cortes por
+  verificar: Equipo → fabricación y alerta de fabricación → MO; detalle en diseño § 13.
+  Muestra: tres alertas, cero controles y cero ECO; no certificar esos casos por pantalla.
 
 ## Próximos pasos acordados, en orden
 
