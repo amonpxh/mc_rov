@@ -578,3 +578,19 @@ En la alerta, la etiqueta nativa Equipo identifica al equipo de Calidad (Main Qu
 Team), mientras Lote identifica al ROV. Tenerlo presente en instrucciones de usuario;
 no confundir ese campo con el botón Equipo de las revisiones. Sin cambio de etiquetas
 autorizado ni realizado en esta auditoría.
+
+### Consistencia de conexiones — comprobación visual
+
+El usuario pide que las conexiones se reconozcan con un patrón estándar como Equipo.
+Comprobado en STAGING, sin editar: serie 0000008 tiene botones inteligentes superiores
+Alertas de calidad (3) y Reparaciones (presentado como Por reparar: 2 / Hecho: 2).
+El segundo abre la lista contextual de órdenes. WH/RO/00016 presenta arriba el botón
+Alertas de calidad (1). No son pestañas; la pestaña duplicada de alertas en la serie
+fue retirada anteriormente. Capturas en `../.tmp/process-navigation-audit`.
+
+Mantener botones inteligentes nativos con icono/nombre y conteo si son colecciones;
+Equipo y Orden de reparación identifican destinos únicos. Las pestañas organizan
+contenido del registro actual; las acciones principales ejecutan operaciones, no se
+disfrazan de conexiones. Evitar que futuros vínculos dependan únicamente de reconocer
+la apertura de un campo o el control Expandir. No uniformar todos los iconos ni crear
+una pestaña adicional para una colección que ya tenga botón nativo.
