@@ -5,9 +5,10 @@
 
 ## Estado vigente — 2026-10-07
 
-- Producción: `mc_rov 19.0.24.1.0`, código funcional `9731f68` (merge del
-  [PR #95](https://github.com/amonpxh/mc_rov/pull/95)). Upgrade y reinicio completos
-  verificados; servicio activo desde 19:23:57 UTC, PID 1039946.
+- Producción: `mc_rov 19.0.24.2.0`, código funcional `54c177d` (merge del
+  [PR #98](https://github.com/amonpxh/mc_rov/pull/98)). Upgrade y reinicio completos
+  verificados; servicio activo desde 20:28:17 UTC, PID 1041544. Vista instalada y
+  acciones comprobadas con rollback; ambos reportes QWeb conservan sus hashes.
 - Navegación FEN terminada y aprobada manualmente: historial en **Fichas**, sin título
   interior adicional. **Pruebas** conserva revisiones y creación RND/TRN.
   **Imprimir ficha** aparece en cabecera y Fichas, no en Pruebas; ambos accesos
@@ -26,8 +27,9 @@
   allí. La sonda se revirtió, sin emitir documentos ni consumir correlativos.
   Ambos reportes QWeb conservaron sus hashes antes/después del despliegue.
 - Respaldo de producción:
-  `/var/backups/mc-rov-prod-fen-navigation-NwTnL0/odoo_prod.dump`.
-  Evidencia: `../.tmp/prod-fen-navigation` y `../.tmp/fen-navigation-qa`.
+  `/var/backups/mc-rov-prod-quality-navigation-KvN70P/odoo_prod.dump`.
+  Evidencia del último despliegue: `../.tmp/prod-quality-navigation`; evidencia FEN
+  anterior: `../.tmp/prod-fen-navigation` y `../.tmp/fen-navigation-qa`.
   No publicar archivos `.tmp`. No queda despliegue pendiente para esta entrega.
 - Mapa de relaciones aprobado: recorridos abiertos y ramas por escenario, no una
   secuencia obligatoria. Auditoría y límites en diseño § 12–13. Equipo → Trazabilidad
@@ -36,7 +38,8 @@
   Calidad → fabricación: corte directo confirmado en la vista instalada; la alerta
   guardaba la MO sin ofrecer acceso a ella. Botón Fabricación implementado e
   instalado en STAGING `19.0.24.2.0`, tres contratos y suite 362/362 aprobados.
-  Producción conserva `19.0.24.1.0`; no tiene este botón todavía.
+  Desplegado en producción; tests y lint del PR y del merge aprobados. Las tres
+  alertas reales no tienen MO: caso positivo cubierto por pruebas transaccionales.
 
 ## Próximos pasos acordados, en orden
 
@@ -90,10 +93,15 @@ exista. No se crearon alertas de QA persistentes ni se tocaron controles o PDFs.
 Respaldo STAGING: `/var/tmp/mc-rov-quality-navigation-z394km`.
 Evidencia: `../.tmp/quality-navigation-qa` (GREEN y vista instalada) y
 `../.tmp/process-navigation-audit/manufacturing.json` (auditoría).
-Cambio publicado en PR #98 (commit funcional `fac231c`); pendiente CI/merge y
-posterior despliegue de producción. No afirmar que el
-cambio esté en producción. La primera sonda GREEN falló por conversión ASCII de la
-tilde en Windows PowerShell; corregida con escape Unicode, sin cambiar el botón.
+PR #98 integrado en main (`54c177d`), con tests y lint aprobados en PR y merge.
+Producción desplegada en `19.0.24.2.0`: upgrade/reinicio completos, servicio activo,
+vista instalada y acciones de tres alertas reales comprobadas con rollback, hashes
+QWeb FEN/REV conservados. La base contiene tres alertas y ninguna tiene MO vinculada;
+no se certificó un clic sobre un caso positivo real ni se crearon alertas persistentes
+para probar. Respaldo `/var/backups/mc-rov-prod-quality-navigation-KvN70P/odoo_prod.dump`.
+Evidencia `../.tmp/prod-quality-navigation`. No queda merge ni despliegue pendiente
+para este acceso. La primera sonda GREEN falló por conversión ASCII de la tilde en
+Windows PowerShell; corregida con escape Unicode, sin cambiar el botón.
 
 ### 3. Centro de trabajo ROV, después de los recorridos
 
