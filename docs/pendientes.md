@@ -2,16 +2,16 @@
 
 > Actualizar esta sección al cerrar cada sesión de trabajo.
 
-**Recorridos entre procesos — 2026-10-07.** Rama
-`feature/navegacion-revisiones`. MO → series, orden → REV y equipo → RND/TRN ya
+**Navegación desde revisiones desplegada — 2026-10-07.** Rama original
+`feature/navegacion-revisiones`, fusionada en main. MO → series, orden → REV y equipo → RND/TRN ya
 funcionan con accesos nativos: no duplicarlos. Al entrar por Revisiones técnicas,
 faltaba un destino explícito hacia equipo/orden. Usuario aprobó dos botones nativos.
 
-- Implementados localmente e instalados en STAGING Equipo / Orden de reparación,
+- Implementados e instalados en STAGING y producción Equipo / Orden de reparación,
   visibles solo con vínculo.
   Abren el registro exacto, sin sudo ni cambios en la revisión; comprueban lectura
   de revisión y destino. Sin panel, estados, requisitos o modificaciones PDF.
-- Versión local `19.0.24.0.0`. Tres pruebas nuevas: destinos en borrador/confirmado
+- Versión instalada `19.0.24.0.0`. Tres pruebas nuevas: destinos en borrador/confirmado
   sin efectos, RND/TRN independientes y reglas de acceso al destino.
 - RED confirmado en log STAGING: **8 subcasos fallidos, 0 errores en 3 pruebas**,
   todos por métodos ausentes. El runner interpretó mal el conteo, no el ensayo;
@@ -30,11 +30,20 @@ faltaba un destino explícito hacia equipo/orden. Usuario aprobó dos botones na
   `tests/test_revision_navegacion.py` para respetar el límite de 1.400 líneas del
   archivo original; ningún caso añadido ni comportamiento cambiado. STAGING ejecutó
   esos casos antes de separarlos; CI confirmó el descubrimiento y ejecución de los tres.
-- Commit funcional `0c7e5f5`, publicado en PR #92 (borrador):
+- Commit funcional `0c7e5f5`, PR #92 fusionado como `1fe6fcc`:
   https://github.com/amonpxh/mc_rov/pull/92. CI del commit: **352 pruebas, cero fallos
   y errores**, y pre-commit aprobado. QA visual de destinos completada sin escrituras.
-- Después: revisión/merge del PR y despliegue conforme al flujo del repo. Producción intacta.
-  Documentación de auditoría en `docs/designs/flujo-guiado.md`; retorno FEN todavía
+- CI del merge: **352 pruebas, cero fallos y errores**, lint aprobado. Usuario confirmó
+  manualmente ambos accesos y la ausencia de Orden de reparación en pruebas independientes.
+- Producción PASSED: upgrade y reinicio completo el 2026-10-07 a las 15:37:29 UTC,
+  PID 1035666, servicio activo y HTTP verificado. Checkout remoto main limpio en `1fe6fcc`.
+  Vista instalada y destinos de 21 revisiones reales comprobados sin cambios de datos;
+  consulta con rollback. Ambos QWeb PDF conservan sus hashes, sin datos QA registrados.
+  Respaldo `/var/backups/mc-rov-prod-revision-navigation-C5c2EN/odoo_prod.dump`;
+  evidencia descargada en `.tmp/prod-revision-navigation`, fuera del repositorio.
+  Upgrade sin ERROR/CRITICAL. Advertencias compute/store existentes ya registradas abajo;
+  no corregidas fuera de alcance. No repetir este despliegue.
+- Siguiente recorrido: documentación de auditoría en `docs/designs/flujo-guiado.md`; retorno FEN todavía
   pendiente de QA porque equipos inspeccionados no tenían FEN.
 
 **Aviso de cierre desplegado — 2026-10-06.** Implementado y validado en STAGING y producción:
