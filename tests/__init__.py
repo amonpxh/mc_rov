@@ -8,3 +8,4 @@ from . import test_diagnostico_fallas
 from . import test_calidad
 from . import test_report_ficha
 from . import test_ficha_equipo_nuevo
+from . import test_revision_navegacion

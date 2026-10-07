@@ -23,7 +23,11 @@ class RevisionCommon(TransactionCase):
         cls.env["ir.config_parameter"].sudo().set_param(ROV_CATEG_PARAM, str(categoria.id))
 
         cls.product = cls.env["product.product"].create(
-            {"name": "ROV Test Revisión", "tracking": "serial", "categ_id": categoria.id}
+            {
+                "name": "ROV Test Revisión",
+                "tracking": "serial",
+                "categ_id": categoria.id,
+            }
         )
         cls.empleado = cls.env["hr.employee"].create({"name": "Técnico de Prueba"})
 
@@ -703,7 +707,8 @@ class TestMcRovRevisionResultado(RevisionCommon):
         self._responder_todo(revision)
 
         self.assertFalse(
-            revision.funcionamiento_continuo_resultado, "en terreno no se corre el esfuerzo"
+            revision.funcionamiento_continuo_resultado,
+            "en terreno no se corre el esfuerzo",
         )
         self.assertEqual(self._emitir(revision).resultado, "aprobado")
 

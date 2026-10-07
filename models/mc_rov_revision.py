@@ -545,7 +545,11 @@ class McRovRevision(models.Model):
     )
 
     alimentacion = fields.Selection(
-        [("UPS", "UPS"), ("Generador", "Generador"), ("Transformador", "Transformador")],
+        [
+            ("UPS", "UPS"),
+            ("Generador", "Generador"),
+            ("Transformador", "Transformador"),
+        ],
         string="Alimentación",
     )
     tension_salida = fields.Integer(string="Tensión de salida (V)")
@@ -1284,6 +1288,38 @@ class McRovRevision(models.Model):
         for revision in self:
             revision.estado = "borrador"
             revision.message_post(body="La revisión volvió a borrador para corregirse.")
+
+    def action_abrir_equipo(self):
+        """Permite continuar en el equipo al entrar por Revisiones técnicas."""
+        self.ensure_one()
+        self.check_access("read")
+        if not self.lot_id:
+            return False
+        self.lot_id.check_access("read")
+        return {
+            "type": "ir.actions.act_window",
+            "name": self.lot_id.display_name,
+            "res_model": "stock.lot",
+            "res_id": self.lot_id.id,
+            "view_mode": "form",
+            "target": "current",
+        }
+
+    def action_abrir_orden(self):
+        """Abre la visita vinculada; una prueba independiente no inventa una orden."""
+        self.ensure_one()
+        self.check_access("read")
+        if not self.repair_id:
+            return False
+        self.repair_id.check_access("read")
+        return {
+            "type": "ir.actions.act_window",
+            "name": self.repair_id.display_name,
+            "res_model": "repair.order",
+            "res_id": self.repair_id.id,
+            "view_mode": "form",
+            "target": "current",
+        }
 
     def action_abrir(self):
         """Abre esta revisión en su propia pantalla, desde la lista incrustada en otra ficha.

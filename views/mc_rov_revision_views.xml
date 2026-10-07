@@ -22,6 +22,18 @@
                     <field name="estado" widget="statusbar" statusbar_visible="borrador,confirmado"/>
                 </header>
                 <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_abrir_equipo" type="object"
+                                class="oe_stat_button" icon="fa-ship"
+                                invisible="not lot_id">
+                            <span class="o_stat_text">Equipo</span>
+                        </button>
+                        <button name="action_abrir_orden" type="object"
+                                class="oe_stat_button" icon="fa-wrench"
+                                invisible="not repair_id">
+                            <span class="o_stat_text">Orden de reparación</span>
+                        </button>
+                    </div>
                     <!-- El resultado es lo primero que alguien quiere saber al abrir una
                          ficha, y es derivado: se lee, no se decide.
 
