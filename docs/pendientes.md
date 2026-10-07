@@ -8,14 +8,14 @@
 - Producción: `mc_rov 19.0.24.0.0`, código funcional `1fe6fcc` (merge del PR #92).
   Upgrade y reinicio completos verificados; servicio activo desde 15:37:29 UTC,
   PID 1035666. Los accesos de 21 revisiones reales se comprobaron con rollback.
-- Último cierre documental en main: `a991ad8` (PR #93). No requiere otro despliegue.
+- Último cierre documental en main: `54f9791` (PR #94, orden del backlog). No requiere otro despliegue.
 - STAGING: navegación instalada y aprobada manualmente por el usuario. CI del merge
   funcional: **352 pruebas, cero fallos/errores**, lint aprobado.
 - Respaldo de producción:
   `/var/backups/mc-rov-prod-revision-navigation-C5c2EN/odoo_prod.dump`.
   Evidencia local en `../.tmp/prod-revision-navigation`; no publicar archivos `.tmp`.
-- Trabajo actual: ordenar este documento, después verificar los recorridos FEN y
-  fabricación descritos abajo. Sin nuevos cambios funcionales autorizados para esos recorridos.
+- Trabajo actual: auditoría de los recorridos FEN y fabricación. Inventario STAGING
+  consultado con rollback; resultados y límites en el diseño § 12. Sin cambios funcionales.
 
 ## Próximos pasos acordados, en orden
 
@@ -30,14 +30,19 @@ Comprobar en STAGING el acceso desde Equipo → Pruebas → fichas de equipo nue
 - Distinguir cero, una y varias fichas. No seleccionar silenciosamente una ficha distinta.
 - Verificar retorno al equipo y continuidad al entrar por el menú general.
 
-La lista y el modelo ya existen; falta QA del recorrido, no crear otro modelo ni
-rediseñar el PDF. Los equipos de la auditoría inicial no tenían FEN registradas.
+La lista y el modelo ya existen; no crear otro modelo ni rediseñar el PDF.
+Comprobado: serie 26-02 → Pruebas → FEN/00878 → modal → Expandir → formulario
+con Vista previa / Emitir ficha; retorno al equipo. La muestra actual contiene una
+sola FEN, en borrador. Faltan emisión almacenada y selección entre varias fichas.
+No existe un menú general de FEN en las vistas actuales; no darlo por disponible.
 Preferir registros existentes; si se necesita una fixture, identificarla y acordar
 su limpieza. No emitir fichas de clientes ni consumir correlativos para probar navegación.
 
 ### 2. Completar la auditoría de fabricación
 
 La MO WH/MO/00010 → botón nativo Números de serie → equipo 0000008 ya fue comprobada.
+WH/MO/00011 no tiene serie: el botón se oculta y aparece el campo de asignación.
+El inventario de 11 MO no contiene varias series ni controles de calidad asociados.
 Contrastar los casos restantes con Odoo y taller:
 
 - Fabricación con cero, una o varias series; dónde se asignan y cómo se elige la unidad.

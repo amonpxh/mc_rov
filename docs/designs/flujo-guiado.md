@@ -461,3 +461,61 @@ scroll pertenece solo al prototipo; no define alturas del formulario productivo.
 - Qué enlaces necesitan apertura de pestaña y cuáles ya funcionan con navegación nativa.
 
 La lista anterior ordena la comprobación; no propone campos obligatorios nuevos.
+
+## 12. Auditoría de FEN y fabricación — 2026-10-07
+
+Consulta de solo lectura de STAGING y navegación sin guardar ni ejecutar acciones
+de negocio. El shell terminó con rollback; no se crearon fichas, series o controles,
+no se consumieron correlativos ni se reinició el servicio. Evidencia local:
+`../.tmp/process-navigation-audit/inventory.json` y `../.tmp/fen-navigation-qa`.
+Los archivos de evidencia no forman parte del módulo.
+
+### Conexiones y límites comprobados
+
+| Caso | Evidencia actual | Resultado / siguiente comprobación |
+| --- | --- | --- |
+| Retomar FEN en borrador | Pantalla: 26-02 → Pruebas → FEN/00878 → Expandir | Abre el registro existente con Vista previa / Emitir ficha; permite volver al equipo. La apertura inicial es un modal de consulta. |
+| Consultar FEN emitida | Código del modelo; cero emitidas en STAGING | La descarga utiliza el adjunto final almacenado. Falta QA de pantalla con una ficha emitida; no emitir un documento de cliente para probarlo. |
+| Varias FEN del mismo equipo | Lista relacional existente; una sola FEN en toda la muestra | No hay muestra para comprobar elección/retorno con varias. No afirmar que el encabezado Imprimir ficha retoma una existente: abre el asistente para preparar otra. |
+| Entrada general a FEN | Vistas locales | No hay menú general de fichas. El acceso actual es desde el equipo. Evaluar necesidad antes de añadir otro acceso. |
+| Fabricación sin serie | Pantalla WH/MO/00011, estado Por cerrar | Campo Número de serie/lote disponible; Números de serie oculto. No se pulsó generar ni producir. |
+| Fabricación con una serie | WH/MO/00010 → serie 0000008, recorrido ya comprobado | Acceso nativo suficiente; no añadir un botón equivalente. |
+| Fabricación con varias series | Código instalado: acción con dominio sobre todos los lot_producing_ids | La acción abre una lista restringida a las unidades de la MO, no elige silenciosamente la primera. Falta muestra de pantalla; las 11 MO inventariadas no tienen varias series. |
+| Controles de fabricación configurados | Código instalado: check_quality abre controles pendientes de esa MO | Ninguna de las 11 MO tiene check_ids. Falta validar una operación con controles configurados; ausencia de controles no equivale a incumplimiento. |
+| Cambio de diseño | Código PLM: crear ECO requiere BoM; acceso condicionado a ECO existentes | Rama condicional. No exigir ECO ni actualización de BoM por fabricar; procedimiento real por confirmar con taller. |
+
+La cantidad del botón de series se calcula con `lot_producing_ids` y solo para
+productos con seguimiento por serie. No inferir a partir de ese botón la trazabilidad
+completa de movimientos históricos ni declarar inválida una MO antigua sin series.
+Generar una serie sí crea datos: no es una acción de navegación ni se ejecutó en QA.
+
+### Aplicabilidad del recorrido
+
+| Paso | Clase y alcance |
+| --- | --- |
+| Fabricar con diseño vigente | Usar la BoM/configuración que corresponda; modificar el diseño es opcional salvo cambio real. |
+| Asignar serie | Depende del seguimiento del producto. Necesaria para identificar la unidad que respalda configuración, pruebas y FEN; no imponerla a productos sin seguimiento. |
+| Controles de armado | Condicionales a producto/operación y controles configurados. No duplicar aquí mediciones de RND/TRN. |
+| Completar especificaciones | Recomendación con el aviso de faltantes existente; no crear un bloqueo universal de MO. |
+| Realizar/repetir RND y TRN | Validaciones independientes del equipo. Repetir según necesidad; el sistema no debe imponer un orden nuevo entre ambas. |
+| Preparar FEN | Admite borrador y vista previa con evidencia incompleta. Las pruebas elegidas permanecen visibles. |
+| Emitir FEN | Requisito de esta acción: RND y TRN seleccionadas del mismo equipo, del tipo correcto, sin reparación asociada, confirmadas y aceptadas. No trasladar ese requisito a cerrar MO o entregar comercialmente. |
+| Consultar una emitida | Abrir el documento almacenado; no preparar otra ni cambiar automáticamente su evidencia por pruebas posteriores. |
+| Entrega comercial | Responsabilidades y controles por definir con taller/comercial; no derivar un bloqueo de la ausencia de FEN sin una decisión de negocio. |
+
+### Cortes y decisiones siguientes
+
+El principal punto de fricción observado es **retomar FEN**: la fila abre un modal y
+hay que reconocer Expandir para llegar al formulario con las acciones. El encabezado
+Imprimir ficha prepara un nuevo documento y no sustituye ese recorrido. Antes de
+programar, evaluar un acceso explícito Abrir/Retomar en la lista existente; no añadir
+un panel que repita pestañas ni una selección automática de la última ficha.
+
+Para cerrar QA faltan muestras de FEN emitida, varias FEN/series y controles
+configurados. Preferir registros existentes; si se acuerdan fixtures, usar nombres
+explícitos y rollback, sin secuencias ni emisiones de cliente. Los casos respaldados
+solo por código no se presentan como comprobados en navegador.
+
+Con taller queda confirmar quién asigna series, quién decide repetir/seleccionar
+pruebas y cómo se enlaza aceptación con entrega. El centro de trabajo vendrá después:
+debe retomar estos mismos registros y reglas, sin inventar otra definición de pendiente.
