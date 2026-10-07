@@ -558,16 +558,16 @@ efectiva ni permisos de taller únicamente por encontrar un campo en una vista.
 
 | Enlace | Hallazgo en STAGING | Estado |
 | --- | --- | --- |
-| Equipo → fabricación | No hay botón directo en el formulario combinado ni relación directa a MO entre los campos relacionales inspeccionados. La serie tiene trazabilidad nativa. | Posible corte: comprobar primero si la trazabilidad permite llegar suficientemente bien a la fabricación de origen. No confundir fabricación del mismo producto con fabricación de esta serie. |
+| Equipo → fabricación | Sin botón directo a MO, pero serie 0000008 → Trazabilidad → WH/MO/00010 abre la fabricación exacta. | Recorrido nativo comprobado en pantalla. No hace falta agregar un botón para resolver un vínculo ausente. No confundir fabricación del mismo producto con fabricación de esta serie. |
 | Equipo → reparación / Calidad | Existen acciones nativas de reparaciones, alertas y controles, estos últimos según conteos. | Conservar y validar con datos que activen cada acceso. No duplicar pestañas. |
-| Calidad → reparación / serie | La alerta tiene repair_id y lot_ids. Pantalla QA00004 muestra WH/RO/00016 y serie 0000008. | Referencias visibles comprobadas; apertura de destino todavía no verificada. |
+| Calidad → reparación / serie | La alerta tiene repair_id y lot_ids. QA00004 muestra WH/RO/00016 y serie 0000008; Enlace interno abre WH/RO/00016. | Apertura de reparación comprobada y breadcrumb a la alerta. Apertura de la etiqueta de serie aún no probada. |
 | Calidad → fabricación | production_id existe en el modelo, pero no apareció entre los campos ni botones del formulario combinado inspeccionado. | Posible corte para alertas de fabricación; falta muestra vinculada y comprobar el acceso por control de origen. |
 | Calidad → ingeniería | Campo mc_eco_id visible. | Relación disponible; no hay ECO en la base para QA de apertura. |
 | Ingeniería → fabricación | Botón nativo Producción cuando hay production_id; la acción apunta a esa MO. | Código/vista comprobados; sin ECO existente para QA de pantalla. No implementarlo otra vez. |
 | Ingeniería → BoM / lecciones | Campos BoM y botón de lecciones vinculadas disponibles. | Sin ECO existente para probar el recorrido completo. |
 | Producto/modelo → BoM / fabricación / ingeniería | Accesos nativos en la vista; algunos condicionados por tipo, BoM y cantidades. La acción BoM contempla opciones de variante o plantilla. | No sustituirlos con botones genéricos. Falta QA de escenarios configurados; existencia de soporte de variantes no define el procedimiento de taller. |
 | Reparación → fabricación | Existe acción nativa action_view_mrp_productions, condicionada por production_count y estado. | No asumir que representa la fabricación original de la serie: falta verificar su dominio antes de recomendarla para investigar origen. |
-| FEN → equipo / RND / TRN | Campos relacionados visibles, sin no_open explícito en las opciones inspeccionadas. | No equivale a QA de apertura; continuar validación desde el borrador existente. |
+| FEN → equipo / RND / TRN | FEN/00878 → Enlace interno abre serie 26-02 y TRN/00003 seleccionada; retorno a FEN por breadcrumb comprobado desde TRN. | Equipo y TRN comprobados. RND está vacía en la muestra, por lo que no se certifica su apertura en pantalla. |
 
 La muestra contiene tres alertas: dos vinculadas a reparación y todas a serie 0000008;
 cero controles nativos y cero ECO. No hay una alerta vinculada a fabricación para
@@ -594,3 +594,25 @@ contenido del registro actual; las acciones principales ejecutan operaciones, no
 disfrazan de conexiones. Evitar que futuros vínculos dependan únicamente de reconocer
 la apertura de un campo o el control Expandir. No uniformar todos los iconos ni crear
 una pestaña adicional para una colección que ya tenga botón nativo.
+
+### Continuidad comprobada sin cambios funcionales
+
+La trazabilidad de la serie resuelve el origen de fabricación y conserva el retorno
+al equipo. Los campos many2one de FEN y de la alerta ofrecen Enlace interno al
+interactuar con el campo; se abrió la referencia actual sin seleccionar otro valor,
+sin guardar ni confirmar documentos. Son enlaces nativos funcionales, pero menos
+visibles que los botones Equipo / Orden de reparación de las revisiones.
+
+Capturas: `serie-trazabilidad-fabricacion.png`, `fen-trn-apertura.png`,
+`fen-equipo-apertura.png` y `calidad-orden-apertura.png` en la carpeta de evidencia.
+QA realizada con el usuario administrador de STAGING, no certifica permisos de taller.
+
+Recomendación concreta siguiente, todavía sin implementar: facilitar Abrir/Retomar
+en las filas de FEN existentes y evaluar botones inteligentes para sus referencias
+Equipo / Rendimiento / Terreno cuando existan. Deben abrir exactamente lo seleccionado,
+sin sustituirlo por la última prueba ni crear otra ficha. Conservar edición de las
+referencias en borrador y restricciones de la emitida. No modificar PDF.
+
+Para Calidad → fabricación faltan alertas con MO/control de origen. No crear un
+botón por la sola ausencia en esta muestra ni declarar la ruta comprobada; cerrar
+ese caso con una muestra acordada o consulta focalizada del código instalado.

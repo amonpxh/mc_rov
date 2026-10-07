@@ -23,6 +23,9 @@
   ECO → Producción ya existe. QA00004 muestra orden y serie. Posibles cortes por
   verificar: Equipo → fabricación y alerta de fabricación → MO; detalle en diseño § 13.
   Muestra: tres alertas, cero controles y cero ECO; no certificar esos casos por pantalla.
+- QA posterior: serie → Trazabilidad → MO de origen funciona; FEN → equipo/TRN y
+  alerta → reparación abren referencias exactas mediante Enlace interno. RND vacía
+  en la muestra. Calidad → fabricación sigue sin muestra; no crear enlaces duplicados.
 - Patrón visual de conexiones: botones inteligentes nativos. Comprobados arriba en
   serie 0000008 (reparaciones/alertas) y WH/RO/00016 (alertas); no son pestañas.
 
