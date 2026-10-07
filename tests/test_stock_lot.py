@@ -891,13 +891,29 @@ class TestAccionesROV(TransactionCase):
         )
         form = etree.fromstring(vista["arch"])
         botones = form.xpath("//button[@name='action_preparar_ficha_equipo_nuevo']")
-        self.assertEqual(len(botones), 1)
-        boton = botones[0]
-        self.assertEqual(boton.getparent().tag, "header")
-        self.assertEqual(boton.get("string"), "Imprimir ficha")
-        self.assertIn("not es_un_rov", boton.get("invisible", ""))
+        self.assertEqual(len(botones), 2)
+        self.assertEqual(
+            len(form.xpath("//header/button[@name='action_preparar_ficha_equipo_nuevo']")),
+            1,
+        )
+        for boton in botones:
+            self.assertEqual(boton.get("string"), "Imprimir ficha")
+            self.assertEqual(boton.get("type"), "object")
+            self.assertIn("not es_un_rov", boton.get("invisible", ""))
         pruebas = form.xpath("//page[@name='page_revisiones']")[0]
         self.assertIn("not es_un_rov", pruebas.get("invisible", ""))
+        fichas = form.xpath("//page[@name='page_fichas']")
+        self.assertEqual(len(fichas), 1)
+        self.assertEqual(fichas[0].get("string"), "Fichas")
+        self.assertIn("not es_un_rov", fichas[0].get("invisible", ""))
+        self.assertFalse(pruebas.xpath(".//field[@name='ficha_equipo_nuevo_ids']"))
+        self.assertEqual(len(fichas[0].xpath(".//field[@name='ficha_equipo_nuevo_ids']")), 1)
+        self.assertFalse(fichas[0].xpath(".//field[@name='revision_ids']"))
+        self.assertFalse(pruebas.xpath(".//button[@name='action_preparar_ficha_equipo_nuevo']"))
+        self.assertEqual(
+            len(fichas[0].xpath(".//button[@name='action_preparar_ficha_equipo_nuevo']")),
+            1,
+        )
         rnd = pruebas.xpath(".//button[@name='action_nueva_revision_rendimiento']")[0]
         trn = pruebas.xpath(".//button[@name='action_nueva_revision_terreno']")[0]
         self.assertEqual(

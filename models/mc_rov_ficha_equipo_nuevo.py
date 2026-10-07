@@ -105,6 +105,39 @@ class McRovFichaEquipoNuevo(models.Model):
             raise UserError("La ficha emitida no se puede modificar; prepare una ficha nueva.")
         return super().write(vals)
 
+    def _accion_abrir_registro(self, campo=None):
+        """Consulta la ficha o su referencia persistida sin elegir otra evidencia."""
+        self.ensure_one()
+        self.check_access("read")
+        registro = self[campo] if campo else self
+        if not registro:
+            return False
+        registro.check_access("read")
+        return {
+            "type": "ir.actions.act_window",
+            "name": registro.display_name,
+            "res_model": registro._name,
+            "res_id": registro.id,
+            "view_mode": "form",
+            "target": "current",
+        }
+
+    def action_abrir(self):
+        """Retoma esta ficha desde el equipo sin preparar una emisión nueva."""
+        return self._accion_abrir_registro()
+
+    def action_abrir_equipo(self):
+        """Vuelve a la unidad a la que pertenece el documento."""
+        return self._accion_abrir_registro("lot_id")
+
+    def action_abrir_rendimiento(self):
+        """Abre exclusivamente la RND elegida para esta ficha."""
+        return self._accion_abrir_registro("rnd_id")
+
+    def action_abrir_terreno(self):
+        """Abre exclusivamente la TRN elegida para esta ficha."""
+        return self._accion_abrir_registro("trn_id")
+
     def _ficha_logo_blanco_uri(self):
         """Inserta el logo en el PDF sin depender del servidor HTTP."""
         return _logo_blanco_fen_uri()

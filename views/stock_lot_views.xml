@@ -316,7 +316,13 @@
                                         class="btn-link" invisible="estado == 'borrador'"/>
                             </list>
                         </field>
-                        <separator string="Fichas de equipo nuevo"/>
+                    </page>
+                    <page string="Fichas" name="page_fichas" invisible="not es_un_rov">
+                        <div class="mb-3">
+                            <button name="action_preparar_ficha_equipo_nuevo" type="object"
+                                    string="Imprimir ficha" class="btn-secondary"
+                                    invisible="not es_un_rov"/>
+                        </div>
                         <field name="ficha_equipo_nuevo_ids" readonly="1">
                             <list>
                                 <field name="name"/>
@@ -324,6 +330,10 @@
                                 <field name="rnd_id"/>
                                 <field name="trn_id"/>
                                 <field name="estado"/>
+                                <button name="action_abrir" type="object" string="Retomar"
+                                        icon="fa-pencil" invisible="estado != 'borrador'"/>
+                                <button name="action_abrir" type="object" string="Abrir"
+                                        icon="fa-external-link" invisible="estado != 'emitida'"/>
                             </list>
                         </field>
                     </page>

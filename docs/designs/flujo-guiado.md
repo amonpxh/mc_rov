@@ -461,3 +461,177 @@ scroll pertenece solo al prototipo; no define alturas del formulario productivo.
 - Qué enlaces necesitan apertura de pestaña y cuáles ya funcionan con navegación nativa.
 
 La lista anterior ordena la comprobación; no propone campos obligatorios nuevos.
+
+## 12. Auditoría de FEN y fabricación — 2026-10-07
+
+Consulta de solo lectura de STAGING y navegación sin guardar ni ejecutar acciones
+de negocio. El shell terminó con rollback; no se crearon fichas, series o controles,
+no se consumieron correlativos ni se reinició el servicio. Evidencia local:
+`../.tmp/process-navigation-audit/inventory.json` y `../.tmp/fen-navigation-qa`.
+Los archivos de evidencia no forman parte del módulo.
+
+### Conexiones y límites comprobados
+
+| Caso | Evidencia actual | Resultado / siguiente comprobación |
+| --- | --- | --- |
+| Retomar FEN en borrador | Pantalla: 26-02 → Pruebas → FEN/00878 → Expandir | Abre el registro existente con Vista previa / Emitir ficha; permite volver al equipo. La apertura inicial es un modal de consulta. |
+| Consultar FEN emitida | Código del modelo; cero emitidas en STAGING | La descarga utiliza el adjunto final almacenado. Falta QA de pantalla con una ficha emitida; no emitir un documento de cliente para probarlo. |
+| Varias FEN del mismo equipo | Lista relacional existente; una sola FEN en toda la muestra | No hay muestra para comprobar elección/retorno con varias. No afirmar que el encabezado Imprimir ficha retoma una existente: abre el asistente para preparar otra. |
+| Entrada general a FEN | Vistas locales | No hay menú general de fichas. El acceso actual es desde el equipo. Evaluar necesidad antes de añadir otro acceso. |
+| Fabricación sin serie | Pantalla WH/MO/00011, estado Por cerrar | Campo Número de serie/lote disponible; Números de serie oculto. No se pulsó generar ni producir. |
+| Fabricación con una serie | WH/MO/00010 → serie 0000008, recorrido ya comprobado | Acceso nativo suficiente; no añadir un botón equivalente. |
+| Fabricación con varias series | Código instalado: acción con dominio sobre todos los lot_producing_ids | La acción abre una lista restringida a las unidades de la MO, no elige silenciosamente la primera. Falta muestra de pantalla; las 11 MO inventariadas no tienen varias series. |
+| Controles de fabricación configurados | Código instalado: check_quality abre controles pendientes de esa MO | Ninguna de las 11 MO tiene check_ids. Falta validar una operación con controles configurados; ausencia de controles no equivale a incumplimiento. |
+| Cambio de diseño | Código PLM: crear ECO requiere BoM; acceso condicionado a ECO existentes | Rama condicional. No exigir ECO ni actualización de BoM por fabricar; procedimiento real por confirmar con taller. |
+
+La cantidad del botón de series se calcula con `lot_producing_ids` y solo para
+productos con seguimiento por serie. No inferir a partir de ese botón la trazabilidad
+completa de movimientos históricos ni declarar inválida una MO antigua sin series.
+Generar una serie sí crea datos: no es una acción de navegación ni se ejecutó en QA.
+
+### Aplicabilidad del recorrido
+
+| Paso | Clase y alcance |
+| --- | --- |
+| Fabricar con diseño vigente | Usar la BoM/configuración que corresponda; modificar el diseño es opcional salvo cambio real. |
+| Asignar serie | Depende del seguimiento del producto. Necesaria para identificar la unidad que respalda configuración, pruebas y FEN; no imponerla a productos sin seguimiento. |
+| Controles de armado | Condicionales a producto/operación y controles configurados. No duplicar aquí mediciones de RND/TRN. |
+| Completar especificaciones | Recomendación con el aviso de faltantes existente; no crear un bloqueo universal de MO. |
+| Realizar/repetir RND y TRN | Validaciones independientes del equipo. Repetir según necesidad; el sistema no debe imponer un orden nuevo entre ambas. |
+| Preparar FEN | Admite borrador y vista previa con evidencia incompleta. Las pruebas elegidas permanecen visibles. |
+| Emitir FEN | Requisito de esta acción: RND y TRN seleccionadas del mismo equipo, del tipo correcto, sin reparación asociada, confirmadas y aceptadas. No trasladar ese requisito a cerrar MO o entregar comercialmente. |
+| Consultar una emitida | Abrir el documento almacenado; no preparar otra ni cambiar automáticamente su evidencia por pruebas posteriores. |
+| Entrega comercial | Responsabilidades y controles por definir con taller/comercial; no derivar un bloqueo de la ausencia de FEN sin una decisión de negocio. |
+
+### Cortes y decisiones siguientes
+
+El principal punto de fricción observado es **retomar FEN**: la fila abre un modal y
+hay que reconocer Expandir para llegar al formulario con las acciones. El encabezado
+Imprimir ficha prepara un nuevo documento y no sustituye ese recorrido. Antes de
+programar, evaluar un acceso explícito Abrir/Retomar en la lista existente; no añadir
+un panel que repita pestañas ni una selección automática de la última ficha.
+
+Para cerrar QA faltan muestras de FEN emitida, varias FEN/series y controles
+configurados. Preferir registros existentes; si se acuerdan fixtures, usar nombres
+explícitos y rollback, sin secuencias ni emisiones de cliente. Los casos respaldados
+solo por código no se presentan como comprobados en navegador.
+
+Con taller queda confirmar quién asigna series, quién decide repetir/seleccionar
+pruebas y cómo se enlaza aceptación con entrega. El centro de trabajo vendrá después:
+debe retomar estos mismos registros y reglas, sin inventar otra definición de pendiente.
+
+## 13. Mapa de relaciones y escenarios aprobado — 2026-10-07
+
+El usuario confirma que los recorridos permiten comenzar en distintos registros,
+continuar o no y tomar ramas según la situación. No son una secuencia de tareas
+obligatorias. Escenarios y destinos se mantienen en [Flujo de trabajo](../flujo-de-trabajo.md),
+apartados Cómo leer los recorridos, Relaciones y Calidad.
+
+Separar fabricación repetida, modelo nuevo, variante/cambio y reparación con o sin
+mejora. Calidad e ingeniería son procedimientos anexos: una incidencia puede requerir
+prevención desde el primer caso; una mejora solicitada puede requerir ingeniería sin
+incidencia. No crear alerta o ECO automáticamente al navegar ni imponerlos a cada orden.
+
+El acuerdo conceptual no certifica accesos no auditados ni define nuevas reglas de
+desarrollo/aprobación. Queda por verificar:
+
+- Equipo → fabricación: relación real con las series, cardinalidad y acción nativa.
+- Calidad → origen: control/orden de fabricación o reparación y unidades afectadas;
+  distinguir colección de alertas de consulta del registro de origen.
+- FEN → equipo y evidencia seleccionada: apertura efectiva de referencias y retorno;
+  mantener los casos pendientes de emitida y varias fichas del § 12.
+- Producto/BoM/ingeniería: accesos nativos, tratamiento real de variantes y vínculo
+  con fabricación de validación. No inferir qué revisión de BoM se usó por ser la actual.
+- Mejora desde reparación: existe la ruta por lección/alerta cuando hay incidencia;
+  no se ha diseñado un vínculo directo para una mejora sin incidencia. Definirlo solo
+  si se confirma un corte real, sin forzar el paso por Calidad.
+
+Priorizar lectura de código/vistas instaladas y QA con registros existentes. No añadir
+botones antes de demostrar la dificultad. El centro de trabajo reutilizará estas
+relaciones y criterios; no sustituirá los accesos contextuales ni creará otro proceso.
+
+### Resultado de la sonda de relaciones instaladas
+
+Evidencia: `../.tmp/process-navigation-audit/relations.json`, consulta con rollback.
+Se inspeccionaron relaciones ORM y formularios combinados; no se deduce apertura
+efectiva ni permisos de taller únicamente por encontrar un campo en una vista.
+
+| Enlace | Hallazgo en STAGING | Estado |
+| --- | --- | --- |
+| Equipo → fabricación | Sin botón directo a MO, pero serie 0000008 → Trazabilidad → WH/MO/00010 abre la fabricación exacta. | Recorrido nativo comprobado en pantalla. No hace falta agregar un botón para resolver un vínculo ausente. No confundir fabricación del mismo producto con fabricación de esta serie. |
+| Equipo → reparación / Calidad | Existen acciones nativas de reparaciones, alertas y controles, estos últimos según conteos. | Conservar y validar con datos que activen cada acceso. No duplicar pestañas. |
+| Calidad → reparación / serie | La alerta tiene repair_id y lot_ids. QA00004 muestra WH/RO/00016 y serie 0000008; Enlace interno abre WH/RO/00016. | Apertura de reparación comprobada y breadcrumb a la alerta. Apertura de la etiqueta de serie aún no probada. |
+| Calidad → fabricación | production_id existe en el modelo, pero no apareció entre los campos ni botones del formulario combinado inspeccionado. | Posible corte para alertas de fabricación; falta muestra vinculada y comprobar el acceso por control de origen. |
+| Calidad → ingeniería | Campo mc_eco_id visible. | Relación disponible; no hay ECO en la base para QA de apertura. |
+| Ingeniería → fabricación | Botón nativo Producción cuando hay production_id; la acción apunta a esa MO. | Código/vista comprobados; sin ECO existente para QA de pantalla. No implementarlo otra vez. |
+| Ingeniería → BoM / lecciones | Campos BoM y botón de lecciones vinculadas disponibles. | Sin ECO existente para probar el recorrido completo. |
+| Producto/modelo → BoM / fabricación / ingeniería | Accesos nativos en la vista; algunos condicionados por tipo, BoM y cantidades. La acción BoM contempla opciones de variante o plantilla. | No sustituirlos con botones genéricos. Falta QA de escenarios configurados; existencia de soporte de variantes no define el procedimiento de taller. |
+| Reparación → fabricación | Existe acción nativa action_view_mrp_productions, condicionada por production_count y estado. | No asumir que representa la fabricación original de la serie: falta verificar su dominio antes de recomendarla para investigar origen. |
+| FEN → equipo / RND / TRN | FEN/00878 → Enlace interno abre serie 26-02 y TRN/00003 seleccionada; retorno a FEN por breadcrumb comprobado desde TRN. | Equipo y TRN comprobados. RND está vacía en la muestra, por lo que no se certifica su apertura en pantalla. |
+
+La muestra contiene tres alertas: dos vinculadas a reparación y todas a serie 0000008;
+cero controles nativos y cero ECO. No hay una alerta vinculada a fabricación para
+comprobar ese retorno en pantalla. La ausencia de registros limita QA, no demuestra
+que los procesos estén deshabilitados.
+
+En la alerta, la etiqueta nativa Equipo identifica al equipo de Calidad (Main Quality
+Team), mientras Lote identifica al ROV. Tenerlo presente en instrucciones de usuario;
+no confundir ese campo con el botón Equipo de las revisiones. Sin cambio de etiquetas
+autorizado ni realizado en esta auditoría.
+
+### Consistencia de conexiones — comprobación visual
+
+El usuario pide que las conexiones se reconozcan con un patrón estándar como Equipo.
+Comprobado en STAGING, sin editar: serie 0000008 tiene botones inteligentes superiores
+Alertas de calidad (3) y Reparaciones (presentado como Por reparar: 2 / Hecho: 2).
+El segundo abre la lista contextual de órdenes. WH/RO/00016 presenta arriba el botón
+Alertas de calidad (1). No son pestañas; la pestaña duplicada de alertas en la serie
+fue retirada anteriormente. Capturas en `../.tmp/process-navigation-audit`.
+
+Mantener botones inteligentes nativos con icono/nombre y conteo si son colecciones;
+Equipo y Orden de reparación identifican destinos únicos. Las pestañas organizan
+contenido del registro actual; las acciones principales ejecutan operaciones, no se
+disfrazan de conexiones. Evitar que futuros vínculos dependan únicamente de reconocer
+la apertura de un campo o el control Expandir. No uniformar todos los iconos ni crear
+una pestaña adicional para una colección que ya tenga botón nativo.
+
+### Continuidad comprobada sin cambios funcionales
+
+La trazabilidad de la serie resuelve el origen de fabricación y conserva el retorno
+al equipo. Los campos many2one de FEN y de la alerta ofrecen Enlace interno al
+interactuar con el campo; se abrió la referencia actual sin seleccionar otro valor,
+sin guardar ni confirmar documentos. Son enlaces nativos funcionales, pero menos
+visibles que los botones Equipo / Orden de reparación de las revisiones.
+
+Capturas: `serie-trazabilidad-fabricacion.png`, `fen-trn-apertura.png`,
+`fen-equipo-apertura.png` y `calidad-orden-apertura.png` en la carpeta de evidencia.
+QA realizada con el usuario administrador de STAGING, no certifica permisos de taller.
+
+Alcance aprobado e instalado en STAGING (2026-10-07): Abrir/Retomar
+en las filas de FEN existentes y botones inteligentes para sus referencias
+Equipo / Rendimiento / Terreno cuando existan. Deben abrir exactamente lo seleccionado,
+sin sustituirlo por la última prueba ni crear otra ficha. Conservar edición de las
+referencias en borrador y restricciones de la emitida. No modificar PDF.
+
+Validación: cuatro contratos de navegación pasaron tras RED observado, suite completa
+359/359 y servicio activo. En pantalla, Retomar abrió FEN/00878; Terreno abrió su
+TRN/00003 y Equipo abrió 26-02. Rendimiento no aparece al faltar RND seleccionada.
+Referencias antiguas, emitidas y permisos verificados con fixtures transaccionales;
+no confundirlos con muestras reales emitidas. Evidencia y captura en
+`../.tmp/fen-navigation-qa`. Los hashes QWeb FEN/REV permanecen iguales.
+Aprobación manual y despliegue autorizados por el usuario; cierre git/despliegue en curso.
+
+Ajuste aprobado después de esa QA: FEN es documentación de aceptación, no una prueba.
+Su historial pasa a pestaña **Fichas**, sin repetir un título interior.
+Pruebas conserva revisiones y creación RND/TRN. **Imprimir ficha** queda disponible
+en cabecera y Fichas; ambos accesos usan la acción y asistente existentes.
+**Retomar / Abrir** continúa abriendo el documento elegido, sin crear otra emisión.
+Todo el bloque Fichas y sus accesos se ocultan para no-ROV. Sin cambios de PDF,
+selección de evidencia ni requisitos de emisión. RED observado y GREEN confirmado:
+cinco pruebas focalizadas y suite completa 359/359; STAGING activo y QWeb conservados.
+QA de pantalla: pestañas separadas e Imprimir ficha en ambas abre el mismo asistente;
+cancelado sin guardar ni emitir. Captura `fen-tab-fichas.png` en la carpeta de evidencia.
+
+Para Calidad → fabricación faltan alertas con MO/control de origen. No crear un
+botón por la sola ausencia en esta muestra ni declarar la ruta comprobada; cerrar
+ese caso con una muestra acordada o consulta focalizada del código instalado.
