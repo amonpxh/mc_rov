@@ -90,7 +90,8 @@ exista. No se crearon alertas de QA persistentes ni se tocaron controles o PDFs.
 Respaldo STAGING: `/var/tmp/mc-rov-quality-navigation-z394km`.
 Evidencia: `../.tmp/quality-navigation-qa` (GREEN y vista instalada) y
 `../.tmp/process-navigation-audit/manufacturing.json` (auditoría).
-Pendiente cierre git/PR/CI y posterior despliegue de producción; no afirmar que el
+Cambio publicado en PR #98 (commit funcional `fac231c`); pendiente CI/merge y
+posterior despliegue de producción. No afirmar que el
 cambio esté en producción. La primera sonda GREEN falló por conversión ASCII de la
 tilde en Windows PowerShell; corregida con escape Unicode, sin cambiar el botón.
 
