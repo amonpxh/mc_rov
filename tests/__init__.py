@@ -10,3 +10,4 @@ from . import test_report_ficha
 from . import test_ficha_equipo_nuevo
 from . import test_revision_navegacion
 from . import test_ficha_navegacion
+from . import test_work_center
