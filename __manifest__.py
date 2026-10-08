@@ -1,6 +1,6 @@
 {
     "name": "Marine Connection - ROV",
-    "version": "19.0.24.2.0",
+    "version": "19.0.24.3.0",
     "category": "Inventory",
     "summary": "Gestión de equipos ROV y órdenes de reparación",
     "author": "Marine Connection",
@@ -57,6 +57,7 @@
         "views/mrp_eco_views.xml",
         "views/product_template_views.xml",
         "views/mc_rov_menus.xml",
+        "views/mc_rov_work_center_views.xml",
         "reports/ficha_report.xml",
         "reports/ficha_equipo_nuevo_report.xml",
         "views/mc_rov_ficha_wizard_views.xml",
@@ -64,6 +65,12 @@
     "assets": {
         "web.assets_backend": [
             "mc_rov/static/src/css/mc_rov.css",
+            "mc_rov/static/src/work_center/work_center.js",
+            "mc_rov/static/src/work_center/work_center.xml",
+            "mc_rov/static/src/work_center/work_center.scss",
+        ],
+        "web.assets_unit_tests": [
+            "mc_rov/static/tests/work_center.test.js",
         ],
     },
     "installable": True,

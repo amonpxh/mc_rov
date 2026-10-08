@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="mc_rov.WorkCenter">
+        <div class="mc_work_center o_content">
+            <div class="mc_work_center_inner">
+                <header class="mc_work_center_heading">
+                    <div><span class="mc_work_center_eyebrow">ROV</span><h1>Centro de trabajo</h1>
+                        <p>Elige qué necesitas hacer y continúa en el registro correspondiente.</p></div>
+                    <button class="btn btn-light" t-on-click="initialize" t-att-disabled="state.loading" aria-label="Actualizar registros"><i class="fa fa-refresh" aria-hidden="true"/> Actualizar</button>
+                </header>
+                <div class="mc_work_center_areas" aria-label="Áreas de trabajo">
+                    <t t-foreach="areas" t-as="item" t-key="item.key">
+                        <button type="button" t-att-data-topic="item.key"
+                            t-att-class="'mc_work_center_area ' + (state.topic === item.key ? 'is_selected' : '')"
+                            t-att-aria-pressed="state.topic === item.key"
+                            t-on-click="() => this.selectTopic(item.key)">
+                            <i t-att-class="'fa ' + item.icon" aria-hidden="true"/>
+                            <span><strong t-esc="item.title"/><small t-esc="item.description"/></span>
+                        </button>
+                    </t>
+                </div>
+                <div t-if="state.overviewError" class="alert alert-warning" role="alert">
+                    <t t-esc="state.overviewError"/>
+                    <button class="btn btn-link" t-on-click="initialize">Reintentar</button>
+                </div>
+                <section t-else="" class="mc_work_center_workspace" t-att-aria-busy="state.loading">
+                    <div class="mc_work_center_workspace_heading"><h2 t-esc="area.title"/><span>Retomar o consultar</span></div>
+                    <div class="mc_work_center_tabs" role="tablist" aria-label="Tipos de registro">
+                        <t t-foreach="tabs" t-as="tab" t-key="tab.kind">
+                            <button role="tab" t-att-aria-selected="state.kind === tab.kind"
+                                t-att-disabled="!tab.available"
+                                t-att-class="state.kind === tab.kind ? 'is_selected' : ''"
+                                t-on-click="() => this.selectKind(tab.kind)">
+                                <t t-esc="tabLabel(tab.kind)"/>
+                                <span t-if="tab.available" class="mc_work_center_count" t-esc="tab.count"/>
+                                <span t-else="" class="mc_work_center_restricted">Sin acceso</span>
+                            </button>
+                        </t>
+                    </div>
+                    <div t-if="!capability?.available" class="mc_work_center_empty">No tienes acceso a estos registros.</div>
+                    <t t-else="">
+                        <div class="mc_work_center_toolbar">
+                            <label class="mc_work_center_search_label"><span>Buscar en <t t-esc="labels[0].toLowerCase()"/></span>
+                                <input type="search" class="form-control mc_work_center_search" maxlength="100" placeholder="Referencia, serie o modelo" t-att-value="filter.query" t-on-input="search"/>
+                            </label>
+                            <label t-if="usesState"><span>Estado</span>
+                                <select class="form-select" t-on-change="changeState">
+                                    <t t-if="state.kind === 'equipment'">
+                                        <option value="all" t-att-selected="filter.state_filter === 'all'">Todos los estados</option>
+                                        <option value="Operativo" t-att-selected="filter.state_filter === 'Operativo'">Operativo</option>
+                                        <option value="En mantención" t-att-selected="filter.state_filter === 'En mantención'">En mantención</option>
+                                        <option value="En reparación" t-att-selected="filter.state_filter === 'En reparación'">En reparación</option>
+                                    </t>
+                                    <t t-else=""><option value="open" t-att-selected="filter.state_filter === 'open'">En curso / borradores</option><option value="all" t-att-selected="filter.state_filter === 'all'">Todos los estados</option></t>
+                                </select>
+                            </label>
+                            <button t-if="capability.can_create" class="btn btn-primary mc_work_center_create" t-att-disabled="state.acting" t-on-click="create"><i class="fa fa-plus" aria-hidden="true"/> <t t-esc="labels[1]"/></button>
+                        </div>
+                        <div t-if="state.kind === 'equipment'" class="mc_work_center_model_filter">
+                            <label><span>Filtrar por modelo</span><input type="search" class="form-control" placeholder="Escribe para buscar un modelo" maxlength="100" t-att-value="state.modelQuery" t-on-input="searchModel"/></label>
+                            <button t-if="filter.model_id" class="btn btn-light" t-on-click="() => this.chooseModel(false)"><t t-esc="filter.model_label || 'Modelo seleccionado'"/> <i class="fa fa-times" aria-hidden="true"/><span class="visually-hidden">Quitar filtro de modelo</span></button>
+                            <div t-if="state.modelOptions.length" class="mc_work_center_model_options"><t t-foreach="state.modelOptions" t-as="model" t-key="model.id"><button class="btn btn-link" t-on-click="() => this.chooseModel(model)" t-esc="model.reference"/></t></div>
+                            <span t-if="state.modelError" t-esc="state.modelError"/>
+                        </div>
+                        <div t-if="state.error" class="alert alert-warning" role="alert"><t t-esc="state.error"/> <button class="btn btn-link" t-on-click="loadRecords">Reintentar consulta</button></div>
+                        <div t-if="state.loading" class="mc_work_center_empty" role="status">Consultando registros…</div>
+                        <div t-elif="!state.rows.length and !state.error" class="mc_work_center_empty">No hay registros accesibles para estos filtros.</div>
+                        <div t-elif="state.rows.length" class="table-responsive">
+                            <table class="table mc_work_center_table"><thead><tr><th>Referencia / serie</th><th>Modelo</th><th>Estado</th><th><span class="visually-hidden">Abrir registro</span></th></tr></thead>
+                                <tbody><t t-foreach="state.rows" t-as="record" t-key="record.id"><tr>
+                                    <td class="mc_work_center_reference" t-esc="record.reference"/><td t-esc="record.context"/><td><span class="mc_work_center_state" t-esc="record.state"/></td>
+                                    <td class="text-end"><button class="btn btn-outline-secondary btn-sm" t-att-data-record-id="record.id" t-att-disabled="state.acting" t-on-click="() => this.open(record)"><t t-esc="record.state === 'Borrador' ? 'Retomar' : 'Abrir'"/> <i class="fa fa-angle-right" aria-hidden="true"/></button></td>
+                                </tr></t></tbody>
+                            </table>
+                        </div>
+                        <footer class="mc_work_center_list_footer">
+                            <button t-if="state.topic === 'quality' and capability.can_candidates" class="btn btn-link mc_work_center_candidates" t-att-disabled="state.acting" t-on-click="openCandidates">Candidatas a lección</button>
+                            <button class="btn btn-link" t-att-disabled="state.acting" t-on-click="openList" t-esc="labels[2]"/>
+                            <div t-if="!state.loading and !state.error"><span><t t-esc="state.total"/> registros</span>
+                                <button t-if="filter.offset" class="btn btn-light btn-sm" aria-label="Página anterior" t-on-click="() => this.page(Math.max(0, filter.offset - 20))"><i class="fa fa-angle-left"/></button>
+                                <button t-if="state.nextOffset !== false" class="btn btn-light btn-sm" aria-label="Página siguiente" t-on-click="() => this.page(state.nextOffset)"><i class="fa fa-angle-right"/></button>
+                            </div>
+                        </footer>
+                    </t>
+                </section>
+            </div>
+        </div>
+    </t>
+</templates>

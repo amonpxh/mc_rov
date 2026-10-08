@@ -3,8 +3,12 @@
 > Fuente de continuidad. Actualizar al cerrar cada sesión y distinguir código local,
 > pruebas, merge y despliegue. Las propuestas no aprobadas no son tareas de implementación.
 
-## Estado vigente — 2026-10-07
+## Estado vigente — 2026-10-08
 
+- **Centro de trabajo aprobado para cierre y despliegue.** STAGING 19.0.24.3.0
+  pasó la suite final 378/378; servicio activo. Nombre e icono morado verificados
+  en el lanzador de Odoo, sin logo MC dentro de la pantalla. Black y pylint-odoo
+  pasan; PDFs conservados. Pendiente PR/checks/merge y despliegue a producción.
 - Producción: `mc_rov 19.0.24.2.0`, código funcional `54c177d` (merge del
   [PR #98](https://github.com/amonpxh/mc_rov/pull/98)). Upgrade y reinicio completos
   verificados; servicio activo desde 20:28:17 UTC, PID 1041544. Vista instalada y
@@ -42,6 +46,30 @@
   alertas reales no tienen MO: caso positivo cubierto por pruebas transaccionales.
 
 ## Próximos pasos acordados, en orden
+
+### Entrega del Centro de trabajo
+
+Piloto aprobado por el usuario. Nombre «Centro de trabajo», icono morado de
+conexiones y sin logo MC dentro de la pantalla. Bordes y scroll corregidos.
+Suite final del árbol actual: **378/378**, cero fallos/errores, servicio STAGING
+activo. Nombre/icono instalados y verificados en el lanzador nativo. Contratos
+backend y HOOT (16 y 10) aprobados; preservación de filtros y referencias comprobada.
+Los reportes FEN/REV conservan sus hashes y las sondas se revirtieron.
+
+Evidencia: `../.tmp/center-work-qa/final-release-tests.log`,
+`final-release-response.txt` y `final-icon-installed.png`.
+Respaldo: `/var/tmp/mc-rov-center-work-final-release-Ic3VQH`.
+Black y pylint-odoo locales aprobados. Pendiente PR/checks/merge y producción.
+
+El runner final excedía el límite Linux por variable de entorno; ahora transporta
+el paquete mediante archivo temporal. Reejecución verificada. Issue QA preparado
+localmente; publicación GitHub pendiente de autorización explícita tras rechazo
+por revisión automática. No bloquea la entrega funcional.
+
+Diseño vigente: [Centro de trabajo](designs/centro-trabajo-rov.md).
+Plan: [Implementación](superpowers/plans/2026-10-08-centro-trabajo-rov.md).
+[Historial de ensayos](pendientes-centro-historial-2026-10-08.md): no tratar los
+pendientes intermedios de ese archivo como estado actual.
 
 ### 1. Muestras adicionales de FEN cuando existan
 
