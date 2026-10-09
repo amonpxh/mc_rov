@@ -149,3 +149,19 @@ Integración y despliegue autorizados por el usuario. La última pasada local de
 formato/lint reorganizó helpers sin alterar los contratos; suite de cierre del
 árbol final aprobada 378/378 y servicio activo. Icono/nombre verificados en el
 lanzador nativo. Estado de PR y producción en `../pendientes.md`.
+
+## Responsables e icono — ajuste aprobado el 2026-10-09
+
+Las listas muestran la persona ya registrada, sin asignar tareas ni inferirla del
+autor o último editor. REV/RND/TRN usan «Técnico responsable» y la ayuda «Persona
+registrada como responsable de realizar la prueba.»; FEN, reparación, fabricación,
+controles/alertas de Calidad y cambios de ingeniería usan «Responsable».
+Los campos nativos fueron auditados en STAGING. Los nombres de empleados se leen
+mediante `hr.employee.public`, conservando permisos y reglas de acceso.
+Sin persona: «Sin responsable»; nombre no accesible: «Sin acceso al nombre».
+Modelos, BoM y equipos no incorporan columna; el responsable logístico del producto
+no representa al responsable del diseño. Actividades programadas quedan para después.
+
+El icono conserva posiciones, ángulos y círculo blanco; amplía los brazos de 32 a
+40 y ajusta la escala para ocupar 126 × 126 px en el render de referencia, igual
+que Contactos y Ventas. No incorpora desplazamiento ni rotación de figuras.

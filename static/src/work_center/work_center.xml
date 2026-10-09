@@ -66,9 +66,15 @@
                         <div t-if="state.loading" class="mc_work_center_empty" role="status">Consultando registros…</div>
                         <div t-elif="!state.rows.length and !state.error" class="mc_work_center_empty">No hay registros accesibles para estos filtros.</div>
                         <div t-elif="state.rows.length" class="table-responsive">
-                            <table class="table mc_work_center_table"><thead><tr><th>Referencia / serie</th><th>Modelo</th><th>Estado</th><th><span class="visually-hidden">Abrir registro</span></th></tr></thead>
+                            <table class="table mc_work_center_table"><thead><tr><th>Referencia / serie</th><th>Modelo</th><th>Estado</th>
+                                <th t-if="state.responsibleLabel" class="mc_work_center_responsible_heading" t-att-title="state.responsibleLabel === 'Técnico responsable' ? 'Persona registrada como responsable de realizar la prueba.' : false" t-esc="state.responsibleLabel"/>
+                                <th><span class="visually-hidden">Abrir registro</span></th></tr></thead>
                                 <tbody><t t-foreach="state.rows" t-as="record" t-key="record.id"><tr>
                                     <td class="mc_work_center_reference" t-esc="record.reference"/><td t-esc="record.context"/><td><span class="mc_work_center_state" t-esc="record.state"/></td>
+                                    <td t-if="state.responsibleLabel" class="mc_work_center_responsible">
+                                        <t t-if="record.responsible" t-esc="record.responsible"/>
+                                        <span t-else="" class="text-muted" t-esc="record.responsible_state === 'restricted' ? 'Sin acceso al nombre' : 'Sin responsable'"/>
+                                    </td>
                                     <td class="text-end"><button class="btn btn-outline-secondary btn-sm" t-att-data-record-id="record.id" t-att-disabled="state.acting" t-on-click="() => this.open(record)"><t t-esc="record.state === 'Borrador' ? 'Retomar' : 'Abrir'"/> <i class="fa fa-angle-right" aria-hidden="true"/></button></td>
                                 </tr></t></tbody>
                             </table>
