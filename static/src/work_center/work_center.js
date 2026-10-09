@@ -40,7 +40,7 @@ export class WorkCenter extends Component {
         this.state = useState({
             topic: saved.topic || "repair", kind: saved.kind || "orders",
             filters: saved.filters || {}, kinds: saved.kinds || {},
-            overview: [], rows: [], total: 0, nextOffset: false,
+            overview: [], rows: [], total: 0, nextOffset: false, responsibleLabel: false,
             loading: true, error: "", overviewError: "", acting: false,
             modelQuery: "", modelOptions: [], modelError: "",
         });
@@ -114,6 +114,7 @@ export class WorkCenter extends Component {
         clearTimeout(this.searchTimer);
         const generation = ++this.generation;
         this.state.rows = [];
+        this.state.responsibleLabel = false;
         this.state.error = "";
         this.state.loading = true;
         if (!this.capability?.available) {
@@ -127,6 +128,7 @@ export class WorkCenter extends Component {
                 [this.state.topic, this.state.kind], { query, model_id, state_filter, offset });
             if (generation !== this.generation) return;
             this.state.rows = result.rows;
+            this.state.responsibleLabel = result.responsible_label || false;
             this.state.total = result.total;
             this.state.nextOffset = result.next_offset;
         } catch (_error) {

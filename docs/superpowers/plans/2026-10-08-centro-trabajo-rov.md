@@ -5,7 +5,9 @@
 > Suite integrada 378/378, contratos finales 16/16 y HOOT 10/10 aprobados.
 > Piloto aprobado por el usuario; suite final del árbol de entrega 378/378 verificada.
 > Revisión final realizada y sus tres hallazgos corregidos mediante RED→GREEN.
-> Producción sin cambios del Centro; integración y despliegue autorizados, pendientes.
+> PR #100 integrado en main (`b9410ba`); checks del PR y del merge aprobados.
+> Producción 19.0.24.3.0 instalada el 2026-10-08; servicio activo, menú/icono y
+> accesos de lectura verificados, PDFs conservados. Falta comprobación visual allí.
 
 **Objetivo:** comenzar y retomar trabajo ROV desde la composición C aprobada.
 

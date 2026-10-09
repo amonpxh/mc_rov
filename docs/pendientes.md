@@ -3,16 +3,33 @@
 > Fuente de continuidad. Actualizar al cerrar cada sesión y distinguir código local,
 > pruebas, merge y despliegue. Las propuestas no aprobadas no son tareas de implementación.
 
-## Estado vigente — 2026-10-08
+## Estado vigente — 2026-10-09
 
-- **Centro de trabajo aprobado para cierre y despliegue.** STAGING 19.0.24.3.0
+- Ajuste aprobado en curso, rama `feature/centro-responsables-icono`: icono ampliado
+  y brazos más anchos preparados localmente; render a escala de referencia verificado
+  en 126 × 126 px, sin desplazamiento ni rotación. Cinco contratos nuevos de responsables
+  escritos antes del cambio de backend. Auditoría y RED verificados en STAGING:
+  16 contratos anteriores pasan; cinco pruebas nuevas producen ocho aserciones
+  fallidas esperadas (subcasos REV/RND/TRN/FEN), sin errores. Backend e icono instalados
+  en STAGING 19.0.24.4.0: suite 383/383 aprobada, servicio activo y hashes QWeb
+  conservados. RED frontend observado: 10 pruebas anteriores pasan y 3 nuevas fallan por
+  columnas ausentes. Columnas instaladas en STAGING y HOOT GREEN 13/13 comprobado en navegador.
+  QA visual: REV, órdenes, fabricación y alertas muestran sus responsables;
+  Equipos no muestra columna. Black/pylint aprobados. Pendiente PR/checks/merge y
+  despliegue de este ajuste a producción (que sigue en 19.0.24.3.0).
+  Evidencia: `../.tmp/center-work-qa/responsibles-green-tests.log`.
+
+- **Centro de trabajo desplegado en producción.** STAGING 19.0.24.3.0
   pasó la suite final 378/378; servicio activo. Nombre e icono morado verificados
   en el lanzador de Odoo, sin logo MC dentro de la pantalla. Black y pylint-odoo
-  pasan; PDFs conservados. Pendiente PR/checks/merge y despliegue a producción.
-- Producción: `mc_rov 19.0.24.2.0`, código funcional `54c177d` (merge del
-  [PR #98](https://github.com/amonpxh/mc_rov/pull/98)). Upgrade y reinicio completos
-  verificados; servicio activo desde 20:28:17 UTC, PID 1041544. Vista instalada y
-  acciones comprobadas con rollback; ambos reportes QWeb conservan sus hashes.
+  pasan; PDFs conservados. [PR #100](https://github.com/amonpxh/mc_rov/pull/100)
+  integrado en `main` mediante `b9410ba`, con checks del PR y del merge aprobados
+  (CI del merge: 375 pruebas). Instalación de producción verificada con lectura y rollback.
+- Producción: `mc_rov 19.0.24.3.0`, código funcional `b9410ba` (PR #100).
+  Upgrade y reinicio completos verificados; servicio activo desde
+  2026-10-08 20:39:38 UTC, PID 1064676. Menú, acción e icono verificados;
+  conteos y referencias de las áreas comprobados sin crear datos.
+  Ambos reportes QWeb conservan sus hashes. Falta solo comprobación visual en producción.
 - Navegación FEN terminada y aprobada manualmente: historial en **Fichas**, sin título
   interior adicional. **Pruebas** conserva revisiones y creación RND/TRN.
   **Imprimir ficha** aparece en cabecera y Fichas, no en Pruebas; ambos accesos
@@ -31,8 +48,8 @@
   allí. La sonda se revirtió, sin emitir documentos ni consumir correlativos.
   Ambos reportes QWeb conservaron sus hashes antes/después del despliegue.
 - Respaldo de producción:
-  `/var/backups/mc-rov-prod-quality-navigation-KvN70P/odoo_prod.dump`.
-  Evidencia del último despliegue: `../.tmp/prod-quality-navigation`; evidencia FEN
+  `/var/backups/mc-rov-prod-center-work-xdBJKb/odoo_prod.dump`.
+  Evidencia del último despliegue: `../.tmp/prod-center-work`; evidencia FEN
   anterior: `../.tmp/prod-fen-navigation` y `../.tmp/fen-navigation-qa`.
   No publicar archivos `.tmp`. No queda despliegue pendiente para esta entrega.
 - Mapa de relaciones aprobado: recorridos abiertos y ramas por escenario, no una
@@ -47,6 +64,29 @@
 
 ## Próximos pasos acordados, en orden
 
+### Ajustes posteriores al despliegue del Centro
+
+- Icono aprobado por el usuario: sin desplazamiento ni rotación, brazos más anchos
+  (32 → 40), círculo blanco limpio; rectángulo cromático recalculado a 126 × 126 px
+  en la maqueta, igual que Contactos/Ventas. Maqueta:
+  `../.tmp/center-work-qa/icon-measured/wide-comparison.png`. PNG/SVG actualizados
+  localmente y render del PNG comprobado a 126 × 126 px; instalado en STAGING.
+- Responsables en el Centro: propuesta y nombres de columnas aprobados por el usuario;
+  backend aprobado en STAGING (383/383), interfaz instalada y HOOT 13/13 aprobado. REV/RND/TRN: «Técnico responsable», con ayuda
+  «Persona registrada como responsable de realizar la prueba». Evitar «Realizado por»
+  en borradores, porque aún podrían no haberse ejecutado. Órdenes: «Responsable».
+  Reutilizar responsables existentes; separar responsable del registro de asignado
+  de una actividad nativa. REV/RND/TRN y FEN usan empleados; las órdenes nativas
+  usan usuarios. No inferir asignación desde autor, propietario o último editor.
+  Campos de Fabricación/Calidad/ECO auditados: usuario nativo responsable.
+  Empleados se consultan mediante `hr.employee.public`, respetando permisos.
+  Sin persona registrada: «Sin responsable»; nombre restringido: «Sin acceso al nombre».
+  Modelos/BoM/equipos sin columna; responsable logístico de producto excluido. No crear obligaciones
+  ni asignar automáticamente tareas a partir de los conteos del Centro.
+- Actividades programadas: fuera del alcance actual. El usuario quiere conversar
+  su incorporación después; no implementar ahora. Si se incorporan, distinguir
+  «Asignado a» del responsable del registro o del técnico de una revisión.
+
 ### Entrega del Centro de trabajo
 
 Piloto aprobado por el usuario. Nombre «Centro de trabajo», icono morado de
@@ -59,7 +99,17 @@ Los reportes FEN/REV conservan sus hashes y las sondas se revirtieron.
 Evidencia: `../.tmp/center-work-qa/final-release-tests.log`,
 `final-release-response.txt` y `final-icon-installed.png`.
 Respaldo: `/var/tmp/mc-rov-center-work-final-release-Ic3VQH`.
-Black y pylint-odoo locales aprobados. Pendiente PR/checks/merge y producción.
+Black y pylint-odoo locales aprobados. PR #100 integrado (`b9410ba`), checks del PR
+y del merge aprobados. Producción 19.0.24.3.0 instalada y reiniciada; sonda de lectura
+aprobada, sin cambios de conteos y con rollback. Menú/acción 1018 e icono verificados.
+Evidencia: `../.tmp/prod-center-work/verification.json` y `deployment.txt`.
+Falta comprobación visual en producción; no repetir despliegue para hacerla.
+
+El runner PowerShell tenía un prefijo BOM convertido en texto; produjo un error
+en la primera línea pero continuó y completó el despliegue. Generador y script
+corregidos; primera línea y sintaxis comprobadas localmente sin ejecutar SSH.
+Los avisos de deprecación de `odoo.osv` y del compute de ficha técnica no bloquearon
+el upgrade. Su limpieza técnica queda para una pasada separada, sin alterar esta entrega.
 
 El runner final excedía el límite Linux por variable de entorno; ahora transporta
 el paquete mediante archivo temporal. Reejecución verificada. Issue QA preparado

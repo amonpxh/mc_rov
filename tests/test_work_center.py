@@ -7,6 +7,8 @@ from odoo.tools.safe_eval import safe_eval
 from .test_mc_rov_revision import RevisionCommon
 
 
+# Una clase mantiene juntos los contratos del mismo servicio.
+# pylint: disable-next=too-many-public-methods
 class TestWorkCenter(RevisionCommon):
     """El centro consulta trabajo accesible y abre destinos sin cambiar evidencias."""
 
@@ -34,6 +36,82 @@ class TestWorkCenter(RevisionCommon):
 
     def _row_ids(self, result):
         return {row["id"] for row in result["rows"]}
+
+    def test_responsables_de_pruebas_y_fen_son_los_empleados_guardados(self):
+        center = self._center()
+        cases = []
+        for topic, kind, tipo in (
+            ("repair", "reviews", "reparacion"),
+            ("acceptance", "performance", "rendimiento"),
+            ("acceptance", "field", "terreno"),
+        ):
+            cases.append((topic, kind, self._revision(tipo=tipo), "Técnico responsable"))
+        cases.append(
+            ("acceptance", "fen", self._ficha(responsable_id=self.empleado.id), "Responsable")
+        )
+        for topic, kind, record, label in cases:
+            with self.subTest(kind=kind):
+                before = record.read(["responsable_id", "write_date"])
+                result = center.get_records(topic, kind, state_filter="all")
+                self.assertEqual(result.get("responsible_label"), label)
+                row = next(row for row in result["rows"] if row["id"] == record.id)
+                self.assertEqual(row.get("responsible"), self.empleado.name)
+                self.assertEqual(record.read(["responsable_id", "write_date"]), before)
+
+    def test_responsable_de_orden_es_usuario_asignado_no_autor(self):
+        user = new_test_user(self.env, login="center_order_owner", groups="stock.group_stock_user")
+        order = self.env["repair.order"].create(
+            {"product_id": self.product.id, "lot_id": self.lot.id, "user_id": user.id}
+        )
+        result = self._center().get_records("repair", "orders", state_filter="all")
+        self.assertEqual(result.get("responsible_label"), "Responsable")
+        row = next(row for row in result["rows"] if row["id"] == order.id)
+        self.assertEqual(row.get("responsible"), user.name)
+        self.assertNotEqual(order.create_uid, user)
+
+    def test_sin_responsable_no_infiere_autor_y_equipo_no_tiene_columna(self):
+        revision = self._revision(responsable_id=False)
+        result = self._center().get_records("repair", "reviews", state_filter="all")
+        self.assertEqual(result.get("responsible_label"), "Técnico responsable")
+        row = next(row for row in result["rows"] if row["id"] == revision.id)
+        self.assertFalse(row.get("responsible"))
+        self.assertEqual(row.get("responsible_state"), "unassigned")
+        equipment = self._center().get_records("equipment", "equipment")
+        self.assertFalse(equipment.get("responsible_label"))
+
+    def test_nombre_publico_del_tecnico_no_requiere_permisos_privados_de_rrhh(self):
+        user = new_test_user(
+            self.env, login="center_technician_reader", groups="stock.group_stock_user"
+        )
+        revision = self._revision()
+        self.assertFalse(self.env["hr.employee"].with_user(user).has_access("read"))
+        result = (
+            self._center().with_user(user).get_records("repair", "reviews", state_filter="all")
+        )
+        self.assertEqual(result.get("responsible_label"), "Técnico responsable")
+        row = next(row for row in result["rows"] if row["id"] == revision.id)
+        self.assertEqual(row.get("responsible"), self.empleado.name)
+
+    def test_tecnico_restringido_no_revela_nombre_ni_oculta_revision(self):
+        user = new_test_user(
+            self.env, login="center_technician_hidden", groups="stock.group_stock_user"
+        )
+        revision = self._revision()
+        for model in ("hr.employee", "hr.employee.public"):
+            self.env["ir.rule"].create(
+                {
+                    "name": "Técnico no accesible en centro",
+                    "model_id": self.env["ir.model"]._get_id(model),
+                    "domain_force": str([("id", "!=", self.empleado.id)]),
+                }
+            )
+        result = (
+            self._center().with_user(user).get_records("repair", "reviews", state_filter="all")
+        )
+        self.assertEqual(result.get("responsible_label"), "Técnico responsable")
+        row = next(row for row in result["rows"] if row["id"] == revision.id)
+        self.assertFalse(row.get("responsible"))
+        self.assertEqual(row.get("responsible_state"), "restricted")
 
     def test_equipo_filtra_rov_modelo_y_serie_con_lista_del_mismo_ambito(self):
         center = self._center()

@@ -30,6 +30,66 @@ describe("mc_rov work center", () => {
     // El montaje inicia servicios de Mail aunque el centro no contenga chatter.
     defineModels(mailModels);
 
+    test("responsable muestra nombre y distingue vacio de acceso restringido", async () => {
+        const Center = requireCenter();
+        if (!Center) return;
+        mockService("orm", {
+            call(_model, method) {
+                return Promise.resolve(method === "get_overview" ? overview() : {
+                    rows: [
+                        { ...row(41), responsible: "Usuario asignado", responsible_state: "assigned" },
+                        { ...row(42), responsible: false, responsible_state: "unassigned" },
+                        { ...row(43), responsible: false, responsible_state: "restricted" },
+                    ], total: 3, next_offset: false, responsible_label: "Responsable",
+                });
+            },
+        });
+        await mountCenter(Center);
+        expect("th.mc_work_center_responsible_heading").toHaveText("Responsable");
+        expect("tbody tr:nth-child(1) .mc_work_center_responsible").toHaveText("Usuario asignado");
+        expect("tbody tr:nth-child(2) .mc_work_center_responsible").toHaveText("Sin responsable");
+        expect("tbody tr:nth-child(3) .mc_work_center_responsible").toHaveText("Sin acceso al nombre");
+        expect(".mc_work_center_responsible a").toHaveCount(0);
+    });
+
+    test("revision en borrador dice tecnico responsable sin afirmar que ya se realizo", async () => {
+        const Center = requireCenter();
+        if (!Center) return;
+        mockService("orm", {
+            call(_model, method) {
+                return Promise.resolve(method === "get_overview" ? [
+                    { topic: "repair", kind: "reviews", available: true, count: 1, can_create: true },
+                ] : { ...result(41), responsible_label: "Técnico responsable",
+                    rows: [{ ...row(41), responsible: "Técnico de Prueba", responsible_state: "assigned" }] });
+            },
+        });
+        await mountCenter(Center, { state: { workCenter: { topic: "repair", kind: "reviews" } } });
+        expect("th.mc_work_center_responsible_heading").toHaveText("Técnico responsable");
+        expect("th.mc_work_center_responsible_heading").toHaveAttribute("title", "Persona registrada como responsable de realizar la prueba.");
+        expect(".mc_work_center_responsible").toHaveText("Técnico de Prueba");
+    });
+
+    test("equipo no muestra responsable y al regresar se recupera la columna correcta", async () => {
+        const Center = requireCenter();
+        if (!Center) return;
+        mockService("orm", {
+            call(_model, method, args) {
+                if (method === "get_overview") return Promise.resolve(overview());
+                const assigned = args[1] === "orders";
+                return Promise.resolve({ ...result(41), responsible_label: assigned ? "Responsable" : false,
+                    rows: [{ ...row(41), responsible: assigned ? "Usuario asignado" : false }] });
+            },
+        });
+        await mountCenter(Center);
+        expect("th.mc_work_center_responsible_heading").toHaveText("Responsable");
+        await click('[data-topic="equipment"]');
+        await animationFrame();
+        expect("th.mc_work_center_responsible_heading").toHaveCount(0);
+        await click('[data-topic="repair"]');
+        await animationFrame();
+        expect("th.mc_work_center_responsible_heading").toHaveText("Responsable");
+    });
+
     test("seleccionar área consulta registros sin crear ni navegar", async () => {
         const Center = requireCenter();
         if (!Center) return;

@@ -96,6 +96,17 @@ DEFINITIONS = {
 REVISION_TYPES = {"reviews": "reparacion", "performance": "rendimiento", "field": "terreno"}
 EQUIPMENT_STATES = ("Operativo", "En mantención", "En reparación")
 
+# Reuse operational ownership only: product.responsible_id concerns logistics, not design.
+RESPONSIBLE_FIELDS = {
+    "repair.order": "user_id",
+    "mrp.production": "user_id",
+    "quality.alert": "user_id",
+    "quality.check": "user_id",
+    "mrp.eco": "user_id",
+    "mc.rov.revision": "responsable_id",
+    "mc.rov.ficha.equipo.nuevo": "responsable_id",
+}
+
 
 class WorkCenter(models.AbstractModel):
     """Consulta trabajo ROV y abre sus formularios, sin crear estados de proceso."""
@@ -285,7 +296,28 @@ class WorkCenter(models.AbstractModel):
             "rows": self._record_rows(records, definition[2], definition[3]),
             "total": total,
             "next_offset": offset + 20 if offset + 20 < total else False,
+            "responsible_label": (
+                _("Técnico responsable")
+                if model._name == "mc.rov.revision"
+                else _("Responsable") if model._name in RESPONSIBLE_FIELDS else False
+            ),
         }
+
+    def _responsible_names(self, records):
+        """Lee solo nombres permitidos; empleados públicos evitan exigir acceso privado a RRHH."""
+        field_name = RESPONSIBLE_FIELDS.get(records._name)
+        if not field_name:
+            return False, {}
+        ids = records.mapped(field_name).ids
+        related_model = records._fields[field_name].comodel_name
+        if related_model == "hr.employee":
+            related_model = "hr.employee.public"
+        related = self.env[related_model].with_context(active_test=False)
+        if not ids or not related.has_access("read"):
+            return field_name, {}
+        # search_read aplica reglas en lote; no se expone la identidad del registro restringido.
+        names = related.search_read([("id", "in", ids)], ["name"])
+        return field_name, {row["id"]: row["name"] for row in names}
 
     def _record_rows(self, records, model_path, state_field):
         """Presenta referencias y estados nativos sin inferir tareas personales."""
@@ -294,6 +326,7 @@ class WorkCenter(models.AbstractModel):
         if state_field and model._fields[state_field].type == "selection":
             labels = dict(model.fields_get([state_field])[state_field]["selection"])
         rows = []
+        responsible_field, responsible_names = self._responsible_names(records)
         for record in records:
             related = record
             if model_path:
@@ -302,12 +335,20 @@ class WorkCenter(models.AbstractModel):
             state = record[state_field] if state_field else False
             if state and model._fields[state_field].type == "many2one":
                 state = state.display_name
+            responsible_id = record[responsible_field].id if responsible_field else False
+            responsible = responsible_names.get(responsible_id, False)
             rows.append(
                 {
                     "id": record.id,
                     "reference": record.display_name,
                     "context": related.display_name if model_path and related else "",
                     "state": labels.get(state, state) or "",
+                    "responsible": responsible,
+                    "responsible_state": (
+                        "assigned"
+                        if responsible
+                        else "restricted" if responsible_id else "unassigned"
+                    ),
                 }
             )
         return rows
