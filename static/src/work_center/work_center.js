@@ -4,6 +4,7 @@ import { useService } from "@web/core/utils/hooks";
 import { useSetupAction } from "@web/search/action_hook";
 
 const SERVICE = "mc.rov.work.center";
+const ASSIGNMENT = "mc.rov.work.assignment";
 const AREAS = [
     { key: "repair", title: "Reparar o mantener", description: "Órdenes y revisiones de una visita.", icon: "fa-wrench" },
     { key: "manufacturing", title: "Fabricar un equipo", description: "Órdenes, materiales y operaciones.", icon: "fa-cogs" },
@@ -43,6 +44,9 @@ export class WorkCenter extends Component {
             overview: [], rows: [], total: 0, nextOffset: false, responsibleLabel: false,
             loading: true, error: "", overviewError: "", acting: false,
             modelQuery: "", modelOptions: [], modelError: "",
+            assignedWork: { scope: "mine", employeeId: false, kind: "activities", ...saved.assignedWork },
+            assignmentOpen: false, assignmentLoading: false, assignmentReady: false,
+            assignmentError: "", employeeError: "", employees: [], canViewTeam: false,
         });
         this.generation = 0;
         this.modelGeneration = 0;
@@ -60,6 +64,7 @@ export class WorkCenter extends Component {
         return JSON.parse(JSON.stringify({
             topic: this.state.topic, kind: this.state.kind,
             filters: this.state.filters, kinds: this.state.kinds,
+            assignedWork: this.state.assignedWork,
         }));
     }
 
@@ -79,6 +84,55 @@ export class WorkCenter extends Component {
     }
     get usesState() { return !["models", "bom", "lessons"].includes(this.state.kind); }
     tabLabel(kind) { return KINDS[kind]?.[0] || kind; }
+
+    async toggleAssignedWork() {
+        this.state.assignmentOpen = !this.state.assignmentOpen;
+        if (!this.state.assignmentOpen || this.state.assignmentLoading) return;
+        this.state.assignmentLoading = true;
+        this.state.assignmentReady = false;
+        this.state.assignmentError = "";
+        try {
+            const capabilities = await this.orm.call(ASSIGNMENT, "get_capabilities", []);
+            this.state.canViewTeam = capabilities.can_view_team;
+            if (!capabilities.can_view_team || !["mine", "team"].includes(this.state.assignedWork.scope)) {
+                this.state.assignedWork.scope = "mine";
+            }
+            this.state.assignmentReady = true;
+            try {
+                this.state.employees = await this.orm.searchRead("hr.employee.public",
+                    [["active", "=", true]], ["display_name"], { order: "name" });
+                this.state.employeeError = "";
+                if (!this.state.employees.some((employee) => employee.id === this.state.assignedWork.employeeId)) {
+                    this.state.assignedWork.employeeId = false;
+                }
+            } catch (_error) {
+                this.state.employees = [];
+                this.state.assignedWork.employeeId = false;
+                this.state.employeeError = "No se pudo consultar el filtro de empleados.";
+            }
+        } catch (_error) {
+            this.state.assignmentError = "No se pudo consultar el acceso al trabajo asignado. Vuelve a intentar.";
+        } finally {
+            this.state.assignmentLoading = false;
+        }
+    }
+
+    async openAssignedWork(kind) {
+        if (this.state.acting || !this.state.assignmentReady) return;
+        this.state.acting = true;
+        this.state.assignmentError = "";
+        try {
+            const kwargs = { scope: this.state.assignedWork.scope };
+            if (kind === "activities") kwargs.employee_id = this.state.assignedWork.employeeId || false;
+            const action = await this.orm.call(ASSIGNMENT, `action_${kind}`, [], kwargs);
+            if (typeof action.help === "string") action.help = markup(action.help);
+            await this.action.doAction(action);
+        } catch (_error) {
+            this.state.assignmentError = "No se pudo abrir el destino. Comprueba tus permisos y la aplicación instalada.";
+        } finally {
+            this.state.acting = false;
+        }
+    }
 
     async initialize() {
         try {

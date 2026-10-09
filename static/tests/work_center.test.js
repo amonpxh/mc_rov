@@ -6,6 +6,7 @@ import { mailModels } from "@mail/../tests/mail_test_helpers";
 import { registry } from "@web/core/registry";
 
 const TAG = "mc_rov.work_center";
+const ASSIGNMENT = "mc.rov.work.assignment";
 const row = (id) => ({ id, reference: `Registro ${id}`, context: "Modelo QA", state: "Borrador" });
 const result = (id) => ({ rows: [row(id)], total: 1, next_offset: false });
 const overview = (canCreate = true) => [
@@ -25,6 +26,113 @@ async function mountCenter(Center, props = {}) {
         props: { action: { tag: TAG }, ...props },
     });
 }
+
+describe("mc_rov assigned work", () => {
+    defineModels(mailModels);
+
+    function mockAssignment(canViewTeam = false) {
+        const calls = [];
+        const actions = [];
+        mockService("action", { doAction: (action) => actions.push(action) });
+        mockService("orm", {
+            searchRead(model, domain, fields) {
+                expect(model).toBe("hr.employee.public");
+                expect(fields).toEqual(["display_name"]);
+                return Promise.resolve([{ id: 7, display_name: "Pedro" }, { id: 8, display_name: "Ana" }]);
+            },
+            call(model, method, args, kwargs) {
+                if (model !== ASSIGNMENT) {
+                    return Promise.resolve(method === "get_overview" ? overview() : result(41));
+                }
+                calls.push({ method, args, kwargs });
+                if (method === "get_capabilities") {
+                    return Promise.resolve({ can_view_team: canViewTeam, can_coordinate: true });
+                }
+                return Promise.resolve({ type: "ir.actions.act_window",
+                    res_model: { action_activities: "mail.activity", action_tasks: "project.task", action_projects: "project.project" }[method],
+                    context: { allowed_company_ids: [1] } });
+            },
+        });
+        return { calls, actions };
+    }
+
+    async function openAssignedWork(props = {}) {
+        const Center = requireCenter();
+        if (!Center) return false;
+        await mountCenter(Center, props);
+        const present = document.querySelector('[data-work-assigned]');
+        expect(Boolean(present)).toBe(true, { message: "Falta la entrada Trabajo asignado" });
+        if (!present) return false;
+        await click('[data-work-assigned]');
+        await animationFrame();
+        return true;
+    }
+
+    test("actividades personales abre accion nativa sin excluir futuras", async () => {
+        const { calls, actions } = mockAssignment();
+        if (!await openAssignedWork()) return;
+        expect('[data-topic]').toHaveCount(6);
+        await click('[data-assignment-open="activities"]');
+        await animationFrame();
+        const call = calls.find((item) => item.method === "action_activities");
+        expect(call.kwargs).toEqual({ scope: "mine", employee_id: false });
+        expect(actions[0].res_model).toBe("mail.activity");
+        expect(actions[0].context).toEqual({ allowed_company_ids: [1] });
+    });
+
+    test("coordinacion sin consulta global no ofrece trabajo del equipo", async () => {
+        mockAssignment();
+        if (!await openAssignedWork()) return;
+        expect('.mc_assignment_scope option[value="team"]').toHaveCount(0);
+        expect('.mc_assignment_scope').toHaveValue("mine");
+    });
+
+    test("consulta global y empleado se pasan al servicio sin alterar permisos", async () => {
+        const { calls } = mockAssignment(true);
+        if (!await openAssignedWork()) return;
+        await click('.mc_assignment_scope');
+        await select("team");
+        expect('.mc_assignment_scope').toHaveValue("team");
+        await click('.mc_assignment_employee');
+        await select("7");
+        expect('.mc_assignment_employee').toHaveValue("7");
+        await click('[data-assignment-open="activities"]');
+        await animationFrame();
+        expect(calls.find((item) => item.method === "action_activities").kwargs)
+            .toEqual({ scope: "team", employee_id: 7 });
+    });
+
+    test("tareas y proyectos usan acciones separadas sin filtro de empleado", async () => {
+        const { calls, actions } = mockAssignment();
+        if (!await openAssignedWork()) return;
+        await click('.mc_assignment_employee');
+        await select("7");
+        expect('.mc_assignment_employee').toHaveValue("7");
+        await click('[data-assignment-kind="tasks"]');
+        await animationFrame();
+        expect('.mc_assignment_employee').toHaveCount(0);
+        await click('[data-assignment-open="tasks"]');
+        await animationFrame();
+        await click('[data-assignment-open="projects"]');
+        await animationFrame();
+        expect(actions.map((action) => action.res_model)).toEqual(["project.task", "project.project"]);
+        expect(calls.filter((item) => ["action_tasks", "action_projects"].includes(item.method))
+            .map((item) => item.kwargs)).toEqual([{ scope: "mine" }, { scope: "mine" }]);
+    });
+
+    test("retorno conserva empleado y revalida permiso del alcance guardado", async () => {
+        const { calls } = mockAssignment(false);
+        if (!await openAssignedWork({ state: { workCenter: {
+            assignedWork: { scope: "team", employeeId: 8, kind: "activities" },
+        } } })) return;
+        expect('.mc_assignment_scope').toHaveValue("mine");
+        expect('.mc_assignment_employee').toHaveValue("8");
+        await click('[data-assignment-open="activities"]');
+        await animationFrame();
+        expect(calls.find((item) => item.method === "action_activities").kwargs)
+            .toEqual({ scope: "mine", employee_id: 8 });
+    });
+});
 
 describe("mc_rov work center", () => {
     // El montaje inicia servicios de Mail aunque el centro no contenga chatter.

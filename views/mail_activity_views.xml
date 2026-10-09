@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_activity_employee_list" model="ir.ui.view">
+        <field name="name">mail.activity.employee.list</field>
+        <field name="model">mail.activity</field>
+        <field name="inherit_id" ref="mail.mail_activity_view_tree"/>
+        <field name="arch" type="xml">
+            <field name="user_id" position="after">
+                <field name="mc_employee_id" readonly="1" invisible="1" column_invisible="1" options="{'no_open': True, 'no_create': True}"/>
+                <field name="mc_employee_display" optional="show"/>
+            </field>
+        </field>
+    </record>
+    <record id="view_activity_employee_form" model="ir.ui.view">
+        <field name="name">mail.activity.employee.form</field>
+        <field name="model">mail.activity</field>
+        <field name="inherit_id" ref="mail.mail_activity_view_form_popup"/>
+        <field name="arch" type="xml">
+            <field name="user_id" position="after">
+                <field name="mc_employee_id" readonly="1" invisible="1" options="{'no_open': True, 'no_create': True}"/>
+                <field name="mc_employee_display"/>
+            </field>
+        </field>
+    </record>
+    <record id="view_activity_employee_calendar" model="ir.ui.view">
+        <field name="name">mail.activity.employee.calendar</field>
+        <field name="model">mail.activity</field>
+        <field name="inherit_id" ref="mail.mail_activity_view_calendar"/>
+        <field name="arch" type="xml">
+            <field name="user_id" position="after">
+                <field name="mc_employee_id" invisible="1"/>
+                <field name="mc_employee_display"/>
+            </field>
+        </field>
+    </record>
+    <record id="view_activity_employee_kanban" model="ir.ui.view">
+        <field name="name">mail.activity.employee.kanban</field>
+        <field name="model">mail.activity</field>
+        <field name="inherit_id" ref="mail.mail_activity_view_kanban_open_target"/>
+        <field name="arch" type="xml">
+            <xpath expr="//t[@t-name='card']/footer" position="before">
+                <div class="text-muted small mt-2">
+                    <field name="mc_employee_id" invisible="1"/>
+                    <span t-if="record.mc_employee_id.raw_value"><field name="mc_employee_display"/></span>
+                    <span t-else="">Sin empleado asignado</span>
+                </div>
+            </xpath>
+        </field>
+    </record>
+    <record id="view_activity_employee_search" model="ir.ui.view">
+        <field name="name">mail.activity.employee.search</field>
+        <field name="model">mail.activity</field>
+        <field name="inherit_id" ref="mail.mail_activity_view_search"/>
+        <field name="arch" type="xml">
+            <field name="user_id" position="after"><field name="mc_employee_id"/></field>
+            <filter name="filter_user_id_no_user" position="after">
+                <filter name="mc_employee_unassigned" string="Sin empleado asignado" domain="[('mc_employee_id', '=', False)]"/>
+            </filter>
+            <filter name="group_by_user_id" position="after">
+                <filter name="mc_group_employee" string="Empleado asignado" context="{'group_by': 'mc_employee_id'}"/>
+            </filter>
+        </field>
+    </record>
+</odoo>

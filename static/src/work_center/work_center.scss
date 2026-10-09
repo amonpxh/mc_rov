@@ -13,6 +13,18 @@
         p { color: #657180; margin: 0; }
     }
     .mc_work_center_eyebrow { color: #714b67; letter-spacing: 1.5px; font-size: 11px; font-weight: 600; }
+    .mc_assignment_workspace { background: #fff; border: 1px solid #dce1e6; border-radius: 8px; margin-bottom: 18px; }
+    .mc_assignment_toggle {
+        width: 100%; display: flex; align-items: center; gap: 10px;
+        padding: 13px 18px; text-align: left; text-decoration: none; font-weight: 600;
+        > i:last-child { margin-left: auto; }
+    }
+    .mc_assignment_content { padding: 0 18px 18px; }
+    .mc_assignment_toolbar {
+        display: flex; flex-wrap: wrap; align-items: flex-end; gap: 14px;
+        label { display: flex; flex-direction: column; gap: 5px; font-size: 12px; min-width: 180px; }
+        .mc_work_center_tabs { margin: 0; padding: 0; }
+    }
     .mc_work_center_areas { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 26px; }
     .mc_work_center_area {
         display: flex; align-items: flex-start; gap: 14px; text-align: left;
