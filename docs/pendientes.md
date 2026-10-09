@@ -12,7 +12,8 @@
   Revisión independiente sin hallazgos importantes pendientes. Exportación con
   nombre restringido y permiso del origen verificada: prueba focalizada 1/1
   aprobada el 2026-10-09 19:10 UTC; pruebas temporales restauradas.
-  Faltan QA visual del usuario con roles reales, PR/CI y aprobación para producción.
+  PR borrador [#102](https://github.com/amonpxh/mc_rov/pull/102) abierto; hooks aprobados.
+  Faltan CI, QA visual del usuario con roles reales y aprobación para producción.
   No hay automatizaciones ni asignación de empleado en tareas de Proyecto.
 
 - Ajuste aprobado e integrado en `main` mediante `439d013`
