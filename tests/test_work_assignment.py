@@ -579,3 +579,67 @@ class TestWorkAssignmentSearchPrivacy(ActivityAssignmentCommon):
         )
         with self.assertRaises(AccessError):
             activity.with_user(self.taller).export_data(["summary"])
+
+
+class TestWorkAssignmentOnchange(ActivityAssignmentCommon):
+    """El asistente lee copias temporales sin saltarse permisos de sus orígenes."""
+
+    def test_copia_temporal_legible_conserva_acceso(self):
+        activity = self._activity()
+        self.env.invalidate_all()
+        copy = activity.with_user(self.taller).new({}, origin=activity.with_user(self.taller))
+        self.assertEqual(copy.read(["display_name"])[0]["display_name"], activity.summary)
+
+    def test_onchange_del_asistente_carga_actividades_legibles(self):
+        self.taller.group_ids = [
+            Command.link(self.env.ref("mc_rov.group_work_assignment_coordinate").id)
+        ]
+        activity = self._activity()
+        self.env.invalidate_all()
+        model = self.env["mc.rov.activity.assignment.wizard"].with_user(self.taller)
+        result = model.onchange(
+            {"activity_ids": [(6, 0, activity.ids)]},
+            [],
+            {
+                "activity_ids": {"fields": {"display_name": {}}},
+                "apply_user": {},
+                "apply_employee": {},
+            },
+        )
+        self.assertIn("activity_ids", result["value"])
+
+    def test_copia_temporal_no_expone_origen_oculto(self):
+        activity = self._activity()
+        self.env["ir.rule"].create(
+            {
+                "name": "QA copia temporal oculta",
+                "model_id": self.env["ir.model"]._get_id("repair.order"),
+                "domain_force": str([("id", "!=", self.order.id)]),
+            }
+        )
+        self.env.invalidate_all()
+        with self.assertRaises(AccessError):
+            copy = activity.with_user(self.taller).new({}, origin=activity.with_user(self.taller))
+            copy.read(["display_name"])
+
+    def test_copia_temporal_referencia_editada_no_toma_permiso_del_origen(self):
+        activity = self._activity()
+        hidden = self.order.copy()
+        self.env["ir.rule"].create(
+            {
+                "name": "QA referencia editada oculta",
+                "model_id": self.env["ir.model"]._get_id("repair.order"),
+                "domain_force": str([("id", "!=", hidden.id)]),
+            }
+        )
+        self.env.invalidate_all()
+        self.assertFalse(hidden.with_user(self.taller).has_access("read"))
+        # Odoo clears the cache on entering assertRaises(AccessError), including
+        # unsaved values. Build the edited copy inside so the reference survives.
+        with self.assertRaises(AccessError):
+            copy = activity.with_user(self.taller).new(
+                {"res_id": hidden.id}, origin=activity.with_user(self.taller)
+            )
+            self.assertEqual(copy.res_id, hidden.id)
+            self.assertEqual(copy.res_model, "repair.order")
+            copy.read(["display_name"])

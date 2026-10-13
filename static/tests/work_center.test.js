@@ -1,3 +1,4 @@
+import { Component, xml } from "@odoo/owl";
 import { describe, expect, test } from "@odoo/hoot";
 import { click, edit, select } from "@odoo/hoot-dom";
 import { advanceTime, animationFrame } from "@odoo/hoot-mock";
@@ -23,8 +24,13 @@ function requireCenter() {
 
 async function mountCenter(Center, props = {}) {
     return mountWithCleanup(Center, {
-        props: { action: { tag: TAG }, ...props },
+        props: { action: { tag: TAG }, ...props, state: { ...props.state, workCenter: { workspace: "process", ...props.state?.workCenter } } },
     });
+}
+
+class AssignmentViewProbe extends Component {
+    static props = ["*"];
+    static template = xml`<div data-assigned-model="" t-att-data-model="props.action.res_model"/>`;
 }
 
 describe("mc_rov assigned work", () => {
@@ -48,7 +54,8 @@ describe("mc_rov assigned work", () => {
                 if (method === "get_capabilities") {
                     return Promise.resolve({ can_view_team: canViewTeam, can_coordinate: true });
                 }
-                return Promise.resolve({ type: "ir.actions.act_window",
+                if (method === "get_processes") return Promise.resolve([{ key: "all", label: "Todos los procesos", available: true }]);
+                return Promise.resolve({ type: "ir.actions.act_window", views: [[false, "list"], [false, "kanban"]],
                     res_model: { action_activities: "mail.activity", action_tasks: "project.task", action_projects: "project.project" }[method],
                     context: { allowed_company_ids: [1] } });
             },
@@ -59,25 +66,26 @@ describe("mc_rov assigned work", () => {
     async function openAssignedWork(props = {}) {
         const Center = requireCenter();
         if (!Center) return false;
-        await mountCenter(Center, props);
+        class CenterProbe extends Center {}
+        CenterProbe.components = { ...Center.components, AssignedWorkView: AssignmentViewProbe };
+        await mountCenter(CenterProbe, { ...props, state: { ...props.state,
+            workCenter: { ...props.state?.workCenter, workspace: "assigned" } } });
         const present = document.querySelector('[data-work-assigned]');
         expect(Boolean(present)).toBe(true, { message: "Falta la entrada Trabajo asignado" });
         if (!present) return false;
-        await click('[data-work-assigned]');
         await animationFrame();
         return true;
     }
 
-    test("actividades personales abre accion nativa sin excluir futuras", async () => {
+    test("actividades personales aloja accion nativa sin excluir futuras", async () => {
         const { calls, actions } = mockAssignment();
         if (!await openAssignedWork()) return;
         expect('[data-topic]').toHaveCount(6);
-        await click('[data-assignment-open="activities"]');
         await animationFrame();
         const call = calls.find((item) => item.method === "action_activities");
-        expect(call.kwargs).toEqual({ scope: "mine", employee_id: false });
-        expect(actions[0].res_model).toBe("mail.activity");
-        expect(actions[0].context).toEqual({ allowed_company_ids: [1] });
+        expect(call.kwargs).toEqual({ scope: "mine", employee_id: false, process: "all" });
+        expect('[data-model="mail.activity"]').toHaveCount(1);
+        expect(actions).toHaveLength(0);
     });
 
     test("coordinacion sin consulta global no ofrece trabajo del equipo", async () => {
@@ -96,10 +104,9 @@ describe("mc_rov assigned work", () => {
         await click('.mc_assignment_employee');
         await select("7");
         expect('.mc_assignment_employee').toHaveValue("7");
-        await click('[data-assignment-open="activities"]');
         await animationFrame();
-        expect(calls.find((item) => item.method === "action_activities").kwargs)
-            .toEqual({ scope: "team", employee_id: 7 });
+        expect(calls.filter((item) => item.method === "action_activities").at(-1).kwargs)
+            .toEqual({ scope: "team", employee_id: 7, process: "all" });
     });
 
     test("tareas y proyectos usan acciones separadas sin filtro de empleado", async () => {
@@ -111,13 +118,12 @@ describe("mc_rov assigned work", () => {
         await click('[data-assignment-kind="tasks"]');
         await animationFrame();
         expect('.mc_assignment_employee').toHaveCount(0);
-        await click('[data-assignment-open="tasks"]');
+        await click('[data-assignment-kind="projects"]');
         await animationFrame();
-        await click('[data-assignment-open="projects"]');
-        await animationFrame();
-        expect(actions.map((action) => action.res_model)).toEqual(["project.task", "project.project"]);
+        expect('[data-model="project.project"]').toHaveCount(1);
+        expect(actions).toHaveLength(0);
         expect(calls.filter((item) => ["action_tasks", "action_projects"].includes(item.method))
-            .map((item) => item.kwargs)).toEqual([{ scope: "mine" }, { scope: "mine" }]);
+            .map((item) => item.kwargs)).toEqual([{ scope: "mine", process: "all" }, { scope: "mine", process: "all" }]);
     });
 
     test("retorno conserva empleado y revalida permiso del alcance guardado", async () => {
@@ -127,10 +133,9 @@ describe("mc_rov assigned work", () => {
         } } })) return;
         expect('.mc_assignment_scope').toHaveValue("mine");
         expect('.mc_assignment_employee').toHaveValue("8");
-        await click('[data-assignment-open="activities"]');
         await animationFrame();
-        expect(calls.find((item) => item.method === "action_activities").kwargs)
-            .toEqual({ scope: "mine", employee_id: 8 });
+        expect(calls.filter((item) => item.method === "action_activities").at(-1).kwargs)
+            .toEqual({ scope: "mine", employee_id: 8, process: "all" });
     });
 });
 

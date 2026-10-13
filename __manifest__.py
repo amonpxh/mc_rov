@@ -68,12 +68,14 @@
     "assets": {
         "web.assets_backend": [
             "mc_rov/static/src/css/mc_rov.css",
+            "mc_rov/static/src/work_center/assigned_work_view.js",
             "mc_rov/static/src/work_center/work_center.js",
             "mc_rov/static/src/work_center/work_center.xml",
             "mc_rov/static/src/work_center/work_center.scss",
         ],
         "web.assets_unit_tests": [
             "mc_rov/static/tests/work_center.test.js",
+            "mc_rov/static/tests/embedded_work.test.js",
         ],
     },
     "installable": True,

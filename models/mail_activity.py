@@ -193,7 +193,28 @@ class MailActivity(models.Model):
         if operation != "read" or not self or self.env.su:
             return result
         candidates = self - result[0] if result else self
-        forbidden = candidates - self.browse(candidates._mc_source_readable_ids())
+        # onchange wraps Many2many entries in NewId(origin=...). SQL validates
+        # saved origins; match permissions back to their temporary counterparts.
+        allowed_ids = set(candidates._origin._mc_source_readable_ids())
+        forbidden = candidates.filtered(lambda record: record._origin.id not in allowed_ids)
+        for record in candidates - forbidden:
+            if record == record._origin:
+                continue
+            # A modified temporary reference must not borrow the old origin's
+            # permission to expose a different document.
+            model, res_id = record.res_model, record.res_id
+            if not model and not res_id:
+                continue
+            if model not in self.env or not res_id:
+                forbidden |= record
+                continue
+            document = self.env[model].browse(res_id).exists()._filtered_access("read")
+            if not document or (
+                "company_id" in document._fields
+                and document.company_id
+                and document.company_id.id not in self.env.companies.ids
+            ):
+                forbidden |= record
         if not forbidden:
             return result
         if result:

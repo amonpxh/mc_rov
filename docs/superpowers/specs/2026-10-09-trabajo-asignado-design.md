@@ -1,5 +1,51 @@
 # Trabajo asignado en el Centro de trabajo
 
+## Evolución visual aprobada: una zona de contenido
+
+El usuario aprobó la maqueta temporal en `http://localhost:8081/`, con el nombre
+**Trabajo asignado**. La primera implementación de accesos a otras pantallas no
+satisface la cercanía entre el trabajo y los accesos a los procesos.
+
+- Una franja superior alterna Trabajo asignado y los seis procesos existentes.
+- Solo una zona se muestra a la vez: tablero de trabajo o listas del proceso.
+- Trabajo asignado contiene Actividades, Tareas y Proyectos, con vistas nativas.
+- Los procesos conservan sus pestañas, filtros y acciones actuales. Los registros
+  no se convierten en actividades por aparecer en esas listas.
+- Volver al trabajo conserva pestaña, vista, alcance, empleado, filtro de proceso
+  y búsqueda. Cambiar filtros no mueve la barra; no se duplican controles nativos.
+- Un acceso contextual puede pasar de un proceso a su trabajo asignado, aplicando
+  deliberadamente ese filtro. Las otras vueltas conservan el estado anterior.
+
+Fuentes instaladas verificadas: `../../../../.tmp/work-assignment-source/embedded-source.json`,
+53 fuentes, sin faltantes, consulta revertida. El componente `@web/views/view`
+admite búsqueda, acciones, callbacks de apertura/creación y estado. Su entorno
+debe aislarse del Centro: las acciones, paginación y callbacks de las vistas no
+deben sustituir el estado ni la ruta del Centro. Usar una composición local;
+evitar parches globales a las vistas y evitar iframes.
+
+El filtro de proceso deriva del modelo del documento de origen, nunca del título:
+reparación (`repair.order`), fabricación (`mrp.production`), equipo (`stock.lot`),
+calidad (`quality.alert`, `quality.check`) y diseño (`product.template`,
+`product.product`, `mrp.bom`, `mrp.eco`). Los demás quedan sin proceso vinculado.
+Es una clasificación del origen inmediato; no propaga relaciones indirectas ni
+califica como pendiente todo registro operativo.
+
+La evidencia confirma que REV/RND/TRN y FEN no tienen `activity_ids`; por tanto,
+Aceptación debe indicar que no dispone de actividades nativas específicas. No
+etiquetar automáticamente las actividades genéricas de un equipo como aceptación.
+Las tareas y proyectos no tienen vínculo directo al proceso: se consultan en
+Todos/Sin proceso vinculado, sin clasificación por nombres. Agregar esos vínculos
+o actividades a REV/FEN requeriría una entrega independiente.
+
+Verificación necesaria: filtro cruzado con usuario/empleado y permisos del origen;
+listas y Kanban reales dentro del Centro; calendario solo donde la acción lo
+admita; selección y Repartir actividades nativos; creación/apertura/retorno;
+preservación de búsquedas y cambios sin guardar; una sola zona y un solo scroll
+útil. La maqueta simula tarjetas y permisos, no prueba estos contratos técnicos.
+
+Estado: maqueta aprobada; cinco contratos RED confirmados, filtro implementado localmente y GREEN de 38 contratos pendiente. La composición
+real aún no está implementada ni instalada. PR #102 sigue como borrador.
+
 Fecha: 2026-10-09. Estado: base aprobada por el usuario; compatibilidad con ejemplos
 documentada, primera entrega manual implementada en STAGING; suite 415/415 aprobada y correcciones de privacidad verificadas;
 Exportación focalizada 1/1 aprobada; QA visual con roles reales pendiente. No desplegado
@@ -242,3 +288,17 @@ amplían el contexto de uso, no autorizan creación/importación de registros.
 [Plan de primera entrega manual](../plans/2026-10-09-trabajo-asignado-manual.md)
 preparado para revisión. No se escribió producto, instaló nada ni creó actividades.
 La automatización se planifica por separado tras validar asignación manual.
+
+### Ajuste visual solicitado — 2026-10-13
+
+Cabecera compacta: retirar el rótulo ROV y la frase introductoria; conservar título reducido y Actualizar. Siete accesos sin segunda fila, con nombres completos y scroll horizontal si no caben. No abreviar ni ocultar procesos para forzar encaje. Instalado y verificado en STAGING: siete accesos sin overflow a 1280 px; fila desplazable y último acceso alcanzable a 432 px.
+
+### Corrección de interpretación de cabecera — 2026-10-13
+
+El usuario pidió conservar ROV, título y descripción; debía ajustarse la presentación, no eliminar información. Corrección local: rótulo neutro sin espaciado decorativo, título 20 px/peso 500, descripción 13 px y Actualizar con estilo secundario junto al título, evitando la acción aislada al extremo derecho. Los siete accesos permanecen en una fila. XML/libsass OK; instalado y verificado en STAGING (oD2mfK): contenido completo, título 20 px, Actualizar a 12 px del título y siete accesos sin overflow a 1280 px.
+
+Criterios: proximidad de acciones y objetos (https://www.nngroup.com/articles/closeness-of-actions-and-objects-gui/) y jerarquía visual (https://www.nngroup.com/articles/visual-hierarchy-ux-definition/). Son principios UX aplicados a este diseño, no una norma formal que determine si una interfaz fue creada con IA.
+
+### Simplificación al estilo de aplicación Odoo — 2026-10-13
+
+El usuario considera redundantes ROV/título/descripción (Odoo ya identifica el Centro en su barra) y el párrafo permanente sobre cuenta/empleado. Se retiran, respetando esta última indicación. La distinción cuenta/persona permanece en title de los filtros; empleado solo aparece en Actividades. Actualizar se coloca en el encabezado del contenido activo. Se elimina el max-width 1280 px y se reduce padding exterior a 16 px; los siete accesos crecen para distribuir el ancho libre, manteniendo una sola fila desplazable cuando no caben. Lista/Kanban/calendario siguen siendo vistas nativas; la navegación y marco del Centro son personalizados, no una réplica exacta del módulo Tableros. XML/libsass OK; instalado y verificado en STAGING (SbtfEd), a 1280 y 432 px.

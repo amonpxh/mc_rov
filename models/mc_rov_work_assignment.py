@@ -1,6 +1,16 @@
 from odoo import _, api, models
-from odoo.exceptions import AccessError, UserError
+from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tools.safe_eval import safe_eval
+
+
+# El origen inmediato identifica el contexto; no el título ni relaciones indirectas.
+_PROCESS_MODELS = {
+    "repair": ("repair.order",),
+    "manufacturing": ("mrp.production",),
+    "equipment": ("stock.lot",),
+    "quality": ("quality.alert", "quality.check"),
+    "design": ("product.template", "product.product", "mrp.bom", "mrp.eco"),
+}
 
 
 class McRovWorkAssignment(models.AbstractModel):
@@ -28,6 +38,54 @@ class McRovWorkAssignment(models.AbstractModel):
         if scope == "team" and not self.get_capabilities()["can_view_team"]:
             raise AccessError(_("No tiene permiso para consultar el trabajo del equipo."))
 
+    @api.model
+    def get_processes(self, kind="activities"):
+        self._check_internal_user()
+        if kind not in ("activities", "tasks", "projects"):
+            raise ValidationError(_("El tipo de trabajo no es válido."))
+        labels = {
+            "all": _("Todos los procesos"),
+            "repair": _("Reparación"),
+            "manufacturing": _("Fabricación"),
+            "acceptance": _("Aceptación"),
+            "equipment": _("Equipo"),
+            "quality": _("Calidad"),
+            "design": _("Diseño"),
+            "none": _("Sin proceso vinculado"),
+        }
+        options = []
+        for key, label in labels.items():
+            available = key in ("all", "none") or (kind == "activities" and key in _PROCESS_MODELS)
+            hint = ""
+            if not available:
+                hint = (
+                    _("RND/TRN y FEN aún no admiten actividades nativas específicas.")
+                    if kind == "activities" and key == "acceptance"
+                    else _("Las tareas y proyectos aún no tienen un vínculo directo al proceso.")
+                )
+            options.append({"key": key, "label": label, "available": available, "hint": hint})
+        return options
+
+    def _process_domain(self, process, kind):
+        if process not in ("all", "none", "acceptance", *_PROCESS_MODELS):
+            raise ValidationError(_("El proceso seleccionado no es válido."))
+        if process == "all":
+            return []
+        # Los vínculos de Proyecto y las actividades de aceptación no se inventan
+        # para completar un filtro: su implementación pertenece a otra entrega.
+        if kind != "activities":
+            return [] if process == "none" else [("id", "=", False)]
+        if process == "acceptance":
+            return [("id", "=", False)]
+        if process == "none":
+            known = [
+                model
+                for models_in_process in _PROCESS_MODELS.values()
+                for model in models_in_process
+            ]
+            return [("res_model", "not in", known)]
+        return [("res_model", "in", _PROCESS_MODELS[process])]
+
     def _native_action(self, xmlid, model, domain):
         if model not in self.env:
             raise UserError(_("La aplicación requerida no está instalada."))
@@ -49,11 +107,11 @@ class McRovWorkAssignment(models.AbstractModel):
         return action
 
     @api.model
-    def action_activities(self, scope="mine", employee_id=False, user_id=False):
+    def action_activities(self, scope="mine", employee_id=False, user_id=False, process="all"):
         self._check_scope(scope)
         if scope == "mine" and user_id and user_id != self.env.uid:
             raise AccessError(_("Mi trabajo solo permite consultar la cuenta actual."))
-        domain = [("active", "=", True)]
+        domain = [("active", "=", True)] + self._process_domain(process, "activities")
         if scope == "mine" or user_id:
             domain.append(("user_id", "=", self.env.uid if scope == "mine" else user_id))
         if employee_id:
@@ -67,17 +125,21 @@ class McRovWorkAssignment(models.AbstractModel):
         return self._native_action("mail.mail_activity_action_my", "mail.activity", domain)
 
     @api.model
-    def action_tasks(self, scope="mine"):
+    def action_tasks(self, scope="mine", process="all"):
         self._check_scope(scope)
-        domain = [("company_id", "in", [False] + self.env.companies.ids)]
+        domain = [("company_id", "in", [False] + self.env.companies.ids)] + self._process_domain(
+            process, "tasks"
+        )
         if scope == "mine":
             domain.append(("user_ids", "in", [self.env.uid]))
         return self._native_action("project.action_view_all_task", "project.task", domain)
 
     @api.model
-    def action_projects(self, scope="mine"):
+    def action_projects(self, scope="mine", process="all"):
         self._check_scope(scope)
-        domain = [("company_id", "in", [False] + self.env.companies.ids)]
+        domain = [("company_id", "in", [False] + self.env.companies.ids)] + self._process_domain(
+            process, "projects"
+        )
         if scope == "mine":
             domain.append(("task_ids.user_ids", "in", [self.env.uid]))
         return self._native_action("project.open_view_project_all", "project.project", domain)

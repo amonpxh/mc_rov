@@ -1,9 +1,53 @@
 # Trabajo pendiente
 
+## Entrega Trabajo asignado — estado de cierre
+
+- Usuario autoriza revisión, merge de PR #102, despliegue y retirada del QA temporal.
+- STAGING: 42 contratos de asignación, privacidad, procesos y onchange aprobados; QA manual Supervisor/Taller aprobado (reparto, empleado, fecha con motivo y auditoría, permisos).
+- Interfaz aprobada: vistas nativas integradas, una zona de contenido, botones iguales de ancho y altura ocupando la fila; temas claro/oscuro y PNG transparente verificados.
+- Revisión final encontró una lista de IDs congelada en la acción de actividades: una actividad nueva no entra al recargar la vista nativa. Regresión añadida; corregir antes de cerrar.
+- Pendiente CI del paquete completo final, merge/deploy y archivo del escenario mcqa.taller/mcqa.supervisor en STAGING. No se agregan actividades automáticas ni permisos reales de producción.
+- PR: https://github.com/amonpxh/mc_rov/pull/102. Evidencia y respaldos detallados en `.tmp/work-assignment-source/progress.md`.
+
+### Integración de Trabajo asignado — 2026-10-13
+
+- **QA manual bloquea cierre:** Supervisor 194 ve actividades QA, pero al abrir Repartir devuelve AccessError read mail.activity 311. No ampliar permisos ni usar sudo para ocultarlo. Primera sonda ejecutada: origen, búsqueda/read de actividades, accesos write, servicio, acción nativa y default_get pasan. Segunda sonda reprodujo exactamente el AccessError en activity_origin_copy y wizard_onchange; etiquetas/formulario guardado sí pasan. Causa: diferencia entre NewId(origin=311) y IDs persistidos al trasladar el permiso SQL. Corrección local preparada: comprobar origen persistido y volver a asociar el resultado a su copia; validar también cualquier referencia temporal modificada. Cuatro regresiones añadidas (copia legítima/onchange y dos denegaciones de origen). Black y pylint 10/10. Script `staging-work-assignment-onchange-green.ps1` listo para instalar solo backend y ejecutar 42 contratos; pendiente GREEN, sin cambios de permisos.
+- **Tema oscuro pendiente corregir:** screenshot muestra marco claro y textos oscuros sobre vistas nativas oscuras. CSS actual fija blancos/grises y color raíz. Tokens instalados confirmados; CSS cambiado localmente a variables Odoo (fondos/texto/bordes/selección), todavía no instalado ni validado en ambos temas. Preflight SCSS del script deberá usar contexto de variables nativas antes de la siguiente instalación. Icono ya es PNG, pero SVG/PNG tienen fondo blanco incorporado; preparar variante de mismo dibujo con fondo exterior transparente y comprobar ambos temas. No cerrado ni listo para producción.
+
+- QA manual con perfiles: usuario autorizó preparar creación de cuentas temporales STAGING. Creación **ejecutada y confirmada en STAGING**: mcqa.taller ID 193, mcqa.supervisor ID 194, empleados 896/897, reparación WH/RO/03451 ID 3460 y actividades 311/312. Evidencia `qa-users-created.json`. Prueba manual del usuario pendiente; archivado todavía no ejecutado. Scripts `staging-work-assignment-qa-users.ps1` y `staging-work-assignment-qa-users-cleanup.ps1` preparados. Crean mcqa.taller/mcqa.supervisor, dos empleados ficticios, una reparación y dos actividades; solo Supervisor recibe consulta/reparto, sin RRHH privado. Clave QA la introduce el usuario, no queda en archivos de evidencia. Creación transaccional y reutilización sin resetear claves; archivado posterior limitado a IDs registrados. Sin cuentas/datos de producción ni cambios a usuarios existentes.
+
+- Último ajuste visual **instalado y verificado en STAGING**, respaldo `/var/tmp/mc-rov-work-embedded-frontend-green-SbtfEd`: cabecera duplicada y explicación permanente retiradas; ayuda contextual en filtros, Actualizar dentro del contenido activo, sin máximo de 1280 px. A 1280 px los siete accesos ocupan la fila (último borde a 3 px del borde del panel); a 432 px permanecen en una fila desplazable y el último acceso es alcanzable. Una sola acción Actualizar en ambos contextos. XML/libsass OK, sin repetición de suites lógicas por cambio de layout. Evidencia `integrated-layout-final.jpg`.
+
+- Corrección visual **instalada y comprobada en STAGING**, respaldo `/var/tmp/mc-rov-work-embedded-frontend-green-oD2mfK`: ROV/título/descripcion restaurados; título 20 px y Actualizar agrupado en su misma fila, a 12 px del título. Siete accesos caben a 1280 px (1209 px de navegación, sin overflow). XML/libsass OK; sin cambios de lógica ni nueva repetición de suites.
+
+- Ajuste visual **instalado y comprobado en STAGING**, respaldo `/var/tmp/mc-rov-work-embedded-frontend-green-Ct75aL`: cabecera compacta sin ROV/frase introductoria. A 1280 px los siete accesos caben en una sola fila (1209 px disponibles, sin desbordamiento); a 432 px siguen en una fila y el desplazamiento permite alcanzar el séptimo. Nombres conservados. XML/libsass OK; no se repitieron suites de lógica por este cambio de estilo. Evidencia `compact-center-desktop.jpg` y `compact-navigation-qa.json`.
+
+- Backend del filtro cruzado instalado en STAGING: **38/38 contratos GREEN**, respaldo `/var/tmp/mc-rov-work-process-green-HGmpAR`.
+- Frontend RED confirmado en navegador: **6/6 fallos esperados**, todos por ausencia de la integración, sin errores inesperados.
+- Primera implementación instalada en STAGING el 2026-10-09 (respaldo `/var/tmp/mc-rov-work-embedded-frontend-green-m10cTs`); HOOT focalizado: **4/6 pasaron**, 2 fallaron por conversión `Number()` dentro de la plantilla. También se detectó fallo de SCSS por `min(680px, 70vh)`.
+- Correcciones del selector/SCSS **reinstaladas en STAGING**, respaldo `/var/tmp/mc-rov-work-embedded-frontend-green-2EywQ3`. **27/27 HOOT aprobadas** (13 Centro, 5 asignación, 6 integración, 3 puente); no errores de estilos. Lista/Kanban/calendario nativos, tareas/proyectos, búsqueda NAS, apertura del origen y retorno conservando filtro/lista comprobados sin editar registros. Evidencia `.tmp/work-assignment-source/embedded-browser-qa.json` y `embedded-native-qa.jpg`.
+- Actualizar habilitado y **6/6 contratos revalidados** en STAGING, respaldo `/var/tmp/mc-rov-work-embedded-frontend-green-GAZvQu`. Comprobación real detectó que borraba la búsqueda nativa (NAS: 2 → 5 registros).
+- Corrección **instalada y validada en STAGING**, respaldo `/var/tmp/mc-rov-work-embedded-frontend-green-6HIUmF`: Actualizar conserva globalState (búsqueda/agrupación) y descarta únicamente los datos cacheados. **7/7 contratos de integración GREEN**; búsqueda real NAS conserva faceta y 2 registros tras Actualizar, sin errores de consola. Total frontend: 28 casos (21 previamente aprobados + 7 revalidados). Evidencia `embedded-refresh-final.json` / `embedded-refresh-final.jpg`.
+- Pendiente cerrar revisión del diff y checks de rama/PR, validación final de empaquetado y QA del usuario con permisos reales de consulta/reparto. PR #102 continúa draft; no se autorizó producción para esta entrega.
+- Correcciones anteriores verificadas: conversión del empleado en método JS; `height` + `max-height`, equivalentes y compatibles con libsass. SCSS reproducido RED y compilación local GREEN con libsass 0.23.0; evidencia `.tmp/work-assignment-source/embedded-style-check.json`.
+- Implementación: una zona de contenido, navegación compacta, actividades/tareas/proyectos con `View` nativa, filtros independientes de las listas operativas, estado de búsqueda y protección de cambios sin guardar mediante callbacks separados.
+- Preparado `C:/Users/MC/Desktop/Trabajo/Proyectos/Code/.tmp/staging-work-assignment-embedded-frontend-green.ps1`: instala solo manifest/assets y pruebas; conserva respaldos y restaura si falla la actualización. **27 pruebas HOOT** por ejecutar (18 anteriores adaptadas, 6 de integración del contenedor y 3 del puente).
+- Validación local: sintaxis JS/PowerShell/Bash, XML y manifest correctos. Esto **no confirma GREEN**: falta HOOT y comprobar búsqueda/menú Repartir/retorno/scroll en vistas nativas reales.
+- Aceptación no ofrece actividades específicas de REV/FEN; Tareas/Proyectos no infieren procesos por título. No se añadieron automatismos, permisos reales, registros ni cambios PDF.
+- PR #102 sigue draft; sin merge ni despliegue de esta entrega a producción.
+
+
 > Fuente de continuidad. Actualizar al cerrar cada sesión y distinguir código local,
 > pruebas, merge y despliegue. Las propuestas no aprobadas no son tareas de implementación.
 
-## Estado vigente — 2026-10-09
+## Estado vigente — 2026-10-13
+- **Integración visual de Trabajo asignado aprobada:** una sola zona alterna tablero
+  y listas del proceso. Maqueta `http://localhost:8081/` aprobada; nombre confirmado.
+  Filtro por origen inmediato implementado localmente; RED 5/5 confirmado.
+  GREEN de 38 contratos aprobado; respaldo `/var/tmp/mc-rov-work-process-green-HGmpAR`.
+  Composición de vistas nativas implementada e instalada; seis pruebas RED confirmadas. Primera pasada 4/6; selector/SCSS corregidos y 27 HOOT GREEN; falta ajuste local de Actualizar. Fuentes instaladas verificadas.
+  PR #102 mantiene la primera entrega como borrador, CI aprobado; no hacer merge/deploy
+  antes de completar esta integración y QA. Producción sigue en 19.0.24.4.0.
 
 - **Trabajo asignado manual en STAGING 19.0.24.5.0:** suite completa **415/415**
   aprobada, HOOT **18/18** aprobado; QWeb conservados y servicio activo.

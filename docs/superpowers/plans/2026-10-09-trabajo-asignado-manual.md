@@ -207,3 +207,11 @@ Privacidad de consultas, agrupación, lectura nativa y auditoría validada; resp
 PA4bdI. Exportación usa etiqueta pública segura; la prueba focalizada 1/1 pasó a las
 19:10 UTC, incluyendo permiso nativo y protección del origen. Las cuentas reales Taller/Dev/Supervisor no se crearon como fixtures de
 navegador: su QA de uso permanece pendiente; contratos de permisos sí ejecutados.
+
+## Integración visual aprobada: ejecución en curso
+
+1. Fuentes Odoo 19 instaladas auditadas; filtro cruzado implementado y 38 contratos GREEN en STAGING.
+2. Seis pruebas de contenedor RED confirmadas en HOOT.
+3. Implementación local de host y puente `AssignedWorkView`, aislamiento de callbacks/configuración y protección antes de cambiar sección. Sintaxis verificada.
+4. Pendiente instalar assets con `staging-work-assignment-embedded-frontend-green.ps1`, ejecutar 27 pruebas HOOT y comprobar vistas nativas reales (menús, búsqueda, creación, navegación/retorno, scroll).
+5. Resolver cualquier fallo, revisar diff, añadir tests de proceso al módulo, validar suite final cuando corresponda y actualizar PR #102. Sin merge/PROD antes de QA aprobada.
