@@ -5,7 +5,7 @@
 - Usuario autoriza revisión, merge de PR #102, despliegue y retirada del QA temporal.
 - STAGING: 42 contratos de asignación, privacidad, procesos y onchange aprobados; QA manual Supervisor/Taller aprobado (reparto, empleado, fecha con motivo y auditoría, permisos).
 - Interfaz aprobada: vistas nativas integradas, una zona de contenido, botones iguales de ancho y altura ocupando la fila; temas claro/oscuro y PNG transparente verificados.
-- Revisión final encontró una lista de IDs congelada en la acción de actividades: una actividad nueva no entra al recargar la vista nativa. Regresión añadida; corregir antes de cerrar.
+- Revisión final: corregida la lista de IDs congelada en la acción de actividades. Regresión RED en CI: único fallo de 423 pruebas; la consulta conserva filtros dinámicos y ACL del origen por ORM. Pendiente GREEN completo.
 - Pendiente CI del paquete completo final, merge/deploy y archivo del escenario mcqa.taller/mcqa.supervisor en STAGING. No se agregan actividades automáticas ni permisos reales de producción.
 - PR: https://github.com/amonpxh/mc_rov/pull/102. Evidencia y respaldos detallados en `.tmp/work-assignment-source/progress.md`.
 

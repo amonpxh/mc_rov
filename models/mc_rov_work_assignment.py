@@ -119,9 +119,8 @@ class McRovWorkAssignment(models.AbstractModel):
             if not employee:
                 raise AccessError(_("El empleado seleccionado no está disponible."))
             domain.append(("mc_employee_id", "=", employee_id))
-        candidates = self.env["mail.activity"].search(domain)
-        visible = candidates._filtered_access("read")
-        domain.append(("id", "in", visible.ids))
+        # Keep the domain live for native create/reload. mail.activity._search
+        # enforces source access before pagination on every subsequent query.
         return self._native_action("mail.mail_activity_action_my", "mail.activity", domain)
 
     @api.model
