@@ -19,3 +19,6 @@ from . import repair_order
 from . import sale_order_line
 from . import stock_lot
 from . import mc_rov_work_center
+from . import mail_activity
+from . import mc_rov_work_assignment
+from . import mc_rov_activity_assignment_wizard

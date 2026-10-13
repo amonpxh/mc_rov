@@ -1,9 +1,11 @@
 import { Component, markup, onWillStart, onWillUnmount, useState } from "@odoo/owl";
+import { AssignedWorkView } from "./assigned_work_view";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 import { useSetupAction } from "@web/search/action_hook";
 
 const SERVICE = "mc.rov.work.center";
+const ASSIGNMENT = "mc.rov.work.assignment";
 const AREAS = [
     { key: "repair", title: "Reparar o mantener", description: "Órdenes y revisiones de una visita.", icon: "fa-wrench" },
     { key: "manufacturing", title: "Fabricar un equipo", description: "Órdenes, materiales y operaciones.", icon: "fa-cogs" },
@@ -31,6 +33,7 @@ const KINDS = {
 export class WorkCenter extends Component {
     static template = "mc_rov.WorkCenter";
     static props = ["*"];
+    static components = { AssignedWorkView };
 
     setup() {
         this.orm = useService("orm");
@@ -43,13 +46,28 @@ export class WorkCenter extends Component {
             overview: [], rows: [], total: 0, nextOffset: false, responsibleLabel: false,
             loading: true, error: "", overviewError: "", acting: false,
             modelQuery: "", modelOptions: [], modelError: "",
+            workspace: saved.workspace || "assigned",
+            assignedWork: { scope: "mine", employeeId: false, kind: "activities", process: "all", viewType: "kanban", ...saved.assignedWork },
+            assignmentOpen: false, assignmentLoading: false, assignmentReady: false,
+            assignmentError: "", employeeError: "", employees: [], canViewTeam: false,
+            assignmentAction: null, processOptions: [], assignmentRevision: 0,
         });
+        this.assignmentGeneration = 0;
+        this.nativeStates = this.props.state?.assignedNativeStates || {};
+        this.nativeView = null;
         this.generation = 0;
         this.modelGeneration = 0;
-        useSetupAction({ getLocalState: () => ({ workCenter: this.exportState() }) });
+        useSetupAction({
+            beforeLeave: () => this.leaveNativeView(),
+            getLocalState: () => {
+                this.captureNativeView();
+                return { workCenter: this.exportState(), assignedNativeStates: this.nativeStates };
+            },
+        });
         onWillStart(() => this.initialize());
         onWillUnmount(() => {
             this.generation++;
+            this.assignmentGeneration++;
             this.modelGeneration++;
             clearTimeout(this.searchTimer);
             clearTimeout(this.modelTimer);
@@ -60,6 +78,7 @@ export class WorkCenter extends Component {
         return JSON.parse(JSON.stringify({
             topic: this.state.topic, kind: this.state.kind,
             filters: this.state.filters, kinds: this.state.kinds,
+            assignedWork: this.state.assignedWork, workspace: this.state.workspace,
         }));
     }
 
@@ -80,7 +99,122 @@ export class WorkCenter extends Component {
     get usesState() { return !["models", "bom", "lessons"].includes(this.state.kind); }
     tabLabel(kind) { return KINDS[kind]?.[0] || kind; }
 
+    assignmentFailed() {
+        this.assignmentGeneration++;
+        this.state.assignmentAction = null;
+        this.state.assignmentReady = false;
+        this.state.assignmentLoading = false;
+        this.state.assignmentError = "No se pudo cargar la vista nativa. Comprueba la conexión y vuelve a intentar.";
+    }
+    get assignmentViews() {
+        return (this.state.assignmentAction?.views || []).filter((view) =>
+            ["list", "kanban", "calendar"].includes(view[1]));
+    }
+    get nativeKey() {
+        const work = this.state.assignedWork;
+        return JSON.stringify([work.kind, work.scope, work.kind === "activities" ? work.employeeId : false,
+            work.process, work.viewType]);
+    }
+    get nativeState() { return this.nativeStates[this.nativeKey] || {}; }
+    registerNativeView(view, previous) {
+        if (view || this.nativeView === previous) this.nativeView = view;
+    }
+    captureNativeView() {
+        if (this.nativeView) this.nativeStates[this.nativeKey] = this.nativeView.snapshot();
+    }
+    async leaveNativeView() {
+        if (this.nativeView && !await this.nativeView.canLeave()) return false;
+        this.captureNativeView();
+        return true;
+    }
+    async toggleAssignedWork() {
+        if (!await this.leaveNativeView()) return;
+        this.state.workspace = "assigned";
+        return this.loadAssignedWork();
+    }
+    async loadAssignedWork() {
+        const generation = ++this.assignmentGeneration;
+        this.state.assignmentLoading = true;
+        this.state.assignmentReady = false;
+        this.state.assignmentAction = null;
+        this.state.assignmentError = "";
+        try {
+            const capabilities = await this.orm.call(ASSIGNMENT, "get_capabilities", []);
+            if (generation !== this.assignmentGeneration) return;
+            this.state.canViewTeam = capabilities.can_view_team;
+            if (!capabilities.can_view_team || !["mine", "team"].includes(this.state.assignedWork.scope)) {
+                this.state.assignedWork.scope = "mine";
+            }
+            try {
+                this.state.employees = await this.orm.searchRead("hr.employee.public",
+                    [["active", "=", true]], ["display_name"], { order: "name" });
+                if (generation !== this.assignmentGeneration) return;
+                this.state.employeeError = "";
+                if (!this.state.employees.some((employee) => employee.id === this.state.assignedWork.employeeId)) {
+                    this.state.assignedWork.employeeId = false;
+                }
+            } catch (_error) {
+                if (generation !== this.assignmentGeneration) return;
+                this.state.employees = [];
+                this.state.assignedWork.employeeId = false;
+                this.state.employeeError = "No se pudo consultar el filtro de empleados.";
+            }
+            const work = this.state.assignedWork;
+            const options = await this.orm.call(ASSIGNMENT, "get_processes", [], { kind: work.kind });
+            if (generation !== this.assignmentGeneration) return;
+            this.state.processOptions = options;
+            if (!options.some((option) => option.key === work.process && option.available)) work.process = "all";
+            const kwargs = { scope: work.scope, process: work.process };
+            if (work.kind === "activities") kwargs.employee_id = work.employeeId || false;
+            const action = await this.orm.call(ASSIGNMENT, `action_${work.kind}`, [], kwargs);
+            if (generation !== this.assignmentGeneration) return;
+            if (typeof action.help === "string") action.help = markup(action.help);
+            this.state.assignmentAction = action;
+            if (!this.assignmentViews.some((view) => view[1] === work.viewType)) {
+                work.viewType = this.assignmentViews.find((view) => view[1] === "kanban")?.[1]
+                    || this.assignmentViews[0]?.[1] || "list";
+            }
+            this.state.assignmentRevision++;
+            this.state.assignmentReady = true;
+        } catch (_error) {
+            if (generation === this.assignmentGeneration) {
+                this.state.assignmentError = "No se pudo consultar el trabajo asignado. Comprueba tus permisos y vuelve a intentar.";
+            }
+        } finally {
+            if (generation === this.assignmentGeneration) this.state.assignmentLoading = false;
+        }
+    }
+    changeAssignedEmployee(event) {
+        return this.changeAssignedWork("employeeId", Number(event.target.value) || false);
+    }
+    async changeAssignedWork(field, value) {
+        if (!await this.leaveNativeView()) { this.render(); return; }
+        this.state.assignedWork[field] = value;
+        if (field === "kind") this.state.assignedWork.process = "all";
+        return this.loadAssignedWork();
+    }
+    async changeAssignedView(type) {
+        if (!await this.leaveNativeView()) return;
+        this.state.assignedWork.viewType = type;
+        this.state.assignmentRevision++;
+    }
+    async assignedForProcess() {
+        if (!await this.leaveNativeView()) return;
+        this.state.assignedWork.kind = "activities";
+        this.state.assignedWork.process = this.state.topic;
+        this.state.workspace = "assigned";
+        return this.loadAssignedWork();
+    }
+
+    async refresh() {
+        if (!await this.leaveNativeView()) return;
+        // Reload record data while keeping the native search and grouping.
+        const snapshot = this.nativeStates[this.nativeKey];
+        this.nativeStates[this.nativeKey] = snapshot ? { globalState: snapshot.globalState } : {};
+        return this.initialize();
+    }
     async initialize() {
+        this.state.loading = true;
         try {
             this.state.overview = await this.orm.call(SERVICE, "get_overview", []);
             this.state.overviewError = "";
@@ -88,14 +222,21 @@ export class WorkCenter extends Component {
                 const first = this.tabs.find((item) => item.available);
                 this.state.kind = first?.kind || this.tabs[0]?.kind || "orders";
             }
-            await this.loadRecords();
+            if (this.state.workspace === "assigned") {
+                await this.loadAssignedWork();
+                this.state.loading = false;
+            }
+            else await this.loadRecords();
         } catch (_error) {
             this.state.overviewError = "No se pudo cargar el centro. Comprueba la conexión y vuelve a intentar.";
             this.state.loading = false;
         }
     }
 
-    selectTopic(topic) {
+    async selectTopic(topic) {
+        if (!await this.leaveNativeView()) return;
+        this.assignmentGeneration++;
+        this.state.workspace = "process";
         this.state.kinds[this.state.topic] = this.state.kind;
         this.state.topic = topic;
         this.state.kind = this.state.kinds[topic]

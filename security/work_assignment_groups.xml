@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="group_work_assignment_team" model="res.groups">
+        <field name="name">Consultar trabajo del equipo</field>
+        <field name="implied_ids" eval="[Command.link(ref('base.group_user'))]"/>
+        <field name="comment">Permite consultar asignaciones de otras cuentas, respetando los permisos de sus documentos.</field>
+    </record>
+    <record id="group_work_assignment_coordinate" model="res.groups">
+        <field name="name">Coordinar asignaciones</field>
+        <field name="implied_ids" eval="[Command.link(ref('base.group_user'))]"/>
+        <field name="comment">Permiso independiente de consulta del equipo; no concede acceso a documentos ni a RRHH.</field>
+    </record>
+</odoo>

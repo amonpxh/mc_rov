@@ -1,6 +1,10 @@
 # Centro de trabajo ROV
 
-Fecha: 2026-10-08. Estado: propuesta y maqueta local; no implementado en Odoo.
+Fecha inicial: 2026-10-08. Estado vigente 2026-10-09: implementado y desplegado
+en producción 19.0.24.4.0; comprobación visual aprobada. Las secciones de propuesta
+conservan el diseño original. Evolución de asignaciones:
+[Trabajo asignado](../superpowers/specs/2026-10-09-trabajo-asignado-design.md),
+diseño para revisión, aún sin implementar.
 
 ## Propósito
 

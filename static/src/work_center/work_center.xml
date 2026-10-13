@@ -3,28 +3,91 @@
     <t t-name="mc_rov.WorkCenter">
         <div class="mc_work_center o_content">
             <div class="mc_work_center_inner">
-                <header class="mc_work_center_heading">
-                    <div><span class="mc_work_center_eyebrow">ROV</span><h1>Centro de trabajo</h1>
-                        <p>Elige qué necesitas hacer y continúa en el registro correspondiente.</p></div>
-                    <button class="btn btn-light" t-on-click="initialize" t-att-disabled="state.loading" aria-label="Actualizar registros"><i class="fa fa-refresh" aria-hidden="true"/> Actualizar</button>
-                </header>
-                <div class="mc_work_center_areas" aria-label="Áreas de trabajo">
+
+                <nav class="mc_work_center_navigation" aria-label="Áreas de trabajo">
+                    <button type="button" data-work-assigned="" t-att-class="state.workspace === 'assigned' ? 'is_selected' : ''"
+                        t-att-aria-pressed="state.workspace === 'assigned'" t-on-click="toggleAssignedWork">
+                        <i class="fa fa-calendar-check-o" aria-hidden="true"/> Trabajo asignado
+                    </button>
                     <t t-foreach="areas" t-as="item" t-key="item.key">
-                        <button type="button" t-att-data-topic="item.key"
-                            t-att-class="'mc_work_center_area ' + (state.topic === item.key ? 'is_selected' : '')"
-                            t-att-aria-pressed="state.topic === item.key"
+                        <button type="button" t-att-data-topic="item.key" t-att-title="item.description"
+                            t-att-class="state.workspace === 'process' and state.topic === item.key ? 'is_selected' : ''"
+                            t-att-aria-pressed="state.workspace === 'process' and state.topic === item.key"
                             t-on-click="() => this.selectTopic(item.key)">
-                            <i t-att-class="'fa ' + item.icon" aria-hidden="true"/>
-                            <span><strong t-esc="item.title"/><small t-esc="item.description"/></span>
+                            <i t-att-class="'fa ' + item.icon" aria-hidden="true"/> <t t-esc="item.title"/>
                         </button>
                     </t>
-                </div>
+                </nav>
+                <section t-if="state.workspace === 'assigned'" class="mc_assignment_workspace" aria-label="Trabajo asignado">
+                    <div class="mc_work_center_workspace_heading"><h2>Trabajo asignado</h2><button class="btn btn-outline-secondary btn-sm" t-on-click="refresh"
+                            t-att-disabled="state.loading || state.assignmentLoading" aria-label="Actualizar registros">
+                            <i class="fa fa-refresh" aria-hidden="true"/> Actualizar
+                        </button></div>
+                    <div class="mc_assignment_content">
+                        <div class="mc_work_center_tabs" role="tablist" aria-label="Tipo de trabajo">
+                            <t t-foreach="['activities', 'tasks', 'projects']" t-as="kind" t-key="kind">
+                                <button role="tab" t-att-data-assignment-kind="kind" t-att-aria-selected="state.assignedWork.kind === kind"
+                                    t-att-class="state.assignedWork.kind === kind ? 'is_selected' : ''"
+                                    t-on-click="() => this.changeAssignedWork('kind', kind)">
+                                    <t t-esc="{ activities: 'Actividades', tasks: 'Tareas', projects: 'Proyectos' }[kind]"/>
+                                </button>
+                            </t>
+                        </div>
+                        <div class="mc_assignment_toolbar">
+                            <label>Alcance
+                                <select class="form-select mc_assignment_scope" title="Mi trabajo corresponde a la cuenta conectada; Trabajo del equipo depende de tus permisos." t-att-value="state.assignedWork.scope"
+                                    t-on-change="(ev) => this.changeAssignedWork('scope', ev.target.value)">
+                                    <option value="mine" t-att-selected="state.assignedWork.scope === 'mine'">Mi trabajo</option>
+                                    <option t-if="state.canViewTeam" value="team" t-att-selected="state.assignedWork.scope === 'team'">Trabajo del equipo</option>
+                                </select>
+                            </label>
+                            <label t-if="state.assignedWork.kind === 'activities'">Empleado
+                                <select class="form-select mc_assignment_employee" title="Persona asignada a realizar la actividad; puede compartir la cuenta de Odoo con otros empleados." t-on-change="changeAssignedEmployee">
+                                    <option value="0" t-att-selected="!state.assignedWork.employeeId">Todos los empleados</option>
+                                    <t t-foreach="state.employees" t-as="employee" t-key="employee.id">
+                                        <option t-att-value="employee.id" t-att-selected="state.assignedWork.employeeId === employee.id" t-esc="employee.display_name"/>
+                                    </t>
+                                </select>
+                            </label>
+                            <label>Proceso
+                                <select class="form-select mc_assignment_process" t-on-change="(ev) => this.changeAssignedWork('process', ev.target.value)">
+                                    <t t-foreach="state.processOptions" t-as="option" t-key="option.key">
+                                        <option t-att-value="option.key" t-att-disabled="!option.available" t-att-title="option.hint"
+                                            t-att-selected="state.assignedWork.process === option.key" t-esc="option.label"/>
+                                    </t>
+                                </select>
+                            </label>
+                            <div class="btn-group ms-auto" aria-label="Vista del trabajo">
+                                <t t-foreach="assignmentViews" t-as="view" t-key="view[1]">
+                                    <button t-att-data-assignment-view="view[1]" t-att-aria-pressed="state.assignedWork.viewType === view[1]"
+                                        t-att-class="'btn btn-outline-secondary ' + (state.assignedWork.viewType === view[1] ? 'active' : '')"
+                                        t-on-click="() => this.changeAssignedView(view[1])">
+                                        <t t-esc="{list: 'Lista', kanban: 'Kanban', calendar: 'Calendario'}[view[1]]"/>
+                                    </button>
+                                </t>
+                            </div>
+                        </div>
+                        <small t-if="state.assignedWork.kind !== 'activities'" class="text-muted">Tareas y proyectos aún no tienen una conexión directa con estos procesos.</small>
+                        <small t-if="state.employeeError" class="text-muted" t-esc="state.employeeError"/>
+                    </div>
+                    <p t-if="state.assignmentLoading" class="mc_work_center_empty" role="status">Consultando trabajo…</p>
+                    <div t-if="state.assignmentError" class="alert alert-warning" role="alert">
+                        <t t-esc="state.assignmentError"/>
+                        <button class="btn btn-link" data-assignment-retry="" t-on-click="loadAssignedWork">Reintentar</button>
+                    </div>
+                    <AssignedWorkView t-if="state.assignmentReady and state.assignmentAction"
+                        t-key="state.assignmentRevision" action="state.assignmentAction" viewType="state.assignedWork.viewType"
+                        saved="nativeState" register.bind="registerNativeView" onError.bind="assignmentFailed"/>
+                </section>
                 <div t-if="state.overviewError" class="alert alert-warning" role="alert">
                     <t t-esc="state.overviewError"/>
                     <button class="btn btn-link" t-on-click="initialize">Reintentar</button>
                 </div>
-                <section t-else="" class="mc_work_center_workspace" t-att-aria-busy="state.loading">
-                    <div class="mc_work_center_workspace_heading"><h2 t-esc="area.title"/><span>Retomar o consultar</span></div>
+                <section t-elif="state.workspace === 'process'" class="mc_work_center_workspace" t-att-aria-busy="state.loading">
+                    <div class="mc_work_center_workspace_heading"><h2 t-esc="area.title"/><span>Retomar o consultar</span><button t-if="state.topic !== 'acceptance'" class="btn btn-link" t-on-click="assignedForProcess">Trabajo asignado de este proceso</button><button class="btn btn-outline-secondary btn-sm" t-on-click="refresh"
+                            t-att-disabled="state.loading || state.assignmentLoading" aria-label="Actualizar registros">
+                            <i class="fa fa-refresh" aria-hidden="true"/> Actualizar
+                        </button></div>
                     <div class="mc_work_center_tabs" role="tablist" aria-label="Tipos de registro">
                         <t t-foreach="tabs" t-as="tab" t-key="tab.kind">
                             <button role="tab" t-att-aria-selected="state.kind === tab.kind"
@@ -91,5 +154,8 @@
                 </section>
             </div>
         </div>
+    </t>
+    <t t-name="mc_rov.AssignedWorkView">
+        <div class="mc_assignment_native"><View t-props="viewProps"/></div>
     </t>
 </templates>
