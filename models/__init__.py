@@ -28,3 +28,5 @@ from . import repair_activity_automation
 from . import repair_activity_lifecycle
 from . import repair_activity_source
 from . import mc_rov_automation_control
+from . import mc_rov_manufacturing_activity_policy
+from . import mc_rov_manufacturing_activity_run

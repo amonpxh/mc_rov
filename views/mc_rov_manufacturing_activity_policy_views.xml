@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_manufacturing_activity_policy_list" model="ir.ui.view">
+        <field name="name">mc.rov.manufacturing.activity.policy.list</field>
+        <field name="model">mc.rov.manufacturing.activity.policy</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="company_id"/>
+                <field name="enabled"/>
+                <field name="lead_days"/>
+                <field name="user_id"/>
+                <field name="calendar_id"/>
+                <field name="configuration_message"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_manufacturing_activity_policy_form" model="ir.ui.view">
+        <field name="name">mc.rov.manufacturing.activity.policy.form</field>
+        <field name="model">mc.rov.manufacturing.activity.policy</field>
+        <field name="arch" type="xml">
+            <form string="Seguimiento de fabricación">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="company_id"/>
+                            <field name="enabled"/>
+                            <field name="user_id" domain="[('share', '=', False), ('active', '=', True), ('company_ids', 'in', [company_id])]"/>
+                            <field name="employee_id" domain="[('active', '=', True), ('company_id', '=', company_id)]" options="{'no_create': True}"/>
+                        </group>
+                        <group>
+                            <field name="lead_days"/>
+                            <field name="calendar_id" domain="['|', ('company_id', '=', False), ('company_id', '=', company_id)]"/>
+                            <field name="configuration_message"/>
+                        </group>
+                    </group>
+                    <p>28 días corridos equivalen a cuatro semanas desde confirmar la orden.
+                        Incluyen fines de semana y festivos. Una fecha límite anterior de la
+                        orden prevalece; la fecha estimada de fabricación no amplía el plazo.</p>
+                    <p>El control general debe permitir nuevas actividades. Cambiar esta
+                        configuración no reprograma pendientes existentes ni crea actividades
+                        de órdenes anteriores.</p>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_manufacturing_activity_policy" model="ir.actions.act_window">
+        <field name="name">Seguimiento de fabricación</field>
+        <field name="res_model">mc.rov.manufacturing.activity.policy</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <menuitem id="menu_manufacturing_activity_policy" name="Fabricación"
+              parent="menu_work_automation" action="action_manufacturing_activity_policy"
+              groups="mc_rov.group_work_assignment_coordinate" sequence="30"/>
+</odoo>

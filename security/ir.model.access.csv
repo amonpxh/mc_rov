@@ -22,3 +22,4 @@ access_mc_rov_revision_inspeccion,mc.rov.revision.inspeccion,model_mc_rov_revisi
 access_mc_rov_sintoma,mc.rov.sintoma,model_mc_rov_sintoma,,1,1,1,1
 access_repair_activity_policy_coordinate,mc.rov.repair.activity.policy.coordinate,model_mc_rov_repair_activity_policy,mc_rov.group_work_assignment_coordinate,1,1,1,0
 access_automation_control_coordinate,mc.rov.automation.control.coordinate,model_mc_rov_automation_control,mc_rov.group_work_assignment_coordinate,1,1,1,0
+access_manufacturing_activity_policy_coordinate,mc.rov.manufacturing.activity.policy.coordinate,model_mc_rov_manufacturing_activity_policy,mc_rov.group_work_assignment_coordinate,1,1,1,0
