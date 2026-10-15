@@ -22,3 +22,8 @@ from . import mc_rov_work_center
 from . import mail_activity
 from . import mc_rov_work_assignment
 from . import mc_rov_activity_assignment_wizard
+from . import mc_rov_repair_activity_policy
+from . import mc_rov_repair_activity_run
+from . import repair_activity_automation
+from . import repair_activity_lifecycle
+from . import repair_activity_source

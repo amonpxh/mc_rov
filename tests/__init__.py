@@ -13,3 +13,8 @@ from . import test_ficha_navegacion
 from . import test_work_center
 from . import test_work_assignment
 from . import test_work_assignment_process
+from . import test_repair_activity_calendar
+from . import test_repair_activity_generation
+from . import test_repair_activity_lifecycle
+from . import test_repair_activity_access
+from . import test_repair_activity_boundaries

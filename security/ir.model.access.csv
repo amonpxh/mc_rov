@@ -20,3 +20,4 @@ access_mc_rov_software_superficie,mc.rov.software.superficie,model_mc_rov_softwa
 access_mc_rov_controlador_vuelo,mc.rov.controlador.vuelo,model_mc_rov_controlador_vuelo,,1,1,1,1
 access_mc_rov_revision_inspeccion,mc.rov.revision.inspeccion,model_mc_rov_revision_inspeccion,,1,1,1,1
 access_mc_rov_sintoma,mc.rov.sintoma,model_mc_rov_sintoma,,1,1,1,1
+access_repair_activity_policy_coordinate,mc.rov.repair.activity.policy.coordinate,model_mc_rov_repair_activity_policy,mc_rov.group_work_assignment_coordinate,1,1,1,0

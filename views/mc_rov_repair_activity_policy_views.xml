@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_repair_activity_policy_list" model="ir.ui.view">
+        <field name="name">mc.rov.repair.activity.policy.list</field>
+        <field name="model">mc.rov.repair.activity.policy</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="company_id"/>
+                <field name="enabled"/>
+                <field name="user_id"/>
+                <field name="calendar_id"/>
+                <field name="configuration_message"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_repair_activity_policy_form" model="ir.ui.view">
+        <field name="name">mc.rov.repair.activity.policy.form</field>
+        <field name="model">mc.rov.repair.activity.policy</field>
+        <field name="arch" type="xml">
+            <form string="Seguimiento de reparaciones">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="company_id"/>
+                            <field name="enabled"/>
+                            <field name="user_id" domain="[('share', '=', False), ('active', '=', True), ('company_ids', 'in', [company_id])]"/>
+                            <field name="employee_id" domain="[('active', '=', True), ('company_id', '=', company_id)]" options="{'no_create': True}"/>
+                        </group>
+                        <group>
+                            <field name="calendar_id" domain="['|', ('company_id', '=', False), ('company_id', '=', company_id)]"/>
+                            <field name="diagnosis_days"/>
+                            <field name="repair_days"/>
+                            <field name="configuration_message"/>
+                        </group>
+                    </group>
+                    <p>Los plazos comienzan al iniciar cada etapa. Los festivos deben estar registrados en el calendario. No se crean pendientes retroactivos.</p>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_repair_activity_policy" model="ir.actions.act_window">
+        <field name="name">Seguimiento de reparaciones</field>
+        <field name="res_model">mc.rov.repair.activity.policy</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <menuitem id="menu_repair_activity_policy" name="Seguimiento de reparaciones"
+              parent="menu_mc_rov_root" action="action_repair_activity_policy"
+              groups="mc_rov.group_work_assignment_coordinate" sequence="90"/>
+</odoo>
