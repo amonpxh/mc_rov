@@ -3,7 +3,7 @@
 Estado: alcance aprobado el 2026-10-14. Dos actividades nativas, cada una con
 2 días laborables desde el inicio de su etapa; regla activada por defecto.
 Implementado e instalado en STAGING: 66 contratos focalizados aprobados y suite completa
-previa de 478 casos aprobada (revalidación de 489 pendiente); concurrencia de dos transacciones por etapa aprobada en
+de 489 casos aprobada; concurrencia de dos transacciones por etapa aprobada en
 base aislada. Sin destinatario operativo configurado ni despliegue de esta función
 en producción. Sustituye el piloto limitado a primera REV y el pendiente de tres días.
 Trabajo asignado manual está en producción (19.0.24.5.0, PR #102).
@@ -130,6 +130,7 @@ Respaldo `/var/tmp/mc-calendar-santiago-zDs8HQ`. Los festivos deben registrarse:
 elegir la zona no los incorpora. Producción sin cambios.
 Plan ejecutado directamente: `../plans/2026-10-14-repair-activities.md`.
 Revisión independiente terminada: dos hallazgos corregidos tras RED real y
-GREEN de 66 contratos. Revalidación completa, QA operativa y entrega pendientes.
+GREEN de 66 contratos. Revalidación completa y QA operativa aprobadas; escenarioQA retirado con historial
+conservado. PR/CI y entrega aún pendientes, sin producción.
 Concurrencia verificada en `mc_rov_repair_ci_u2KsGD`, copia conservada con
 conexiones bloqueadas. Respaldo `/var/tmp/mc-rov-repair-concurrency-u2KsGD`.

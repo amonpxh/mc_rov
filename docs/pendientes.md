@@ -2,11 +2,12 @@
 
 ## Piloto de actividades automáticas — 2026-10-15
 
-- Etapa 1 instalada en STAGING: política por empresa y cálculo de 2 días laborables, **14/14 pruebas GREEN** tras RED 14/14. No genera actividades todavía. Lint 10/10, formato y XML verificados.
-- Respaldo de instalación `/var/tmp/mc-rov-repair-calendar-green-8QxoWu`; PDFs intactos, pruebas temporales restauradas, servicio active. Calendario empresa America/Santiago conservado.
-- Recuperación previa completada y verificada con restore en base nueva; base anterior preservada `odoo_staging_preserved_8iFkRF`, respaldo `/var/tmp/mc-rov-calendar-fresh-8iFkRF`. Evitar pg_restore clean sobre base viva o transacción global: fallaron por FKs nuevas y límite de locks.
-- Rama feature/repair-activities desde b9bbd63. Plan/spec en docs/superpowers. Sigue generación única de diagnóstico/reparación, luego cierre y permisos. Sin merge ni producción.
-- Etapa 1 commit local `2e03e0d`, precommit completo aprobado. Etapa 2 instalada en STAGING: **28/28 GREEN**, tests restaurados, PDFs intactos, servicio active. Respaldo `/var/tmp/mc-rov-repair-generation-green-sDFsqx`. Generación/ledger/ciclos/tipos propios verificados con lint 10/10; sin política real configurada ni actividades reales de QA. Sigue cierre automático (Task 3); concurrencia real CI y permisos finales siguen pendientes.
+- **STAGING validado:** 66 contratos focalizados y suite completa **489/489**, cero fallos/errores y descubrimiento de todos los casos. Concurrencia real: dos conexiones por etapa, reintento de serialización, una actividad por etapa y cero huérfanas.
+- **QA manual aprobada:** generación por etapa, reparto solo de empleado, confirmación de REV cierra diagnóstico, terminar orden cierra reparación, cancelar retira pendientes y reabrir genera un nuevo ciclo sin duplicados. Dos hallazgos de revisión independiente corregidos tras RED/GREEN (multiempresa y registros temporales).
+- **Escenario QA retirado:** usuarios635/636 y empleados1068/1069 archivados; producto2273 archivado y series11315/11316 dadas de baja como ficticias. Orden4348 terminada y4349 cancelada; REV10324/10325 e historial conservados. Seis seguimientos: dos terminados por negocio, cuatro cancelados. Política529 sin destinatario QA; no hay cuenta operativa elegida automáticamente.
+- Evidencia local en `.tmp/repair-activity-pilot/`: regression-tests.log, concurrency-probe.log y qa-closed.json. Respaldos finales `/var/tmp/mc-rov-repair-regression-zPWHT6`, `/var/tmp/mc-rov-repair-concurrency-EyIE0z` y limpieza `/var/tmp/mc-rov-repair-qa-close-zr9BsS`. Copias aisladas conservadas con conexiones bloqueadas; PDFs intactos, servicio activo.
+- Rama `feature/repair-activities`, base b9bbd63, implementación hasta ab43229. Runbook: [Actividades automáticas](runbooks/repair-activity-pilot.md). Cierre documental y PR/CI pendientes; producción continúa con la versión anterior. Falta elegir destinatario/calendario de producción y autorizar despliegue antes de activar trabajo real.
+- CI heredado modificaba el checkout de producción. Se prepara aislamiento en el workspace del runner antes de abrir el PR: solo BD odoo_test, comprobación de ruta y todos los casos descubiertos. Revisión/CI de ese ajuste pendientes; no tocar ni cambiar ramas del checkout operativo.
 
 ## Entrega Trabajo asignado — estado de cierre
 
@@ -468,3 +469,34 @@ actual y las decisiones más recientes del usuario.
 
 Procedimientos: [Pruebas](runbooks/testing.md), [STAGING](runbooks/staging.md) y
 [Despliegue](runbooks/deploy.md).
+
+
+## Pendiente nuevo: agente IA en Odoo y Telegram — 2026-10-15
+
+- [ ] Analizar y diseñar un agente que ayude a ejecutar tareas sobre registros reales de Odoo, accesible desde el chat de Odoo (Discuss) y Telegram. Solicitud del usuario: registrar el pendiente y evaluar viabilidad; todavía no implementar ni instalar.
+- Auditar primero módulos IA nativos disponibles en la instalación Odoo 19, edición/licencia y herramientas extensibles antes de elegir desarrollo propio. Referencia: https://www.odoo.com/documentation/19.0/applications/productivity/ai/agents.html
+- Propuesta inicial, pendiente de diseño: un agente con dos canales, mismas reglas y permisos; comenzar con consultas/resúmenes de trabajo y luego creación/reparto/reprogramación de actividades ligadas al origen. Mantener validadores existentes, auditoría y confirmación explícita de cambios sensibles.
+- No requiere por principio una BD de negocio aparte. Odoo conserva órdenes, actividades, tareas y proyectos como fuente de verdad; evaluar tablas de conversación/vinculación/auditoría en su BD. Servicio externo opcional para procesar mensajes/colas/modelo; almacenamiento separado solo si la arquitectura lo justifica, sin duplicar datos operativos.
+- Telegram exige vincular identidad Telegram con cuenta Odoo y persona/empleado autorizado, especialmente por las cuentas compartidas de Taller/Dev/Supervisor. No deducir identidad por nombre visible ni conceder al bot permisos globales de administrador. Prevenir que reintentos de mensajes dupliquen acciones.
+- Definir acciones permitidas, proveedor/modelo y coste, privacidad de los datos enviados, retención de conversaciones y acceso por empresa. Distinguir propuesta del agente de cambio aplicado y revisión confirmada por persona responsable.
+- Integración Telegram mediante Bot API oficial: https://core.telegram.org/bots/api . Primer piloto en STAGING. Estimación preliminar: consulta/resumen dificultad media; ejecución fiable de tareas entre módulos y ambos canales dificultad media-alta. No hay plazo ni arquitectura cerrados.
+- Este pendiente no sustituye el cierre del piloto de actividades automáticas: suite general, concurrencia aislada, revisión y QA operativa siguen pendientes.
+
+
+## Pendiente nuevo: Inventario desde Centro de trabajo — 2026-10-15
+
+- [ ] Diseñar acceso a Inventario desde el Centro de trabajo, reutilizando acciones/vistas nativas y permisos existentes. Usuario solicita registrarlo y evaluar otros faltantes; no implementar todavía.
+- Alcance candidato: consultar existencias/disponibilidad por producto y ubicación, componentes/repuestos además de equipos ROV, recepciones, entregas y transferencias internas. Distinguir existencia física de disponibilidad para uso; no aplicar filtro exclusivo de vehículos.
+- Mantener relación de materiales/movimientos con órdenes de reparación y fabricación cuando ya exista. Consultar un equipo sigue dedicado a serie/configuración/historial, no sustituye inventario.
+- Auditar fuentes y permisos instalados antes de cerrar el alcance. Elegir presentación sin romper los siete accesos iguales aprobados: posible octavo acceso con adaptación de ancho; propuesta visual pendiente.
+- Revisar como candidatos posteriores Compras/reabastecimiento (por materiales faltantes) y entregas/retiros (preferentemente dentro de Inventario). KPIs ya son pendiente independiente; documentos/informes mediante sus procesos salvo necesidad transversal confirmada. Estos candidatos son recomendaciones para discutir, no funcionalidades aprobadas para implementar.
+- Conservar la prioridad del cierre del piloto de actividades automáticas y tratar IA/Telegram posteriormente.
+
+
+### Compras en Odoo y futuro reemplazo de Defontana — alcance corregido
+
+- Aclaración posterior del usuario: Defontana se usa actualmente solo para cotizaciones comerciales y facturación con el SII; NO para compras/abastecimiento. Esta aclaración sustituye la propuesta anterior de sincronizar compras con Defontana.
+- [ ] Auditar y diseñar Compras y abastecimiento en Odoo, conectados con necesidades de reparación/fabricación e Inventario: solicitudes de cotización a proveedores, órdenes de compra y recepciones. No duplicar inventarios ni confundir compra aprobada con material disponible.
+- [ ] Como última etapa de la hoja de ruta, evaluar reemplazar también cotizaciones comerciales y facturación de Defontana por Odoo. No iniciar migración ni retirar Defontana antes de estabilizar procesos operativos y verificar requisitos tributarios, localización chilena, DTE, certificados/folios y habilitación aplicables con fuentes oficiales y responsables de la empresa.
+- Referencia aportada por el usuario para esa etapa: https://facele.cl/integracion-erp-con-la-facturacion-electronica-sii-en-chile-guia-tecnica-para-empresas/ . Guardada como recurso de proveedor; acceso directo no disponible en la consulta actual, contenido no verificado. No supone elección de Facele ni aprobación de contratación.
+- Prioridad actual: terminar piloto de actividades automáticas. GREEN focalizado55 aprobado; suite general preparada y todavía sin salida recibida. Luego concurrencia aislada, revisión y QA operativa antes de entrega. Inventario/Compras, KPIs e IA siguen como pendientes separados; sustitución comercial/tributaria de Defontana al final.

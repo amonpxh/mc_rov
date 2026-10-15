@@ -70,10 +70,15 @@ reconstrucción retrospectiva de órdenes antiguas.
 Se validaron por etapas 14 pruebas de calendario, 14 de generación, 12 de ciclo
 de vida, 15 de acceso e integración y 11 de fronteras/revisión: **66 aprobadas en
 STAGING**. La suite general previa a los 11 casos finales pasó **478/478**;
-la revalidación completa con 489 casos sigue pendiente. Dos conexiones simultáneas por etapa también pasaron en
+la revalidación completa también pasó **489/489**, seguida de concurrencia
+con el código corregido. La revisión independiente identificó dos casos de contexto
+multiempresa y registros temporales; ambos se reprodujeron en RED y pasaron en GREEN. Dos conexiones simultáneas por etapa también pasaron en
 una copia aislada: una actividad de diagnóstico, otra de reparación y ninguna
 huérfana. Los conflictos de serialización requirieron reintentar la transacción
-completa, como en las solicitudes nativas de Odoo. La QA operativa sigue pendiente.
+completa, como en las solicitudes nativas de Odoo. La QA operativa con Taller/Supervisor también fue aprobada: generación, reparto,
+cierre independiente y cancelación/reapertura. El escenario temporal fue retirado
+conservando documentos e historial; respaldo de limpieza
+`/var/tmp/mc-rov-repair-qa-close-zr9BsS`.
 
 El ensayo reproducible está en `scripts/qa/repair_activity_concurrency.py`.
 Ejecutarlo con Odoo shell solo sobre una copia cuyo nombre empiece por
@@ -82,7 +87,7 @@ Ejecutarlo con Odoo shell solo sobre una copia cuyo nombre empiece por
 verifica los hashes del código/PDF y bloquea conexiones al terminar. No es un test
 para ejecutar sobre una base operativa ni se importa en la suite transaccional.
 
-La QA operativa necesita una cuenta destinataria elegida explícitamente. Probar
+Para repetir la QA se necesita una cuenta destinataria elegida explícitamente. Probar
 inicio, vencimientos por etapa, reparto solo de empleado, confirmación REV, cierre
 de orden y cancelación/reapertura con permisos Taller y Supervisor. No reactivar
 cuentas QA antiguas ni crear pendientes en producción para probar.
