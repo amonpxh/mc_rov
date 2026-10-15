@@ -1,5 +1,12 @@
 # Trabajo pendiente
 
+## Piloto de actividades automáticas — 2026-10-15
+
+- Etapa 1 instalada en STAGING: política por empresa y cálculo de 2 días laborables, **14/14 pruebas GREEN** tras RED 14/14. No genera actividades todavía. Lint 10/10, formato y XML verificados.
+- Respaldo de instalación `/var/tmp/mc-rov-repair-calendar-green-8QxoWu`; PDFs intactos, pruebas temporales restauradas, servicio active. Calendario empresa America/Santiago conservado.
+- Recuperación previa completada y verificada con restore en base nueva; base anterior preservada `odoo_staging_preserved_8iFkRF`, respaldo `/var/tmp/mc-rov-calendar-fresh-8iFkRF`. Evitar pg_restore clean sobre base viva o transacción global: fallaron por FKs nuevas y límite de locks.
+- Rama feature/repair-activities desde b9bbd63. Plan/spec en docs/superpowers. Sigue generación única de diagnóstico/reparación, luego cierre y permisos. Sin merge ni producción.
+
 ## Entrega Trabajo asignado — estado de cierre
 
 - Usuario autoriza revisión, merge de PR #102, despliegue y retirada del QA temporal.
