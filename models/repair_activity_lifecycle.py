@@ -12,6 +12,23 @@ class RepairActivityLifecycle(models.AbstractModel):
 
     def _after_order_transition(self, order, old_state, started_at):
         result = super()._after_order_transition(order, old_state, started_at)
+        if order.state in ("confirmed", "under_repair"):
+            superseded = (
+                self.env["mc.rov.repair.activity.run"]
+                .sudo()
+                .search(
+                    [
+                        ("repair_id", "=", order.id),
+                        ("cycle", "<", order.mc_activity_cycle),
+                        ("stage", "=", "diagnosis"),
+                        ("outcome", "=", "pending"),
+                    ]
+                )
+            )
+            for run in superseded:
+                self._finish_run(
+                    run, "cancelled", _("Diagnóstico sustituido por la reapertura de la orden.")
+                )
         if order.state not in ("done", "cancel"):
             return result
         order.check_access("write")
@@ -81,7 +98,13 @@ class RepairActivityLifecycle(models.AbstractModel):
         order.invalidate_recordset(["state"])
         if outcome == "cancelled":
             order.check_access("write")
-            if order.state != "cancel":
+            superseded = (
+                run.stage == "diagnosis"
+                and run.cycle < order.mc_activity_cycle
+                and not order.mc_activity_cycle_closed
+                and order.state in ("confirmed", "under_repair")
+            )
+            if order.state != "cancel" and not superseded:
                 raise ValidationError(_("La orden no está cancelada."))
         elif outcome == "business_done" and run.stage == "diagnosis":
             revision = run.revision_id.with_env(self.env)
