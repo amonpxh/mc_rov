@@ -99,7 +99,13 @@ class RepairActivityPolicy(models.Model):
         ):
             return _("El calendario no contiene jornadas laborables.")
         try:
-            target = self.env["repair.order"].with_user(user).with_company(self.company_id)
+            # El destinatario no hereda las empresas activas de quien dispara el evento.
+            target = (
+                self.env["repair.order"]
+                .with_user(user)
+                .with_context(allowed_company_ids=[self.company_id.id])
+                .with_company(self.company_id)
+            )
             target = target.browse(order.id) if order else target
             if not target.has_access("read") or not target.has_access("write"):
                 return _("La cuenta no puede consultar y gestionar la orden.")
@@ -107,6 +113,7 @@ class RepairActivityPolicy(models.Model):
                 employee = (
                     self.env["hr.employee.public"]
                     .with_user(user)
+                    .with_context(allowed_company_ids=[self.company_id.id])
                     .with_company(self.company_id)
                     .search(
                         [

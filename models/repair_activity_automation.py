@@ -172,7 +172,12 @@ class RepairOrderAutomation(models.Model):
     def write(self, vals):
         if _CYCLE_FIELDS.intersection(vals):
             raise AccessError(_("El ciclo de seguimiento se administra internamente."))
-        if "state" not in vals or not self or not all(isinstance(key, int) for key in self.ids):
+        # ids resuelve NewId(origin=...) al origen; id conserva su naturaleza temporal.
+        if (
+            "state" not in vals
+            or not self
+            or any(not isinstance(order.id, int) or order.id <= 0 for order in self)
+        ):
             return super().write(vals)
         self.check_access("write")
         self.flush_recordset(["state", "mc_activity_cycle", "mc_activity_cycle_closed"])

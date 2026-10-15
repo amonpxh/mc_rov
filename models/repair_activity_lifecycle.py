@@ -164,7 +164,10 @@ class MailActivityRepairLifecycle(models.Model):
     _inherit = "mail.activity"
 
     def _mc_repair_runs(self):
-        real_ids = [key for key in self.ids if isinstance(key, int) and key > 0]
+        # No convertir una copia de onchange en su actividad persistida de origen.
+        real_ids = [
+            activity.id for activity in self if isinstance(activity.id, int) and activity.id > 0
+        ]
         runs = (
             self.env["mc.rov.repair.activity.run"]
             .sudo()
