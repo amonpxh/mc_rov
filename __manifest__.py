@@ -36,6 +36,7 @@
         "views/mc_rov_activity_assignment_wizard_views.xml",
         "views/mail_activity_views.xml",
         "data/mc_rov_data.xml",
+        "data/repair_activity_types.xml",
         # Después de mc_rov_data.xml: marca como inspeccionables componentes definidos allí.
         "data/mc_rov_revision_data.xml",
         "data/mc_rov_sintoma_data.xml",

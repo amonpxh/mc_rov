@@ -6,6 +6,7 @@
 - Respaldo de instalación `/var/tmp/mc-rov-repair-calendar-green-8QxoWu`; PDFs intactos, pruebas temporales restauradas, servicio active. Calendario empresa America/Santiago conservado.
 - Recuperación previa completada y verificada con restore en base nueva; base anterior preservada `odoo_staging_preserved_8iFkRF`, respaldo `/var/tmp/mc-rov-calendar-fresh-8iFkRF`. Evitar pg_restore clean sobre base viva o transacción global: fallaron por FKs nuevas y límite de locks.
 - Rama feature/repair-activities desde b9bbd63. Plan/spec en docs/superpowers. Sigue generación única de diagnóstico/reparación, luego cierre y permisos. Sin merge ni producción.
+- Etapa 1 commit local `2e03e0d`, precommit completo aprobado. Etapa 2 instalada en STAGING: **28/28 GREEN**, tests restaurados, PDFs intactos, servicio active. Respaldo `/var/tmp/mc-rov-repair-generation-green-sDFsqx`. Generación/ledger/ciclos/tipos propios verificados con lint 10/10; sin política real configurada ni actividades reales de QA. Sigue cierre automático (Task 3); concurrencia real CI y permisos finales siguen pendientes.
 
 ## Entrega Trabajo asignado — estado de cierre
 

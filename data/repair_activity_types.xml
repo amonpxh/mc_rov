@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="activity_type_repair_diagnosis" model="mail.activity.type">
+        <field name="name">Diagnóstico técnico</field>
+        <field name="res_model">repair.order</field>
+        <field name="chaining_type">suggest</field>
+    </record>
+    <record id="activity_type_repair_repair" model="mail.activity.type">
+        <field name="name">Reparación</field>
+        <field name="res_model">repair.order</field>
+        <field name="chaining_type">suggest</field>
+    </record>
+</odoo>
