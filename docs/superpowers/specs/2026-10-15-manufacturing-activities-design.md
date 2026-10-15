@@ -1,6 +1,7 @@
 # Seguimiento automático de fabricación
 
-Estado: diseño para revisión; no implementado ni instalado.
+Estado: diseño de fabricación aprobado por el usuario; no implementado ni instalado.
+Ubicación conjunta de configuración incorporada al plan para revisión.
 
 ## Objetivo y decisiones del usuario
 
@@ -56,6 +57,24 @@ Calidad y las pruebas de aceptación seguirán sus propios flujos. Esta entrega
 no crea RND/TRN, FEN, alertas, ECO ni movimientos de inventario adicionales.
 
 ## Política, cuenta y vencimiento
+
+Ubicación propuesta al preguntar el usuario dónde editar plazos y desactivar
+los automatismos: Centro de trabajo → Automatizaciones, solo Coordinación.
+Agrupa Control general, Reparaciones (el mismo formulario/XML ID existente)
+y Fabricación. No es un botón adicional entre los siete accesos operativos.
+
+Control general por empresa, con «Crear actividades automáticas» activado por
+defecto. Ausencia de configuración general conserva el comportamiento vigente.
+Desactivarlo impide crear pendientes de nuestros procesos, incluyendo reparación;
+no desactiva MRP, reglas nativas, correo, recordatorios manuales ni el cierre de
+actividades ya generadas. No borra pendientes, historia o configuración. Cada
+política tiene además su interruptor propio; para crear deben permitirlo ambos.
+Los procesos futuros deberán consultar el mismo control general.
+
+Los cambios de política afectan eventos futuros. No recalcular pendientes ya
+repartidos ni generar los eventos omitidos al volver a activar. Reprogramación
+de pendientes existentes utiliza el asistente con motivo. Cambios del control
+general deben registrar actor y valores por el mecanismo nativo de chatter.
 
 Política explícita por empresa, accesible solo a Coordinación, con Activado
 por defecto, cuenta interna activa, empleado público opcional, calendario para
