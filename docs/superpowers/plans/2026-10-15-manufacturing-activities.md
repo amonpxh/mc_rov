@@ -68,7 +68,7 @@ def _creation_enabled(self, company):
     return not row or row.enabled
 ```
 
-- [ ] Añadir menú Automatizaciones y submenú Control general con nombre visible «Crear actividades automáticas». Reparentar menu_repair_activity_policy al nuevo padre conservando acción e identidad. Mostrar ayuda: no afecta pendientes existentes ni automatismos nativos de Odoo.
+- [ ] Añadir menú Seguimiento automático y submenú Control general con nombre visible «Crear actividades automáticas». Reparentar menu_repair_activity_policy al nuevo padre conservando acción e identidad. Mostrar ayuda: no afecta pendientes existentes ni automatismos nativos de Odoo.
 - [ ] En reparación `_start_stage`, después de `order.check_access('write')` y validación de etapa, retornar False si control general está apagado. No añadir el guard al cierre del ledger. Nuevas pruebas que usan helpers de generación/lifecycle existentes cubren: general apagado no crea, política apagada no crea, general reactivado no reconstruye y REV exacta sigue cerrando un pendiente previo.
 - [ ] GREEN focalizado + 66 contratos existentes de reparación; validar vista/ACL con usuario no administrador. Commit `feat: centralizar control de actividades automáticas`.
 
@@ -112,7 +112,7 @@ return deadline
 ```
 
 - [ ] Crear ledger privado sin ACL pública. Campos: company_id, production_id (restrict), cycle, parent_run_id (restrict), activity_id (set null), started_at, original_deadline, calendar_id/tz, outcome pending/business_done/manual_done/cancelled, finished_at/by/reason; UNIQUE(production_id,cycle), CHECK(cycle>0).
-- [ ] Política visible en Automatizaciones → Fabricación; etiquetas «Plazo máximo (días corridos)» y ayuda «28 días equivalen a cuatro semanas». Sin crear política por upgrade. GREEN y commit `feat: configurar seguimiento de fabricación en cuatro semanas`.
+- [ ] Política visible en Seguimiento automático → Fabricación; etiquetas «Plazo máximo (días corridos)» y ayuda «28 días equivalen a cuatro semanas». Sin crear política por upgrade. GREEN y commit `feat: configurar seguimiento de fabricación en cuatro semanas`.
 
 ## Task 3: Eventos reales, retropedidos y decisiones manuales
 
@@ -141,7 +141,7 @@ def test_start_is_not_completion(self):
 ## Task 4: Fronteras, concurrencia y entrega STAGING
 
 - [ ] RED/GREEN de usuario sin acceso al origen, otra empresa, contexto receptor limitado, actividad temporal con origen/editada, MO NewId sin origen, identidad falsificada RPC, historial no exportable y reprogramación auditada. Pruebas de eventos mezclados en recordsets y atomicidad si uno falla. Control general apagado debe afectar generación de ambos procesos y conservar sus cierres.
-- [ ] Verificar menú Automatizaciones restringido a Coordinación; Taller solo gestiona trabajo permitido. Un administrador con grupo técnico no implica elegirlo como destinatario. Consultas nativas y filtro Fabricación deben incluir únicamente actividades cuyo origen sigue siendo accesible, sin lista congelada de IDs.
+- [ ] Verificar menú Seguimiento automático restringido a Coordinación; Taller solo gestiona trabajo permitido. Un administrador con grupo técnico no implica elegirlo como destinatario. Consultas nativas y filtro Fabricación deben incluir únicamente actividades cuyo origen sigue siendo accesible, sin lista congelada de IDs.
 - [ ] Completar imports/ACL/reglas/XML y versión19.0.25.1.0, runbook con ubicación, 28 corridos vs reparación2 laborables, interruptor general/proceso, efecto futuro y motivos. Actualizar docs/pendientes distinguiendo local/STAGING/CI/producción y configuración real todavía aplazada.
 - [ ] Scripts del workspace `.tmp/staging-manufacturing-activity-*-red.ps1` y `*-green.ps1`, payload de archivo UTF8/LF, sin exportar código grande por entorno; solo STAGING marcado, lock y backup, tests temporales restaurados y servicio activo. Recuperación si falla sobre BD nueva verificada, preservando la fallida y código anterior; no clean sobre base viva. Validar sintaxis antes de SSH manual.
 - [ ] Ejecutar suite completa `/mc_rov` con descubrimiento por AST y coincidencia exacta de nombres; no fijar arbitrariamente un conteo objetivo ni aceptar suite vacía. Hooks nativos, revisión de diff y dos transacciones PostgreSQL reales por confirmación/cierre en copia con prefijo `mc_rov_manufacturing_ci_`, sin correo/cron y conexiones bloqueadas al terminar. Reintentar transacción completa por serialización, comprobar1run/1actividad y0huérfanos.

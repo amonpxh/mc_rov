@@ -1,7 +1,7 @@
 # Seguimiento automático de fabricación
 
 Estado: diseño de fabricación aprobado por el usuario; no implementado ni instalado.
-Ubicación conjunta de configuración incorporada al plan para revisión.
+Ubicación conjunta de configuración aprobada: Configuración → Seguimiento automático.
 
 ## Objetivo y decisiones del usuario
 
@@ -58,8 +58,9 @@ no crea RND/TRN, FEN, alertas, ECO ni movimientos de inventario adicionales.
 
 ## Política, cuenta y vencimiento
 
-Ubicación propuesta al preguntar el usuario dónde editar plazos y desactivar
-los automatismos: Centro de trabajo → Automatizaciones, solo Coordinación.
+Ubicación aprobada al preguntar el usuario dónde editar plazos y desactivar
+los automatismos: Centro de trabajo → Configuración → Seguimiento automático,
+solo Coordinación.
 Agrupa Control general, Reparaciones (el mismo formulario/XML ID existente)
 y Fabricación. No es un botón adicional entre los siete accesos operativos.
 
