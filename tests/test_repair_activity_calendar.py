@@ -47,14 +47,21 @@ class TestRepairActivityCalendar(TransactionCase):
             self.env.registry.models,
             "Missing repair activity policy and deadline service",
         )
-        return self.env["mc.rov.repair.activity.policy"].create(
-            {
-                "company_id": self.env.company.id,
-                "calendar_id": (calendar or self._calendar()).id,
-                "user_id": self.env.user.id,
-                **values,
-            }
-        )
+        model = self.env["mc.rov.repair.activity.policy"]
+        configuration = {
+            **model.default_get(["enabled", "diagnosis_days", "repair_days"]),
+            "calendar_id": (calendar or self._calendar()).id,
+            "user_id": self.env.user.id,
+            "employee_id": False,
+            **values,
+        }
+        # La QA operativa puede conservar una política: ajustarla solo en la
+        # transacción de la prueba evita duplicarla y el rollback restaura sus valores.
+        policy = model.search([("company_id", "=", self.env.company.id)], limit=1)
+        if policy:
+            policy.write(configuration)
+            return policy
+        return model.create({"company_id": self.env.company.id, **configuration})
 
     def _leave(self, calendar, start, end):
         zone = pytz.timezone(calendar.tz)
