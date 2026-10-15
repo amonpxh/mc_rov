@@ -34,6 +34,8 @@ class RepairActivityRun(models.Model):
         required=True,
     )
     finished_at = fields.Datetime()
+    finished_by_id = fields.Many2one("res.users", ondelete="set null")
+    finish_reason = fields.Text()
 
     _stage_unique = models.Constraint(
         "UNIQUE(repair_id, cycle, stage)", "La etapa ya tiene seguimiento en este ciclo."

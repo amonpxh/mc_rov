@@ -15,3 +15,4 @@ from . import test_work_assignment
 from . import test_work_assignment_process
 from . import test_repair_activity_calendar
 from . import test_repair_activity_generation
+from . import test_repair_activity_lifecycle
