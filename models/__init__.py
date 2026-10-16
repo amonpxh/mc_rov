@@ -32,3 +32,4 @@ from . import mc_rov_manufacturing_activity_policy
 from . import mc_rov_manufacturing_activity_run
 from . import manufacturing_activity_automation
 from . import manufacturing_activity_lifecycle
+from . import manufacturing_activity_source

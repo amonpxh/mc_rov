@@ -110,11 +110,18 @@ class ManufacturingProductionAutomation(models.Model):
         internal = self.env.context.get("_mc_manufacturing_split") is _SPLIT_TOKEN
         if not internal and any(_PARENT_FIELD in values for values in vals_list):
             raise AccessError(_("El origen del seguimiento se administra internamente."))
-        values = [dict(item) for item in vals_list]
-        if not internal:
-            for item in values:
-                item[_PARENT_FIELD] = False
-        return super().create(values)
+        if internal:
+            return super().create(vals_list)
+        # No escribir ni siquiera False en un campo técnico desde una cuenta Taller.
+        # Retirar el default RPC evita falsificar el padre sin elevar permisos del create.
+        context = {
+            key: value
+            for key, value in self.env.context.items()
+            if key != "default_" + _PARENT_FIELD
+        }
+        return super(ManufacturingProductionAutomation, self.with_context(context)).create(
+            vals_list
+        )
 
     def write(self, vals):
         if _PARENT_FIELD in vals:
