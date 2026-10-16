@@ -69,7 +69,9 @@ class RepairActivityAutomation(models.AbstractModel):
                 limit=1,
             )
         )
-        if policy and not policy.enabled:
+        if not self.env["mc.rov.automation.control"]._creation_enabled(order.company_id) or (
+            policy and not policy.enabled
+        ):
             return False
         if not policy:
             self._configuration_notice(

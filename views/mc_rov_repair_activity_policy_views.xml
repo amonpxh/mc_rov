@@ -44,6 +44,6 @@
         <field name="view_mode">list,form</field>
     </record>
     <menuitem id="menu_repair_activity_policy" name="Seguimiento de reparaciones"
-              parent="menu_mc_rov_root" action="action_repair_activity_policy"
+              parent="menu_work_automation" action="action_repair_activity_policy"
               groups="mc_rov.group_work_assignment_coordinate" sequence="90"/>
 </odoo>

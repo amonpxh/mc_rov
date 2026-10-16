@@ -18,3 +18,9 @@ from . import test_repair_activity_generation
 from . import test_repair_activity_lifecycle
 from . import test_repair_activity_access
 from . import test_repair_activity_boundaries
+from . import test_automation_control
+from . import test_manufacturing_activity_policy
+from . import test_manufacturing_activity_generation
+from . import test_manufacturing_activity_lifecycle
+from . import test_manufacturing_activity_boundaries
+from . import test_manufacturing_activity_review
