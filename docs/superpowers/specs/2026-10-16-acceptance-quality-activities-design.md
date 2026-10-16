@@ -1,7 +1,7 @@
 # Seguimiento de aceptación de equipos y Calidad
 
-Estado: reglas de negocio y plazos aprobados en conversación; este diseño escrito
-se presenta a revisión antes del plan y de cualquier implementación.
+Estado: diseño escrito aprobado por el usuario el2026-10-16. Planes de aceptación
+y Calidad preparados para revisión; implementación aún no iniciada.
 Base: main b25d15fe90dbb99bf28be90989da53ed5e1f3dde, mc_rov19.0.25.1.0.
 
 ## Objetivo y acuerdos
