@@ -5,8 +5,8 @@ El piloto se valida en STAGING antes de autorizar producción.
 
 ## Configuración
 
-Un usuario con el permiso de Coordinación abre **Seguimiento de reparaciones**
-en Centro de trabajo. Crear una política para la empresa, seleccionar una cuenta
+Un usuario con el permiso de Coordinación abre **Centro de trabajo → Configuración →
+Seguimiento automático → Seguimiento de reparaciones**. Crear una política para la empresa, seleccionar una cuenta
 interna activa con permiso de lectura y escritura sobre las órdenes y elegir su
 calendario laboral. El empleado es opcional y corresponde a la persona asignada;
 no se deduce de la cuenta compartida ni del técnico que confirmó la REV.
@@ -15,6 +15,11 @@ no se deduce de la cuenta compartida ni del técnico que confirmó la REV.
 En STAGING se verificó el calendario de empresa con zona **America/Santiago**.
 Instalar o actualizar el módulo no cambia calendarios ni agrega festivos.
 Solo se excluyen ausencias globales efectivamente registradas en el calendario.
+
+**Control general**, en Seguimiento automático, pausa solo la creación de nuevos
+pendientes automáticos de reparación y fabricación para esa empresa. No elimina
+pendientes ni impide sus cierres por eventos. Ver también el
+[piloto de fabricación](manufacturing-activity-pilot.md), cuyo plazo es de días corridos.
 
 ## Eventos y vencimientos
 

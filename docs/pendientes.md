@@ -1,3 +1,11 @@
+## Fabricación automática — validación automática completa, 2026-10-16
+
+- Implementación de fabricación y control general en `feature/manufacturing-activities`, producto hasta `c972adc`, versión19.0.25.1.0. Revisión independiente: único hallazgo importante corregido por RED/GREEN; sin otros críticos/importantes.
+- **STAGING:594/594**, cero fallos/errores, nombres exactos sin omisiones/duplicados y16 archivos instalados coincidentes con el candidato. Configuraciones y PDFs intactos, pruebas temporales retiradas y servicio activo. Respaldo `/var/tmp/mc-rov-manufacturing-regression-nFRdU2`.
+- **Concurrencia real aprobada desde Taller:** dos conexiones por confirmación/cierre, reintento completo por serialización; un seguimiento, una actividad pendiente al confirmar y cero pendientes al terminar; cero huérfanos. El segundo cierre recibió la validación nativa de serie ya fabricada. Copia `mc_rov_manufacturing_ci_t0JTV0` conservada con conexiones bloqueadas; respaldo `/var/tmp/mc-rov-manufacturing-concurrency-t0JTV0`.
+- **Pendiente QA manual:** creador preparado `.tmp/staging-manufacturing-activity-qa-users.ps1`, todavía no ejecutado. Dos cuentas nuevas `mcqa.manufacturing.taller`/`mcqa.manufacturing.supervisor`, dos empleados, producto/series ficticios y cuatro órdenes borrador (normal/parcial/cancelación/pausa). Política28corridos desactivada; calendarioQA Santiago propio. Control general nuevo solo si ausente, activado como su conducta previa y registrado para retirarlo. No sustituye políticas ajenas ni cambia cuentas/calendarios existentes; contraseña solo en terminal.
+- Después: prueba operativa guiada, archivo de datos QA conservando órdenes/historial, cierre documental y PR/CI. No merge/despliegue de fabricación autorizado todavía. Producción sigue con reparación19.0.25.0.0; cuenta real de Taller y calendario operativo siguen pendientes para activar automatismos reales.
+
 # Trabajo pendiente
 
 ## Piloto de actividades automáticas — 2026-10-15
