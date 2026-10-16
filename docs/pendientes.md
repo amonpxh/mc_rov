@@ -1,3 +1,11 @@
+## Fabricación automática — QA manual verificada, 2026-10-16
+
+- Usuario confirma generación, reparto solo de empleado y cierre de la normal WH/MO/00779. En la parcial WH/MO/00780, la parte001 quedó hecha y solo002 conserva el pendiente y el vencimiento reprogramado (2026-10-17). Cancelar00781 retiró su pendiente.
+- Pausa general verificada: confirmar00782 con control apagado no generó actividad;00780-002 siguió pendiente. Reactivar y editar00782 tampoco creó actividad retroactiva.
+- Escenario STAGING registrado: cuentas2081/2082, empleados1212/1213, producto2498, series13244..13247, órdenes854..857 y parcial derivada, política554, calendarioQA2255, control171. Creación respaldada en `/var/tmp/mc-rov-manufacturing-operational-qa-b31ACW`.
+- **Retiro QA confirmado:** `.tmp/staging-manufacturing-activity-qa-close.ps1`. Respalda BD y valida propiedad; cancela solo órdenesQA pendientes y archiva cuentas/empleados/producto. Conserva órdenes, series dadas de baja, calendario e historial; deja política sin destinatario y control en su conducta previa conservando auditoría.
+- Validación automática previa:594/594 y concurrencia aislada aprobadas; no hay cambios de producto posteriores. RetiroQA respaldado en `/var/tmp/mc-rov-manufacturing-qa-close-p2hK8Y`: cuentas/empleados/producto archivados, cuatro series dadas de baja, cinco órdenes conservadas (dos hechas y tres canceladas), cuatro seguimientos sin pendientes; STAGING activo. Pendiente cierre documental y PR/CI. Sin merge/despliegue de fabricación autorizado; producción conserva reparación19.0.25.0.0 sin destinatario operativo real.
+
 ## Fabricación automática — validación automática completa, 2026-10-16
 
 - Implementación de fabricación y control general en `feature/manufacturing-activities`, producto hasta `c972adc`, versión19.0.25.1.0. Revisión independiente: único hallazgo importante corregido por RED/GREEN; sin otros críticos/importantes.

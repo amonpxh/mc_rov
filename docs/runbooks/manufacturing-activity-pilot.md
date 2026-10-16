@@ -98,7 +98,7 @@ Evidencia del workspace: `.tmp/manufacturing-activity-pilot/`. Respaldos:
 - Concurrencia: `/var/tmp/mc-rov-manufacturing-concurrency-t0JTV0`.
 - Copia conservada con conexiones bloqueadas: `mc_rov_manufacturing_ci_t0JTV0`.
 
-Falta QA operativa y retirar su escenario conservando historial, antes de cerrar
+QA operativa confirmada por el usuario el 2026-10-16. Escenario retirado conservando historial; falta cerrar
 la entrega mediante PR/CI. Producción no contiene esta ampliación. Despliegue y
 activación real requieren aprobación y una cuenta operativa elegida explícitamente.
 
@@ -117,3 +117,20 @@ preexistente ajena al escenario. En STAGING usar únicamente las órdenes QA.
 Probar confirmar/repartir la normal y terminarla con su serie QA; fabricar una
 unidad de la parcial y comprobar el pendiente restante; cancelar otra y confirmar
 la última con la política pausada. Reactivar y editarla no debe reconstruirla.
+
+### Resultado manual del 2026-10-16
+
+Confirmados por el usuario: generación de la normal, reparto solo de empleado,
+cierre por negocio, parcial001 hecha con un único pendiente en002 y vencimiento
+reprogramado conservado, cancelación y pausa general sin retirar pendientes previos.
+Reactivar y editar la orden confirmada durante la pausa no creó actividad retroactiva.
+
+En Odoo19, para una unidad serializada de una orden de dos unidades, abrir
+**Generar número de serie**, pegar una sola serie en el cuadro de lista y pulsar
+**Aplicar**. Queda1/2; usar **Producir** y después **Crear orden parcial**.
+El asistente puede advertir que no hay componentes: el productoQA no tiene BoM.
+
+Retiro confirmado mediante `staging-manufacturing-activity-qa-close.ps1` del workspace.
+Respaldo: `/var/tmp/mc-rov-manufacturing-qa-close-p2hK8Y`. Cuentas2081/2082, empleados1212/1213 y producto2498 archivados; series13244..13247 dadas de baja. Órdenes854/855 hechas y856/857/858 canceladas; cuatro seguimientos conservados sin pendientes. STAGING activo.
+Conserva la configuración sin destinatario y el control con su conducta anterior,
+para mantener la auditoría. El calendarioQA permanece referenciado por el historial.
