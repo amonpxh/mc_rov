@@ -41,6 +41,7 @@
         "data/mc_rov_data.xml",
         "data/repair_activity_types.xml",
         "data/manufacturing_activity_types.xml",
+        "data/acceptance_activity_types.xml",
         # Después de mc_rov_data.xml: marca como inspeccionables componentes definidos allí.
         "data/mc_rov_revision_data.xml",
         "data/mc_rov_sintoma_data.xml",

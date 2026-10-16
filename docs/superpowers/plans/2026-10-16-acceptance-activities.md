@@ -70,7 +70,7 @@ métodos públicos sobre lote/autorización no devuelven ledger ni tokens Python
 
 **Consumes:** calendario y control general existentes. **Produces:** `_working_date` y política por empresa con enabled, user_id, employee_id(public), calendar_id y días separados performance_days, field_days, rejection_days, fen_days.
 
-- [ ] Escribir RED de existencia/defaults, duración1..365 rechazando bool antes de conversión, cuenta interna activa, calendario laboral con zona válida/no flexible y acceso por empresa. Ejemplo directo:
+- [x] Escribir RED de existencia/defaults, duración1..365 rechazando bool antes de conversión, cuenta interna activa, calendario laboral con zona válida/no flexible y acceso por empresa. Ejemplo directo:
 
 ```python
 def test_policy_defaults(self):
@@ -82,8 +82,8 @@ def test_policy_defaults(self):
                       'rejection_days': 1, 'fen_days': 1})
 ```
 
-- [ ] Ejecutar RED STAGING con pruebas temporales. Aceptar solo fallos nuevos previstos y cero errores de carga; todas las pruebas anteriores focalizadas deben seguir pasando.
-- [ ] Extraer literalmente el algoritmo de `_deadline` de reparación a `_working_date(calendar, company, started_at, days)`; conservar el método anterior como adaptador. No instanciar una política de reparación para calcular aceptación.
+- [x] Ejecutar RED STAGING con pruebas temporales. Aceptar solo fallos nuevos previstos y cero errores de carga; todas las pruebas anteriores focalizadas deben seguir pasando.
+- [x] Extraer literalmente el algoritmo de `_deadline` de reparación a `_working_date(calendar, company, started_at, days)`; conservar el método anterior como adaptador. No instanciar una política de reparación para calcular aceptación.
 
 ```python
 def _deadline(self, started_at, days):
@@ -92,9 +92,9 @@ def _deadline(self, started_at, days):
         self.calendar_id, self.company_id, started_at, days)
 ```
 
-- [ ] Implementar política/menú bajo Seguimiento automático con permiso Coordinar, regla de empresa y ausencia de políticas por upgrade. Copiar restricciones semánticas, no empresas del actor.
-- [ ] GREEN de política y14contratos originales de calendario: viernes→lunes, festivo registrado, domingo, Chile frente a medianoche UTC, DST, calendario vacío/sin jornada futura. Verificar también políticas reparación/fabricación intactas.
-- [ ] Black/pylint/hooks y commit `feat: configurar plazos laborales de aceptación` solo después de GREEN nativo.
+- [x] Implementar política/menú bajo Seguimiento automático con permiso Coordinar, regla de empresa y ausencia de políticas por upgrade. Copiar restricciones semánticas, no empresas del actor.
+- [x] GREEN de política y14contratos originales de calendario: viernes→lunes, festivo registrado, domingo, Chile frente a medianoche UTC, DST, calendario vacío/sin jornada futura. Verificar también políticas reparación/fabricación intactas.
+- [x] Black/pylint/hooks y commit `feat: configurar plazos laborales de aceptación` solo después de GREEN nativo.
 
 ### Task2: Ciclo por unidad producida y generación inicial
 
@@ -102,9 +102,9 @@ def _deadline(self, started_at, days):
 
 **Consumes:** Task1. **Produces:** `_produced_lots`, `_start`, `_start_stage` y hooks MRP/movimientos.
 
-- [ ] Crear fixture `AcceptanceActivityCommon(ManufacturingActivityCommon)`: política aceptación explícita en calendario lun-vie Santiago, cuenta TallerQA con permisos mínimos, series únicas y movimientos nativos. Reutilizar la fixture existente solo para producción/revisiones; no su calendario vacío de días corridos.
-- [ ] En esa fixture definir `_acceptance_policy(**values)` (create/reuse transaccional sin borrar política), `_finished_production(quantity=1)` (confirmar/producir series mediante MRP nativo y devolver MO) y `_acceptance_activities(lot)` (buscar tipos XML de aceptación sobre stock.lot). Todas las pruebas posteriores importan esta clase; no duplicar cuentas/fixtures.
-- [ ] RED: MO confirmada/asistente sin done crea0; done con una serie crea1ciclo/2actividades; done repetido crea0extra; dos series terminadas crean2ciclos/4actividades; parcial inicia solo serie producida; componente/noROV, sin serie, pausa y configuración incompleta crean0 sin inventar destinatario. Una excepción posterior revierte cierre/ledger/actividades juntos.
+- [x] Crear fixture `AcceptanceActivityCommon(ManufacturingActivityCommon)`: política aceptación explícita en calendario lun-vie Santiago, cuenta TallerQA con permisos mínimos, series únicas y movimientos nativos. Reutilizar la fixture existente solo para producción/revisiones; no su calendario vacío de días corridos.
+- [x] En esa fixture definir `_acceptance_policy(**values)` (create/reuse transaccional sin borrar política), `_finished_production(quantity=1)` (confirmar/producir series mediante MRP nativo y devolver MO) y `_acceptance_activities(lot)` (buscar tipos XML de aceptación sobre stock.lot). Todas las pruebas posteriores importan esta clase; no duplicar cuentas/fixtures.
+- [x] RED: MO confirmada/asistente sin done crea0; done con una serie crea1ciclo/2actividades; done repetido crea0extra; dos series terminadas crean2ciclos/4actividades; parcial inicia solo serie producida; componente/noROV, sin serie, pausa y configuración incompleta crean0 sin inventar destinatario. Una excepción posterior revierte cierre/ledger/actividades juntos.
 
 ```python
 def test_done_creates_two_pending_activities_per_produced_lot(self):
@@ -116,9 +116,9 @@ def test_done_creates_two_pending_activities_per_produced_lot(self):
     self.assertTrue(all(a.res_model == 'stock.lot' for a in self._acceptance_activities(lots)))
 ```
 
-- [ ] Ejecutar RED; después implementar ledger con unicidad MO/lote y etapa/evento, calendario/tz, vencimientos original/vigente y resultado/actor/motivo. Bloquear filas de MO y lotes en orden; no considerar sudo como actor autorizado.
-- [ ] Implementar hooks reales de reconciliación MRP/stock conservando retornos de super. `_produced_lots` lee movimientos terminados/producto/serie, excluye componentes y series no producidas. Para MO bajo reparación/fabricación sin política aceptación no cambiar su comportamiento anterior.
-- [ ] GREEN con ciclo real/partial/movimiento directo y controles anteriores; verificar que upgrade no crea actividades o documentos técnicos; commit `feat: generar aceptación al fabricar cada equipo`.
+- [x] Ejecutar RED; después implementar ledger con unicidad MO/lote y etapa/evento, calendario/tz, vencimientos original/vigente y resultado/actor/motivo. Bloquear filas de MO y lotes en orden; no considerar sudo como actor autorizado.
+- [x] Implementar hooks reales de reconciliación MRP/stock conservando retornos de super. `_produced_lots` lee movimientos terminados/producto/serie, excluye componentes y series no producidas. Para MO bajo reparación/fabricación sin política aceptación no cambiar su comportamiento anterior.
+- [x] GREEN con ciclo real/partial/movimiento directo y controles anteriores; verificar que upgrade no crea actividades o documentos técnicos; commit `feat: generar aceptación al fabricar cada equipo`.
 
 ### Task3: Selección explícita de evidencia y navegación nativa
 
