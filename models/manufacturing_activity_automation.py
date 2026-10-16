@@ -46,7 +46,11 @@ class ManufacturingActivityAutomation(models.AbstractModel):
         deadline = policy._deadline(started_at, production.date_deadline)
         if parent:
             # Una división hereda también una reprogramación manual del pendiente original.
-            deadline = parent.activity_id.date_deadline or parent.original_deadline
+            deadline = (
+                parent.activity_id.date_deadline
+                or parent.current_deadline
+                or parent.original_deadline
+            )
             if production.date_deadline:
                 explicit = fields.Datetime.context_timestamp(
                     policy.with_context(tz=policy.calendar_id.tz), production.date_deadline
@@ -81,6 +85,7 @@ class ManufacturingActivityAutomation(models.AbstractModel):
                 "activity_id": activity.id,
                 "started_at": started_at,
                 "original_deadline": deadline,
+                "current_deadline": deadline,
                 "calendar_id": policy.calendar_id.id,
                 "calendar_tz": policy.calendar_id.tz,
             }

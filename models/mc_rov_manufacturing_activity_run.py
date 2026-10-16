@@ -20,6 +20,8 @@ class ManufacturingActivityRun(models.Model):
     activity_id = fields.Many2one("mail.activity", ondelete="set null", index=True)
     started_at = fields.Datetime(required=True)
     original_deadline = fields.Date(required=True)
+    # Sobrevive al unlink nativo de la actividad para no reiniciar el plazo del retropedido.
+    current_deadline = fields.Date()
     calendar_id = fields.Many2one("resource.calendar", required=True, ondelete="restrict")
     calendar_tz = fields.Char(required=True)
     outcome = fields.Selection(
