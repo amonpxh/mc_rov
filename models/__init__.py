@@ -30,3 +30,4 @@ from . import repair_activity_source
 from . import mc_rov_automation_control
 from . import mc_rov_manufacturing_activity_policy
 from . import mc_rov_manufacturing_activity_run
+from . import manufacturing_activity_automation
