@@ -181,6 +181,7 @@ class ManufacturingProductionAutomation(models.Model):
                 .sudo()
                 .browse(child.sudo().mc_manufacturing_parent_run_key)
             )
-            if parent and child.state == "confirmed":
+            # La orden restante ya nace confirmada incluso si la original no fue seguida.
+            if child.state == "confirmed":
                 service._start(child, fields.Datetime.now(), parent=parent)
         return result
