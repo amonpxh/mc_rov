@@ -42,3 +42,5 @@ from . import acceptance_activity_automation
 from . import mc_rov_acceptance_evidence_history
 from . import acceptance_activity_evidence
 from . import acceptance_activity_lifecycle
+from . import acceptance_activity_source
+from . import acceptance_activity_evidence_lines

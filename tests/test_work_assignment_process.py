@@ -64,8 +64,8 @@ class TestWorkAssignmentProcess(ActivityAssignmentCommon):
         self.assertEqual(self._ids(service.action_activities(process="equipment")), activity.ids)
         self.assertFalse(self._ids(service.action_activities(process="acceptance")))
         options = {item["key"]: item for item in service.get_processes(kind="activities")}
-        self.assertFalse(options["acceptance"]["available"])
-        self.assertTrue(options["acceptance"]["hint"])
+        self.assertTrue(options["acceptance"]["available"])
+        self.assertFalse(options["acceptance"]["hint"])
 
     def test_tarea_sin_vinculo_no_hereda_proceso_por_titulo(self):
         service = self._service()

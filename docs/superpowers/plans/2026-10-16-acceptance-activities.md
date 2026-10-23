@@ -159,11 +159,11 @@ def test_unrelated_revision_does_not_finish_stage(self):
 
 **Files:** crear `tests/test_acceptance_activity_boundaries.py`; modificar `models/mc_rov_work_assignment.py`, `tests/test_work_assignment.py`, `static/tests/embedded_work.test.js` solo si hay cambio de capacidad/frontend; guardas de origen en servicio de evidencia/lifecycle.
 
-- [ ] RED de filtro Aceptación con actividades sobre lote. Dominio dinámico por res_model=stock.lot y tipos XML explícitos de aceptación (RND/TRN/rechazos/emisión). No lista de activity IDs congelada, ni lectura de ledger privado desde cliente.
-- [ ] Habilitar opción acceptance para actividades; tareas/proyectos continúan sin vínculo inventado. Mantener Equipo como origen stock.lot; actividades manuales de mantenimiento con otro tipo no entran en Aceptación. Publicar capacidad según acceso, conservar permisos personales/equipo.
-- [ ] RED+GREEN de nombres restringidos/exportación, coordinador sin consulta global, usuario externo, múltiples empresas, destinatario con solo otra empresa, contexto JSON falsificado, NewId sin efecto persistente, copias/referencias cambiadas, selección atómica en lote y cambio/borrado de evidencia seguida con explicación humana.
-- [ ] HOOT de vista embebida conserva búsqueda/empleado/alcance y muestra filtro Aceptación disponible. Backend filtra cuenta/empleado/proceso en consulta nativa; no conceder RRHH privado ni grupos a usuarios reales.
-- [ ] Hooks nativos Black/pylint y commit `feat: integrar aceptación con trabajo asignado` tras GREEN.
+- [x] RED de filtro Aceptación con actividades sobre lote. Dominio dinámico por res_model=stock.lot y tipos XML explícitos de aceptación (RND/TRN/rechazos/emisión). No lista de activity IDs congelada, ni lectura de ledger privado desde cliente.
+- [x] Habilitar opción acceptance para actividades; tareas/proyectos continúan sin vínculo inventado. Mantener Equipo como origen stock.lot; actividades manuales de mantenimiento con otro tipo no entran en Aceptación. Publicar capacidad según acceso, conservar permisos personales/equipo.
+- [x] RED+GREEN de nombres restringidos/exportación, coordinador sin consulta global, usuario externo, múltiples empresas, destinatario con solo otra empresa, contexto JSON falsificado, NewId sin efecto persistente, copias/referencias cambiadas, selección atómica en lote y cambio/borrado de evidencia seguida con explicación humana.
+- [x] HOOT de vista embebida conserva búsqueda/empleado/alcance y muestra filtro Aceptación disponible. Backend filtra cuenta/empleado/proceso en consulta nativa; no conceder RRHH privado ni grupos a usuarios reales.
+- [x] Hooks nativos Black/pylint y commit `feat: integrar aceptación con trabajo asignado` tras GREEN.
 
 ### Task6: Validación conjunta y entrega
 

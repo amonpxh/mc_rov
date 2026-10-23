@@ -253,10 +253,24 @@ class AcceptanceMailActivityLifecycle(models.Model):
             return result
 
     def write(self, values):
-        if values.get("active") is False:
+        source_fields = {"res_model", "res_model_id", "res_id"}.intersection(values)
+        if source_fields or values.get("active") is False:
             with self.env.cr.savepoint():
-                self._mc_acceptance_manual_outcome(
-                    "cancelled", _("Actividad archivada manualmente.")
-                )
+                for run in self._mc_acceptance_runs():
+                    activity = run.activity_id
+                    model = values.get("res_model", activity.res_model)
+                    if "res_model_id" in values:
+                        model = self.env["ir.model"].browse(values["res_model_id"]).model
+                    if (
+                        model != "stock.lot"
+                        or values.get("res_id", activity.res_id) != run.cycle_id.lot_id.id
+                    ):
+                        raise ValidationError(
+                            _("Una actividad de aceptación no puede cambiar de origen.")
+                        )
+                if values.get("active") is False:
+                    self._mc_acceptance_manual_outcome(
+                        "cancelled", _("Actividad archivada manualmente.")
+                    )
                 return super().write(values)
         return super().write(values)
