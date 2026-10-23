@@ -17,6 +17,8 @@ class AcceptanceActivityCycle(models.Model):
         "stock.lot", required=True, index=True, ondelete="restrict", check_company=True
     )
     started_at = fields.Datetime(required=True)
+    rnd_id = fields.Many2one("mc.rov.revision", ondelete="restrict")
+    trn_id = fields.Many2one("mc.rov.revision", ondelete="restrict")
     state = fields.Selection(
         [("open", "Pendiente"), ("done", "Aceptado"), ("cancel", "Cancelado")],
         required=True,

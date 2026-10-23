@@ -72,6 +72,7 @@
         "views/mc_rov_repair_activity_policy_views.xml",
         "views/mc_rov_manufacturing_activity_policy_views.xml",
         "views/mc_rov_acceptance_activity_policy_views.xml",
+        "views/mc_rov_acceptance_evidence_wizard_views.xml",
         "reports/ficha_report.xml",
         "reports/ficha_equipo_nuevo_report.xml",
         "views/mc_rov_ficha_wizard_views.xml",

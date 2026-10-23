@@ -53,8 +53,8 @@ def _start_stage(self, cycle, stage, started_at):  # -> run vacío o singleton p
     """Idempotente por ciclo, etapa y evento de elegibilidad."""
 
 # mc.rov.acceptance.activity.lifecycle
-def _select_evidence(self, lot, rnd=False, trn=False, reason=False):  # -> None
-    """Selecciona para el único ciclo abierto visible; valida y audita reemplazos."""
+def _select_evidence(self, lot, rnd=None, trn=None, reason=False):  # -> None
+    """None conserva, False desvincula; cambiar evidencia exige motivo y auditoría."""
 def _reconcile(self, lots, occurred_at):  # -> None
     """Cierra realización, sigue rechazos y reconcilia elegibilidad de emisión."""
 def _after_fen_emission(self, ficha):  # -> None
@@ -122,15 +122,15 @@ def test_done_creates_two_pending_activities_per_produced_lot(self):
 
 ### Task3: Selección explícita de evidencia y navegación nativa
 
-**Files:** crear `wizards/mc_rov_acceptance_evidence_wizard.py`, `views/mc_rov_acceptance_evidence_wizard_views.xml`, `models/acceptance_activity_evidence.py`, `tests/test_acceptance_activity_evidence.py`; modificar imports, ACL del asistente, manifest y vista heredada de equipo en `views/stock_lot_views.xml` (confirmar ID nativo mediante auditoría antes de heredar).
+**Files:** crear `models/mc_rov_acceptance_evidence_history.py` (modelo privado mc.rov.acceptance.evidence.history que conserva revision_id/previous_revision_id restrict, ciclo, etapa, actor, instante y motivo), `wizards/mc_rov_acceptance_evidence_wizard.py`, `views/mc_rov_acceptance_evidence_wizard_views.xml`, `models/acceptance_activity_evidence.py`, `tests/test_acceptance_activity_evidence.py`; modificar imports, ACL del asistente, manifest y vista heredada de equipo en `views/stock_lot_views.xml` (confirmar ID nativo mediante auditoría antes de heredar).
 
 **Consumes:** ciclo y `_start_stage`. **Produces:** `_select_evidence` y acción pública `stock.lot.action_mc_acceptance_evidence`.
 
-- [ ] RED: seleccionar RND/TRN del ciclo resuelve solo esas realizaciones; revisar otro registro del mismo lote no hace nada. Rechazar otro equipo/tipo, repair_id presente, otra empresa, ciclo incompatible y origen sin permiso. Selección de evidencia ya confirmada requiere acción explícita y queda auditada.
-- [ ] Definir asistente con lot_id, rnd_id, trn_id, reason; `action_apply` llama `_select_evidence` tras permisos de lote/ambas pruebas. El formulario muestra solo resumen autorizado del ciclo y abre pruebas por acciones nativas. No publicar IDs/columnas privadas del ledger.
-- [ ] Crear prueba desde el asistente usa los formularios existentes y vincula explícitamente el registro creado, sin pasar tokens privados por context JSON. Fuera del asistente, los botones manuales existentes conservan su semántica.
-- [ ] Reemplazar evidencia rechazada exige motivo, conserva selección previa en historial y referencias restrict; impedir asociaciones ambiguas. El responsable_id técnico no modifica el empleado de la actividad.
-- [ ] GREEN de asistente/default_get/onchange con caché fría y selección con usuario Taller sin grupo técnico; verificar acciones serializables y lectura del origen; commit `feat: vincular pruebas al ciclo de aceptación`.
+- [x] RED: seleccionar RND/TRN registra solo esas evidencias (la reconciliación de realización se verifica en Task4); revisar otro registro del mismo lote no hace nada. Rechazar otro equipo/tipo, repair_id presente, otra empresa, ciclo incompatible y origen sin permiso. Selección de evidencia ya confirmada requiere acción explícita y queda auditada.
+- [x] Definir asistente con lot_id, rnd_id, trn_id, reason; `action_apply` llama `_select_evidence` tras permisos de lote/ambas pruebas. El formulario muestra solo resumen autorizado del ciclo y abre pruebas por acciones nativas. No publicar IDs/columnas privadas del ledger.
+- [x] Crear prueba desde el asistente usa los formularios existentes y vincula explícitamente el registro creado, sin pasar tokens privados por context JSON. Fuera del asistente, los botones manuales existentes conservan su semántica.
+- [x] Reemplazar evidencia rechazada exige motivo, conserva selección previa en historial y referencias restrict; impedir asociaciones ambiguas. El responsable_id técnico no modifica el empleado de la actividad.
+- [x] GREEN de asistente/default_get/onchange con caché fría y selección con usuario Taller sin grupo técnico; verificar acciones serializables y lectura del origen; commit `feat: vincular pruebas al ciclo de aceptación`.
 
 ### Task4: Rechazo, corrección y emisión de FEN
 

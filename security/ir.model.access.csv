@@ -24,3 +24,4 @@ access_repair_activity_policy_coordinate,mc.rov.repair.activity.policy.coordinat
 access_automation_control_coordinate,mc.rov.automation.control.coordinate,model_mc_rov_automation_control,mc_rov.group_work_assignment_coordinate,1,1,1,0
 access_manufacturing_activity_policy_coordinate,mc.rov.manufacturing.activity.policy.coordinate,model_mc_rov_manufacturing_activity_policy,mc_rov.group_work_assignment_coordinate,1,1,1,0
 access_acceptance_activity_policy_coordinate,mc.rov.acceptance.activity.policy.coordinate,model_mc_rov_acceptance_activity_policy,mc_rov.group_work_assignment_coordinate,1,1,1,0
+access_acceptance_evidence_wizard,mc.rov.acceptance.evidence.wizard,model_mc_rov_acceptance_evidence_wizard,base.group_user,1,1,1,1
