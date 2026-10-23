@@ -28,3 +28,4 @@ from . import test_acceptance_activity_policy
 from . import acceptance_activity_common
 from . import test_acceptance_activity_generation
 from . import test_acceptance_activity_evidence
+from . import test_acceptance_activity_lifecycle

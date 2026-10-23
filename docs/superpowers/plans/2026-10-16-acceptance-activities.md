@@ -138,8 +138,8 @@ def test_done_creates_two_pending_activities_per_produced_lot(self):
 
 **Consumes:** `_select_evidence`. **Produces:** `_reconcile`, `_after_fen_emission`, auditoría manual y cierres efectivos.
 
-- [ ] RED: confirmar aprobada cierra realización; rechazada cierra realización y crea1resolución; repetir confirmación no duplica; corrección borrador deja resolución abierta; repetición explícita aceptada cierra rechazo. Ambas rechazadas generan2resoluciones independientes.
-- [ ] RED de FEN: una prueba aprobada no crea emisión; ambas aceptadas crean1; documento de otra selección no cierra; acción de previsualizar/guardar borrador no cierra; emisión real sí. Corregir prueba antes de emitir retira elegibilidad; después de emitir no modifica PDF ni reabre ciclo cerrado.
+- [x] RED: confirmar aprobada cierra realización; rechazada cierra realización y crea1resolución; repetir confirmación no duplica; corrección borrador deja resolución abierta; repetición explícita aceptada cierra rechazo. Ambas rechazadas generan2resoluciones independientes.
+- [x] RED de FEN: una prueba aprobada no crea emisión; ambas aceptadas crean1; documento de otra selección no cierra; acción de previsualizar/guardar borrador no cierra; emisión real sí. Corregir prueba antes de emitir retira elegibilidad; después de emitir no modifica PDF ni reabre ciclo cerrado.
 
 ```python
 def test_unrelated_revision_does_not_finish_stage(self):
@@ -151,9 +151,9 @@ def test_unrelated_revision_does_not_finish_stage(self):
     self.assertEqual(self._acceptance_activities(lot), pending)
 ```
 
-- [ ] Implementar reconciliación por evidencia persistida y estado/resultado actuales; capturar resultados antes/después del evento. Registrar cierre de negocio antes de feedback/unlink nativo para que hooks manuales no lo sobrescriban.
-- [ ] Registrar generaciones distintas de elegibilidad cuando una corrección real retire/restituya requisitos. Cada nuevo pendiente usa su evento propio, no la fecha original del equipo. Una edición que no cambie elegibilidad no recrea pendientes cancelados manualmente.
-- [ ] GREEN: pausas permiten cierre, impiden etapas nuevas; reactivar/editar no reconstruye, cancelación manual no aprueba prueba/FEN; correcciones preservan PDFs y registros previos; commit `feat: resolver aceptación y rechazos por evidencia`.
+- [x] Implementar reconciliación por evidencia persistida y estado/resultado actuales; capturar resultados antes/después del evento. Registrar cierre de negocio antes de feedback/unlink nativo para que hooks manuales no lo sobrescriban.
+- [x] Registrar generaciones distintas de elegibilidad cuando una corrección real retire/restituya requisitos. Cada nuevo pendiente usa su evento propio, no la fecha original del equipo. Una edición que no cambie elegibilidad no recrea pendientes cancelados manualmente.
+- [x] GREEN: pausas permiten cierre, impiden etapas nuevas; reactivar/editar no reconstruye, cancelación manual no aprueba prueba/FEN; correcciones preservan PDFs y registros previos; commit `feat: resolver aceptación y rechazos por evidencia`.
 
 ### Task5: Centro, privacidad y fronteras
 

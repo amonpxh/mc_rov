@@ -108,7 +108,7 @@ class AcceptanceActivityAutomation(models.AbstractModel):
             self._start_stage(cycle, "field", started_at)
         return cycle
 
-    def _start_stage(self, cycle, stage, started_at):
+    def _start_stage(self, cycle, stage, started_at, occurrence=1):
         cycle.ensure_one()
         stages = {
             "performance": ("performance_days", _("Realizar prueba de rendimiento")),
@@ -119,13 +119,15 @@ class AcceptanceActivityAutomation(models.AbstractModel):
         }
         if stage not in stages:
             raise ValidationError(_("Etapa de aceptación inválida."))
-        production = cycle.production_id.with_user(self.env.uid)
         lot = cycle.lot_id.with_user(self.env.uid)
-        production.check_access("write")
         lot.check_access("write")
-        self._capture(production)
+        # La MO autorizó el inicio; las etapas posteriores pertenecen al equipo probado.
+        self._capture(cycle.production_id)
         runs = self.env["mc.rov.acceptance.activity.run"].sudo()
-        existing = runs.search([("cycle_id", "=", cycle.id), ("stage", "=", stage)], limit=1)
+        existing = runs.search(
+            [("cycle_id", "=", cycle.id), ("stage", "=", stage), ("occurrence", "=", occurrence)],
+            limit=1,
+        )
         if existing:
             return existing
         policy = (
@@ -141,7 +143,7 @@ class AcceptanceActivityAutomation(models.AbstractModel):
             return runs.browse()
         reason = policy._configuration_error(lot)
         if reason:
-            production.message_post(body=_("Seguimiento de aceptación no generado: %s", reason))
+            lot.message_post(body=_("Seguimiento de aceptación no generado: %s", reason))
             return runs.browse()
         days_field, summary = stages[stage]
         deadline = policy._deadline(started_at, policy[days_field])
@@ -157,10 +159,8 @@ class AcceptanceActivityAutomation(models.AbstractModel):
                         "mc_rov.activity_type_acceptance_" + stage
                     ).id,
                     "summary": summary,
-                    "note": Markup(
-                        '<p><a href="/odoo/stock.lot/%s">%s</a> · <a href="/odoo/mrp.production/%s">%s</a></p>'
-                    )
-                    % (lot.id, lot.display_name, production.id, production.display_name),
+                    "note": Markup('<p><a href="/odoo/stock.lot/%s">%s</a></p>')
+                    % (lot.id, lot.display_name),
                     "user_id": policy.user_id.id,
                     "mc_employee_id": policy.employee_id.id or False,
                     "date_deadline": deadline,
@@ -172,7 +172,7 @@ class AcceptanceActivityAutomation(models.AbstractModel):
                 "company_id": cycle.company_id.id,
                 "cycle_id": cycle.id,
                 "stage": stage,
-                "occurrence": 1,
+                "occurrence": occurrence,
                 "activity_id": activity.id,
                 "started_at": started_at,
                 "original_deadline": deadline,
