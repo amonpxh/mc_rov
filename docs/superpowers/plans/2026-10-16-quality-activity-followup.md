@@ -88,7 +88,7 @@ def test_quality_policy_defaults(self):
 
 - [x] RED+GREEN: origen sin acceso, empresas múltiples, destinatario solo otra empresa, consulta/exportación del ledger, nombres restringidos, NewId/copias sin efectos, cuenta/empleado independientes y reprogramación con motivo. Cambio real de empresa/producto/series seguido se rechaza con explicación o conserva alcance por operación explícita validada; no puede trasladar historial.
 - [x] Verificar Centro proceso Calidad ya nativo: pendientes se encuentran por calidad/empleado/alcance sin nueva pestaña, y cierre/reparto mantienen las mismas ACL. Confirmar que lecciones con acción preventiva siguen consultándose sin nuevos criterios.
-- [ ] Dos transacciones reales aisladas: creación/inicio repetido, reapertura y cierre contra stage.done. Exigir identidad única, un pendiente por ciclo, cero huérfanos y retry transaccional entero. No crear fixtures en producción/STAGING fuera del escenario QA registrado.
+- [x] Dos transacciones reales aisladas: creación/inicio repetido, reapertura y cierre contra stage.done. Exigir identidad única, un pendiente por ciclo, cero huérfanos y retry transaccional entero. No crear fixtures en producción/STAGING fuera del escenario QA registrado.
 - [ ] Revisión integral una vez junto a aceptación, suite exacta completa594base+nuevas y lint. QA manual alerta automática/manual, cierre/reapertura, cambio de etapa.done, pausa y reparto; retirar escenario sin borrar historial.
 - [ ] Entregar con Task6 del plan de aceptación: PR adjunto/CI, autorización para merge y despliegue, respaldo/recuperación y verificación de cero retrospectividad. No activar destinatarios reales ni modificar calendarios durante upgrade.
 

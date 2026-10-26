@@ -170,9 +170,9 @@ def test_unrelated_revision_does_not_finish_stage(self):
 **Files:** crear `scripts/qa/acceptance_activity_concurrency.py`, `docs/runbooks/acceptance-quality-activity-pilot.md`; actualizar `docs/pendientes.md`. Scripts de ejecución temporal bajo `.tmp/acceptance-quality-activity-pilot/` fuera de Git.
 
 - [ ] Completar también el plan `2026-10-16-quality-activity-followup.md` antes de entrega conjunta; su historial/política es independiente del ciclo de aceptación.
-- [ ] Revisión integral una vez al terminar ambos bloques; corregir hallazgos reales con RED/GREEN. No desplegar cambios no revisados a producción ni repetir revisiones por rutina en cada commit.
-- [ ] Ejecutar suite completa por descubrimiento AST exacto, incluyendo594base y todos los nuevos casos/imports de soporte. Exigir cero fallos/errores y ningún nombre omitido/duplicado. Comparar hashes instalados y conservar políticas/calendarios/PDFs; restaurar tests temporales.
-- [ ] Concurrencia real en base aislada sin cron/correo: dos cierres MRP sobre misma serie, dos selecciones/cierres de etapa y FEN; una identidad/actividad por evento, transacciones con retry completo, cero huérfanos. Bloquear conexiones a copia al finalizar.
+- [x] Revisión integral una vez al terminar ambos bloques; corregir hallazgos reales con RED/GREEN. No desplegar cambios no revisados a producción ni repetir revisiones por rutina en cada commit.
+- [x] Ejecutar suite completa por descubrimiento AST exacto, incluyendo594base y todos los nuevos casos/imports de soporte. Exigir cero fallos/errores y ningún nombre omitido/duplicado. Comparar hashes instalados y conservar políticas/calendarios/PDFs; restaurar tests temporales.
+- [x] Concurrencia real en base aislada sin cron/correo: dos cierres MRP sobre misma serie, dos selecciones/cierres de etapa y FEN; una identidad/actividad por evento, transacciones con retry completo, cero huérfanos. Bloquear conexiones a copia al finalizar.
 - [ ] Crear QA temporal propia con política apagada y contraseña solo terminal. Usuario prueba generación, reparto, rechazo/corrección, selección explícita, emisión, parcial, pausa y alertas. Retirar solo escenario registrado conservando documentos, auditoría y series dadas de baja.
 - [ ] PR adjunto al chat, CI aislado aprobado, nueva aprobación para merge/producción; respaldo de BD/filestore/código y recuperación fresca antes de liberar tráfico. Verificar esquema y cero pendientes/configuraciones retrospectivos. Registrar activación real aplazada hasta cuenta Taller/calendario.
 
