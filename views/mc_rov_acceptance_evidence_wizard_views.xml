@@ -5,13 +5,31 @@
         <field name="model">mc.rov.acceptance.evidence.wizard</field>
         <field name="arch" type="xml">
             <form string="Pruebas de aceptación">
-                <group>
+                <group col="2">
                     <field name="lot_id" readonly="1" options="{'no_create': True}"/>
+                </group>
+                <div class="text-muted mb-3">
                     <field name="summary" nolabel="1"/>
-                    <field name="rnd_id" options="{'no_create': True}" domain="[('lot_id', '=', lot_id), ('tipo', '=', 'rendimiento'), ('repair_id', '=', False)]"/>
-                    <button name="action_new_performance" type="object" string="Nueva prueba de rendimiento" class="btn-secondary"/>
-                    <field name="trn_id" options="{'no_create': True}" domain="[('lot_id', '=', lot_id), ('tipo', '=', 'terreno'), ('repair_id', '=', False)]"/>
-                    <button name="action_new_field" type="object" string="Nueva prueba en terreno" class="btn-secondary"/>
+                </div>
+                <group col="2">
+                    <label for="rnd_id"/>
+                    <div class="row g-2 align-items-center">
+                        <div class="col-12 col-sm">
+                            <field name="rnd_id" nolabel="1" options="{'no_create': True}" domain="[('lot_id', '=', lot_id), ('tipo', '=', 'rendimiento'), ('repair_id', '=', False)]"/>
+                        </div>
+                        <div class="col-12 col-sm-auto">
+                            <button name="action_new_performance" type="object" string="Nueva prueba de rendimiento" class="btn-secondary"/>
+                        </div>
+                    </div>
+                    <label for="trn_id"/>
+                    <div class="row g-2 align-items-center">
+                        <div class="col-12 col-sm">
+                            <field name="trn_id" nolabel="1" options="{'no_create': True}" domain="[('lot_id', '=', lot_id), ('tipo', '=', 'terreno'), ('repair_id', '=', False)]"/>
+                        </div>
+                        <div class="col-12 col-sm-auto">
+                            <button name="action_new_field" type="object" string="Nueva prueba en terreno" class="btn-secondary"/>
+                        </div>
+                    </div>
                     <field name="reason" placeholder="Explique el reemplazo o retiro de una prueba"/>
                 </group>
                 <footer>
