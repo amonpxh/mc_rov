@@ -131,3 +131,31 @@ adjuntarlo al chat y solicitar nueva aprobación para merge/producción. El desp
 debe respaldar BD/filestore/código, conservar recuperación fresca y verificar que
 no creó políticas ni actividades retrospectivas. Confirmar aparte la cuenta Taller
 y el calendario operativo antes de habilitar automatismos reales.
+
+
+## Evidencia de cierre del piloto — 2026-10-26
+
+- Suite global nativa: **828 casos únicos, cero fallos y cero errores**; respaldo
+  `/var/tmp/mc-rov-acceptance-quality-regression-NARFvQ`. Fuentes/configuraciones
+  intactas y pruebas temporales restauradas. Esta ejecución precede al ajuste visual final.
+- Concurrencia final: seis carreras de Calidad y cinco de Aceptación aprobadas;
+  dos conexiones reales, sin identidades duplicadas ni actividades huérfanas.
+- Navegador HOOT: 31/31; pruebas temporales retiradas.
+- Usuario confirmó aceptación normal con ficha emitida, rechazo corregido, ambas
+  series de fabricación parcial, pausa sin retrospectividad y reanudación por evento nuevo.
+  En Calidad confirmó fallo de chequeo, cierre/reapertura sin duplicados, actividad
+  hecha sin resolver la alerta y pausa/reactivación sin retrospectividad.
+- Retiro QA confirmado con historial conservado:
+  `/var/tmp/mc-rov-acceptance-quality-qa-close-6On497`. Se dieron de baja las seis
+  series propias, incluida la realmente fabricada durante rechazo, y se archivaron
+  cuentas/empleados/producto. Las etapas QA quedan restringidas a su equipo;
+  no se borran etapas referenciadas por alertas conservadas.
+- Pulido visual posterior: botones de ficha usan el espaciado nativo uniforme;
+  resultados separan bloques, números y unidades y alinean la coma preservando
+  cada precisión. Render nativo comparó valores/unidades antes y después; no
+  cambió PDF emitidos ni dejó borradores. Respaldo final del reporte:
+  `/var/tmp/mc-rov-fen-numeric-Bk7xfP`. PDF final revisado: una página, sin
+  solapes y «Tiempo a presión» en una línea. La revisión visual de los botones
+  en una sesión de usuario queda pendiente; get_view nativo de ambos roles pasó.
+- Producción y destinatarios reales no se han activado con esta entrega. El PR
+  y su CI deben validar el commit final antes de solicitar merge/despliegue.
