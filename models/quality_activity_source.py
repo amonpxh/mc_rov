@@ -45,7 +45,14 @@ class QualityActivitySource(models.AbstractModel):
         return result
 
     def _check_source_changes(self, alerts, values):
-        relevant = {"product_id", "product_tmpl_id", "company_id", "lot_ids"}.intersection(values)
+        relevant = {
+            "product_id",
+            "product_tmpl_id",
+            "company_id",
+            "lot_ids",
+            "production_id",
+            "repair_id",
+        }.intersection(values)
         if not relevant:
             return
         runs = self._source_runs(alerts, pending=True)
@@ -61,7 +68,7 @@ class QualityActivitySource(models.AbstractModel):
             if changed:
                 raise ValidationError(
                     _(
-                        "No puede cambiar el producto, modelo o empresa ni retirar series "
+                        "No puede cambiar el producto, modelo, empresa u orden ni retirar series "
                         "del origen de un seguimiento pendiente. Conserve la alerta original."
                     )
                 )

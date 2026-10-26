@@ -62,10 +62,21 @@ class AcceptanceActivityAutomation(models.AbstractModel):
         production = production.with_user(self.env.uid)
         lot = lot.with_user(self.env.uid)
         production.check_access("write")
-        lot.check_access("write")
+        cycles = self.env["mc.rov.acceptance.activity.cycle"].sudo()
+        policy = (
+            self.env["mc.rov.acceptance.activity.policy"]
+            .sudo()
+            .search([("company_id", "=", production.company_id.id)], limit=1)
+        )
+        # Sin seguimiento activo, el cierre nativo no exige permisos extra sobre la serie.
+        if not self.env["mc.rov.automation.control"]._creation_enabled(production.company_id) or (
+            policy and not policy.enabled
+        ):
+            return cycles.browse()
+        if policy:
+            lot.check_access("write")
         self._capture(production)
         self.env.cr.execute(SQL("SELECT id FROM stock_lot WHERE id = %s FOR UPDATE", lot.id))
-        cycles = self.env["mc.rov.acceptance.activity.cycle"].sudo()
         if production.state != "done" or lot not in self._produced_lots(production):
             return cycles.browse()
         root = self.env["stock.lot"]._get_rov_root_category()
@@ -78,15 +89,6 @@ class AcceptanceActivityAutomation(models.AbstractModel):
         )
         if existing:
             return existing
-        policy = (
-            self.env["mc.rov.acceptance.activity.policy"]
-            .sudo()
-            .search([("company_id", "=", production.company_id.id)], limit=1)
-        )
-        if not self.env["mc.rov.automation.control"]._creation_enabled(production.company_id) or (
-            policy and not policy.enabled
-        ):
-            return cycles.browse()
         reason = (
             policy._configuration_error(lot)
             if policy

@@ -33,3 +33,5 @@ from . import test_acceptance_activity_boundaries
 from . import test_quality_activity_policy
 from . import test_quality_activity_lifecycle
 from . import test_quality_activity_boundaries
+from . import test_acceptance_activity_review
+from . import test_quality_activity_review
