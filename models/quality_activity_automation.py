@@ -2,6 +2,7 @@ from markupsafe import Markup
 
 from odoo import _, models
 from odoo.exceptions import AccessError
+from odoo.tools import SQL
 
 
 class QualityActivityAutomation(models.AbstractModel):
@@ -55,6 +56,12 @@ class QualityActivityAutomation(models.AbstractModel):
         lifecycle._capture(alert)
         if alert.stage_id.done:
             return False
+        # FOR UPDATE por sí solo no renueva una instantánea REPEATABLE READ.
+        # Crear una versión de la fila fuerza el retry completo del segundo inicio,
+        # antes de que intente duplicar seguidores o el ciclo con una vista antigua.
+        service.env.cr.execute(
+            SQL("UPDATE quality_alert SET write_date = write_date WHERE id = %s", alert.id)
+        )
         runs = service.env["mc.rov.quality.activity.run"].sudo()
         latest = runs.search([("alert_id", "=", alert.id)], order="cycle desc", limit=1)
         if latest and (latest.outcome == "pending" or not reopening):
