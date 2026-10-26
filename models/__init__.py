@@ -44,3 +44,7 @@ from . import acceptance_activity_evidence
 from . import acceptance_activity_lifecycle
 from . import acceptance_activity_source
 from . import acceptance_activity_evidence_lines
+
+from . import mc_rov_quality_activity_policy
+from . import mc_rov_quality_activity_run
+from . import quality_activity_automation

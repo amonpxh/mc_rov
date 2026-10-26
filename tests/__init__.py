@@ -30,3 +30,4 @@ from . import test_acceptance_activity_generation
 from . import test_acceptance_activity_evidence
 from . import test_acceptance_activity_lifecycle
 from . import test_acceptance_activity_boundaries
+from . import test_quality_activity_policy

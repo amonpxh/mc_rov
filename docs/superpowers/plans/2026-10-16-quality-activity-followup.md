@@ -55,7 +55,7 @@ no se confunde con el estado calculado después. Los IDs temporales no generan e
 
 **Files:** política/run/XML/seguridad anteriores, `tests/test_quality_activity_policy.py`; modificar imports, manifest y ACL de política (no ledger).
 
-- [ ] Escribir RED del modelo, default enabled=True y lead_days=1, entero1..365/no bool, calendario válido y destinatario autorizado; política única por empresa. ACL Coordinar y regla de empresa, sin lectura del historial por usuarios normales.
+- [x] Escribir RED del modelo, default enabled=True y lead_days=1, entero1..365/no bool, calendario válido y destinatario autorizado; política única por empresa. ACL Coordinar y regla de empresa, sin lectura del historial por usuarios normales.
 
 ```python
 def test_quality_policy_defaults(self):
@@ -65,10 +65,10 @@ def test_quality_policy_defaults(self):
                      {'enabled': True, 'lead_days': 1})
 ```
 
-- [ ] Ejecutar RED nativo, separando fallos esperados de errores de entorno/fixtures. Reutilizar política preexistente solo dentro de la transacción de test, sin borrar ni cambiar configuración real.
-- [ ] Implementar política con `_configuration_error(alert=False)` y `_deadline(started_at)` adaptador a `_working_date`. Ledger con alert_id restrict, company_id, cycle unique(alert_id,cycle), activity_id setnull, estado, fechas, calendario/tz, actor y motivo. Actividad «Resolver alerta de Calidad» res_model quality.alert.
-- [ ] Probar `_in_scope`: producto ROV, serie ROV, equipo por fabricación/reparación explícita si alerta carece de producto propio, y exclusión de componente sin enlace inequívoco. Empresas incompatibles se rechazan; nunca seguir producto de otra empresa vía sudo.
-- [ ] GREEN política/calendario y configuración por upgrade vacía; commit `feat: configurar seguimiento de alertas de Calidad`.
+- [x] Ejecutar RED nativo, separando fallos esperados de errores de entorno/fixtures. Reutilizar política preexistente solo dentro de la transacción de test, sin borrar ni cambiar configuración real.
+- [x] Implementar política con `_configuration_error(alert=False)` y `_deadline(started_at)` adaptador a `_working_date`. Ledger con alert_id restrict, company_id, cycle unique(alert_id,cycle), activity_id setnull, estado, fechas, calendario/tz, actor y motivo. Actividad «Resolver alerta de Calidad» res_model quality.alert.
+- [x] Probar `_in_scope`: producto ROV, serie ROV, equipo por fabricación/reparación explícita si alerta carece de producto propio, y exclusión de componente sin enlace inequívoco. Empresas incompatibles se rechazan; nunca seguir producto de otra empresa vía sudo.
+- [x] GREEN política/calendario y configuración por upgrade vacía; commit `feat: configurar seguimiento de alertas de Calidad`.
 
 ### Task2: Creación, cierre, reapertura y decisiones manuales
 
