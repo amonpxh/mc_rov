@@ -74,13 +74,13 @@ def test_quality_policy_defaults(self):
 
 **Files:** `models/quality_activity_automation.py`, `models/quality_activity_lifecycle.py`, `tests/test_quality_activity_lifecycle.py`; herencias quality.alert, quality.alert.stage y mail.activity en archivos separados de lógica existente.
 
-- [ ] Crear fixture propia con etapas abierta/done y producto/serie ROV, usuario TallerQA con grupos nativos de Calidad y política explícita. Sin depender de nombres de etapas o productos de ejemplo instalados.
-- [ ] RED: crear alerta abierta inicia1pendiente; crear cerrada0; mover abierta→abierta0extra; done cierra; reabrir genera1nuevo ciclo; pausa conserva cierre y evita creación/reapertura; reactivar/editar no reconstruye; actividad manual homónima no intervenida.
-- [ ] RED adicional: un chequeo fallido produce la misma única alerta nativa/del módulo y un solo pendiente; cambiar a pass no cierra la alerta. Completar lot_ids de una alerta ya seguida no reinicia fecha ni duplica.
-- [ ] Implementar create/write con bloqueo de filas ordenado, estado previo real y actor original; `_start` valida política/empresa/acceso antes de escritura privada. Capturar el cierre antes de feedback/unlink y preservar fecha reprogramada/actor.
-- [ ] En quality.alert.stage.write, si cambia done, capturar alertas afectadas y estados previos bajo bloqueo, ejecutar super y reconciliar estado efectivo. No usar nombre de etapa ni date_close como única verdad; no arreglar otros comportamientos nativos fuera de alcance.
-- [ ] Registrar hecho/cancelación/archivo/unlink manuales sin cerrar alerta. La siguiente edición abierta no recrea; done→abierta genuino crea nuevo ciclo si está permitido.
-- [ ] GREEN de eventos, fallos de chequeo y decisiones manuales, conservando retornos nativos; commit `feat: seguir resolución y reapertura de alertas`.
+- [x] Crear fixture propia con etapas abierta/done y producto/serie ROV, usuario TallerQA con grupos nativos de Calidad y política explícita. Sin depender de nombres de etapas o productos de ejemplo instalados.
+- [x] RED: crear alerta abierta inicia1pendiente; crear cerrada0; mover abierta→abierta0extra; done cierra; reabrir genera1nuevo ciclo; pausa conserva cierre y evita creación/reapertura; reactivar/editar no reconstruye; actividad manual homónima no intervenida.
+- [x] RED adicional: un chequeo fallido produce la misma única alerta nativa/del módulo y un solo pendiente; cambiar a pass no cierra la alerta. Completar lot_ids de una alerta ya seguida no reinicia fecha ni duplica.
+- [x] Implementar create/write con bloqueo de filas ordenado, estado previo real y actor original; `_start` valida política/empresa/acceso antes de escritura privada. Capturar el cierre antes de feedback/unlink y preservar fecha reprogramada/actor.
+- [x] En quality.alert.stage.write, si cambia done, capturar alertas afectadas y estados previos bajo bloqueo, ejecutar super y reconciliar estado efectivo. No usar nombre de etapa ni date_close como única verdad; no arreglar otros comportamientos nativos fuera de alcance.
+- [x] Registrar hecho/cancelación/archivo/unlink manuales sin cerrar alerta. La siguiente edición abierta no recrea; done→abierta genuino crea nuevo ciclo si está permitido.
+- [x] GREEN de eventos, fallos de chequeo y decisiones manuales, conservando retornos nativos; commit `feat: seguir resolución y reapertura de alertas`.
 
 ### Task3: Permisos, integración y validación de entrega
 

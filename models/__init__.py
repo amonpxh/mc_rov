@@ -48,3 +48,4 @@ from . import acceptance_activity_evidence_lines
 from . import mc_rov_quality_activity_policy
 from . import mc_rov_quality_activity_run
 from . import quality_activity_automation
+from . import quality_activity_lifecycle

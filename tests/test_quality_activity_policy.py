@@ -18,6 +18,13 @@ from .quality_activity_common import QualityActivityCommon
 class TestQualityActivityPolicy(QualityActivityCommon):
     """Calidad usa un día laboral propio y no depende de un ciclo de aceptación."""
 
+    def _quality_alert(self, **values):
+        # Estos casos prueban configuración e historial aislados del evento de creación;
+        # los eventos reales se ejercitan por separado en la suite de ciclo de vida.
+        service = self._quality_service()
+        with patch.object(type(service), "_start", return_value=False, create=True):
+            return super()._quality_alert(**values)
+
     def _other_company(self):
         with patch.object(
             type(self.env["res.company"]), "_create_internal_project_task", create=True
