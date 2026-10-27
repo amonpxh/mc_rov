@@ -24,3 +24,15 @@ from . import test_manufacturing_activity_generation
 from . import test_manufacturing_activity_lifecycle
 from . import test_manufacturing_activity_boundaries
 from . import test_manufacturing_activity_review
+from . import test_acceptance_activity_policy
+from . import acceptance_activity_common
+from . import test_acceptance_activity_generation
+from . import test_acceptance_activity_evidence
+from . import test_acceptance_activity_lifecycle
+from . import test_acceptance_activity_boundaries
+from . import test_quality_activity_policy
+from . import test_quality_activity_lifecycle
+from . import test_quality_activity_boundaries
+from . import test_acceptance_activity_review
+from . import test_quality_activity_review
+from . import test_acceptance_fen_access

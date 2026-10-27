@@ -19,7 +19,7 @@
                 </group>
                 <footer>
                     <button name="action_emitir" type="object" string="Emitir ficha" class="btn-primary"/>
-                    <button name="action_guardar_borrador" type="object" string="Guardar borrador" class="btn-secondary ms-2"/>
+                    <button name="action_guardar_borrador" type="object" string="Guardar borrador" class="btn-secondary"/>
                     <button string="Cancelar" special="cancel"/>
                 </footer>
             </form>

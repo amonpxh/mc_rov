@@ -33,3 +33,20 @@ from . import mc_rov_manufacturing_activity_run
 from . import manufacturing_activity_automation
 from . import manufacturing_activity_lifecycle
 from . import manufacturing_activity_source
+
+from . import work_activity_deadline
+from . import mc_rov_acceptance_activity_policy
+from . import mc_rov_acceptance_activity_cycle
+from . import mc_rov_acceptance_activity_run
+from . import acceptance_activity_automation
+from . import mc_rov_acceptance_evidence_history
+from . import acceptance_activity_evidence
+from . import acceptance_activity_lifecycle
+from . import acceptance_activity_source
+from . import acceptance_activity_evidence_lines
+
+from . import mc_rov_quality_activity_policy
+from . import mc_rov_quality_activity_run
+from . import quality_activity_automation
+from . import quality_activity_lifecycle
+from . import quality_activity_source

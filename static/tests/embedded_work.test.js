@@ -37,7 +37,7 @@ const options = [
     { key: "none", label: "Sin proceso vinculado", available: true, hint: "" },
 ];
 
-function mockWork({ failFirst = false } = {}) {
+function mockWork({ failFirst = false, acceptanceAvailable = false } = {}) {
     const calls = [];
     const navigation = [];
     let failed = false;
@@ -53,7 +53,11 @@ function mockWork({ failFirst = false } = {}) {
                 ] : { rows: [{ id: 1, reference: "DEMO-001", context: "Modelo", state: "Operativo" }], total: 1, next_offset: false });
             }
             if (method === "get_capabilities") return Promise.resolve({ can_view_team: true, can_coordinate: true });
-            if (method === "get_processes") return Promise.resolve(options);
+            if (method === "get_processes") return Promise.resolve(options.map(option => {
+                if (option.key !== "acceptance") return option;
+                const available = acceptanceAvailable && kwargs.kind === "activities";
+                return { ...option, available, hint: available ? "" : option.hint };
+            }));
             if (failFirst && !failed) {
                 failed = true;
                 return Promise.reject(new Error("QA sin acceso"));
@@ -183,6 +187,80 @@ describe("mc_rov embedded work", () => {
         await click('[data-assignment-retry]');
         await animationFrame();
         expect('[data-native-model="mail.activity"]').toHaveCount(1);
+    });
+
+    test("aceptacion conserva busqueda empleado y alcance al actualizar", async () => {
+        const Center = requireIntegration();
+        if (!Center) return;
+        class AcceptanceRefreshProbe extends Component {
+            static props = ["*"];
+            static template = xml`<div data-acceptance-refresh="">
+                <span t-esc="props.saved.globalState?.searchModel || 'Sin búsqueda'"/>
+            </div>`;
+            setup() {
+                this.props.register(this);
+                onWillUnmount(() => this.props.register(null, this));
+            }
+            canLeave() { return true; }
+            snapshot() { return { globalState: { searchModel: "QA aceptación" }, state: { modelState: { offset: 40 } } }; }
+        }
+        class AcceptanceCenter extends Center {}
+        AcceptanceCenter.components = { ...Center.components, AssignedWorkView: AcceptanceRefreshProbe };
+        const { calls } = mockWork({ acceptanceAvailable: true });
+        await mountWithCleanup(AcceptanceCenter, { props: { action: { tag: "mc_rov.work_center" } } });
+        await choose('.mc_assignment_scope', "team");
+        await choose('.mc_assignment_employee', "7");
+        await choose('.mc_assignment_process', "acceptance");
+        await click('button[aria-label="Actualizar registros"]');
+        await animationFrame();
+        expect('.mc_assignment_scope').toHaveValue("team");
+        expect('.mc_assignment_employee').toHaveValue("7");
+        expect('.mc_assignment_process').toHaveValue("acceptance");
+        expect('[data-acceptance-refresh]').toHaveCount(1);
+        expect('[data-acceptance-refresh]').toHaveText("QA aceptación");
+        expect('.mc_work_center_table').toHaveCount(0);
+        expect(calls.filter(x => x.method === "action_activities").at(-1).kwargs)
+            .toEqual({ scope: "team", employee_id: 7, process: "acceptance" });
+    });
+
+    test("volver de registros conserva aceptacion y una sola zona de contenido", async () => {
+        const Center = requireIntegration();
+        if (!Center) return;
+        mockWork({ acceptanceAvailable: true });
+        await mountWithCleanup(Center, { props: { action: { tag: "mc_rov.work_center" } } });
+        await choose('.mc_assignment_scope', "team");
+        await choose('.mc_assignment_employee', "7");
+        await choose('.mc_assignment_process', "acceptance");
+        await click('[data-assignment-view="list"]');
+        await click('[data-topic="acceptance"]');
+        await animationFrame();
+        expect('[data-native-view]').toHaveCount(0);
+        expect('.mc_work_center_table').toHaveCount(1);
+        await click('[data-work-assigned]');
+        await animationFrame();
+        expect('.mc_assignment_process').toHaveValue("acceptance");
+        expect('.mc_assignment_scope').toHaveValue("team");
+        expect('.mc_assignment_employee').toHaveValue("7");
+        expect('[data-native-view]').toHaveCount(1);
+        expect('[data-native-view]').toHaveText("list");
+        expect('.mc_work_center_table').toHaveCount(0);
+    });
+
+    test("aceptacion no inventa vinculos para tareas o proyectos", async () => {
+        const Center = requireIntegration();
+        if (!Center) return;
+        const { calls } = mockWork({ acceptanceAvailable: true });
+        await mountWithCleanup(Center, { props: { action: { tag: "mc_rov.work_center" } } });
+        await choose('.mc_assignment_process', "acceptance");
+        for (const kind of ["tasks", "projects"]) {
+            await click(`[data-assignment-kind="${kind}"]`);
+            await animationFrame();
+            expect('.mc_assignment_process').toHaveValue("all");
+            expect('.mc_assignment_process option[value="acceptance"]').toHaveCount(1);
+            expect('.mc_assignment_process option[value="acceptance"]').not.toBeEnabled();
+            expect(calls.filter(x => x.method === `action_${kind}`).at(-1).kwargs)
+                .toEqual({ scope: "mine", process: "all" });
+        }
     });
 });
 

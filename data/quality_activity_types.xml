@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="activity_type_quality_resolution" model="mail.activity.type">
+        <field name="name">Resolver alerta de Calidad</field>
+        <field name="res_model">quality.alert</field>
+        <field name="chaining_type">suggest</field>
+    </record>
+</odoo>

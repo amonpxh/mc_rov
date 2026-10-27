@@ -13,6 +13,9 @@
                     <button name="action_preparar_ficha_equipo_nuevo" type="object"
                             string="Imprimir ficha" class="btn-primary"
                             invisible="not es_un_rov"/>
+                    <button name="action_mc_acceptance_evidence" type="object"
+                            string="Pruebas de aceptación" groups="base.group_user"
+                            invisible="not es_un_rov"/>
                 </header>
             </xpath>
 

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="activity_type_acceptance_performance" model="mail.activity.type">
+        <field name="name">Aceptación: rendimiento</field>
+        <field name="res_model">stock.lot</field>
+        <field name="chaining_type">suggest</field>
+    </record>
+    <record id="activity_type_acceptance_field" model="mail.activity.type">
+        <field name="name">Aceptación: terreno</field>
+        <field name="res_model">stock.lot</field>
+        <field name="chaining_type">suggest</field>
+    </record>
+    <record id="activity_type_acceptance_rejection_performance" model="mail.activity.type">
+        <field name="name">Aceptación: resolver rechazo de rendimiento</field>
+        <field name="res_model">stock.lot</field>
+        <field name="chaining_type">suggest</field>
+    </record>
+    <record id="activity_type_acceptance_rejection_field" model="mail.activity.type">
+        <field name="name">Aceptación: resolver rechazo de terreno</field>
+        <field name="res_model">stock.lot</field>
+        <field name="chaining_type">suggest</field>
+    </record>
+    <record id="activity_type_acceptance_fen" model="mail.activity.type">
+        <field name="name">Aceptación: emitir ficha</field>
+        <field name="res_model">stock.lot</field>
+        <field name="chaining_type">suggest</field>
+    </record>
+</odoo>

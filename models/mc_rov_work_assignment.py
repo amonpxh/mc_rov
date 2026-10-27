@@ -12,6 +12,8 @@ _PROCESS_MODELS = {
     "design": ("product.template", "product.product", "mrp.bom", "mrp.eco"),
 }
 
+_ACCEPTANCE_STAGES = ("performance", "field", "rejection_performance", "rejection_field", "fen")
+
 
 class McRovWorkAssignment(models.AbstractModel):
     """Consulta trabajo asignado sin sustituir los registros ni permisos nativos."""
@@ -56,27 +58,46 @@ class McRovWorkAssignment(models.AbstractModel):
         options = []
         for key, label in labels.items():
             available = key in ("all", "none") or (kind == "activities" and key in _PROCESS_MODELS)
+            if kind == "activities" and key == "acceptance":
+                available = (
+                    self.env["stock.lot"].has_access("read")
+                    and self.env["mail.activity"].has_access("read")
+                    and len(self._acceptance_type_ids()) == len(_ACCEPTANCE_STAGES)
+                )
             hint = ""
             if not available:
                 hint = (
-                    _("RND/TRN y FEN aún no admiten actividades nativas específicas.")
+                    _("Las actividades de aceptación no están disponibles para esta cuenta.")
                     if kind == "activities" and key == "acceptance"
                     else _("Las tareas y proyectos aún no tienen un vínculo directo al proceso.")
                 )
             options.append({"key": key, "label": label, "available": available, "hint": hint})
         return options
 
+    def _acceptance_type_ids(self):
+        return [
+            kind.id
+            for stage in _ACCEPTANCE_STAGES
+            if (
+                kind := self.env.ref(
+                    "mc_rov.activity_type_acceptance_" + stage, raise_if_not_found=False
+                )
+            )
+        ]
+
     def _process_domain(self, process, kind):
         if process not in ("all", "none", "acceptance", *_PROCESS_MODELS):
             raise ValidationError(_("El proceso seleccionado no es válido."))
         if process == "all":
             return []
-        # Los vínculos de Proyecto y las actividades de aceptación no se inventan
-        # para completar un filtro: su implementación pertenece a otra entrega.
+        # Las tareas de Proyecto conservan sus vínculos reales, sin inferirlos por títulos.
         if kind != "activities":
             return [] if process == "none" else [("id", "=", False)]
         if process == "acceptance":
-            return [("id", "=", False)]
+            return [
+                ("res_model", "=", "stock.lot"),
+                ("activity_type_id", "in", self._acceptance_type_ids()),
+            ]
         if process == "none":
             known = [
                 model

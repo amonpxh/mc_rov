@@ -251,6 +251,7 @@ class StockLot(models.Model):
     def action_preparar_ficha_equipo_nuevo(self):
         """Propone la última prueba de cada tipo, incluyendo borradores para vista previa."""
         self.ensure_one()
+        self.check_access("read")
         if not self.es_un_rov:
             raise UserError("La ficha de equipo nuevo requiere un número de serie ROV.")
         pruebas = self.env["mc.rov.revision"]
@@ -271,9 +272,15 @@ class StockLot(models.Model):
                 limit=1,
             )
             propuestas[f"default_{campo}"] = revision.id
-        accion = self.env.ref("mc_rov.action_ficha_equipo_nuevo_wizard").read()[0]
-        accion["context"] = {"default_lot_id": self.id, **propuestas}
-        return accion
+        # Abrir el asistente no requiere leer la configuración técnica de una acción.
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Preparar ficha de equipo nuevo",
+            "res_model": "mc.rov.ficha.equipo.nuevo.wizard",
+            "view_mode": "form",
+            "target": "new",
+            "context": {"default_lot_id": self.id, **propuestas},
+        }
 
     def _abrir_revision_nueva(self, tipo):
         self.ensure_one()

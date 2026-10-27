@@ -64,11 +64,15 @@
                 .fen-vr-section + .fen-vr-section { margin-top:3.65pt; padding-top:3.65pt; border-top:1px solid #d3e1ec; }
                 .fen-vr-pair { width:100%; border-collapse:separate; border-spacing:3pt 0; table-layout:fixed; }
                 .fen-vr-pair td { width:50%; padding:0; vertical-align:top; }
+                .fen-vr-pair + .fen-vr-pair td { padding-top:6pt; }
                 .fen-vr-group-title { margin:1.17pt 0 3.3pt; color:#526b80; font-family:'DejaVu Sans Mono','Courier New',monospace; font-size:8.48pt; line-height:1.1; font-weight:bold; text-transform:uppercase; letter-spacing:.055em; }
                 .fen-vr-line { display:table; width:100%; margin:.4pt 0; font-size:9.33pt; line-height:1.23; }
                 .fen-vr-line > span, .fen-vr-line > strong { display:table-cell; vertical-align:top; }
                 .fen-vr-line > span { width:auto; padding-right:6pt; color:#526b80; }
                 .fen-vr-line > strong { width:1%; text-align:right; font-family:'DejaVu Sans Mono','Courier New',monospace; font-size:9pt; font-weight:normal; white-space:nowrap; }
+                .fen-vr-line > .fen-vr-unit { width:3em; padding:0 0 0 3pt; text-align:left; color:inherit; font-family:'DejaVu Sans Mono','Courier New',monospace; font-size:9pt; white-space:nowrap; }
+                .fen-vr-decimal { display:inline-block; width:2.5em; text-align:left; }
+                .fen-vr-pair td:first-child .fen-vr-decimal { width:1.3em; }
                 .fen-vr-line .fen-ok { color:#007b4b; }
                 .fen-vr-line .fen-arrow { font-weight:normal; }
                 .fen-check-topline { display:table; width:100%; margin:0 0 2.55pt; }
@@ -259,14 +263,14 @@
                     <t t-else="">
                         <div class="fen-vr-group-title">Entorno de prueba</div>
                         <div class="fen-vr-line"><span>Lugar</span><strong t-esc="revision.lugar or 'Pendiente'"/></div>
-                        <div class="fen-vr-line"><span>Profundidad</span><strong><t t-esc="revision.profundidad"/> m</strong></div>
-                        <div class="fen-vr-line"><span>Corriente</span><strong><t t-esc="o._ficha_decimal(revision.velocidad_corriente)"/> kn</strong></div>
+                        <div class="fen-vr-line"><span>Profundidad</span><strong><span t-esc="revision.profundidad"/><span class="fen-vr-decimal"/></strong><span class="fen-vr-unit">m</span></div>
+                        <div class="fen-vr-line"><span>Corriente</span><strong><span t-esc="o._ficha_decimal(revision.velocidad_corriente).split(',')[0]"/><span class="fen-vr-decimal" t-esc="',' + o._ficha_decimal(revision.velocidad_corriente).split(',')[1]"/></strong><span class="fen-vr-unit">kn</span></div>
                     </t>
                 </td>
                 <td>
                     <div class="fen-vr-group-title">Alimentación</div>
                     <div class="fen-vr-line"><span>Fuente</span><strong t-esc="o._ficha_etiqueta(revision, 'alimentacion')"/></div>
-                    <div class="fen-vr-line"><span>Tensión</span><strong><t t-esc="revision.tension_salida"/> V</strong></div>
+                    <div class="fen-vr-line"><span>Tensión</span><strong><span t-esc="revision.tension_salida"/><span class="fen-vr-decimal"/></strong><span class="fen-vr-unit">V</span></div>
                 </td>
             </tr></table>
         </div>
@@ -276,25 +280,25 @@
                 <td>
                     <div class="fen-vr-group-title">Funcionamiento continuo</div>
                     <div class="fen-vr-line"><span>Resultado</span><strong t-att-class="'fen-ok' if revision.funcionamiento_continuo_resultado == 'ok' else ''" t-esc="o._ficha_etiqueta(revision, 'funcionamiento_continuo_resultado')"/></div>
-                    <div class="fen-vr-line"><span>Duración</span><strong><t t-esc="o._ficha_decimal(revision.funcionamiento_continuo_duracion)"/> h</strong></div>
+                    <div class="fen-vr-line"><span>Duración</span><strong><span t-esc="o._ficha_decimal(revision.funcionamiento_continuo_duracion).split(',')[0]"/><span class="fen-vr-decimal" t-esc="',' + o._ficha_decimal(revision.funcionamiento_continuo_duracion).split(',')[1]"/></strong><span class="fen-vr-unit">h</span></div>
                 </td>
                 <td>
                     <div class="fen-vr-group-title">Ancho de banda</div>
-                    <div class="fen-vr-line"><span>Subida</span><strong><span class="fen-arrow">↑ </span><t t-esc="o._ficha_decimal(revision.subida)"/> Mbps</strong></div>
-                    <div class="fen-vr-line"><span>Bajada</span><strong><span class="fen-arrow">↓ </span><t t-esc="o._ficha_decimal(revision.bajada)"/> Mbps</strong></div>
+                    <div class="fen-vr-line"><span>Subida</span><strong><span class="fen-arrow">↑ </span><span t-esc="o._ficha_decimal(revision.subida).split(',')[0]"/><span class="fen-vr-decimal" t-esc="',' + o._ficha_decimal(revision.subida).split(',')[1]"/></strong><span class="fen-vr-unit">Mbps</span></div>
+                    <div class="fen-vr-line"><span>Bajada</span><strong><span class="fen-arrow">↓ </span><span t-esc="o._ficha_decimal(revision.bajada).split(',')[0]"/><span class="fen-vr-decimal" t-esc="',' + o._ficha_decimal(revision.bajada).split(',')[1]"/></strong><span class="fen-vr-unit">Mbps</span></div>
                 </td>
             </tr></table>
             <table t-if="revision.tipo == 'rendimiento'" class="fen-vr-pair"><tr>
                 <td>
                     <div class="fen-vr-group-title">Estanqueidad</div>
-                    <div class="fen-vr-line"><span>Presión</span><strong><t t-esc="o._ficha_decimal(revision.presion_bar)"/> bar</strong></div>
-                    <div class="fen-vr-line"><span>Tiempo a presión</span><strong><t t-esc="o._ficha_decimal(revision.presion_tiempo)"/> h</strong></div>
+                    <div class="fen-vr-line"><span>Presión</span><strong><span t-esc="o._ficha_decimal(revision.presion_bar).split(',')[0]"/><span class="fen-vr-decimal" t-esc="',' + o._ficha_decimal(revision.presion_bar).split(',')[1]"/></strong><span class="fen-vr-unit">bar</span></div>
+                    <div class="fen-vr-line"><span>Tiempo a presión</span><strong><span t-esc="o._ficha_decimal(revision.presion_tiempo).split(',')[0]"/><span class="fen-vr-decimal" t-esc="',' + o._ficha_decimal(revision.presion_tiempo).split(',')[1]"/></strong><span class="fen-vr-unit">h</span></div>
                 </td>
                 <td>
                     <div class="fen-vr-group-title">Eléctrico</div>
-                    <div class="fen-vr-line"><span>Fuga</span><strong><t t-esc="o._ficha_decimal(revision.fuga_corriente, 3)"/> A</strong></div>
-                    <div class="fen-vr-line"><span>Reposo</span><strong><t t-esc="o._ficha_decimal(revision.consumo_reposo, 2)"/> kWh</strong></div>
-                    <div class="fen-vr-line"><span>Carga</span><strong><t t-esc="o._ficha_decimal(revision.consumo_carga, 2)"/> kWh</strong></div>
+                    <div class="fen-vr-line"><span>Fuga</span><strong><span t-esc="o._ficha_decimal(revision.fuga_corriente, 3).split(',')[0]"/><span class="fen-vr-decimal" t-esc="',' + o._ficha_decimal(revision.fuga_corriente, 3).split(',')[1]"/></strong><span class="fen-vr-unit">A</span></div>
+                    <div class="fen-vr-line"><span>Reposo</span><strong><span t-esc="o._ficha_decimal(revision.consumo_reposo, 2).split(',')[0]"/><span class="fen-vr-decimal" t-esc="',' + o._ficha_decimal(revision.consumo_reposo, 2).split(',')[1]"/></strong><span class="fen-vr-unit">kWh</span></div>
+                    <div class="fen-vr-line"><span>Carga</span><strong><span t-esc="o._ficha_decimal(revision.consumo_carga, 2).split(',')[0]"/><span class="fen-vr-decimal" t-esc="',' + o._ficha_decimal(revision.consumo_carga, 2).split(',')[1]"/></strong><span class="fen-vr-unit">kWh</span></div>
                 </td>
             </tr></table>
         </div>
