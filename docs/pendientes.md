@@ -1,3 +1,9 @@
+## Centro de trabajo: icono Diseño/BoM diferenciado, 2026-10-27
+
+- Corrección visual 19.0.25.4.1: Diseño/BoM usa `fa-sitemap`; Inventario conserva `fa-cubes`. Solo cambia el icono, sin tocar permisos, navegación ni datos.
+- STAGING instalado con comprobación del único literal y hashes antes/después, respaldo `/var/tmp/mc-rov-center-design-icon-qhaVk2`, servicio activo y hash JS productivo intacto. Usuario confirmó visualmente «todo ok».
+- Producción 19.0.25.4.0/main3588 está instalada y verificada; el icono nuevo todavía no está publicado ni desplegado. Preparar PR y CI de esta corrección antes de integrarla.
+
 ## Inventario: STAGING837 y navegador39 aprobados; entrega local19.0.25.3.0, 2026-10-27
 
 - Cierre nativo completado: pruebas HOOT temporales restauradas; suite backend **837/837 exactos**, cero fallos/errores. Auditoría independiente de nombres del log contra payload837 aprobada. Los mensajes SQL duplicate-key pertenecen a seis pruebas negativas de unicidad; no son fallos de suite. Producto/configuraciones/stock y snapshot intactos, pruebas Python restauradas, STAGING activo. Respaldo `/var/tmp/mc-rov-center-inventory-regression-t9UBvQ`.
