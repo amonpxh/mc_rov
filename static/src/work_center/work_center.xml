@@ -9,15 +9,19 @@
                         t-att-aria-pressed="state.workspace === 'assigned'" t-on-click="toggleAssignedWork">
                         <i class="fa fa-calendar-check-o" aria-hidden="true"/> Trabajo asignado
                     </button>
-                    <t t-foreach="areas" t-as="item" t-key="item.key">
+                    <t t-foreach="visibleAreas" t-as="item" t-key="item.key">
                         <button type="button" t-att-data-topic="item.key" t-att-title="item.description"
+                            t-att-disabled="item.key === 'inventory' and state.acting"
                             t-att-class="state.workspace === 'process' and state.topic === item.key ? 'is_selected' : ''"
                             t-att-aria-pressed="state.workspace === 'process' and state.topic === item.key"
                             t-on-click="() => this.selectTopic(item.key)">
-                            <i t-att-class="'fa ' + item.icon" aria-hidden="true"/> <t t-esc="item.title"/>
+                            <i t-att-class="'fa ' + item.icon" aria-hidden="true"/> <t t-esc="item.label"/>
                         </button>
                     </t>
                 </nav>
+                <div t-if="state.inventoryError" class="alert alert-warning" role="alert">
+                    <t t-esc="state.inventoryError"/>
+                </div>
                 <section t-if="state.workspace === 'assigned'" class="mc_assignment_workspace" aria-label="Trabajo asignado">
                     <div class="mc_work_center_workspace_heading"><h2>Trabajo asignado</h2><button class="btn btn-outline-secondary btn-sm" t-on-click="refresh"
                             t-att-disabled="state.loading || state.assignmentLoading" aria-label="Actualizar registros">

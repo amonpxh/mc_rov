@@ -7,12 +7,13 @@ import { useSetupAction } from "@web/search/action_hook";
 const SERVICE = "mc.rov.work.center";
 const ASSIGNMENT = "mc.rov.work.assignment";
 const AREAS = [
-    { key: "repair", title: "Reparar o mantener", description: "Órdenes y revisiones de una visita.", icon: "fa-wrench" },
-    { key: "manufacturing", title: "Fabricar un equipo", description: "Órdenes, materiales y operaciones.", icon: "fa-cogs" },
-    { key: "acceptance", title: "Aceptar un equipo nuevo", description: "Configuración, RND/TRN y fichas FEN.", icon: "fa-check-square-o" },
-    { key: "equipment", title: "Consultar un equipo", description: "Serie, configuración e historial.", icon: "fa-search" },
-    { key: "quality", title: "Gestionar Calidad", description: "Alertas, controles y lecciones.", icon: "fa-shield" },
-    { key: "design", title: "Trabajar en diseño / BoM", description: "Modelos, BoM (lista de materiales) y cambios de ingeniería.", icon: "fa-cubes" },
+    { key: "repair", label: "Reparar", title: "Reparar o mantener", description: "Órdenes y revisiones de una visita.", icon: "fa-wrench" },
+    { key: "manufacturing", label: "Fabricar", title: "Fabricar un equipo", description: "Órdenes, materiales y operaciones.", icon: "fa-cogs" },
+    { key: "acceptance", label: "Aceptar", title: "Aceptar un equipo nuevo", description: "Configuración, RND/TRN y fichas FEN.", icon: "fa-check-square-o" },
+    { key: "equipment", label: "Consultar equipo", title: "Consultar un equipo", description: "Serie, configuración e historial.", icon: "fa-search" },
+    { key: "quality", label: "Calidad", title: "Gestionar Calidad", description: "Alertas, controles y lecciones.", icon: "fa-shield" },
+    { key: "inventory", label: "Inventario", title: "Inventario", description: "Existencias y ubicaciones de Inventario.", icon: "fa-cubes" },
+    { key: "design", label: "Diseño / BoM", title: "Trabajar en diseño / BoM", description: "Modelos, BoM (lista de materiales) y cambios de ingeniería.", icon: "fa-cubes" },
 ];
 const KINDS = {
     orders: ["Órdenes", "Nueva orden", "Ver todas las órdenes"],
@@ -44,7 +45,7 @@ export class WorkCenter extends Component {
             topic: saved.topic || "repair", kind: saved.kind || "orders",
             filters: saved.filters || {}, kinds: saved.kinds || {},
             overview: [], rows: [], total: 0, nextOffset: false, responsibleLabel: false,
-            loading: true, error: "", overviewError: "", acting: false,
+            loading: true, error: "", overviewError: "", inventoryError: "", acting: false,
             modelQuery: "", modelOptions: [], modelError: "",
             workspace: saved.workspace || "assigned",
             assignedWork: { scope: "mine", employeeId: false, kind: "activities", process: "all", viewType: "kanban", ...saved.assignedWork },
@@ -82,6 +83,10 @@ export class WorkCenter extends Component {
         }));
     }
 
+    get visibleAreas() {
+        return this.areas.filter((area) => area.key !== "inventory"
+            || this.state.overview.some((item) => item.topic === "inventory" && item.available));
+    }
     get area() { return AREAS.find((area) => area.key === this.state.topic); }
     get tabs() { return this.state.overview.filter((item) => item.topic === this.state.topic); }
     get capability() { return this.tabs.find((item) => item.kind === this.state.kind); }
@@ -235,6 +240,11 @@ export class WorkCenter extends Component {
 
     async selectTopic(topic) {
         if (!await this.leaveNativeView()) return;
+        if (topic === "inventory") {
+            if (!this.visibleAreas.some((area) => area.key === "inventory")) return;
+            // El destino nativo no sustituye el área ni sus filtros al volver.
+            return this.navigate("action_inventory", [], {}, "inventoryError");
+        }
         this.assignmentGeneration++;
         this.state.workspace = "process";
         this.state.kinds[this.state.topic] = this.state.kind;
@@ -337,17 +347,17 @@ export class WorkCenter extends Component {
         this.loadRecords();
     }
 
-    async navigate(method, args, kwargs = {}) {
+    async navigate(method, args, kwargs = {}, errorField = "error") {
         if (this.state.acting) return;
         this.state.acting = true;
-        this.state.error = "";
+        this.state[errorField] = "";
         try {
             const action = await this.orm.call(SERVICE, method, args, kwargs);
             // Odoo prepara la ayuda HTML al cargar por ID; una acción RPC evita ese paso.
             if (typeof action.help === "string") action.help = markup(action.help);
             await this.action.doAction(action);
         } catch (_error) {
-            this.state.error = "No se pudo abrir el destino. Comprueba que existe y que tienes acceso.";
+            this.state[errorField] = "No se pudo abrir el destino. Comprueba que existe y que tienes acceso.";
         } finally {
             this.state.acting = false;
         }
