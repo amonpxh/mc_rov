@@ -93,7 +93,11 @@ DEFINITIONS = {
 }
 
 
-REVISION_TYPES = {"reviews": "reparacion", "performance": "rendimiento", "field": "terreno"}
+REVISION_TYPES = {
+    "reviews": "reparacion",
+    "performance": "rendimiento",
+    "field": "terreno",
+}
 EQUIPMENT_STATES = ("Operativo", "En mantención", "En reparación")
 
 # Reuse operational ownership only: product.responsible_id concerns logistics, not design.
@@ -129,7 +133,11 @@ class WorkCenter(models.AbstractModel):
         if xmlid:
             action = self.env["ir.actions.actions"]._for_xml_id(xmlid)
         else:
-            action = {"type": "ir.actions.act_window", "name": _("Fichas"), "res_model": model}
+            action = {
+                "type": "ir.actions.act_window",
+                "name": _("Fichas"),
+                "res_model": model,
+            }
         values = {
             "uid": self.env.uid,
             "user": self.env.user,
@@ -353,6 +361,23 @@ class WorkCenter(models.AbstractModel):
             )
         return rows
 
+    def _inventory_available(self):
+        return (
+            self.env.user.has_group("base.group_user")
+            and self.env.user.has_group("stock.group_stock_user")
+            and self.env["stock.quant"].has_access("read")
+        )
+
+    @api.model
+    def action_inventory(self):
+        """Abre existencias nativas sin ampliar permisos ni empresas del usuario."""
+        if not self._inventory_available():
+            raise AccessError(_("No tiene permiso para consultar Inventario."))
+        # Validar el contexto antes de que la acción nativa ejecute tareas de quants.
+        if not self.env.companies:
+            raise AccessError(_("Seleccione una empresa permitida para Inventario."))
+        return self.env["stock.quant"].with_context(always_show_loc=True).action_view_quants()
+
     @api.model
     def get_overview(self):
         result = []
@@ -376,6 +401,13 @@ class WorkCenter(models.AbstractModel):
                 )
             except AccessError:
                 result.append({"topic": topic, "kind": kind, "available": False})
+        result.append(
+            {
+                "topic": "inventory",
+                "kind": "stock",
+                "available": self._inventory_available(),
+            }
+        )
         return result
 
     @api.model

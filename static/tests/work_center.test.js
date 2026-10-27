@@ -411,3 +411,137 @@ describe("mc_rov work center", () => {
     });
 
 });
+
+
+describe("mc_rov inventory navigation", () => {
+    defineModels(mailModels);
+    const inventoryButton = '[data-topic="inventory"]';
+    const native = { type: "ir.actions.act_window", res_model: "stock.quant",
+        views: [[false, "list"]], context: { allowed_company_ids: [1] } };
+
+    async function setupInventory({ available = true, failRPC = false, failAction = false } = {}) {
+        const calls = [];
+        const actions = [];
+        mockService("orm", {
+            async call(model, method, args, kwargs) {
+                calls.push({ model, method, args, kwargs });
+                if (method === "get_overview") return [...overview(),
+                    { topic: "inventory", kind: "stock", available }];
+                if (method === "action_inventory") {
+                    if (failRPC) throw new Error("Permiso retirado");
+                    return native;
+                }
+                return result(41);
+            },
+        });
+        mockService("action", {
+            async doAction(action) {
+                if (failAction) throw new Error("No se pudo cargar la vista");
+                actions.push(action);
+            },
+        });
+        const Center = requireCenter();
+        const center = await mountCenter(Center, { state: { workCenter: {
+            topic: "equipment", kind: "equipment", filters: {
+                "equipment:equipment": { query: "Petrohue", model_id: 9,
+                    model_label: "ROV Petrohue", state_filter: "En reparación", offset: 0 },
+            },
+        } } });
+        return { center, calls, actions };
+    }
+
+    function hasInventory() {
+        const present = Boolean(document.querySelector(inventoryButton));
+        expect(present).toBe(true, { message: "Falta el botón Inventario autorizado" });
+        return present;
+    }
+
+    test("ocho accesos en orden con etiquetas cortas", async () => {
+        await setupInventory();
+        expect([...document.querySelectorAll(".mc_work_center_navigation button")]
+            .map((button) => button.textContent.trim())).toEqual([
+            "Trabajo asignado", "Reparar", "Fabricar", "Aceptar", "Consultar equipo",
+            "Calidad", "Inventario", "Diseño / BoM",
+        ]);
+    });
+
+    test("sin permiso de inventario conserva los otros accesos", async () => {
+        await setupInventory({ available: false });
+        expect(inventoryButton).toHaveCount(0);
+        expect(".mc_work_center_navigation button").toHaveCount(7);
+    });
+
+    test("abre existencias nativas y conserva filtros para volver", async () => {
+        const { center, calls, actions } = await setupInventory();
+        if (!hasInventory()) return;
+        const saved = center.exportState();
+        await click(inventoryButton);
+        await animationFrame();
+        expect(calls.filter((call) => call.method === "action_inventory"))
+            .toEqual([{ model: "mc.rov.work.center", method: "action_inventory", args: [], kwargs: {} }]);
+        expect(actions).toEqual([native]);
+        expect(center.exportState()).toEqual(saved);
+        expect(document.querySelector('[data-topic="equipment"]').classList.contains("is_selected")).toBe(true);
+    });
+
+    test("edicion pendiente impide salir hacia inventario", async () => {
+        const { center, calls, actions } = await setupInventory();
+        if (!hasInventory()) return;
+        center.nativeView = { canLeave: async () => false };
+        const saved = center.exportState();
+        await click(inventoryButton);
+        await animationFrame();
+        expect(calls.filter((call) => call.method === "action_inventory")).toHaveLength(0);
+        expect(actions).toHaveLength(0);
+        expect(center.exportState()).toEqual(saved);
+    });
+
+    test("permiso retirado muestra error sin perder el area", async () => {
+        const { center, actions } = await setupInventory({ failRPC: true });
+        if (!hasInventory()) return;
+        const saved = center.exportState();
+        await click(inventoryButton);
+        await animationFrame();
+        expect(actions).toHaveLength(0);
+        expect(center.exportState()).toEqual(saved);
+        expect(document.querySelector('[role="alert"]').textContent.includes("No se pudo abrir el destino")).toBe(true);
+        expect(center.state.acting).toBe(false);
+    });
+
+    test("fallo al cargar vista nativa permite reintentar sin cambiar filtros", async () => {
+        const { center } = await setupInventory({ failAction: true });
+        if (!hasInventory()) return;
+        const saved = center.exportState();
+        await click(inventoryButton);
+        await animationFrame();
+        expect(center.exportState()).toEqual(saved);
+        expect(document.querySelector('[role="alert"]').textContent.includes("No se pudo abrir el destino")).toBe(true);
+        expect(center.state.acting).toBe(false);
+    });
+
+    test("doble apertura no solicita dos acciones de inventario", async () => {
+        const { center, calls, actions } = await setupInventory();
+        if (!hasInventory()) return;
+        await Promise.all([center.selectTopic("inventory"), center.selectTopic("inventory")]);
+        await animationFrame();
+        expect(calls.filter((call) => call.method === "action_inventory")).toHaveLength(1);
+        expect(actions).toHaveLength(1);
+    });
+
+    test("menu usa dos cuatro u ocho columnas segun su contenedor", async () => {
+        await setupInventory();
+        if (!hasInventory()) return;
+        const inner = document.querySelector(".mc_work_center_inner");
+        const nav = inner.querySelector(".mc_work_center_navigation");
+        for (const [width, columns] of [[320, 2], [480, 2], [1000, 4], [1600, 8], [480, 2]]) {
+            inner.style.width = `${width}px`;
+            await animationFrame();
+            const boxes = [...nav.querySelectorAll("button")].map((button) => button.getBoundingClientRect());
+            const firstRow = boxes.filter((box) => Math.abs(box.top - boxes[0].top) < 1);
+            expect(firstRow.length).toBe(columns);
+            expect(new Set(boxes.map((box) => Math.round(box.top))).size).toBe(8 / columns);
+            expect(boxes.every((box) => Math.abs(box.width - boxes[0].width) < 1)).toBe(true);
+            expect(nav.scrollWidth <= nav.clientWidth + 1).toBe(true);
+        }
+    });
+});

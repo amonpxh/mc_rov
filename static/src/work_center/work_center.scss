@@ -5,7 +5,7 @@
     background: $o-webclient-background-color;
     color: $o-main-text-color;
     padding: 16px;
-    .mc_work_center_inner { width: 100%; }
+    .mc_work_center_inner { width: 100%; container: mc-work-center / inline-size; }
     .mc_assignment_workspace { background: $o-view-background-color; border: 1px solid $border-color; border-radius: 8px; margin-bottom: 18px; }
     .mc_assignment_toggle {
         width: 100%; display: flex; align-items: center; gap: 10px;
@@ -81,11 +81,10 @@
 
 .mc_work_center {
     .mc_work_center_navigation {
-        display: flex; flex-wrap: nowrap; gap: 4px; margin-bottom: 16px;
-        overflow-x: auto; padding: 3px 3px 7px;
-        scrollbar-width: thin;
+        display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 4px; margin-bottom: 16px; padding: 3px 3px 7px;
         button { border: 1px solid $border-color; border-radius: 6px; background: $o-view-background-color; color: $o-main-text-color; padding: 8px 9px;
-            flex: 1 0 160px; min-width: 160px; min-height: 48px;
+            min-width: 0; min-height: 48px; overflow-wrap: anywhere;
             white-space: normal; line-height: 1.35; font-size: 13px; }
         button.is_selected { border-color: $o-brand-primary; background: mix($o-brand-primary, $o-view-background-color, 8%); color: $o-brand-primary; font-weight: 600; }
         button:focus-visible { outline: 2px solid $o-brand-primary; outline-offset: 2px; }
@@ -99,4 +98,12 @@
         border-top: 1px solid $border-color;
         > .o_view_controller { flex: 1; min-height: 0; }
     }
+}
+
+// El panel puede ser estrecho incluso dentro de una ventana grande.
+@container mc-work-center (min-width: 768px) {
+    .mc_work_center .mc_work_center_navigation { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@container mc-work-center (min-width: 1360px) {
+    .mc_work_center .mc_work_center_navigation { grid-template-columns: repeat(8, minmax(0, 1fr)); }
 }
