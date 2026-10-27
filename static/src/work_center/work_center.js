@@ -13,7 +13,7 @@ const AREAS = [
     { key: "equipment", label: "Consultar equipo", title: "Consultar un equipo", description: "Serie, configuración e historial.", icon: "fa-search" },
     { key: "quality", label: "Calidad", title: "Gestionar Calidad", description: "Alertas, controles y lecciones.", icon: "fa-shield" },
     { key: "inventory", label: "Inventario", title: "Inventario", description: "Existencias, productos, series y operaciones.", icon: "fa-cubes" },
-    { key: "design", label: "Diseño / BoM", title: "Trabajar en diseño / BoM", description: "Modelos, BoM (lista de materiales) y cambios de ingeniería.", icon: "fa-cubes" },
+    { key: "design", label: "Diseño / BoM", title: "Trabajar en diseño / BoM", description: "Modelos, BoM (lista de materiales) y cambios de ingeniería.", icon: "fa-sitemap" },
 ];
 const KINDS = {
     orders: ["Órdenes", "Nueva orden", "Ver todas las órdenes"],
