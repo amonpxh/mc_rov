@@ -12,14 +12,14 @@
                     <t t-foreach="visibleAreas" t-as="item" t-key="item.key">
                         <button type="button" t-att-data-topic="item.key" t-att-title="item.description"
                             t-att-disabled="item.key === 'inventory' and state.acting"
-                            t-att-class="state.workspace === 'process' and state.topic === item.key ? 'is_selected' : ''"
-                            t-att-aria-pressed="state.workspace === 'process' and state.topic === item.key"
+                            t-att-class="(item.key === 'inventory' ? state.workspace === 'inventory' : state.workspace === 'process' and state.topic === item.key) ? 'is_selected' : ''"
+                            t-att-aria-pressed="item.key === 'inventory' ? state.workspace === 'inventory' : state.workspace === 'process' and state.topic === item.key"
                             t-on-click="() => this.selectTopic(item.key)">
                             <i t-att-class="'fa ' + item.icon" aria-hidden="true"/> <t t-esc="item.label"/>
                         </button>
                     </t>
                 </nav>
-                <div t-if="state.inventoryError" class="alert alert-warning" role="alert">
+                <div t-if="state.inventoryError and state.workspace !== 'inventory'" class="alert alert-warning" role="alert">
                     <t t-esc="state.inventoryError"/>
                 </div>
                 <section t-if="state.workspace === 'assigned'" class="mc_assignment_workspace" aria-label="Trabajo asignado">
@@ -82,6 +82,64 @@
                     <AssignedWorkView t-if="state.assignmentReady and state.assignmentAction"
                         t-key="state.assignmentRevision" action="state.assignmentAction" viewType="state.assignedWork.viewType"
                         saved="nativeState" register.bind="registerNativeView" onError.bind="assignmentFailed"/>
+                </section>
+                <section t-if="state.workspace === 'inventory'" data-inventory-workspace=""
+                    class="mc_assignment_workspace mc_inventory_workspace" aria-label="Inventario">
+                    <div class="mc_work_center_workspace_heading">
+                        <h2>Inventario</h2>
+                        <div class="mc_inventory_heading_actions">
+                            <button class="btn btn-outline-secondary btn-sm" data-inventory-refresh=""
+                                t-on-click="refresh" t-att-disabled="state.inventoryLoading || state.inventoryCapabilitiesLoading">
+                                <i class="fa fa-refresh" aria-hidden="true"/> Actualizar
+                            </button>
+                            <button class="btn btn-outline-secondary btn-sm" data-inventory-full=""
+                                t-on-click="openInventoryApplication" t-att-disabled="state.acting">
+                                <i class="fa fa-external-link" aria-hidden="true"/> Abrir Inventario completo
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mc_work_center_tabs" role="tablist" aria-label="Secciones de Inventario">
+                        <t t-foreach="inventorySections" t-as="section" t-key="section.key">
+                            <button role="tab" t-att-data-inventory-section="section.key"
+                                t-att-disabled="!section.available" t-att-aria-selected="state.inventory.section === section.key"
+                                t-att-class="state.inventory.section === section.key ? 'is_selected' : ''"
+                                t-on-click="() => this.changeInventorySection(section.key)">
+                                <t t-esc="section.label"/>
+                            </button>
+                        </t>
+                    </div>
+                    <div class="mc_inventory_toolbar" t-if="inventoryEntries.length">
+                        <div class="mc_inventory_destinations" aria-label="Destinos de la sección">
+                            <t t-foreach="inventoryEntries" t-as="entry" t-key="entry.key">
+                                <button t-att-data-inventory-destination="entry.key" t-att-disabled="!entry.available"
+                                    t-att-class="'btn btn-sm ' + (state.inventory.destination === entry.key ? 'btn-primary' : 'btn-outline-secondary')"
+                                    t-att-aria-pressed="state.inventory.destination === entry.key"
+                                    t-on-click="() => this.openInventoryDestination(entry.key)">
+                                    <t t-esc="entry.label"/>
+                                </button>
+                            </t>
+                        </div>
+                        <div class="btn-group" aria-label="Vista de Inventario">
+                            <t t-foreach="inventoryViews" t-as="view" t-key="view[1]">
+                                <button t-att-data-inventory-view="view[1]"
+                                    t-att-aria-pressed="state.inventory.viewType === view[1]"
+                                    t-att-class="'btn btn-sm btn-outline-secondary ' + (state.inventory.viewType === view[1] ? 'active' : '')"
+                                    t-on-click="() => this.changeInventoryView(view[1])">
+                                    <t t-esc="{list: 'Lista', kanban: 'Kanban', calendar: 'Calendario', pivot: 'Tabla dinámica', graph: 'Gráfico', activity: 'Actividades'}[view[1]]"/>
+                                </button>
+                            </t>
+                        </div>
+                    </div>
+                    <p t-if="state.inventoryLoading || state.inventoryCapabilitiesLoading" class="mc_work_center_empty" role="status">Cargando Inventario…</p>
+                    <div t-if="state.inventoryError" class="alert alert-warning" role="alert">
+                        <t t-esc="state.inventoryError"/>
+                        <button data-inventory-retry="" class="btn btn-link" t-on-click="retryInventory">Reintentar</button>
+                    </div>
+                    <p t-if="!state.inventoryCapabilitiesLoading and !state.inventoryError and !state.inventoryDestinations.some((entry) => entry.available)"
+                        class="mc_work_center_empty">No tienes destinos de Inventario disponibles.</p>
+                    <AssignedWorkView t-if="state.inventoryAction" t-key="'inventory:' + state.inventoryRevision"
+                        action="state.inventoryAction" viewType="state.inventory.viewType" saved="nativeState"
+                        register.bind="registerNativeView" onError.bind="inventoryFailed"/>
                 </section>
                 <div t-if="state.overviewError" class="alert alert-warning" role="alert">
                     <t t-esc="state.overviewError"/>

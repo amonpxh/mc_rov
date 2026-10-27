@@ -5,8 +5,8 @@ Odoo 19 module for ROV (Remotely Operated Vehicle) inventory and repair tracking
 ## Status
 
 - **Odoo version:** 19
-- **Module version:** 19.0.12.1.1 (see `__manifest__.py`)
-- **Tests:** 153
+- **Module version:** 19.0.25.4.0 (see `__manifest__.py`)
+- **Tests:** 870 backend contracts and 63 browser tests
 - **License:** LGPL-3
 - **Maintenance:** active. See `CODEOWNERS`.
 
@@ -16,6 +16,7 @@ Odoo 19 module for ROV (Remotely Operated Vehicle) inventory and repair tracking
 - **Inventory design context** (category tree, traceability chain, taxonomy boundaries) → [`INVENTARIO.md`](INVENTARIO.md)
 - **Deploy procedure** → [`docs/runbooks/deploy.md`](docs/runbooks/deploy.md)
 - **Running tests** → [`docs/runbooks/testing.md`](docs/runbooks/testing.md)
+- **Inventory in the Work Center** → [`docs/runbooks/work-center-inventory.md`](docs/runbooks/work-center-inventory.md)
 - **Pipeline integration** (how this module exposes data to the analytics pipeline) → [`docs/integrations/pipeline.md`](docs/integrations/pipeline.md)
 - **Version history** → [`CHANGELOG.md`](CHANGELOG.md)
 

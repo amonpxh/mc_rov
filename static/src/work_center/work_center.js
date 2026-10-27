@@ -12,7 +12,7 @@ const AREAS = [
     { key: "acceptance", label: "Aceptar", title: "Aceptar un equipo nuevo", description: "Configuración, RND/TRN y fichas FEN.", icon: "fa-check-square-o" },
     { key: "equipment", label: "Consultar equipo", title: "Consultar un equipo", description: "Serie, configuración e historial.", icon: "fa-search" },
     { key: "quality", label: "Calidad", title: "Gestionar Calidad", description: "Alertas, controles y lecciones.", icon: "fa-shield" },
-    { key: "inventory", label: "Inventario", title: "Inventario", description: "Existencias y ubicaciones de Inventario.", icon: "fa-cubes" },
+    { key: "inventory", label: "Inventario", title: "Inventario", description: "Existencias, productos, series y operaciones.", icon: "fa-cubes" },
     { key: "design", label: "Diseño / BoM", title: "Trabajar en diseño / BoM", description: "Modelos, BoM (lista de materiales) y cambios de ingeniería.", icon: "fa-cubes" },
 ];
 const KINDS = {
@@ -39,6 +39,7 @@ export class WorkCenter extends Component {
     setup() {
         this.orm = useService("orm");
         this.action = useService("action");
+        this.menu = useService("menu");
         this.areas = AREAS;
         const saved = this.props.state?.workCenter || {};
         this.state = useState({
@@ -52,7 +53,13 @@ export class WorkCenter extends Component {
             assignmentOpen: false, assignmentLoading: false, assignmentReady: false,
             assignmentError: "", employeeError: "", employees: [], canViewTeam: false,
             assignmentAction: null, processOptions: [], assignmentRevision: 0,
+            inventory: { section: "stock", destination: "stock", viewType: false, selections: {}, viewTypes: {}, ...saved.inventory },
+            inventoryDestinations: [], inventoryAction: null, inventoryLoading: false,
+            inventoryCapabilitiesLoading: false, inventoryRevision: 0, inventoryCompanyKey: "",
         });
+        this.inventoryGeneration = 0;
+        this.inventoryCapabilitiesGeneration = 0;
+        this.navigationGeneration = 0;
         this.assignmentGeneration = 0;
         this.nativeStates = this.props.state?.assignedNativeStates || {};
         this.nativeView = null;
@@ -70,6 +77,9 @@ export class WorkCenter extends Component {
             this.generation++;
             this.assignmentGeneration++;
             this.modelGeneration++;
+            this.inventoryGeneration++;
+            this.inventoryCapabilitiesGeneration++;
+            this.navigationGeneration++;
             clearTimeout(this.searchTimer);
             clearTimeout(this.modelTimer);
         });
@@ -80,6 +90,7 @@ export class WorkCenter extends Component {
             topic: this.state.topic, kind: this.state.kind,
             filters: this.state.filters, kinds: this.state.kinds,
             assignedWork: this.state.assignedWork, workspace: this.state.workspace,
+            inventory: this.state.inventory,
         }));
     }
 
@@ -116,6 +127,10 @@ export class WorkCenter extends Component {
             ["list", "kanban", "calendar"].includes(view[1]));
     }
     get nativeKey() {
+        if (this.state.workspace === "inventory") {
+            return JSON.stringify(["inventory", this.state.inventory.destination,
+                this.state.inventoryCompanyKey, this.state.inventory.viewType]);
+        }
         const work = this.state.assignedWork;
         return JSON.stringify([work.kind, work.scope, work.kind === "activities" ? work.employeeId : false,
             work.process, work.viewType]);
@@ -128,12 +143,18 @@ export class WorkCenter extends Component {
         if (this.nativeView) this.nativeStates[this.nativeKey] = this.nativeView.snapshot();
     }
     async leaveNativeView() {
-        if (this.nativeView && !await this.nativeView.canLeave()) return false;
-        this.captureNativeView();
+        const view = this.nativeView;
+        const key = this.nativeKey;
+        if (view && !await view.canLeave()) return false;
+        // Una confirmación tardía no debe guardar una vista bajo el destino nuevo.
+        if (view && this.nativeView === view && this.nativeKey === key) this.nativeStates[key] = view.snapshot();
         return true;
     }
     async toggleAssignedWork() {
-        if (!await this.leaveNativeView()) return;
+        const intent = ++this.navigationGeneration;
+        if (!await this.leaveNativeView() || intent !== this.navigationGeneration) return;
+        this.invalidateInventory();
+        this.nativeView = null;
         this.state.workspace = "assigned";
         return this.loadAssignedWork();
     }
@@ -204,7 +225,8 @@ export class WorkCenter extends Component {
         this.state.assignmentRevision++;
     }
     async assignedForProcess() {
-        if (!await this.leaveNativeView()) return;
+        const intent = ++this.navigationGeneration;
+        if (!await this.leaveNativeView() || intent !== this.navigationGeneration) return;
         this.state.assignedWork.kind = "activities";
         this.state.assignedWork.process = this.state.topic;
         this.state.workspace = "assigned";
@@ -212,10 +234,17 @@ export class WorkCenter extends Component {
     }
 
     async refresh() {
-        if (!await this.leaveNativeView()) return;
+        const intent = ++this.navigationGeneration;
+        if (!await this.leaveNativeView() || intent !== this.navigationGeneration) return;
         // Reload record data while keeping the native search and grouping.
         const snapshot = this.nativeStates[this.nativeKey];
         this.nativeStates[this.nativeKey] = snapshot ? { globalState: snapshot.globalState } : {};
+        if (this.state.workspace === "inventory") {
+            // Retirar el puente antes de consultar capacidades evita recapturar su caché descartada.
+            this.nativeView = null;
+            this.state.inventoryAction = null;
+            this.inventoryGeneration++;
+        }
         return this.initialize();
     }
     async initialize() {
@@ -227,7 +256,11 @@ export class WorkCenter extends Component {
                 const first = this.tabs.find((item) => item.available);
                 this.state.kind = first?.kind || this.tabs[0]?.kind || "orders";
             }
-            if (this.state.workspace === "assigned") {
+            if (this.state.workspace === "inventory" && this.visibleAreas.some((item) => item.key === "inventory")) {
+                await this.loadInventory();
+                this.state.loading = false;
+            }
+            else if (this.state.workspace === "assigned") {
                 await this.loadAssignedWork();
                 this.state.loading = false;
             }
@@ -239,12 +272,18 @@ export class WorkCenter extends Component {
     }
 
     async selectTopic(topic) {
-        if (!await this.leaveNativeView()) return;
+        const intent = ++this.navigationGeneration;
+        if (!await this.leaveNativeView() || intent !== this.navigationGeneration) return;
         if (topic === "inventory") {
             if (!this.visibleAreas.some((area) => area.key === "inventory")) return;
-            // El destino nativo no sustituye el área ni sus filtros al volver.
-            return this.navigate("action_inventory", [], {}, "inventoryError");
+            if (this.state.workspace === "inventory" && this.state.inventoryCapabilitiesLoading) return;
+            this.assignmentGeneration++;
+            this.nativeView = null;
+            this.state.workspace = "inventory";
+            return this.loadInventory();
         }
+        this.invalidateInventory();
+        this.nativeView = null;
         this.assignmentGeneration++;
         this.state.workspace = "process";
         this.state.kinds[this.state.topic] = this.state.kind;
@@ -253,6 +292,133 @@ export class WorkCenter extends Component {
             || this.tabs.find((item) => item.available)?.kind || this.tabs[0]?.kind;
         this.resetModelSearch();
         this.loadRecords();
+    }
+
+    invalidateInventory() {
+        this.inventoryGeneration++;
+        this.inventoryCapabilitiesGeneration++;
+        this.state.inventoryLoading = false;
+        this.state.inventoryCapabilitiesLoading = false;
+    }
+    get inventorySections() {
+        return [
+            { key: "stock", label: "Existencias" }, { key: "products", label: "Productos" },
+            { key: "lots", label: "Series y lotes" }, { key: "operations", label: "Operaciones" },
+            { key: "replenishment", label: "Reabastecimiento" },
+        ].map((section) => ({ ...section, available: this.state.inventoryDestinations.some(
+            (entry) => entry.section === section.key && entry.available) }));
+    }
+    get inventoryEntries() {
+        return this.state.inventoryDestinations.filter((entry) => entry.section === this.state.inventory.section);
+    }
+    get inventoryViews() {
+        return (this.state.inventoryAction?.views || []).filter((view) =>
+            ["list", "kanban", "calendar", "pivot", "graph", "activity"].includes(view[1]));
+    }
+    async loadInventory() {
+        const generation = ++this.inventoryCapabilitiesGeneration;
+        this.state.inventoryCapabilitiesLoading = true;
+        this.state.inventoryError = "";
+        try {
+            const entries = await this.orm.call(SERVICE, "get_inventory_destinations", []);
+            if (generation !== this.inventoryCapabilitiesGeneration || this.state.workspace !== "inventory") return;
+            this.state.inventoryDestinations = entries;
+            const work = this.state.inventory;
+            const selected = entries.find((entry) => entry.key === work.destination && entry.available)
+                || entries.find((entry) => entry.section === work.section && entry.available)
+                || entries.find((entry) => entry.available);
+            if (selected) await this.openInventoryDestination(selected.key, true);
+            else this.state.inventoryAction = null;
+        } catch (_error) {
+            if (generation === this.inventoryCapabilitiesGeneration) {
+                this.state.inventoryDestinations = [];
+                this.inventoryFailed();
+            }
+        } finally {
+            if (generation === this.inventoryCapabilitiesGeneration) this.state.inventoryCapabilitiesLoading = false;
+        }
+    }
+    async changeInventorySection(section) {
+        const choices = this.state.inventoryDestinations.filter((entry) => entry.section === section && entry.available);
+        const remembered = this.state.inventory.selections[section];
+        const selected = choices.find((entry) => entry.key === remembered) || choices[0];
+        if (selected) return this.openInventoryDestination(selected.key);
+    }
+    async openInventoryDestination(key, reload = false) {
+        const entry = this.state.inventoryDestinations.find((item) => item.key === key && item.available);
+        if (!entry || this.state.workspace !== "inventory") return;
+        const duplicate = () => this.state.inventory.destination === key
+            && (this.state.inventoryLoading || (!reload && this.state.inventoryAction));
+        if (duplicate()) return;
+        const intent = ++this.navigationGeneration;
+        if (!await this.leaveNativeView() || intent !== this.navigationGeneration
+            || this.state.workspace !== "inventory" || duplicate()) return;
+        const generation = ++this.inventoryGeneration;
+        const work = this.state.inventory;
+        work.viewTypes[work.destination] = work.viewType;
+        work.section = entry.section;
+        work.destination = key;
+        work.selections[entry.section] = key;
+        this.state.inventoryAction = null;
+        this.state.inventoryLoading = true;
+        this.state.inventoryError = "";
+        try {
+            const action = await this.orm.call(SERVICE, "action_inventory_destination", [key]);
+            if (generation !== this.inventoryGeneration || this.state.workspace !== "inventory") return;
+            if (typeof action.help === "string") action.help = markup(action.help);
+            this.state.inventoryCompanyKey = JSON.stringify(action.context?.allowed_company_ids || []);
+            this.state.inventoryAction = action;
+            const preferred = work.viewTypes[key];
+            work.viewType = this.inventoryViews.find((view) => view[1] === preferred)?.[1]
+                || this.inventoryViews[0]?.[1] || "list";
+            this.state.inventoryRevision++;
+        } catch (_error) {
+            if (generation === this.inventoryGeneration) this.inventoryFailed();
+        } finally {
+            if (generation === this.inventoryGeneration) this.state.inventoryLoading = false;
+        }
+    }
+    inventoryFailed() {
+        this.inventoryGeneration++;
+        this.state.inventoryAction = null;
+        this.state.inventoryLoading = false;
+        this.state.inventoryError = "No se pudo abrir el destino de Inventario. Comprueba tus permisos y la conexión y vuelve a intentar.";
+    }
+    async retryInventory() {
+        const intent = ++this.navigationGeneration;
+        if (!await this.leaveNativeView() || intent !== this.navigationGeneration
+            || this.state.workspace !== "inventory") return;
+        if (!this.state.inventoryDestinations.length) return this.loadInventory();
+        return this.openInventoryDestination(this.state.inventory.destination, true);
+    }
+    async changeInventoryView(type) {
+        if (!this.inventoryViews.some((view) => view[1] === type)) return;
+        const intent = ++this.navigationGeneration;
+        if (!await this.leaveNativeView() || intent !== this.navigationGeneration
+            || this.state.workspace !== "inventory") return;
+        this.state.inventory.viewType = type;
+        this.state.inventoryRevision++;
+    }
+    async openInventoryApplication() {
+        if (this.state.acting || this.state.workspace !== "inventory") return;
+        const intent = ++this.navigationGeneration;
+        if (!await this.leaveNativeView() || intent !== this.navigationGeneration
+            || this.state.workspace !== "inventory" || this.state.acting) return;
+        this.state.acting = true;
+        this.state.inventoryError = "";
+        try {
+            const { menu_id: menuId } = await this.orm.call(SERVICE, "get_inventory_application", []);
+            if (intent !== this.navigationGeneration || this.state.workspace !== "inventory") return;
+            const app = this.menu.getApps().find((item) => item.id === menuId);
+            if (!app?.actionID) throw new Error("Aplicación no disponible en los menús autorizados");
+            await this.menu.selectMenu(app);
+        } catch (_error) {
+            if (intent === this.navigationGeneration && this.state.workspace === "inventory") {
+                this.state.inventoryError = "No se pudo abrir Inventario completo. Comprueba tus permisos y vuelve a intentar.";
+            }
+        } finally {
+            this.state.acting = false;
+        }
     }
 
     selectKind(kind) {

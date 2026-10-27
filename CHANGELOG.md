@@ -1,5 +1,25 @@
 # Changelog
 
+## [19.0.25.4.0] — Unreleased
+
+### Added
+
+- Espacio de Inventario dentro del Centro de trabajo: existencias, productos y variantes,
+  series/lotes, recepciones, entregas, traslados internos, conteos y reabastecimiento.
+- Acceso a la aplicación Inventario completa con sus menús nativos y permisos existentes.
+
+### Changed
+
+- Cada destino conserva sus vistas y filtros, con protección de cambios sin guardar y
+  estado separado por empresas activas. Actualizar conserva la búsqueda y recarga los datos.
+- Las respuestas y confirmaciones tardías no sustituyen la última navegación elegida.
+
+### Validation
+
+- STAGING: 870 casos backend por descubrimiento exacto, 63 pruebas de navegador y revisión
+  visual en ambos temas aprobados. Pruebas temporales retiradas; existencias/configuraciones
+  conservadas. La publicación y el despliegue de esta versión siguen pendientes.
+
 ## [19.0.23.6.0] — 2026-09-24
 
 ### Added
