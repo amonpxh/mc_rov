@@ -419,7 +419,7 @@ describe("mc_rov inventory navigation", () => {
     const native = { type: "ir.actions.act_window", res_model: "stock.quant",
         views: [[false, "list"]], context: { allowed_company_ids: [1] } };
 
-    async function setupInventory({ available = true, failRPC = false, failAction = false } = {}) {
+    async function setupInventory({ available = true, failRPC = false } = {}) {
         const calls = [];
         const actions = [];
         mockService("orm", {
@@ -427,7 +427,8 @@ describe("mc_rov inventory navigation", () => {
                 calls.push({ model, method, args, kwargs });
                 if (method === "get_overview") return [...overview(),
                     { topic: "inventory", kind: "stock", available }];
-                if (method === "action_inventory") {
+                if (method === "get_inventory_destinations") return [{ key: "stock", section: "stock", label: "Existencias", available: true, can_create: false }];
+                if (method === "action_inventory_destination") {
                     if (failRPC) throw new Error("Permiso retirado");
                     return native;
                 }
@@ -436,12 +437,13 @@ describe("mc_rov inventory navigation", () => {
         });
         mockService("action", {
             async doAction(action) {
-                if (failAction) throw new Error("No se pudo cargar la vista");
                 actions.push(action);
             },
         });
         const Center = requireCenter();
-        const center = await mountCenter(Center, { state: { workCenter: {
+        class CenterProbe extends Center {}
+        CenterProbe.components = { ...Center.components, AssignedWorkView: AssignmentViewProbe };
+        const center = await mountCenter(CenterProbe, { state: { workCenter: {
             topic: "equipment", kind: "equipment", filters: {
                 "equipment:equipment": { query: "Petrohue", model_id: 9,
                     model_label: "ROV Petrohue", state_filter: "En reparación", offset: 0 },
@@ -477,10 +479,13 @@ describe("mc_rov inventory navigation", () => {
         const saved = center.exportState();
         await click(inventoryButton);
         await animationFrame();
-        expect(calls.filter((call) => call.method === "action_inventory"))
-            .toEqual([{ model: "mc.rov.work.center", method: "action_inventory", args: [], kwargs: {} }]);
-        expect(actions).toEqual([native]);
-        expect(center.exportState()).toEqual(saved);
+        expect(calls.filter((call) => call.method === "action_inventory_destination"))
+            .toEqual([{ model: "mc.rov.work.center", method: "action_inventory_destination", args: ["stock"], kwargs: undefined }]);
+        expect(center.state.inventoryAction).toEqual(native);
+        expect(actions).toHaveLength(0);
+        await click('[data-topic="equipment"]');
+        await animationFrame();
+        expect(center.exportState().filters).toEqual(saved.filters);
         expect(document.querySelector('[data-topic="equipment"]').classList.contains("is_selected")).toBe(true);
     });
 
@@ -491,7 +496,7 @@ describe("mc_rov inventory navigation", () => {
         const saved = center.exportState();
         await click(inventoryButton);
         await animationFrame();
-        expect(calls.filter((call) => call.method === "action_inventory")).toHaveLength(0);
+        expect(calls.filter((call) => call.method === "action_inventory_destination")).toHaveLength(0);
         expect(actions).toHaveLength(0);
         expect(center.exportState()).toEqual(saved);
     });
@@ -503,18 +508,20 @@ describe("mc_rov inventory navigation", () => {
         await click(inventoryButton);
         await animationFrame();
         expect(actions).toHaveLength(0);
-        expect(center.exportState()).toEqual(saved);
+        expect(center.exportState().filters).toEqual(saved.filters);
         expect(document.querySelector('[role="alert"]').textContent.includes("No se pudo abrir el destino")).toBe(true);
         expect(center.state.acting).toBe(false);
     });
 
     test("fallo al cargar vista nativa permite reintentar sin cambiar filtros", async () => {
-        const { center } = await setupInventory({ failAction: true });
+        const { center } = await setupInventory();
         if (!hasInventory()) return;
         const saved = center.exportState();
         await click(inventoryButton);
         await animationFrame();
-        expect(center.exportState()).toEqual(saved);
+        center.inventoryFailed();
+        await animationFrame();
+        expect(center.exportState().filters).toEqual(saved.filters);
         expect(document.querySelector('[role="alert"]').textContent.includes("No se pudo abrir el destino")).toBe(true);
         expect(center.state.acting).toBe(false);
     });
@@ -524,8 +531,8 @@ describe("mc_rov inventory navigation", () => {
         if (!hasInventory()) return;
         await Promise.all([center.selectTopic("inventory"), center.selectTopic("inventory")]);
         await animationFrame();
-        expect(calls.filter((call) => call.method === "action_inventory")).toHaveLength(1);
-        expect(actions).toHaveLength(1);
+        expect(calls.filter((call) => call.method === "action_inventory_destination")).toHaveLength(1);
+        expect(actions).toHaveLength(0);
     });
 
     test("menu usa dos cuatro u ocho columnas segun su contenedor", async () => {
@@ -543,5 +550,316 @@ describe("mc_rov inventory navigation", () => {
             expect(boxes.every((box) => Math.abs(box.width - boxes[0].width) < 1)).toBe(true);
             expect(nav.scrollWidth <= nav.clientWidth + 1).toBe(true);
         }
+    });
+});
+
+describe("mc_rov inventory workspace", () => {
+    defineModels(mailModels);
+    const entries = () => [
+        ["stock", "stock", "Existencias"], ["products", "products", "Productos"],
+        ["variants", "products", "Variantes"], ["lots", "lots", "Series y lotes"],
+        ["receipts", "operations", "Recepciones"], ["deliveries", "operations", "Entregas"],
+        ["internal", "operations", "Traslados internos"], ["counts", "operations", "Conteos y ajustes"],
+        ["replenishment", "replenishment", "Reabastecimiento"],
+    ].map(([key, section, label]) => ({ key, section, label, available: true, can_create: false }));
+    const models = { stock: "stock.quant", products: "product.template", variants: "product.product",
+        lots: "stock.lot", receipts: "stock.picking", deliveries: "stock.picking",
+        internal: "stock.picking", counts: "stock.quant", replenishment: "stock.warehouse.orderpoint" };
+    const native = (key) => ({ type: "ir.actions.act_window", res_model: models[key],
+        views: [[false, "list"], [false, "kanban"]], domain: [["company_id", "in", [1, false]]],
+        context: { allowed_company_ids: [1], search_default_goods: 1, default_is_storable: true } });
+
+    class InventoryProbe extends Component {
+        static props = ["*"];
+        static template = xml`<div data-inventory-model="" t-att-data-model="props.action.res_model"
+            t-att-data-saved="saved" t-att-data-view="props.viewType"/>`;
+        get saved() { return JSON.stringify(this.props.saved || {}); }
+    }
+
+    async function setupWorkspace(options = {}) {
+        const calls = [], actions = [], selectedMenus = [];
+        const controls = { failCapabilities: false, failDestination: false, ...options };
+        mockService("orm", {
+            async call(model, method, args = [], kwargs = {}) {
+                calls.push({ model, method, args, kwargs });
+                if (method === "get_overview") return [...overview(),
+                    { topic: "inventory", kind: "stock", available: true }];
+                if (method === "get_inventory_destinations") {
+                    if (controls.failCapabilities) throw new Error("Sin conexión");
+                    return controls.entries || entries();
+                }
+                if (method === "action_inventory_destination") {
+                    if (controls.failDestination) throw new Error("Permiso retirado");
+                    return controls.destination ? controls.destination(args[0]) : native(args[0]);
+                }
+                if (method === "get_inventory_application") return controls.application ? controls.application() : { menu_id: 129 };
+                if (method === "action_inventory") return native("stock");
+                return result(41);
+            },
+        });
+        mockService("action", { async doAction(action) { actions.push(action); } });
+        const app = { id: 129, appID: 129, actionID: 900, name: "Inventario" };
+        mockService("menu", { getApps: () => [app], getMenu: (id) => id === 129 ? app : null,
+            async selectMenu(menu) { selectedMenus.push(typeof menu === "number" ? menu : menu.id); } });
+        const Center = requireCenter();
+        class CenterProbe extends Center {}
+        class RegisteredInventoryProbe extends InventoryProbe {
+            setup() { controls.viewProps = this.props; }
+        }
+        CenterProbe.components = { ...Center.components, AssignedWorkView: RegisteredInventoryProbe };
+        const center = await mountCenter(CenterProbe, { state: { workCenter: {
+            topic: "equipment", kind: "equipment", filters: {
+                "equipment:equipment": { query: "Repuesto", state_filter: "all", offset: 0 },
+            }, ...options.saved,
+        }, ...options.localState } });
+        return { center, calls, actions, selectedMenus, controls };
+    }
+
+    async function openWorkspace() {
+        await click('[data-topic="inventory"]');
+        await animationFrame();
+        const present = Boolean(document.querySelector('[data-inventory-workspace]'));
+        expect(present).toBe(true, { message: "Falta el espacio operativo de Inventario" });
+        return present;
+    }
+    async function section(key) {
+        await click(`[data-inventory-section="${key}"]`);
+        await animationFrame();
+    }
+    async function destination(key) {
+        await click(`[data-inventory-destination="${key}"]`);
+        await animationFrame();
+    }
+
+    test("Inventario abre cinco secciones dentro del Centro", async () => {
+        const { actions } = await setupWorkspace();
+        if (!await openWorkspace()) return;
+        expect([...document.querySelectorAll('[data-inventory-section]')].map((el) => el.textContent.trim()))
+            .toEqual(["Existencias", "Productos", "Series y lotes", "Operaciones", "Reabastecimiento"]);
+        expect('[data-topic="inventory"].is_selected').toHaveCount(1);
+        expect(actions).toHaveLength(0);
+    });
+    test("Productos ofrece productos y variantes sin limitar a ROV", async () => {
+        await setupWorkspace();
+        if (!await openWorkspace()) return;
+        await section("products");
+        expect('[data-inventory-destination="products"]').toHaveCount(1);
+        expect('[data-inventory-destination="variants"]').toHaveCount(1);
+        expect('[data-inventory-model]').toHaveAttribute("data-model", "product.template");
+    });
+    test("Operaciones abre cuatro destinos nativos separados", async () => {
+        const { calls } = await setupWorkspace();
+        if (!await openWorkspace()) return;
+        await section("operations");
+        for (const key of ["receipts", "deliveries", "internal", "counts"]) {
+            await destination(key);
+            expect('[data-inventory-model]').toHaveAttribute("data-model", models[key]);
+            expect(calls.filter((call) => call.method === "action_inventory_destination").at(-1).args).toEqual([key]);
+        }
+    });
+    test("destinos no permitidos no se pueden abrir", async () => {
+        const { calls } = await setupWorkspace({ entries: entries().map((entry) =>
+            ({ ...entry, available: entry.key !== "variants" && entry.key !== "replenishment" })) });
+        if (!await openWorkspace()) return;
+        await section("products");
+        const button = document.querySelector('[data-inventory-destination="variants"]');
+        expect(!button || button.disabled).toBe(true);
+        expect(calls.some((call) => call.method === "action_inventory_destination" && call.args[0] === "variants")).toBe(false);
+        const replenish = document.querySelector('[data-inventory-section="replenishment"]');
+        expect(!replenish || replenish.disabled).toBe(true);
+    });
+    test("vista nativa recibe defaults dominio y vistas sin inventar permisos", async () => {
+        const { center, actions } = await setupWorkspace();
+        if (!await openWorkspace()) return;
+        await section("products");
+        expect(center.state.inventoryAction).toEqual(native("products"));
+        expect(actions).toHaveLength(0);
+    });
+    test("edicion pendiente bloquea cambiar de area", async () => {
+        const { center } = await setupWorkspace();
+        if (!await openWorkspace()) return;
+        center.nativeView = { canLeave: async () => false };
+        await click('[data-topic="repair"]');
+        expect('[data-inventory-workspace]').toHaveCount(1);
+    });
+    test("edicion pendiente bloquea cambiar de destino", async () => {
+        const { center, calls } = await setupWorkspace();
+        if (!await openWorkspace()) return;
+        center.nativeView = { canLeave: async () => false };
+        const before = calls.length;
+        await section("products");
+        expect(calls.slice(before).some((call) => call.method === "action_inventory_destination")).toBe(false);
+        expect('[data-inventory-model]').toHaveAttribute("data-model", "stock.quant");
+    });
+    test("cada destino conserva su busqueda nativa al volver", async () => {
+        const { center } = await setupWorkspace();
+        if (!await openWorkspace()) return;
+        const saved = { globalState: { searchModel: { searchItems: { qa: "Filtro guardado" } } } };
+        center.nativeView = { canLeave: async () => true, snapshot: () => saved };
+        await section("products");
+        center.nativeView = null;
+        await section("stock");
+        expect(JSON.parse(document.querySelector('[data-inventory-model]').dataset.saved)).toEqual(saved);
+    });
+    test("Inventario completo selecciona aplicacion y menus autorizados", async () => {
+        const { selectedMenus, actions } = await setupWorkspace();
+        if (!await openWorkspace()) return;
+        await click('[data-inventory-full]');
+        await animationFrame();
+        expect(selectedMenus).toEqual([129]);
+        expect(actions).toHaveLength(0);
+    });
+    test("edicion pendiente bloquea abrir aplicacion completa", async () => {
+        const { center, selectedMenus } = await setupWorkspace();
+        if (!await openWorkspace()) return;
+        center.nativeView = { canLeave: async () => false };
+        await click('[data-inventory-full]');
+        expect(selectedMenus).toHaveLength(0);
+    });
+    test("error de capacidades permite reintentar", async () => {
+        const { controls } = await setupWorkspace({ failCapabilities: true });
+        if (!await openWorkspace()) return;
+        expect('[data-inventory-retry]').toHaveCount(1);
+        controls.failCapabilities = false;
+        await click('[data-inventory-retry]');
+        await animationFrame();
+        expect('[data-inventory-model]').toHaveAttribute("data-model", "stock.quant");
+    });
+    test("permiso retirado muestra error y permite reintentar destino", async () => {
+        const { controls } = await setupWorkspace();
+        if (!await openWorkspace()) return;
+        controls.failDestination = true;
+        await section("lots");
+        expect('[data-inventory-retry]').toHaveCount(1);
+        expect('[data-inventory-model]').toHaveCount(0);
+        controls.failDestination = false;
+        await click('[data-inventory-retry]');
+        await animationFrame();
+        expect('[data-inventory-model]').toHaveAttribute("data-model", "stock.lot");
+    });
+    test("respuesta tardia no reemplaza el destino seleccionado despues", async () => {
+        let release;
+        const { controls } = await setupWorkspace();
+        if (!await openWorkspace()) return;
+        controls.destination = (key) => key === "products"
+            ? new Promise((resolve) => { release = () => resolve(native(key)); }) : native(key);
+        await section("products");
+        await section("lots");
+        release();
+        await animationFrame();
+        expect('[data-inventory-model]').toHaveAttribute("data-model", "stock.lot");
+    });
+    test("doble seleccion en carga solicita un solo destino", async () => {
+        let release;
+        const { controls, calls } = await setupWorkspace();
+        if (!await openWorkspace()) return;
+        controls.destination = (key) => new Promise((resolve) => { release = () => resolve(native(key)); });
+        await section("products");
+        await section("products");
+        expect(calls.filter((call) => call.method === "action_inventory_destination" && call.args[0] === "products")).toHaveLength(1);
+        release();
+        await animationFrame();
+    });
+    test("retorno restaura destino guardado y revalida capacidades", async () => {
+        const { calls } = await setupWorkspace({ saved: { inventory: { section: "products", destination: "variants", viewType: "list" } } });
+        if (!await openWorkspace()) return;
+        expect('[data-inventory-model]').toHaveAttribute("data-model", "product.product");
+        expect(calls.some((call) => call.method === "get_inventory_destinations")).toBe(true);
+    });
+    test("destino guardado sin permiso se sustituye por uno permitido", async () => {
+        await setupWorkspace({ saved: { inventory: { section: "products", destination: "variants" } },
+            entries: entries().map((entry) => ({ ...entry, available: entry.key !== "variants" })) });
+        if (!await openWorkspace()) return;
+        expect('[data-inventory-model]').toHaveAttribute("data-model", "product.template");
+    });
+    test("volver a equipo conserva filtro previo al inventario", async () => {
+        const { center } = await setupWorkspace();
+        const before = center.exportState().filters;
+        if (!await openWorkspace()) return;
+        await click('[data-topic="equipment"]');
+        await animationFrame();
+        expect(center.exportState().filters).toEqual(before);
+        expect('.mc_work_center_search').toHaveValue("Repuesto");
+    });
+    test("selector usa tipos de vista ofrecidos por accion nativa", async () => {
+        await setupWorkspace();
+        if (!await openWorkspace()) return;
+        await click('[data-inventory-view="kanban"]');
+        await animationFrame();
+        expect('[data-inventory-model]').toHaveAttribute("data-view", "kanban");
+        expect('[data-inventory-view="calendar"]').toHaveCount(0);
+    });
+    test("fallo de vista nativa muestra reintento y retira contenido anterior", async () => {
+        const { controls } = await setupWorkspace();
+        if (!await openWorkspace()) return;
+        controls.viewProps.onError();
+        await animationFrame();
+        expect('[data-inventory-model]').toHaveCount(0);
+        expect('[data-inventory-retry]').toHaveCount(1);
+        await click('[data-inventory-retry]');
+        await animationFrame();
+        expect('[data-inventory-model]').toHaveAttribute("data-model", "stock.quant");
+    });
+    test("cambio de empresa descarta estado nativo de la seleccion anterior", async () => {
+        const { center, controls } = await setupWorkspace();
+        if (!await openWorkspace()) return;
+        const saved = { globalState: { context: { allowed_company_ids: [1] } } };
+        center.nativeView = { canLeave: async () => true, snapshot: () => saved };
+        await section("products");
+        center.nativeView = null;
+        controls.destination = (key) => ({ ...native(key), context: { allowed_company_ids: [2] } });
+        await section("stock");
+        expect(center.state.inventoryAction.context.allowed_company_ids).toEqual([2]);
+        expect(JSON.parse(document.querySelector('[data-inventory-model]').dataset.saved)).toEqual({});
+    });
+    test("actualizar conserva busqueda pero descarta cache local de Inventario", async () => {
+        const { center } = await setupWorkspace();
+        if (!await openWorkspace()) return;
+        const globalState = { searchModel: { query: "Filtro guardado" } };
+        center.nativeView = { canLeave: async () => true,
+            snapshot: () => ({ globalState, state: { cachedRecords: "Datos anteriores" } }) };
+        await center.refresh();
+        await animationFrame();
+        expect(JSON.parse(document.querySelector('[data-inventory-model]').dataset.saved)).toEqual({ globalState });
+    });
+    test("ultima seleccion gana aunque las confirmaciones de salida terminen al reves", async () => {
+        const { center } = await setupWorkspace();
+        if (!await openWorkspace()) return;
+        const guards = [];
+        center.nativeView = { canLeave: () => new Promise((resolve) => guards.push(resolve)), snapshot: () => ({}) };
+        const first = center.changeInventorySection("products");
+        const last = center.changeInventorySection("lots");
+        guards[1](true);
+        await last;
+        guards[0](true);
+        await first;
+        await animationFrame();
+        expect('[data-inventory-model]').toHaveAttribute("data-model", "stock.lot");
+    });
+    test("confirmacion antigua no abre un destino despues de salir de Inventario", async () => {
+        const { center, calls } = await setupWorkspace();
+        if (!await openWorkspace()) return;
+        const guards = [];
+        center.nativeView = { canLeave: () => new Promise((resolve) => guards.push(resolve)), snapshot: () => ({}) };
+        const old = center.changeInventorySection("products");
+        const leave = center.selectTopic("repair");
+        guards[1](true);
+        await leave;
+        guards[0](true);
+        await old;
+        expect(calls.some((call) => call.method === "action_inventory_destination" && call.args[0] === "products")).toBe(false);
+        expect(center.state.workspace).toBe("process");
+    });
+    test("respuesta antigua de aplicacion completa no redirige tras cambiar de area", async () => {
+        const { center, controls, selectedMenus } = await setupWorkspace();
+        if (!await openWorkspace()) return;
+        let release;
+        controls.application = () => new Promise((resolve) => { release = resolve; });
+        const pending = center.openInventoryApplication();
+        await animationFrame();
+        await center.selectTopic("repair");
+        release({ menu_id: 129 });
+        await pending;
+        expect(selectedMenus).toHaveLength(0);
     });
 });

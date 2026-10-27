@@ -50,3 +50,4 @@ from . import mc_rov_quality_activity_run
 from . import quality_activity_automation
 from . import quality_activity_lifecycle
 from . import quality_activity_source
+from . import work_center_inventory

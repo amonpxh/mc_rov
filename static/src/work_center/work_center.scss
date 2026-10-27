@@ -1,4 +1,15 @@
 .mc_work_center {
+    .mc_inventory_heading_actions, .mc_inventory_destinations { display: flex; gap: 8px; flex-wrap: wrap; }
+    .mc_inventory_toolbar {
+        display: flex; align-items: center; justify-content: space-between; gap: 12px;
+        flex-wrap: wrap; padding: 14px 18px;
+    }
+    .mc_inventory_workspace .mc_work_center_tabs { gap: 18px; }
+    // El texto principal conserva contraste en ambos temas; el primario morado no lo hace en oscuro.
+    .mc_inventory_workspace .mc_work_center_tabs button.is_selected {
+        color: $o-main-text-color; border-bottom-color: currentColor;
+    }
+    .mc_inventory_workspace button:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
     height: 100%;
     min-height: 0;
     overflow: auto;
@@ -86,7 +97,7 @@
         button { border: 1px solid $border-color; border-radius: 6px; background: $o-view-background-color; color: $o-main-text-color; padding: 8px 9px;
             min-width: 0; min-height: 48px; overflow-wrap: anywhere;
             white-space: normal; line-height: 1.35; font-size: 13px; }
-        button.is_selected { border-color: $o-brand-primary; background: mix($o-brand-primary, $o-view-background-color, 8%); color: $o-brand-primary; font-weight: 600; }
+        button.is_selected { border-color: $o-brand-primary; background: mix($o-brand-primary, $o-view-background-color, 8%); color: $o-main-text-color; font-weight: 600; }
         button:focus-visible { outline: 2px solid $o-brand-primary; outline-offset: 2px; }
         i { margin-right: 6px; }
     }
