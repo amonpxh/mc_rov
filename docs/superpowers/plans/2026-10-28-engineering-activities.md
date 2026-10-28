@@ -92,16 +92,16 @@ modificar integración/seguridad arriba.
   ```
   Añadir controles nativos de ECO con aprobación pendiente/satisfecha para fijar
   reglas reales de avance y aplicación, sin sustituir métodos por mocks.
-- [ ] Ejecutar RED policy: faltan modelos/contratos nuevos; fixtures nativos y
+- [x] Ejecutar RED policy: faltan modelos/contratos nuevos; fixtures nativos y
   contratos previos pertinentes deben pasar. Corregir primero fixtures si fallan.
-- [ ] Implementar interfaces y restricciones mínimas. Reutilizar validación de
+- [x] Implementar interfaces y restricciones mínimas. Reutilizar validación de
   destinatario/empleado público de Calidad, con contexto SOLO de su empresa;
   `relativedelta(years=lead_years)` sobre fecha local, sin usar365días fijos.
   Preparar menú/vista de política, tipos propios `engineering_prepare/apply` y
   reglas de configuración por empresa; no ACL para ciclo/run.
-- [ ] Ejecutar GREEN policy y verificar ninguna configuración real creada, hashes
+- [x] Ejecutar GREEN policy y verificar ninguna configuración real creada, hashes
   de PDFs/configuración intactos y restauración de pruebas.
-- [ ] Commit explícito de estos archivos: `feat: configurar seguimiento anual de ingeniería`.
+- [x] Commit explícito de estos archivos: `feat: configurar seguimiento anual de ingeniería`.
 
 ### Task 2: Preparación y aplicación por eventos reales
 

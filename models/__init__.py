@@ -51,3 +51,6 @@ from . import quality_activity_automation
 from . import quality_activity_lifecycle
 from . import quality_activity_source
 from . import work_center_inventory
+from . import mc_rov_engineering_activity_policy
+from . import mc_rov_engineering_activity_cycle
+from . import mc_rov_engineering_activity_run
