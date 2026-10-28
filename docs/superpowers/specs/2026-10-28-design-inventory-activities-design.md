@@ -13,14 +13,15 @@ El usuario eligió:
 
 - Ingeniería: **un año calendario total desde la creación del cambio**. No un año
   por etapa; aprobar, cambiar de etapa o reabrir no reinicia ese límite.
-- Operaciones de Inventario: **tres días laborables**.
+- Operaciones de Inventario: **tres días laborables desde la fecha prevista si es
+  futura; en caso contrario, desde la confirmación**.
 - Mantener la configuración de destinatarios reales para la preparación del uso
   real. Esta entrega no crea cuentas ni activa políticas reales.
 - Compras/abastecimiento se diseña después; IA/Telegram se aplaza hasta estabilizar
   la operación y el reemplazo de Defontana queda al final.
 
 Son propuestas del agente, todavía revisables: los disparadores exactos, el alcance
-por tipo de operación, la precedencia de fechas logísticas, los nombres de los
+por tipo de operación, la precedencia de un límite logístico nativo anterior, los nombres de los
 pendientes y las reglas de parciales descritas abajo. No atribuirlas al usuario.
 
 ## Evidencia instalada y límites de la auditoría
@@ -132,26 +133,25 @@ El plazo general es configurable para nuevos casos; modificar una política no
 recalcula casos existentes. Reprogramar un caso exige la acción explícita, motivo
 y permisos de coordinación; su historial conserva límite original y vigente.
 
-### Logística: decisión de anclaje por confirmar
+### Logística: anclaje confirmado por el usuario
 
 Los tres días laborables se calculan con `mc.rov.work.deadline._working_date`,
 calendario explícito por empresa, jornadas/excepciones y zona horaria. Se excluye el
 día del evento, igual que los procesos laborales ya entregados. No modificar esos
 procesos ni sus calendarios.
 
-Falta confirmar **desde cuándo** contar esos tres días si una recepción está
-confirmada hoy pero programada para una fecha futura. Propuesta del agente:
+El usuario confirmó el anclaje: si una operación está confirmada hoy pero
+programada para una fecha futura, los tres días se cuentan desde la fecha prevista.
+La regla queda así:
 
 1. Registrar el seguimiento al confirmar.
 2. Contar desde la mayor entre confirmación y fecha programada inicial, para no
    exigir recibir físicamente material antes de la llegada prevista.
-3. Si existe un `date_deadline` nativo anterior, respetarlo como límite más exigente.
-4. Un cambio posterior de `scheduled_date` no mueve silenciosamente el vencimiento
-   capturado. Se necesita reprogramación explícita con motivo.
+Como decisiones adicionales del agente propuestas para la revisión completa:
 
-Alternativa: contar siempre desde confirmación y considerar esos tres días como
-plazo de gestión, aunque la operación física esté programada después. La elección
-cambia lo que significa el pendiente, y debe quedar resuelta antes del plan.
+- Si existe un `date_deadline` nativo anterior, respetarlo como límite más exigente.
+- Un cambio posterior de `scheduled_date` no mueve silenciosamente el vencimiento
+   capturado. Se necesita reprogramación explícita con motivo.
 
 ## Configuración, responsables y controles
 
