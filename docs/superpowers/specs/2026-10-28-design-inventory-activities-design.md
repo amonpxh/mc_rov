@@ -1,6 +1,7 @@
 # Seguimiento de ingeniería y operaciones de Inventario
 
-Estado: propuesta para revisión; no autoriza implementación ni activación real.
+Estado: diseño completo aprobado por el usuario mediante «GO», 2026-10-28.
+Siguiente paso: revisión del plan de ejecución. No autoriza activación real ni producción.
 Base: producción 19.0.25.4.1, main `d6f5efe`.
 
 ## Propósito y decisiones del usuario
