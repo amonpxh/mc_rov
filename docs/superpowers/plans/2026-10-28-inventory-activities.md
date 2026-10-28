@@ -46,7 +46,7 @@ Usar el mismo protocolo seguro de la entrega de Ingeniería: hashes, respaldo,
 restauración de pruebas, recuperación de GREEN fallido y SSH manual; no reutilizar
 recibos antiguos. Los nombres exactos del payload final definen la cantidad esperada.
 
-### Task1: Política logística y fecha capturada
+### Task 1: Política logística y fecha capturada
 
 **Files:** nuevos policy/cycle/run/vista/data/reglas; integración de imports,
 manifest/ACL; `tests/inventory_activity_common.py`, `tests/test_inventory_activity_policy.py`.
@@ -90,7 +90,7 @@ manifest/ACL; `tests/inventory_activity_common.py`, `tests/test_inventory_activi
   instalar reglas reales ni invocar acciones de reabastecimiento/conteo.
 - [ ] Commit: `feat: configurar seguimiento laboral de operaciones de inventario`.
 
-### Task2: Eventos nativos y operaciones parciales
+### Task 2: Eventos nativos y operaciones parciales
 
 **Files:** crear automation/lifecycle; ampliar common y
 `tests/test_inventory_activity_events.py`; integración de imports.
@@ -123,7 +123,7 @@ manifest/ACL; `tests/inventory_activity_common.py`, `tests/test_inventory_activi
   fechas capturadas consistentes y resultado nativo de métodos conservado.
 - [ ] Commit: `feat: seguir confirmaciones y parciales logísticos reales`.
 
-### Task3: Decisiones manuales y fronteras de origen
+### Task 3: Decisiones manuales y fronteras de origen
 
 **Files:** crear source y `tests/test_inventory_activity_boundaries.py`;
 extender lifecycle para mail.activity, patrón de Ingeniería/Calidad.
@@ -149,7 +149,7 @@ Registrar resultados propios mediante callbacks nativos de feedback/unlink/write
   y parciales. No repetir la suite completa antes del cierre integrado salvo fallo.
 - [ ] Commit: `fix: proteger identidad y decisiones de actividades logísticas`.
 
-### Task4: Inventario en Trabajo asignado
+### Task 4: Inventario en Trabajo asignado
 
 **Files:** modificar `models/mc_rov_work_assignment.py`,
 `tests/test_work_assignment_process.py`, `static/tests/work_center.test.js` y
@@ -171,7 +171,7 @@ sin integración nueva. La clasificación usa origen inmediato y no títulos.
   pruebas temporales con recibo antes de la regresión final.
 - [ ] Commit: `feat: filtrar actividades de inventario en trabajo asignado`.
 
-### Task5: Concurrencia, prueba integrada y entrega
+### Task 5: Concurrencia, prueba integrada y entrega
 
 **Files:** pruebas anteriores, manifest, documentación y herramientas aisladas
 `.tmp/inventory-activity-pilot/`.

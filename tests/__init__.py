@@ -38,3 +38,5 @@ from . import test_quality_activity_review
 from . import test_acceptance_fen_access
 from . import test_work_center_inventory
 from . import test_work_center_inventory_workspace
+from . import engineering_activity_common
+from . import test_engineering_activity_policy

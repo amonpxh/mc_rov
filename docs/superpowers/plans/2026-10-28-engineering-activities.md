@@ -62,7 +62,7 @@ Descubrir nombres exactos mediante AST de los tests finales; no inventar un tota
 Guardar código de retorno, cada nombre ejecutado, errores reales y resultado de
 restauración. El usuario ejecuta SSH únicamente en su terminal.
 
-### Task1: Configuración y aniversario con contratos nativos
+### Task 1: Configuración y aniversario con contratos nativos
 
 **Files:** crear política/ciclo/run/vista/data anteriores y
 `tests/engineering_activity_common.py`, `tests/test_engineering_activity_policy.py`;
@@ -80,7 +80,7 @@ modificar integración/seguridad arriba.
 - Run `mc.rov.engineering.activity.run`: ciclo/evento/etapa, actividad, fechas,
   resultado/motivo; unicidad ciclo/evento/etapa, sin ACL pública.
 
-- [ ] Escribir `TestEngineeringActivityPolicy`: defaults desactivados/1año;
+- [x] Escribir `TestEngineeringActivityPolicy`: defaults desactivados/1año;
   bool/fracción/cero rechazados antes de conversión; unicidad empresa; solo
   coordinador configura; usuario sin acceso al origen no recibe; empresa vacía
   no seguida; historial no legible por usuario normal.
@@ -103,7 +103,7 @@ modificar integración/seguridad arriba.
   de PDFs/configuración intactos y restauración de pruebas.
 - [ ] Commit explícito de estos archivos: `feat: configurar seguimiento anual de ingeniería`.
 
-### Task2: Preparación y aplicación por eventos reales
+### Task 2: Preparación y aplicación por eventos reales
 
 **Files:** crear automation/lifecycle; ampliar common y
 `tests/test_engineering_activity_events.py`; importar en init.
@@ -139,7 +139,7 @@ modificar integración/seguridad arriba.
   aprobación ni renovar el aniversario. Repetir pruebas Task1 solo por integración.
 - [ ] Commit: `feat: seguir preparación y aplicación real de cambios de ingeniería`.
 
-### Task3: Decisiones manuales, privacidad e identidad
+### Task 3: Decisiones manuales, privacidad e identidad
 
 **Files:** crear source y `tests/test_engineering_activity_boundaries.py`;
 extender lifecycle como herencia de mail.activity, patrón de Calidad.
@@ -166,7 +166,7 @@ Callbacks manuales de feedback/unlink/write se integran con los existentes media
 - [ ] GREEN boundaries y revisión focalizada de regresiones de mail.activity.
 - [ ] Commit: `fix: proteger identidad y decisiones del seguimiento de ingeniería`.
 
-### Task4: Validación integrada y entrega de Ingeniería
+### Task 4: Validación integrada y entrega de Ingeniería
 
 **Files:** tests finales anteriores, `__manifest__.py`, `docs/pendientes.md`;
 herramientas `.tmp/engineering-activity-pilot/` sin incorporar secretos/backups.
