@@ -118,7 +118,7 @@ modificar integración/seguridad arriba.
 - Snapshot mínimo: activo, state y aplicabilidad nativa. Run conserva evento
   incluso al cerrar manualmente; reactivar política no aumenta ese contador.
 
-- [ ] Escribir `TestEngineeringActivityEvents`: creación→preparar; iniciar revisión
+- [x] Escribir `TestEngineeringActivityEvents`: creación→preparar; iniciar revisión
   NO cierra preparación; aprobación obligatoria pendiente/rechazada NO crea
   aplicar; aprobación/etapa realmente aplicable completa preparar y crea aplicar;
   aplicación nativa real completa aplicar. Verificar native approval IDs/due dates
@@ -126,18 +126,18 @@ modificar integración/seguridad arriba.
   Añadir retroceso/rechazo→retirar aplicar y volver a preparar conservando límite,
   archivo/desarchivo, política activada después de creación sin backfill y nueva
   transición futura sin seguimiento padre calculada desde `create_date` original.
-- [ ] Ejecutar RED events con fixtures de `action_new_revision`, `approve`, `reject`
+- [x] Ejecutar RED events con fixtures de `action_new_revision`, `approve`, `reject`
   y `action_apply` nativos; registrar nombres y fallos esperados.
-- [ ] Implementar captura/transición mediante herencias de ECO create/write y
+- [x] Implementar captura/transición mediante herencias de ECO create/write y
   métodos nativos necesarios. `_applicable` combina estado/etapa, restricciones
   nativas de aprobación/avance y bloqueo; nunca solo `allow_apply_change`.
   Consolidar llamadas anidadas para observar eventos estables, con identidad y
   bloqueo transaccional del origen; preservar resultados/excepciones nativos.
   Cerrar solo actividades propias. Validar política ANTES de escrituras técnicas
   en orígenes nuevos sin seguimiento; pausa no impide cierre de historial existente.
-- [ ] GREEN events: cada recorrido nativo produce sus tareas exactas, sin duplicar
+- [x] GREEN events: cada recorrido nativo produce sus tareas exactas, sin duplicar
   aprobación ni renovar el aniversario. Repetir pruebas Task1 solo por integración.
-- [ ] Commit: `feat: seguir preparación y aplicación real de cambios de ingeniería`.
+- [x] Commit: `feat: seguir preparación y aplicación real de cambios de ingeniería`.
 
 ### Task 3: Decisiones manuales, privacidad e identidad
 

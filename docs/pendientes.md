@@ -1,3 +1,11 @@
+## Ingeniería: eventos RED confirmado; GREEN163 preparado, 2026-10-28
+
+- RED nativo de eventos confirmado: 32 fallos esperados por automatización ausente, 3 controles nativos y 128 contratos anteriores pasan; 163 nombres exactos y cero errores. Respaldo `/var/tmp/mc-rov-engineering-events-red-SSZeR0`; pruebas restauradas, producto/configuración intactos, STAGING activo.
+- Implementación LOCAL de generación, cierre y reapertura de ECO: un aniversario desde su creación, preparación/aplicación por estados y aprobaciones reales, archivo/retroceso con identidad conservada. Solo cierra actividades propias; aprobaciones nativas intactas. Hooks anidados y feedback se consolidan como un evento.
+- Preparado `.tmp/staging-engineering-activity-events-green.ps1`: 163 contratos, 3 archivos de producto, mismos tests del RED, hashes exactos antes/después y snapshot con ACL completas, stock/calendarios/aprobadores/PDF protegidos. Exige cero políticas/historiales reales antes de instalar. Si falla, restaura código y BD en base nueva y conserva la fallida bloqueada; vuelve a la política ya validada de Task1.
+- Black99/pylint10/diffcheck, sintaxis PS/Bash/Python embebido, hashes/payload y lector de resultados (5 casos sintéticos) aprobados. Esto NO confirma GREEN nativo. Pendiente ejecutar el nuevo comando en terminal y leer su salida/log actuales; no repetir RED ni policy-green.
+- Task2 sigue en curso, sin commit funcional ni publicación/despliegue. Task1 está completo en 1d82538. Task3 (decisiones manuales y fronteras), revisión integral, concurrencia y QA siguen después. Inventario va en el plan posterior. Producción19.0.25.4.1 y destinatarios reales sin cambios.
+
 ## Centro de trabajo: icono Diseño/BoM diferenciado, 2026-10-27
 
 - Corrección visual 19.0.25.4.1: Diseño/BoM usa `fa-sitemap`; Inventario conserva `fa-cubes`. Solo cambia el icono, sin tocar permisos, navegación ni datos.
