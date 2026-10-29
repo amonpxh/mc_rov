@@ -41,3 +41,4 @@ from . import test_work_center_inventory_workspace
 from . import engineering_activity_common
 from . import test_engineering_activity_policy
 from . import test_engineering_activity_events
+from . import test_engineering_activity_boundaries

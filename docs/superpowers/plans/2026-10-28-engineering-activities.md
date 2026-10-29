@@ -149,7 +149,7 @@ extender lifecycle como herencia de mail.activity, patrón de Calidad.
 Callbacks manuales de feedback/unlink/write se integran con los existentes mediante
 `super`, sin cambiar el ciclo de reparación/fabricación/aceptación/Calidad.
 
-- [ ] Escribir `TestEngineeringActivityBoundaries`: actor multiempresa no amplía
+- [x] Escribir `TestEngineeringActivityBoundaries`: actor multiempresa no amplía
   destinatario; usuario/empleado de otra empresa/archivado falla sin exposición;
   portal y equipo restringido denegados. Hecho manual no aprueba/aplica ECO ni
   regenera tarea por edición ordinaria. Cancelación manual conserva motivo;
@@ -157,14 +157,14 @@ Callbacks manuales de feedback/unlink/write se integran con los existentes media
   producto, BoM/tipo de ECO seguidos; impedir borrado con explicación. Permitir
   cambios normales en la revisión y registrar temporales sin efectos persistentes.
   Pausa cierra tareas existentes pero no crea etapas nuevas; reactivar sin backfill.
-- [ ] RED boundaries conserva los recorridos Task2; fallos nuevos deben ser los
+- [x] RED boundaries conserva los recorridos Task2; fallos nuevos deben ser los
   límites de acceso/identidad/manuales que todavía no están implementados.
-- [ ] Implementar interfaces, callbacks propios y auditoría de plazos/reparto.
+- [x] Implementar interfaces, callbacks propios y auditoría de plazos/reparto.
   No identificar por título, creador o cuenta administrador. Respetar `NewId` y
   origen persistente; bloquear identidad semántica, no el contenido editable de
   la nueva versión. Permitir cierre de historial al actor autorizado bajo pausa.
-- [ ] GREEN boundaries y revisión focalizada de regresiones de mail.activity.
-- [ ] Commit: `fix: proteger identidad y decisiones del seguimiento de ingeniería`.
+- [x] GREEN boundaries y revisión focalizada de regresiones de mail.activity.
+- [x] Commit: `fix: proteger identidad y decisiones del seguimiento de ingeniería`.
 
 ### Task 4: Validación integrada y entrega de Ingeniería
 

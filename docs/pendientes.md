@@ -1,3 +1,35 @@
+## Ingeniería: protecciones GREEN198 confirmado, 2026-10-29
+
+- Recibo nativo del intento20261029-091003-629 verificado: **198/198 nombres exactos, cero fallos y errores**, código instalado idéntico a los tres archivos locales preparados. Configuraciones/stock/calendarios/aprobaciones/PDF intactos, cero configuración/historial real creado, pruebas restauradas y STAGING activo.
+- Respaldo `/var/tmp/mc-rov-engineering-boundaries-green-Bx1vk2`. Task3 funcional validado; decisiones manuales conservan resultado/autor/plazo sin aprobar ECO; referencias e historial privados protegidos. Falta validación integrada, concurrencia, revisión independiente y QA; no declarar Ingeniería lista para producción todavía.
+- Task4 comienza con suite completa exacta y carreras aisladas. Sin cambios productivos ni destinatarios/calendarios/cron reales.
+
+## Ingeniería: RED198 confirmado; protecciones GREEN198 preparadas, 2026-10-29
+
+- Recibo RED v2 del intento `20261028-131846-337` releído: **19 fallos nuevos esperados, 179 pasan, 198 nombres exactos y cero errores**. Pruebas restauradas, producto/configuración intactos, STAGING activo. Respaldo `/var/tmp/mc-rov-engineering-boundaries-red-b52Xgm`. El error de exportación del v1 quedó resuelto sin cambiar producto ni debilitar contratos.
+- Implementación LOCAL de Task3: servicio privado `_runs` exige acceso al ECO antes de leer historial; protege empresa/producto/BoM/tipo; permite editar la revisión nueva. Historial de ciclo/run no se borra por ORM y el borrado del ECO explica cómo conservarlo. Decisiones de actividad hechas/canceladas/archivadas registran actor, fecha, motivo y plazo sin aprobar/aplicar ECO. Reprogramación mantiene fecha original y conserva la actual para la siguiente etapa aunque la actividad se retire. Protege origen/tipo de actividad; ignora NewId sin tocar el origen persistente.
+- Preparado `.tmp/staging-engineering-activity-boundaries-green.ps1`, marcador **source-privacy-manual-history-green-v1**. Instala tres archivos: models init, lifecycle y source; **mismos 198 contratos del RED**. Exige base/políticas/historial reales sin cambios; conserva aprobaciones nativas, stock/calendarios/PDF y permisos. No configura cuentas ni activa automatismos reales, no toca producción.
+- Recuperación si falla: archivos originales y BD restaurada en base nueva, comparación exacta del snapshot y failedDB bloqueada conservada. Verifica volver a los servicios de eventos de Task2 sin el servicio source de Task3. En éxito restaura solo pruebas y conserva producto.
+- Black99/pylint10/diffcheck, PS/Bash/Python embebido, hashes/payload/198 nombres y lector de resultados (5 casos sintéticos) aprobados localmente. **GREEN198 nativo NO ejecutado**; Task3 no está completo ni se ha hecho commit funcional. Ejecutar el nuevo comando por SSH manual y revisar su log actual antes de avanzar a integración/concurrencia/revisión/QA.
+- Producción19.0.25.4.1 y destinatarios reales intactos. Ingeniería sigue antes de Inventario según planes aprobados.
+
+## Ingeniería: RED198 detenido por fixture de exportación; v2 listo, 2026-10-28
+
+- Intento nativo `20261028-131156-618`: **19 fallos nuevos esperados y 1 error de prueba entre 198 casos exactos**. Los 163 contratos anteriores pasan y no hay casos omitidos/duplicados. RED no confirmado; no implementar Task3 aún.
+- Error único: la prueba de exportación esperaba AccessError del modelo privado, pero la cuenta QA no tenía `base.group_allow_export`; Odoo lanzó UserError antes de llegar a esa ACL. Corregida la preparación de esa cuenta solo dentro de su prueba transaccional. Se conservan las dos comprobaciones de AccessError, sin abrir permisos reales ni tocar producto.
+- Fuentes/configuración/stock/PDF intactos, pruebas restauradas, STAGING activo. Respaldo `/var/tmp/mc-rov-engineering-boundaries-red-yciika`. Evidencia y paquete v1 conservados en `.tmp/engineering-activity-pilot/`; diagnóstico actual en `boundaries-red-v1-diagnose.json`.
+- Repreparado `.tmp/staging-engineering-activity-boundaries-red.ps1`, marcador **export-enabled-account-red-v2**. Mismos 35 nuevos + 163 previos = 198. Diferencia de payload comprobada: solo dos líneas en la prueba de exportación; baseline de producto y todas las demás pruebas iguales. Lint10/Black99/PS/Bash/Python embebido y hashes aprobados.
+- Pendiente repetir ese RED y revisar el log del nuevo intento. V2 no ejecutado. Task2 sigue cerrado en bc45036/GREEN163; Task3 no tiene implementación funcional nueva. Producción y automatismos reales intactos.
+
+## Ingeniería: eventos GREEN163 cerrado; fronteras RED198 preparado, 2026-10-28
+
+- GREEN nativo de generación/cierre/reapertura confirmado y releído: **163/163 exactos**, cero fallos/errores. Configuraciones/stock/calendarios/aprobaciones/PDF intactos, menú y fuentes verificadas, cero políticas/historiales reales nuevos, pruebas restauradas y STAGING activo. Respaldo `/var/tmp/mc-rov-engineering-events-green-b1A6oV`.
+- Task2 guardado en `bc45036` y marcado completo con recibo nativo. Única diferencia local respecto del archivo instalado: pragma de lint compatible con entornos sin plugin; AST idéntico comprobado contra payload original con hash verificado. Sin cambios funcionales después del GREEN.
+- Task3: 35 pruebas nuevas de decisiones manuales, reprogramación/reparto, protección de producto/BoM/tipo/empresa, historial privado, destinatarios y registros temporales. Conserva los 163 anteriores: **198 total**. No se ha implementado source ni callbacks manuales de Ingeniería todavía.
+- Preparado `.tmp/staging-engineering-activity-boundaries-red.ps1`: solo pruebas temporales, respaldo de BD, producto y snapshot exactos, restauración de pruebas y reinicio STAGING. Deben fallar al menos 12 contratos nuevos concretos; nueve controles nuevos y todos los anteriores deben pasar. Cero errores y ningún caso omitido o duplicado. Se informa cada fallo real nuevo; otros contratos pueden estar cubiertos ya por controles compartidos.
+- Black99/pylint10/PS/Bash/Python embebido y lector con 5 casos sintéticos comprobados localmente. **RED198 NO ejecutado todavía**; esperar la salida y su log actuales antes de implementar Task3. No repetir events-green ni policy-green.
+- Ingeniería todavía no está lista para producción: faltan Task3, regresión/concurrencia/revisión independiente y QA. Producción19.0.25.4.1, cuentas/calendarios/destinatarios/cron reales intactos. Inventario sigue después según el plan aprobado.
+
 ## Ingeniería: eventos RED confirmado; GREEN163 preparado, 2026-10-28
 
 - RED nativo de eventos confirmado: 32 fallos esperados por automatización ausente, 3 controles nativos y 128 contratos anteriores pasan; 163 nombres exactos y cero errores. Respaldo `/var/tmp/mc-rov-engineering-events-red-SSZeR0`; pruebas restauradas, producto/configuración intactos, STAGING activo.

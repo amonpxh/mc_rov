@@ -1,5 +1,7 @@
+from markupsafe import Markup
+
 from odoo import _, api, fields, models
-from odoo.exceptions import ValidationError
+from odoo.exceptions import AccessError, ValidationError
 from odoo.tools import SQL
 
 from .engineering_activity_automation import _ENGINEERING_INTERNAL
@@ -198,7 +200,14 @@ class EngineeringEcoEvents(models.Model):
 
     # El helper invoca super con el contexto del evento para consolidar escrituras anidadas.
     def write(self, values):  # pylint: disable=unknown-option-value,method-required-super
-        return self._engineering_event_call("write", values)
+        with self.env.cr.savepoint():
+            self.env["mc.rov.engineering.activity.automation"]._check_source_changes(self, values)
+            return self._engineering_event_call("write", values)
+
+    def unlink(self):
+        self.check_access("unlink")
+        self.env["mc.rov.engineering.activity.automation"]._check_source_deletion(self)
+        return super().unlink()
 
     def action_new_revision(self):
         return self._engineering_event_call("action_new_revision")
@@ -251,4 +260,118 @@ class EngineeringApprovalEvents(models.Model):
             before = lifecycle._capture(ecos)
             result = super().unlink()
             lifecycle._sync(ecos, before, fields.Datetime.now())
+            return result
+
+
+class EngineeringMailActivityLifecycle(models.Model):
+    """Registra decisiones sobre tareas propias sin aprobar ni aplicar el ECO."""
+
+    _inherit = "mail.activity"
+
+    def _mc_engineering_runs(self):
+        ids = [
+            row.id
+            for row in self
+            if isinstance(row.id, int) and not isinstance(row.id, bool) and row.id > 0
+        ]
+        runs = (
+            self.env["mc.rov.engineering.activity.run"].sudo().search([("activity_id", "in", ids)])
+        )
+        if not runs:
+            return runs
+        self.check_access("write")
+        self.env["mc.rov.engineering.activity.lifecycle"]._capture(
+            self.env["mrp.eco"].browse(runs.eco_id.ids), access="read"
+        )
+        runs.invalidate_recordset(["outcome", "activity_id"])
+        self.invalidate_recordset(
+            ["res_model", "res_model_id", "res_id", "activity_type_id", "active", "date_deadline"]
+        )
+        for run in runs:
+            activity = run.activity_id
+            if (
+                activity.res_model != "mrp.eco"
+                or activity.res_id != run.eco_id.id
+                or activity.activity_type_id
+                != self.env.ref("mc_rov.activity_type_engineering_" + run.stage)
+            ):
+                raise AccessError(_("La actividad ya no corresponde a su cambio de ingeniería."))
+        return runs
+
+    def _mc_engineering_manual_outcome(self, runs, outcome, reason):
+        # Guardar primero impide que unlink/archivo anidados sobrescriban la decisión.
+        for run in runs.filtered(lambda row: row.outcome == "pending"):
+            deadline = (
+                run.activity_id.date_deadline or run.current_deadline or run.original_deadline
+            )
+            run.write(
+                {
+                    "outcome": outcome,
+                    "current_deadline": deadline,
+                    "finished_at": fields.Datetime.now(),
+                    "finished_by_id": self.env.uid,
+                    "finish_reason": reason,
+                }
+            )
+            run.cycle_id.write({"current_deadline": deadline})
+            if outcome == "cancelled":
+                run.eco_id.with_user(self.env.uid).message_post(body=Markup("<p>%s</p>") % reason)
+
+    def _action_done(self, feedback=False, attachment_ids=None):
+        with self.env.cr.savepoint():
+            self._mc_engineering_manual_outcome(
+                self._mc_engineering_runs(),
+                "manual_done",
+                feedback or _("Actividad marcada como hecha manualmente."),
+            )
+            return super()._action_done(feedback=feedback, attachment_ids=attachment_ids)
+
+    def unlink(self):
+        with self.env.cr.savepoint():
+            runs = self._mc_engineering_runs()
+            self._mc_engineering_manual_outcome(
+                runs, "cancelled", _("Actividad cancelada manualmente.")
+            )
+            result = super().unlink()
+            runs.invalidate_recordset(["activity_id"])
+            return result
+
+    def write(self, values):
+        relevant = {
+            "res_model",
+            "res_model_id",
+            "res_id",
+            "activity_type_id",
+            "date_deadline",
+            "active",
+        }.intersection(values)
+        if not relevant:
+            return super().write(values)
+        with self.env.cr.savepoint():
+            runs = self._mc_engineering_runs()
+            for run in runs:
+                activity = run.activity_id
+                model = values.get("res_model", activity.res_model)
+                if "res_model_id" in values:
+                    model = self.env["ir.model"].browse(values["res_model_id"]).model
+                if (
+                    model != "mrp.eco"
+                    or values.get("res_id", activity.res_id) != run.eco_id.id
+                    or values.get("activity_type_id", activity.activity_type_id.id)
+                    != activity.activity_type_id.id
+                ):
+                    raise ValidationError(
+                        _("Una actividad seguida no puede cambiar de origen ni tipo.")
+                    )
+            if values.get("active") is False:
+                self._mc_engineering_manual_outcome(
+                    runs, "cancelled", _("Actividad archivada manualmente.")
+                )
+            result = super().write(values)
+            if "date_deadline" in values:
+                for run in runs.filtered(lambda row: row.outcome == "pending"):
+                    deadline = run.activity_id.date_deadline
+                    if deadline:
+                        run.write({"current_deadline": deadline})
+                        run.cycle_id.write({"current_deadline": deadline})
             return result
