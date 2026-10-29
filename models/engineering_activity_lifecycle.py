@@ -100,7 +100,8 @@ class EngineeringActivityLifecycle(models.AbstractModel):
         run.cycle_id.write({"current_deadline": deadline})
         if activity and activity.active:
             activity.with_user(self.env.uid).action_feedback(feedback=reason)
-        run.write({"activity_id": False})
+        # Odoo conserva actividades archivadas: mantener su vínculo histórico.
+        # Si la elimina, ondelete='set null' limpia la relación automáticamente.
 
     def _close_pending(self, cycle, snapshot, occurred_at):
         pending = (

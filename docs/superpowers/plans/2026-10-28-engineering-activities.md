@@ -174,10 +174,10 @@ herramientas `.tmp/engineering-activity-pilot/` sin incorporar secretos/backups.
 **Interfaces:** UI utiliza filtro Diseño existente; no nueva navegación frontend.
 Versión prevista19.0.25.5.0; revalidar main antes de fijarla si hubo otra entrega.
 
-- [ ] Preparar carreras aisladas de creación, aprobación/entrada aplicable,
+- [x] Preparar carreras aisladas de creación, aprobación/entrada aplicable,
   aplicación y archivo/desarchivo. Dos transacciones, reintentos nativos, una
   identidad por evento y cero actividades huérfanas; probar límites del año.
-- [ ] Ejecutar regresión exacta completa UNA VEZ tras cambios integrados y guardar
+- [x] Ejecutar regresión exacta completa UNA VEZ tras cambios integrados y guardar
   todos los nombres; incorporar cualquier fallo nuevo antes de declarar GREEN.
 - [ ] QA con cuentas/empresa/calendario temporales registrados, aprobaciones
   nativas configuradas SOLO para el escenario y fases del ECO. Retirar datos QA
@@ -194,4 +194,4 @@ manuales/pausa/permisos/identidad en Task3; concurrencia/QA/entrega en Task4.
 Las cinco clases de Review Focus tienen contratos en esas tareas. Interfaces
 consistentes; no dependencia de logística. Las aprobaciones nativas quedan fuera
 del año de nuestras tareas en cuanto a reprogramación automática, según el diseño.
-Los fixtures, callbacks y scripts aún NO están escritos ni ejecutados.
+La implementación y cada verificación se registran en docs/pendientes.md y en el ledger del plan.
