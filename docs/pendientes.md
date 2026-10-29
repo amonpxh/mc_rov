@@ -1,3 +1,10 @@
+## Ingeniería: validación cerrada; entrega19.0.25.5.0 preparada en rama — 2026-10-29
+
+- Implementación y tres hallazgos de revisión corregidos (commit `67622aa`): **979/979** nativos, seis carreras simultáneas y QA práctico de Supervisor/Taller aprobados. Evidencia en [validación de Ingeniería](qa/2026-10-29-engineering-activities.md); logs completos en `.tmp/engineering-activity-pilot/`.
+- Copia QA1PdSGX cerrada: servidor detenido, historial respaldado y conexiones bloqueadas. STAGING activo; producción sigue **19.0.25.4.1**, sin Ingeniería ni activación de cuentas reales.
+- Versión local **19.0.25.5.0**. `origin/main` consultado, permanece en `d6f5efe`; el cambio de versión es solo metadato. Rama `feature/design-inventory-activities`, entrega funcional solo Ingeniería. Automatismos de Inventario siguen en plan separado.
+- Pendientes: decisión de integración, publicación/PR/CI, merge autorizado y despliegue con respaldo. Cuentas, roles y zona horaria reales se configuran después. Plan Task4 permanece abierto hasta cerrar las puertas de entrega.
+
 ## Ingeniería: suite974 y seis carreras nativas aprobadas, 2026-10-29
 
 - Evidencia automatizada actual revalidada: **974/974 exactos**, cero fallos/errores; seis carreras de concurrencia completas con dos PIDs por caso, cero huérfanas incluidas actividades inactivas, aniversario conservado y actividades nativas de aprobación intactas. Prueba de permiso nativo sin/con escritura de producto aprobada dentro de la copia.

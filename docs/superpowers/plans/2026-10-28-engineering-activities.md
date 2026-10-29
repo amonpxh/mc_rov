@@ -179,10 +179,13 @@ Versión prevista19.0.25.5.0; revalidar main antes de fijarla si hubo otra entre
   identidad por evento y cero actividades huérfanas; probar límites del año.
 - [x] Ejecutar regresión exacta completa UNA VEZ tras cambios integrados y guardar
   todos los nombres; incorporar cualquier fallo nuevo antes de declarar GREEN.
-- [ ] QA con cuentas/empresa/calendario temporales registrados, aprobaciones
+- [x] QA con cuentas/empresa/calendario temporales registrados, aprobaciones
   nativas configuradas SOLO para el escenario y fases del ECO. Retirar datos QA
   con propiedad comprobada y preservar historial; verificar políticas ajenas.
-- [ ] Revisión independiente de rama, hooks/lint/versionado; PR y CI, merge tras
+- [x] Revisión independiente de rama y correcciones verificadas; hooks y versión
+  19.0.25.5.0 preparados. QA ejecutado en copia aislada por los efectos nativos de
+  crear empresas; copia cerrada y bloqueada, historial conservado.
+- [ ] PR y CI, merge tras
   autorización, main validado, paquete productivo revisado con respaldo/recuperación.
   Pedir autorización solo sobre una entrega concreta; no activar cuentas reales.
 - [ ] Commit de cierre y evidencia precisa. No repetir suites sin cambios nuevos.
