@@ -131,6 +131,10 @@ class EngineeringActivityPolicy(models.Model):
             target = target.browse(eco.id) if eco else target
             if not target.has_access("read") or not target.has_access("write"):
                 return _("La cuenta no puede consultar y gestionar el cambio de ingeniería.")
+            if eco and (
+                not target.product_tmpl_id or not target.product_tmpl_id.has_access("read")
+            ):
+                return _("La cuenta no tiene acceso al producto del cambio de ingeniería.")
             if employee:
                 public = (
                     self.env["hr.employee.public"]

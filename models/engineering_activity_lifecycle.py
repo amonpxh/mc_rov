@@ -1,10 +1,11 @@
 from markupsafe import Markup
 
 from odoo import _, api, fields, models
-from odoo.exceptions import AccessError, ValidationError
+from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tools import SQL
 
 from .engineering_activity_automation import _ENGINEERING_INTERNAL
+from .mc_rov_activity_assignment_wizard import _WORK_ACTIVITY_DEADLINE_AUTH
 
 
 def _inside_native_event(env, ids):
@@ -337,6 +338,33 @@ class EngineeringMailActivityLifecycle(models.Model):
             runs.invalidate_recordset(["activity_id"])
             return result
 
+    def _mc_engineering_check_deadline_authorization(self, runs, values):
+        if not runs or "date_deadline" not in values:
+            return
+        try:
+            deadline = fields.Date.to_date(values["date_deadline"])
+        except (TypeError, ValueError) as error:
+            raise ValidationError(_("Indique una fecha límite válida.")) from error
+        changing = runs.filtered(lambda run: run.activity_id.date_deadline != deadline)
+        if not changing:
+            return
+        if not self.env.user.has_group("mc_rov.group_work_assignment_coordinate"):
+            raise AccessError(_("La reprogramación requiere permiso de coordinación."))
+        authorization = self.env.context.get("_mc_activity_deadline_authorization")
+        valid = (
+            isinstance(authorization, tuple)
+            and len(authorization) == 5
+            and authorization[0] is _WORK_ACTIVITY_DEADLINE_AUTH
+            and authorization[1] == self.env.uid
+            and isinstance(authorization[2], tuple)
+            and set(changing.activity_id.ids) <= set(authorization[2])
+            and authorization[3] == deadline
+            and isinstance(authorization[4], str)
+            and bool(authorization[4].strip())
+        )
+        if not valid:
+            raise UserError(_("Use Repartir actividades e indique el motivo para reprogramar."))
+
     def write(self, values):
         relevant = {
             "res_model",
@@ -350,6 +378,8 @@ class EngineeringMailActivityLifecycle(models.Model):
             return super().write(values)
         with self.env.cr.savepoint():
             runs = self._mc_engineering_runs()
+            self._mc_engineering_check_deadline_authorization(runs, values)
+            pending_before = runs.filtered(lambda row: row.outcome == "pending")
             for run in runs:
                 activity = run.activity_id
                 model = values.get("res_model", activity.res_model)
@@ -370,7 +400,9 @@ class EngineeringMailActivityLifecycle(models.Model):
                 )
             result = super().write(values)
             if "date_deadline" in values:
-                for run in runs.filtered(lambda row: row.outcome == "pending"):
+                # El mismo write puede haber archivado la tarea: conservar el conjunto
+                # previo para registrar la fecha final también en ese resultado cerrado.
+                for run in pending_before:
                     deadline = run.activity_id.date_deadline
                     if deadline:
                         run.write({"current_deadline": deadline})

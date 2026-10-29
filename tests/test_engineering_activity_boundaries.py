@@ -108,7 +108,12 @@ class TestEngineeringActivityBoundaries(EngineeringActivityCommon):
     def test_unlink_preserves_current_deadline_and_reason(self):
         _policy, _eco, run = self._visit()
         changed = run.original_deadline - timedelta(days=3)
-        run.activity_id.date_deadline = changed
+        self._wizard(
+            run.activity_id,
+            apply_deadline=True,
+            date_deadline=changed,
+            reason="QA reprogramación antes de retirar la actividad",
+        ).action_apply()
         run.activity_id.unlink()
         self.assertEqual(run.outcome, "cancelled")
         self.assertEqual(run.current_deadline, changed)
@@ -133,7 +138,12 @@ class TestEngineeringActivityBoundaries(EngineeringActivityCommon):
     def test_removed_reprogrammed_activity_keeps_deadline_for_apply(self):
         _policy, eco, run = self._visit()
         changed = run.original_deadline - timedelta(days=3)
-        run.activity_id.date_deadline = changed
+        self._wizard(
+            run.activity_id,
+            apply_deadline=True,
+            date_deadline=changed,
+            reason="QA conservar la reprogramación al cambiar de etapa",
+        ).action_apply()
         run.activity_id.unlink()
         _advance_native(self, eco)
         apply_run = self._runs(eco).filtered(lambda row: row.stage == "apply")
