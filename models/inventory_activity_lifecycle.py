@@ -1,8 +1,11 @@
+from markupsafe import Markup
+
 from odoo import _, api, fields, models
-from odoo.exceptions import ValidationError
+from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tools import SQL
 
 from .inventory_activity_automation import _INVENTORY_INTERNAL, _OPEN_INVENTORY_STATES
+from .mc_rov_activity_assignment_wizard import _WORK_ACTIVITY_DEADLINE_AUTH
 
 
 def _inside_inventory_event(env, ids):
@@ -186,7 +189,14 @@ class InventoryPickingEvents(models.Model):
 
     # El helper invoca super con el contexto consolidado del evento nativo.
     def write(self, values):  # pylint: disable=unknown-option-value,method-required-super
-        return self._inventory_event_call("write", values)
+        with self.env.cr.savepoint():
+            self.env["mc.rov.inventory.activity.automation"]._check_source_changes(self, values)
+            return self._inventory_event_call("write", values)
+
+    def unlink(self):
+        self.check_access("unlink")
+        self.env["mc.rov.inventory.activity.automation"]._check_source_deletion(self)
+        return super().unlink()
 
     def action_confirm(self):
         return self._inventory_event_call("action_confirm")
@@ -285,3 +295,200 @@ class InventoryMoveEvents(models.Model):
 
     def _action_cancel(self):
         return self._inventory_move_event_call("_action_cancel")
+
+
+class InventoryMailActivityLifecycle(models.Model):
+    """Registra decisiones sobre tareas propias sin validar ni cancelar el movimiento de stock."""
+
+    _inherit = "mail.activity"
+
+    def _mc_inventory_runs(self):
+        ids = [
+            row.id
+            for row in self
+            if isinstance(row.id, int) and not isinstance(row.id, bool) and row.id > 0
+        ]
+        empty = self.env["mc.rov.inventory.activity.run"].sudo().browse()
+        if not ids:
+            return empty
+        own_types = set()
+        for suffix in ("receipt", "delivery", "transfer"):
+            kind = self.env.ref(
+                "mc_rov.activity_type_inventory_" + suffix, raise_if_not_found=False
+            )
+            if kind:
+                own_types.add(kind.id)
+        activities = (
+            self.browse(ids)
+            .with_user(self.env.uid)
+            .filtered(
+                lambda activity: activity.res_model == "stock.picking"
+                and activity.activity_type_id.id in own_types
+            )
+        )
+        if not activities:
+            return empty
+        activities.check_access("write")
+        pickings = self.env["stock.picking"].browse(activities.mapped("res_id"))
+        # El servicio exige permisos y empresa antes de la consulta privada con sudo.
+        runs = self.env["mc.rov.inventory.activity.automation"]._runs(pickings, access="read")
+        runs = runs.filtered(lambda run: run.activity_id.id in activities.ids)
+        runs.invalidate_recordset(["outcome", "activity_id"])
+        activities.invalidate_recordset(
+            ["res_model", "res_model_id", "res_id", "activity_type_id", "active", "date_deadline"]
+        )
+        for run in runs:
+            activity = run.activity_id
+            suffix = {"incoming": "receipt", "outgoing": "delivery", "internal": "transfer"}[
+                run.cycle_id.operation_code
+            ]
+            if (
+                activity.res_model != "stock.picking"
+                or activity.res_id != run.picking_id.id
+                or run.company_id != run.picking_id.company_id
+                or activity.activity_type_id
+                != self.env.ref("mc_rov.activity_type_inventory_" + suffix)
+            ):
+                raise AccessError(
+                    _("La actividad ya no corresponde a su operación de inventario.")
+                )
+        return runs
+
+    def _mc_inventory_check_recipient(self, runs, values):
+        if not runs or "user_id" not in values:
+            return
+        user = self.env["res.users"].browse(values["user_id"])
+        if not user or not user.active or user.share:
+            raise ValidationError(_("Seleccione una cuenta interna activa."))
+        for run in runs:
+            company = run.company_id
+            if company not in user.company_ids:
+                raise ValidationError(_("La cuenta no tiene acceso a la empresa del documento."))
+            target = (
+                self.env["stock.picking"]
+                .with_user(user)
+                .with_context(allowed_company_ids=company.ids)
+                .with_company(company)
+                .browse(run.picking_id.id)
+            )
+            if (
+                not target.has_access("read")
+                or not target.has_access("write")
+                or not target.picking_type_id.has_access("read")
+            ):
+                raise ValidationError(
+                    _("La cuenta no puede consultar y gestionar esta operación.")
+                )
+
+    def _mc_inventory_manual_outcome(self, runs, outcome, reason):
+        # Guardar primero impide que unlink/archivo anidados sobrescriban la decisión.
+        for run in runs.filtered(lambda row: row.outcome == "pending"):
+            deadline = (
+                run.activity_id.date_deadline or run.current_deadline or run.original_deadline
+            )
+            run.write(
+                {
+                    "outcome": outcome,
+                    "current_deadline": deadline,
+                    "finished_at": fields.Datetime.now(),
+                    "finished_by_id": self.env.uid,
+                    "finish_reason": reason,
+                }
+            )
+            run.cycle_id.write({"current_deadline": deadline})
+            if outcome == "cancelled":
+                run.picking_id.with_user(self.env.uid).message_post(
+                    body=Markup("<p>%s</p>") % reason
+                )
+
+    def _action_done(self, feedback=False, attachment_ids=None):
+        with self.env.cr.savepoint():
+            self._mc_inventory_manual_outcome(
+                self._mc_inventory_runs(),
+                "manual_done",
+                feedback or _("Actividad marcada como hecha manualmente."),
+            )
+            return super()._action_done(feedback=feedback, attachment_ids=attachment_ids)
+
+    def unlink(self):
+        with self.env.cr.savepoint():
+            runs = self._mc_inventory_runs()
+            self._mc_inventory_manual_outcome(
+                runs, "cancelled", _("Actividad cancelada manualmente.")
+            )
+            result = super().unlink()
+            runs.invalidate_recordset(["activity_id"])
+            return result
+
+    def _mc_inventory_check_deadline_authorization(self, runs, values):
+        if not runs or "date_deadline" not in values:
+            return
+        try:
+            deadline = fields.Date.to_date(values["date_deadline"])
+        except (TypeError, ValueError) as error:
+            raise ValidationError(_("Indique una fecha límite válida.")) from error
+        changing = runs.filtered(lambda run: run.activity_id.date_deadline != deadline)
+        if not changing:
+            return
+        if not self.env.user.has_group("mc_rov.group_work_assignment_coordinate"):
+            raise AccessError(_("La reprogramación requiere permiso de coordinación."))
+        authorization = self.env.context.get("_mc_activity_deadline_authorization")
+        valid = (
+            isinstance(authorization, tuple)
+            and len(authorization) == 5
+            and authorization[0] is _WORK_ACTIVITY_DEADLINE_AUTH
+            and authorization[1] == self.env.uid
+            and isinstance(authorization[2], tuple)
+            and set(changing.activity_id.ids) <= set(authorization[2])
+            and authorization[3] == deadline
+            and isinstance(authorization[4], str)
+            and bool(authorization[4].strip())
+        )
+        if not valid:
+            raise UserError(_("Use Repartir actividades e indique el motivo para reprogramar."))
+
+    def write(self, values):
+        relevant = {
+            "res_model",
+            "res_model_id",
+            "res_id",
+            "activity_type_id",
+            "date_deadline",
+            "active",
+            "user_id",
+        }.intersection(values)
+        if not relevant:
+            return super().write(values)
+        with self.env.cr.savepoint():
+            runs = self._mc_inventory_runs()
+            self._mc_inventory_check_deadline_authorization(runs, values)
+            self._mc_inventory_check_recipient(runs, values)
+            pending_before = runs.filtered(lambda row: row.outcome == "pending")
+            for run in runs:
+                activity = run.activity_id
+                model = values.get("res_model", activity.res_model)
+                if "res_model_id" in values:
+                    model = self.env["ir.model"].browse(values["res_model_id"]).model
+                if (
+                    model != "stock.picking"
+                    or values.get("res_id", activity.res_id) != run.picking_id.id
+                    or values.get("activity_type_id", activity.activity_type_id.id)
+                    != activity.activity_type_id.id
+                ):
+                    raise ValidationError(
+                        _("Una actividad seguida no puede cambiar de origen ni tipo.")
+                    )
+            if values.get("active") is False:
+                self._mc_inventory_manual_outcome(
+                    runs, "cancelled", _("Actividad archivada manualmente.")
+                )
+            result = super().write(values)
+            if "date_deadline" in values:
+                # El mismo write puede haber archivado la tarea: conservar el conjunto
+                # previo para registrar la fecha final también en ese resultado cerrado.
+                for run in pending_before:
+                    deadline = run.activity_id.date_deadline
+                    if deadline:
+                        run.write({"current_deadline": deadline})
+                        run.cycle_id.write({"current_deadline": deadline})
+            return result
