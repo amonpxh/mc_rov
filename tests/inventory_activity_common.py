@@ -80,7 +80,7 @@ class InventoryActivityCommon(TransactionCase):
                 {
                     "name": "QA Inventario " + code,
                     "code": code,
-                    "sequence_code": "QAI" + code[:1].upper(),
+                    "sequence_code": "QAI" + code.upper(),
                     "company_id": cls.env.company.id,
                     "warehouse_id": False,
                     "default_location_src_id": cls.locations[source].id,
