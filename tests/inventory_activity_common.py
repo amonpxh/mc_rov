@@ -108,7 +108,6 @@ class InventoryActivityCommon(TransactionCase):
                 "move_ids": [
                     Command.create(
                         {
-                            "name": "QA Movimiento real",
                             "product_id": self.product.id,
                             "product_uom_qty": 2,
                             "product_uom": self.product.uom_id.id,
@@ -166,14 +165,31 @@ class InventoryActivityCommon(TransactionCase):
             return self.env["res.company"].create({"name": "QA Inventario otra empresa"})
 
     def _other_type(self, company):
-        return self.env["stock.picking.type"].create(
-            {
-                "name": "QA Operación otra empresa",
-                "code": "incoming",
-                "sequence_code": "QAOT",
-                "company_id": company.id,
-                "warehouse_id": False,
-            }
+        destination = (
+            self.env["stock.location"]
+            .with_company(company)
+            .create(
+                {
+                    "name": "QA Almacenaje otra empresa",
+                    "usage": "internal",
+                    "company_id": company.id,
+                }
+            )
+        )
+        return (
+            self.env["stock.picking.type"]
+            .with_company(company)
+            .create(
+                {
+                    "name": "QA Operación otra empresa",
+                    "code": "incoming",
+                    "sequence_code": "QAOT",
+                    "company_id": company.id,
+                    "warehouse_id": False,
+                    "default_location_src_id": self.locations["supplier"].id,
+                    "default_location_dest_id": destination.id,
+                }
+            )
         )
 
     def _holiday(self):
