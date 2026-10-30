@@ -29,6 +29,7 @@ function requireIntegration() {
 }
 
 const options = [
+    { key: "inventory", label: "Inventario", available: false, hint: "Sin acceso a operaciones" },
     { key: "all", label: "Todos los procesos", available: true, hint: "" },
     { key: "repair", label: "Reparación", available: true, hint: "" },
     { key: "manufacturing", label: "Fabricación", available: true, hint: "" },
@@ -37,7 +38,7 @@ const options = [
     { key: "none", label: "Sin proceso vinculado", available: true, hint: "" },
 ];
 
-function mockWork({ failFirst = false, acceptanceAvailable = false } = {}) {
+function mockWork({ failFirst = false, acceptanceAvailable = false, inventoryAvailable = false } = {}) {
     const calls = [];
     const navigation = [];
     let failed = false;
@@ -54,6 +55,10 @@ function mockWork({ failFirst = false, acceptanceAvailable = false } = {}) {
             }
             if (method === "get_capabilities") return Promise.resolve({ can_view_team: true, can_coordinate: true });
             if (method === "get_processes") return Promise.resolve(options.map(option => {
+                if (option.key === "inventory") {
+                    const available = inventoryAvailable && kwargs.kind === "activities";
+                    return { ...option, available, hint: available ? "" : option.hint };
+                }
                 if (option.key !== "acceptance") return option;
                 const available = acceptanceAvailable && kwargs.kind === "activities";
                 return { ...option, available, hint: available ? "" : option.hint };
@@ -187,6 +192,79 @@ describe("mc_rov embedded work", () => {
         await click('[data-assignment-retry]');
         await animationFrame();
         expect('[data-native-model="mail.activity"]').toHaveCount(1);
+    });
+
+    test("inventario conserva busqueda empleado y alcance al actualizar", async () => {
+        const Center = requireIntegration();
+        if (!Center) return;
+        class InventoryRefreshProbe extends Component {
+            static props = ["*"];
+            static template = xml`<div data-inventory-refresh="">
+                <span t-esc="props.saved.globalState?.searchModel || 'Sin búsqueda'"/>
+            </div>`;
+            setup() {
+                this.props.register(this);
+                onWillUnmount(() => this.props.register(null, this));
+            }
+            canLeave() { return true; }
+            snapshot() { return { globalState: { searchModel: "QA inventario" }, state: { modelState: { offset: 40 } } }; }
+        }
+        class InventoryCenter extends Center {}
+        InventoryCenter.components = { ...Center.components, AssignedWorkView: InventoryRefreshProbe };
+        const { calls } = mockWork({ inventoryAvailable: true });
+        await mountWithCleanup(InventoryCenter, { props: { action: { tag: "mc_rov.work_center" } } });
+        await choose('.mc_assignment_scope', "team");
+        await choose('.mc_assignment_employee', "7");
+        await choose('.mc_assignment_process', "inventory");
+        await click('button[aria-label="Actualizar registros"]');
+        await animationFrame();
+        expect('.mc_assignment_scope').toHaveValue("team");
+        expect('.mc_assignment_employee').toHaveValue("7");
+        expect('.mc_assignment_process').toHaveValue("inventory");
+        expect('[data-inventory-refresh]').toHaveCount(1);
+        expect('[data-inventory-refresh]').toHaveText("QA inventario");
+        expect('.mc_work_center_table').toHaveCount(0);
+        expect(calls.filter(x => x.method === "action_activities").at(-1).kwargs)
+            .toEqual({ scope: "team", employee_id: 7, process: "inventory" });
+    });
+
+    test("volver de registros conserva inventario y una sola zona de contenido", async () => {
+        const Center = requireIntegration();
+        if (!Center) return;
+        mockWork({ inventoryAvailable: true });
+        await mountWithCleanup(Center, { props: { action: { tag: "mc_rov.work_center" } } });
+        await choose('.mc_assignment_scope', "team");
+        await choose('.mc_assignment_employee', "7");
+        await choose('.mc_assignment_process', "inventory");
+        await click('[data-assignment-view="list"]');
+        await click('[data-topic="acceptance"]');
+        await animationFrame();
+        expect('[data-native-view]').toHaveCount(0);
+        expect('.mc_work_center_table').toHaveCount(1);
+        await click('[data-work-assigned]');
+        await animationFrame();
+        expect('.mc_assignment_process').toHaveValue("inventory");
+        expect('.mc_assignment_scope').toHaveValue("team");
+        expect('.mc_assignment_employee').toHaveValue("7");
+        expect('[data-native-view]').toHaveCount(1);
+        expect('[data-native-view]').toHaveText("list");
+        expect('.mc_work_center_table').toHaveCount(0);
+    });
+
+    test("inventario sin acceso descarta seleccion guardada y no solicita sus actividades", async () => {
+        const Center = requireIntegration();
+        if (!Center) return;
+        const { calls } = mockWork({ inventoryAvailable: false });
+        await mountWithCleanup(Center, { props: { action: { tag: "mc_rov.work_center" },
+            state: { workCenter: { workspace: "assigned", assignedWork: {
+                kind: "activities", scope: "mine", process: "inventory", employeeId: false,
+            } } } } });
+        await animationFrame();
+        expect('.mc_assignment_process option[value="inventory"]').toHaveCount(1);
+        expect('.mc_assignment_process option[value="inventory"]').not.toBeEnabled();
+        expect('.mc_assignment_process').toHaveValue("all");
+        expect(calls.filter(x => x.method === "action_activities").length > 0).toBe(true);
+        expect(calls.filter(x => x.method === "action_activities" && x.kwargs.process === "inventory")).toHaveLength(0);
     });
 
     test("aceptacion conserva busqueda empleado y alcance al actualizar", async () => {
