@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="activity_type_engineering_prepare" model="mail.activity.type">
+        <field name="name">Preparar cambio de ingeniería</field>
+        <field name="res_model">mrp.eco</field>
+        <field name="chaining_type">suggest</field>
+    </record>
+    <record id="activity_type_engineering_apply" model="mail.activity.type">
+        <field name="name">Aplicar cambio de ingeniería</field>
+        <field name="res_model">mrp.eco</field>
+        <field name="chaining_type">suggest</field>
+    </record>
+</odoo>

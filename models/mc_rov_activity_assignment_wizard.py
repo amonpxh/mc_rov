@@ -1,7 +1,14 @@
+# Se conserva la ruta donde ya se registra este asistente del módulo.
+# pylint: disable=unknown-option-value,no-wizard-in-models
+
 from markupsafe import Markup
 
 from odoo import _, fields, models
 from odoo.exceptions import UserError, ValidationError
+
+
+# Solo el asistente validado emite esta identidad; no se puede fabricar desde RPC.
+_WORK_ACTIVITY_DEADLINE_AUTH = object()
 
 
 class McRovActivityAssignmentWizard(models.TransientModel):
@@ -118,6 +125,17 @@ class McRovActivityAssignmentWizard(models.TransientModel):
                         "Cuenta autora: %s", self.env.user.display_name
                     )
                     activity.write({"note": Markup(activity.note or "") + author + body})
+            if "date_deadline" in values:
+                authorization = (
+                    _WORK_ACTIVITY_DEADLINE_AUTH,
+                    self.env.uid,
+                    tuple(activities.ids),
+                    fields.Date.to_date(values["date_deadline"]),
+                    (self.reason or "").strip(),
+                )
+                activities = activities.with_context(
+                    _mc_activity_deadline_authorization=authorization
+                )
             activities.write(values)
             for source, body in entries:
                 source.message_post(body=body, subtype_xmlid="mail.mt_note")
