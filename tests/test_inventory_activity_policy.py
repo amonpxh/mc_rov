@@ -6,7 +6,7 @@ import pytz
 from psycopg2 import IntegrityError
 
 from odoo import Command
-from odoo.exceptions import AccessError, ValidationError
+from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import tagged
 from odoo.tests.common import new_test_user
 
@@ -229,7 +229,7 @@ class TestInventoryActivityPolicy(InventoryActivityCommon):
     def test_other_company_operation_type_rejected(self):
         policy = self._policy()
         kind = self._other_type(self._other_company())
-        with self.assertRaises(ValidationError), self.cr.savepoint():
+        with self.assertRaises(UserError), self.cr.savepoint():
             self._rule(kind, policy=policy)
 
     def test_recipient_context_does_not_expand_companies(self):
@@ -251,7 +251,7 @@ class TestInventoryActivityPolicy(InventoryActivityCommon):
     def test_other_company_calendar_rejected(self):
         self._policy_model()
         other = self._other_company()
-        with self.assertRaises(ValidationError), self.cr.savepoint():
+        with self.assertRaises(UserError), self.cr.savepoint():
             self._policy(calendar_id=other.resource_calendar_id.id)
 
     def test_other_company_employee_rejected(self):
@@ -263,7 +263,7 @@ class TestInventoryActivityPolicy(InventoryActivityCommon):
                 "company_id": other.id,
             }
         )
-        with self.assertRaises(ValidationError), self.cr.savepoint():
+        with self.assertRaises(UserError), self.cr.savepoint():
             self._rule(policy=policy, employee_id=employee.id)
 
     def test_archived_employee_is_configuration_error(self):

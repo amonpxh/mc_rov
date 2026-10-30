@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_inventory_activity_policy_list" model="ir.ui.view">
+        <field name="name">mc.rov.inventory.activity.policy.list</field>
+        <field name="model">mc.rov.inventory.activity.policy</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="company_id"/>
+                <field name="enabled"/>
+                <field name="calendar_id"/>
+                <field name="lead_days"/>
+                <field name="configuration_message"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_inventory_activity_policy_form" model="ir.ui.view">
+        <field name="name">mc.rov.inventory.activity.policy.form</field>
+        <field name="model">mc.rov.inventory.activity.policy</field>
+        <field name="arch" type="xml">
+            <form string="Seguimiento de inventario">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="company_id"/>
+                            <field name="enabled"/>
+                        </group>
+                        <group>
+                            <field name="calendar_id" domain="['|', ('company_id', '=', False), ('company_id', '=', company_id)]"/>
+                            <field name="lead_days"/>
+                        </group>
+                    </group>
+                    <field name="configuration_message"/>
+                    <separator string="Operaciones seleccionadas"/>
+                    <field name="rule_ids">
+                        <list editable="bottom">
+                            <field name="company_id" column_invisible="True"/>
+                            <field name="picking_type_id" domain="[('company_id', '=', parent.company_id), ('code', 'in', ['incoming', 'outgoing', 'internal'])]" options="{'no_create': True}"/>
+                            <field name="user_id" domain="[('share', '=', False), ('active', '=', True), ('company_ids', 'in', [parent.company_id])]" options="{'no_create': True}"/>
+                            <field name="employee_id" domain="[('active', '=', True), ('company_id', '=', parent.company_id)]" options="{'no_create': True}"/>
+                        </list>
+                    </field>
+                    <p>El plazo empieza en la confirmación o en la fecha prevista inicial si es futura. Se excluye ese día y se conserva cualquier límite nativo anterior.</p>
+                    <p>Esta configuración solo afecta a seguimientos nuevos: no mueve plazos existentes, no crea compras y no valida movimientos ni aplica conteos.</p>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_inventory_activity_policy" model="ir.actions.act_window">
+        <field name="name">Seguimiento de inventario</field>
+        <field name="res_model">mc.rov.inventory.activity.policy</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <menuitem id="menu_inventory_activity_policy" name="Inventario"
+              parent="menu_work_automation" action="action_inventory_activity_policy"
+              groups="mc_rov.group_work_assignment_coordinate" sequence="50"/>
+</odoo>
