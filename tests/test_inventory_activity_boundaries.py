@@ -311,7 +311,16 @@ class TestInventoryActivityBoundaries(InventoryEventCommon):
 
     def test_additional_component_does_not_replace_document_identity(self):
         _policy, picking, run = self._visit()
-        product = self.product.copy({"name": "QA Repuesto adicional"})
+        product = self.env["product.product"].create(
+            {
+                "name": "QA Repuesto adicional",
+                "type": "consu",
+                "is_storable": True,
+                "categ_id": self.product.categ_id.id,
+                "company_id": self.env.company.id,
+            }
+        )
+        self.assertTrue(product.exists(), "El repuesto QA debe tener una variante persistente")
         picking.move_ids = [
             Command.create(
                 {
