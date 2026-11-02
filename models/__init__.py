@@ -63,3 +63,6 @@ from . import mc_rov_inventory_activity_run
 from . import inventory_activity_automation
 from . import inventory_activity_lifecycle
 from . import inventory_activity_source
+
+# El guard debe ejecutarse antes de que los hooks registren un cierre manual.
+from . import automatic_activity_completion
