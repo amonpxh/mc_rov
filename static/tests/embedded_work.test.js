@@ -401,3 +401,304 @@ describe("mc_rov embedded bridge", () => {
         expect(calls[1].action.context).toEqual({ allowed_company_ids: [1] });
     });
 });
+
+// Actual Mail components and their native callbacks: no substitute renderer.
+import { Activity as CompletionChatter } from "@mail/core/web/activity";
+import { ActivityListPopoverItem as CompletionItem } from "@mail/core/web/activity_list_popover_item";
+import { ActivityMarkAsDone as CompletionDone } from "@mail/core/web/activity_markasdone_popover";
+import { Activity as CompletionRecord } from "@mail/core/common/activity_model";
+import { ActivityCalendarCommonPopover as CompletionCalendar } from "@mail/views/web/calendar/calendar_common/activity_calendar_common_popover";
+import { ActivityCalendarYearPopover as CompletionYear } from "@mail/views/web/calendar/calendar_year/activity_calendar_year_popover";
+import { ArchiveDisabledListController as CompletionNativeList } from "@mail/views/web/list/archive_disabled_list_controller";
+import { onRpc as completionRpc } from "@web/../tests/web_test_helpers";
+import { start as completionStart } from "@mail/../tests/mail_test_helpers";
+
+function completionActivity(automatic) {
+    return {
+        id: 903,
+        active: true,
+        mc_automatic_pending: automatic,
+        can_write: true,
+        res_model: "repair.order",
+        res_id: 904,
+        res_name: "QA-REAL-904",
+        summary: "QA trabajo pendiente",
+        activity_type_id: { id: 1, name: "QA actividad" },
+        activity_category: "default",
+        chaining_type: "suggest",
+        state: "planned",
+        date_deadline: luxon.DateTime.now().plus({ days: 1 }),
+        dateDeadlineFormatted: "QA fecha",
+        user_id: false,
+        icon: "fa-wrench",
+        mail_template_ids: [],
+        attachment_ids: [],
+        isNoteEmpty: true,
+        feedback: "",
+    };
+}
+
+function completionCallbacks(automatic) {
+    const calls = [];
+    const activity = {
+        ...completionActivity(automatic),
+        remove: () => calls.push("remove"),
+        markAsDone: async () => calls.push("done"),
+        markAsDoneAndScheduleNext: async () => { calls.push("next"); },
+    };
+    const thread = { fetchNewMessages: async () => calls.push("fetch") };
+    const context = {
+        props: {
+            activity,
+            onActivityChanged: () => calls.push("changed"),
+            onClickDoneAndScheduleNext: () => calls.push("schedule"),
+            close: () => calls.push("close"),
+        },
+        thread,
+        env: { services: {
+            orm: { unlink: async () => calls.push("rpc-unlink") },
+            "mail.store": { Thread: { insert: () => { calls.push("thread"); return thread; } } },
+        } },
+    };
+    return { calls, context };
+}
+
+function completionList(flags, domainSelected = false) {
+    const present = registry.category("views").contains("mc_automatic_activity_list");
+    expect(present).toBe(true, { message: "Missing automatic list selection controller" });
+    if (!present) return null;
+    const Controller = registry.category("views").get("mc_automatic_activity_list").Controller;
+    const controller = Object.create(Controller.prototype);
+    controller.model = { root: {
+        selection: flags.map((flag, index) => ({ resId: index + 1, data: { mc_automatic_pending: flag } })),
+        isDomainSelected: domainSelected,
+        evalContext: { context: {} },
+    } };
+    controller.activeActions = { delete: true, duplicate: true };
+    controller.archiveEnabled = false;
+    return { Controller, controller };
+}
+
+class CompletionCalendarFooter extends CompletionCalendar {
+    static template = "mail.ActivityCalendarCommonPopover.footer";
+}
+
+describe("mc_rov automatic completion", () => {
+    defineModels(mailModels);
+
+    async function mountCompletion(ComponentClass, automatic, extra = {}) {
+        const env = await completionStart();
+        const target = document.createElement("div");
+        target.dataset.mcCompletionProbe = "";
+        env.target.appendChild(target);
+        const props = { activity: completionActivity(automatic), onActivityChanged: () => {} };
+        if (ComponentClass === CompletionChatter) props.reloadParentView = () => {};
+        if (ComponentClass === CompletionItem) props.onClickEditActivityButton = () => {};
+        if (ComponentClass === CompletionDone) props.close = () => {};
+        return mountWithCleanup(ComponentClass, { env, target, props: { ...props, ...extra } });
+    }
+
+    async function mountCompletionCalendar(automatic) {
+        const env = await completionStart();
+        const target = document.createElement("div");
+        target.dataset.mcCompletionProbe = "";
+        env.target.appendChild(target);
+        return mountWithCleanup(CompletionCalendarFooter, { env, target, props: {
+            close: () => {},
+            record: { id: 903, rawRecord: { id: 903, mc_automatic_pending: automatic } },
+            model: { resModel: "mail.activity", load: () => {} },
+            createRecord: () => {}, deleteRecord: () => {}, editRecord: () => {},
+        } });
+    }
+
+    test("lista permite cierre para seleccion exclusivamente manual", () => {
+        const probe = completionList([false, false]);
+        if (probe) expect(probe.controller.canCloseSelection).toBe(true);
+    });
+    test("lista oculta cierre para seleccion automatica", () => {
+        const probe = completionList([true]);
+        if (probe) expect(probe.controller.canCloseSelection).toBe(false);
+    });
+    test("lista oculta cierre para seleccion mixta", () => {
+        const probe = completionList([false, true]);
+        if (probe) expect(probe.controller.canCloseSelection).toBe(false);
+    });
+    test("lista no supone manuales los registros no cargados del dominio", () => {
+        const probe = completionList([false], true);
+        if (probe) expect(probe.controller.canCloseSelection).toBe(false);
+    });
+    test("lista no ofrece cierre sin seleccion", () => {
+        const probe = completionList([]);
+        if (probe) expect(probe.controller.canCloseSelection).toBe(false);
+    });
+    test("lista conserva controlador nativo sin archivar", () => {
+        const probe = completionList([false]);
+        if (probe) expect(probe.Controller.prototype instanceof CompletionNativeList).toBe(true);
+    });
+    test("menu eliminar se oculta para mezcla y se conserva para manuales", () => {
+        const probe = completionList([false, true]);
+        if (!probe) return;
+        expect(probe.controller.getStaticActionMenuItems().delete.isAvailable()).toBe(false);
+        probe.controller.model.root.selection.pop();
+        expect(probe.controller.getStaticActionMenuItems().delete.isAvailable()).toBe(true);
+    });
+    test("menu eliminar nunca concede un permiso nativo ausente", () => {
+        const probe = completionList([false]);
+        if (!probe) return;
+        probe.controller.activeActions.delete = false;
+        expect(probe.controller.getStaticActionMenuItems().delete.isAvailable()).toBe(false);
+    });
+    test("modificador nativo de cabecera oculta el cierre de mezcla", () => {
+        const probe = completionList([false, true]);
+        if (probe) expect(probe.controller.evalViewModifier("context.get('mc_automatic_close_forbidden', False)")).toBe(true);
+    });
+    test("modificador nativo de cabecera conserva cierre manual", () => {
+        const probe = completionList([false]);
+        if (probe) expect(probe.controller.evalViewModifier("context.get('mc_automatic_close_forbidden', False)")).toBe(false);
+    });
+    test("chatter automatico sin Hecho Cancelar ni Abrir duplicado", async () => {
+        await mountCompletion(CompletionChatter, true);
+        expect(".o-mail-Activity-markDone").toHaveCount(0);
+        expect(".o-mail-Activity button.btn-danger").toHaveCount(0);
+        expect(".o_mc_activity_open").toHaveCount(0);
+        expect(".o-mail-Activity-edit").toHaveCount(1);
+    });
+    test("chatter manual conserva Hecho y Cancelar", async () => {
+        await mountCompletion(CompletionChatter, false);
+        expect(".o-mail-Activity-markDone").toHaveCount(1);
+        expect(".o-mail-Activity button.btn-danger").toHaveCount(1);
+    });
+    test("referencia del chatter automatico abre documento sin cerrar", async () => {
+        const calls = [];
+        completionRpc("mail.activity", "action_open_document", ({ args }) => {
+            calls.push(args);
+            return { type: "ir.actions.act_window", res_model: "repair.order", res_id: 904 };
+        });
+        mockService("action", { doAction: (action) => calls.push(action) });
+        await mountCompletion(CompletionChatter, true);
+        calls.length = 0;
+        expect(".o-mail-Activity .o_mc_activity_reference").toHaveCount(1);
+        if (!document.querySelector(".o-mail-Activity .o_mc_activity_reference")) return;
+        await click(".o-mail-Activity .o_mc_activity_reference");
+        await animationFrame();
+        expect(calls.length).toBe(2);
+        expect(calls[1].res_id).toBe(904);
+    });
+    test("callback Cancelar del chatter no retira automaticas", async () => {
+        const { context, calls } = completionCallbacks(true);
+        await CompletionChatter.prototype.unlink.call(context);
+        expect(calls).toEqual([]);
+    });
+    test("popover automatico sin cierre con edicion conservada", async () => {
+        await mountCompletion(CompletionItem, true);
+        expect(".o-mail-ActivityListPopoverItem-markAsDone").toHaveCount(0);
+        expect(".o-mail-ActivityListPopoverItem-cancel").toHaveCount(0);
+        expect(".o-mail-ActivityListPopoverItem-editbtn").toHaveCount(1);
+    });
+    test("popover manual conserva ambos cierres", async () => {
+        await mountCompletion(CompletionItem, false);
+        expect(".o-mail-ActivityListPopoverItem-markAsDone").toHaveCount(1);
+        expect(".o-mail-ActivityListPopoverItem-cancel").toHaveCount(1);
+    });
+    test("referencia del popover automatico abre documento", async () => {
+        const calls = [];
+        completionRpc("mail.activity", "action_open_document", () => ({
+            type: "ir.actions.act_window", res_model: "repair.order", res_id: 904,
+        }));
+        mockService("action", { doAction: (action) => calls.push(action) });
+        await mountCompletion(CompletionItem, true);
+        calls.length = 0;
+        expect(".o-mail-ActivityListPopoverItem .o_mc_activity_reference").toHaveCount(1);
+        if (!document.querySelector(".o-mail-ActivityListPopoverItem .o_mc_activity_reference")) return;
+        await click(".o-mail-ActivityListPopoverItem .o_mc_activity_reference");
+        await animationFrame();
+        expect(calls.map((action) => action.res_id)).toEqual([904]);
+    });
+    test("callback Cancelar del popover no retira automaticas", async () => {
+        const { context, calls } = completionCallbacks(true);
+        await CompletionItem.prototype.unlink.call(context);
+        expect(calls).toEqual([]);
+    });
+    test("formulario de cierre automatico no ofrece Hecho ni siguiente", async () => {
+        await mountCompletion(CompletionDone, true);
+        expect('[aria-label="Done"]').toHaveCount(0);
+        expect('[aria-label="Done and Schedule Next"]').toHaveCount(0);
+        expect(document.querySelector(".o-mail-ActivityMarkAsDone textarea").readOnly).toBe(true);
+    });
+    test("formulario de cierre manual conserva Hecho y siguiente", async () => {
+        await mountCompletion(CompletionDone, false);
+        expect('[aria-label="Done"]').toHaveCount(1);
+        expect('[aria-label="Done and Schedule Next"]').toHaveCount(1);
+        expect(document.querySelector(".o-mail-ActivityMarkAsDone textarea").readOnly).toBe(false);
+    });
+    test("callback Hecho automatico no envia cierre ni refresca como resuelto", async () => {
+        const { context, calls } = completionCallbacks(true);
+        await CompletionDone.prototype.onClickDone.call(context);
+        expect(calls).toEqual([]);
+    });
+    test("callback Hecho y siguiente automatico no programa otra tarea", async () => {
+        const { context, calls } = completionCallbacks(true);
+        await CompletionDone.prototype.onClickDoneAndScheduleNext.call(context);
+        expect(calls).toEqual([]);
+    });
+    test("calendario automatico no agrega otro boton Abrir", async () => {
+        await mountCompletionCalendar(true);
+        expect("[data-mc-completion-probe] button").toHaveCount(0);
+    });
+    test("calendario manual conserva su apertura nativa", async () => {
+        const calls = [];
+        completionRpc("mail.activity", "action_open_document", () => ({
+            type: "ir.actions.act_window", res_model: "repair.order", res_id: 904,
+        }));
+        mockService("action", { doAction: (action) => calls.push(action) });
+        await mountCompletionCalendar(false);
+        calls.length = 0;
+        expect("[data-mc-completion-probe] button").toHaveCount(1);
+        await click("[data-mc-completion-probe] button");
+        await animationFrame();
+        expect(calls.map((action) => action.res_id)).toEqual([904]);
+    });
+    test("calendario anual conserva apertura nativa de la referencia", async () => {
+        const calls = [];
+        const context = {
+            orm: { call: async (model, method, args) => {
+                calls.push({ model, method, args });
+                return { res_model: "repair.order", res_id: 904 };
+            } },
+            actionService: { doAction: (action) => calls.push(action) },
+            props: { model: { load: () => {} }, close: () => {} },
+        };
+        await CompletionYear.prototype.onRecordClick.call(context, { rawRecord: { id: 903 } });
+        expect(calls[0]).toEqual({ model: "mail.activity", method: "action_open_document", args: [903] });
+        expect(calls[1].res_id).toBe(904);
+    });
+    test("modelo Mail rechaza cierre automatico antes de RPC y difusion", async () => {
+        const calls = [];
+        const context = { ...completionActivity(true), store: {
+            env: { services: { orm: { call: async (...args) => calls.push(args) } } },
+            activityBroadcastChannel: { postMessage: () => calls.push("broadcast") },
+        } };
+        await CompletionRecord.prototype.markAsDone.call(context);
+        expect(calls).toEqual([]);
+    });
+    test("modelo Mail conserva RPC y difusion del cierre manual", async () => {
+        const calls = [];
+        const context = { ...completionActivity(false), store: {
+            env: { services: { orm: { call: async (...args) => calls.push(args) } } },
+            activityBroadcastChannel: { postMessage: () => calls.push("broadcast") },
+        } };
+        await CompletionRecord.prototype.markAsDone.call(context);
+        expect(calls[0][0]).toBe("mail.activity");
+        expect(calls[0][1]).toBe("action_feedback");
+        expect(calls[1]).toBe("broadcast");
+    });
+    test("modelo Mail no cierra ni encadena automaticas", async () => {
+        const calls = [];
+        const context = { ...completionActivity(true), store: {
+            env: { services: { orm: { call: async (...args) => calls.push(args) } } },
+            activityBroadcastChannel: { postMessage: () => calls.push("broadcast") },
+        } };
+        await CompletionRecord.prototype.markAsDoneAndScheduleNext.call(context);
+        expect(calls).toEqual([]);
+    });
+});
