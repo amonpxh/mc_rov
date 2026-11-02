@@ -3,7 +3,7 @@
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans inline task-by-task. El usuario ya eligió implementación aquí y revisión independiente final. No repetir aprobación del alcance acordado.
 
 **Goal:** Impedir que un cierre manual oculte trabajo automático abierto en los seis flujos, manteniendo cierres reales y retirada excepcional auditada.
-**Architecture:** Guard común externo a los hooks de mail.activity, identificación por enlaces privados autorizados y estado pendiente. Cierres reales siguen en sus servicios actuales; el asistente excepcional valida coordinación/origen/motivo y registra withdrawn antes de cancelar el aviso nativo. Extensiones de vistas y store Mail nativos, sin reemplazar el Centro.
+**Architecture:** Guard común externo a los hooks de mail.activity, identificación por enlaces privados autorizados y estado pendiente. Cierres reales siguen en sus servicios actuales; el asistente excepcional valida coordinación/origen/motivo y registra exception_withdrawn antes de cancelar el aviso nativo. Extensiones de vistas y store Mail nativos, sin reemplazar el Centro.
 **Tech Stack:** Odoo19/Python/PostgreSQL, vistas XML y Owl/HOOT, ejecución SSH manual en STAGING.
 **Spec:** docs/superpowers/specs/2026-11-02-automatic-activity-real-completion-design.md
 
@@ -30,7 +30,7 @@ Files: tests/test_automatic_activity_completion.py (nuevo), models/automatic_act
 - [ ] Commit pequeño con evidencia nativa.
 
 ### Task2: Retirada excepcional diferenciada
-Files: models/mc_rov_activity_withdrawal_wizard.py, views/mc_rov_activity_withdrawal_views.xml, security/ir.model.access.csv, manifest/imports; extensión de outcomes de cinco run con withdrawn si lo necesitan (Inventario ya existe).
+Files: models/mc_rov_activity_withdrawal_wizard.py, views/mc_rov_activity_withdrawal_views.xml, security/ir.model.access.csv, manifest/imports; extensión de outcomes de los seis run con exception_withdrawn (conservar withdrawn previo).
 - [ ] RED retiro autorizado por flujo, rol/fuente/empresa/motivo/contexto falsificado, mezcla manual/automático, preservación de deadline y estado del trabajo.
 - [ ] Guard común permite solo permiso privado acotado a actor/IDs/motivo validado o run ya retirado; nunca booleano RPC. Método privado confirma retirado con timestamp/actor/motivo antes del cierre nativo. Mensaje del documento advierte trabajo abierto.
 - [ ] No crear eventos posteriores ni renovar plazo por retirar. Mantener historia/link y resultado distinto de completado y de cancelación real.
