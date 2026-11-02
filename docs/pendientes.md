@@ -772,3 +772,9 @@ Corrección única de prueba: origin=activity.id → origin=activity. Mismos158 
 ### Presentación nativa GREEN158 verificada (2026-11-02)
 
 Intento20261102-114104-319:158exactos,0fallos/0errores; READ ONLY de store/MRO/sin retirada y hashes134 actuales verificados. Historial/permisos/stock/config intactos, pruebas restauradas, STAGING activo, backupc0pSgQ. Incluye corrección nativa origin=registro sin relajar comprobaciones; producto un archivo. Pendiente interfaz en todas las superficies, adaptación de contratos viejos, suite completa/concurrencia/QA/revisión final. Producción intacta.
+
+### Vistas automáticas: RED170 preparado (2026-11-02)
+
+Indicador/guard158 guardados en20723ab con todos los hooks. Nuevos12contratos sobre vistas combinadas con cuenta Taller: cinco cargas de identidad, cuatro condiciones sobre botones y controlador de lista que depende de selección; dos controles verdes conservan apertura nativa sin botón duplicado. Selección exacta170 (158 anteriores+12), esperan10fallos concretos/160verdes/0errores; descubrimiento local1246. No cambia producto todavía.
+
+Paquete staging-automatic-activity-ui-red.ps1 también recoge fuentes instaladas de listas/calendario y ejemplos de pruebas Mail, solo lectura+rollback, para basar la integración en las firmas reales. Solo pruebas Python temporales; restablece sus archivos y reinicia STAGING, snapshot ampliado de historial/ACL sin exclusiones. Conserva copia QA y producción. Black99/pylint10, replay170, ocho verificaciones del clasificador, AST, Bash/PowerShell y hash gates locales aprobados. Pendiente SSH nativo; después código visual y HOOT de superficies.
