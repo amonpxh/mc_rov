@@ -48,3 +48,5 @@ from . import inventory_activity_common
 from . import test_inventory_activity_policy
 from . import test_inventory_activity_events
 from . import test_inventory_activity_boundaries
+
+from . import test_automatic_activity_completion
