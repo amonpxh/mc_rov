@@ -756,3 +756,19 @@ RED nativo exacto176 confirmado (60 ausencias esperadas,116 verdes,0 errores), i
 El usuario descartó la retirada excepcional y aprobó automáticas sin Hecho/Cancelar/Abrir redundante. Tarjeta/referencia abre la operación; el resultado real cierra el pendiente. Manuales/aprobaciones nativas intactas. Restaurados solo12paths locales propios del asistente nunca instalado; eliminados72 contratos del alcance sustituido. Instaladores antiguos de retirada bloqueados antes de SSH. Evidencia RED176 conservada como histórica, no requisito vigente.
 
 Preparado RED158:54 contratos nuevos de presentación/identidad/store/navegación (42 ausencias esperadas y12 controles nativos), conserva104 comprobados. Descubrimiento local1234; selección exacta158. Producto STAGING sigue134/guard104 sin cambios; no se ejecutó GREEN de retirada ni se pausó QA. Pendiente SSH de presentación, luego indicador/interfaz y adaptación explícita de los contratos antiguos. Producción intacta.
+
+### Presentación automática: RED158 confirmado y GREEN preparado (2026-11-02)
+
+Intento nativo20261102-112101-823: exact158,42ausencias esperadas/116verdes/0errores. Incluye104anteriores+54nuevos; doce controles de apertura real sin cierre y ausencia de retirada incluso para administrador pasaron. Fuentes134 e historial/stock/permisos/config intactos, pruebas restauradas, backup31ylsE, STAGING activo.
+
+Implementado localmente solo models/automatic_activity_completion.py: mc_automatic_pending readonly/no almacenado/sin compute sudo, identifica runs pendientes por vínculo, origen legible y empresa autorizada. Lectura sin bloqueos de cierre ni ACL privadas. Store nativo comprueba acceso actual e invalida caché de identidad antes de serializar. Conserva guard aprobado y prohíbe asistente/gateway/outcome excepcional. Preparado staging-automatic-activity-presentation-green.ps1 para158; pendiente ejecución SSH. Recupera preindicador134 en base nueva si falla, conserva guard y DBfallida. No modifica interfaz ni producción; QA aislado se conserva para actualización posterior.
+
+### Presentación GREEN v1: corregido fixture nativo de temporales (2026-11-02)
+
+Intento20261102-113412-631 exact158:0fallos/6errores, exclusivamente test_temporary_record_never_borrows_persistent_origin en los seis flujos. Stack nativo models.py:6454 espera origin.id; la prueba pasaba un entero. Los152otros casos pasaron. Recuperación verificada, STAGING activo; base fallida preservada odoo_staging_failed_auto_prs_AJXKxt, backupAJXKxt. No GREEN confirmado.
+
+Corrección única de prueba: origin=activity.id → origin=activity. Mismos158 nombres/aserciones, producto byte por byte intacto respecto al intento. Conservados log/paquete/prueba v1; alias revisado en presentation-native-fixture-fix.json con hashes antes/después, excepción del constructor limitada a ese único cambio. Paquete actualizado native-new-origin-record-fixture158-v2; Black99/pylint10/replay158/clasificador7/AST/Bash/PS/hash gates pasan localmente. Pendiente nueva ejecución SSH; interfaz y producción sin cambios.
+
+### Presentación nativa GREEN158 verificada (2026-11-02)
+
+Intento20261102-114104-319:158exactos,0fallos/0errores; READ ONLY de store/MRO/sin retirada y hashes134 actuales verificados. Historial/permisos/stock/config intactos, pruebas restauradas, STAGING activo, backupc0pSgQ. Incluye corrección nativa origin=registro sin relajar comprobaciones; producto un archivo. Pendiente interfaz en todas las superficies, adaptación de contratos viejos, suite completa/concurrencia/QA/revisión final. Producción intacta.

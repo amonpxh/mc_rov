@@ -41,7 +41,7 @@ class AutomaticPresentationChecks(
                     "activity_type_id": activity.activity_type_id.id,
                     "user_id": activity.user_id.id,
                 },
-                origin=activity.id,
+                origin=activity,
             )
             self.assertFalse(temporary.id)
             self.assertFalse(temporary.mc_automatic_pending)
