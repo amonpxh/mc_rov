@@ -50,5 +50,4 @@ from . import test_inventory_activity_events
 from . import test_inventory_activity_boundaries
 
 from . import test_automatic_activity_completion
-
-from . import test_automatic_activity_withdrawal
+from . import test_automatic_activity_presentation
