@@ -43,8 +43,8 @@ fuentes seleccionadas, permisos nativos y estadísticas agregadas; sin secretos 
 - [x] Preparar transporte/hash/verificador que rechace error SSH, marcadores ausentes,
   informe inválido o ausencia de rollback. No declarar consulta ejecutada al construir el paquete.
 - [x] Comprobar sintaxis y límites locales: dos respuestas válidas y 13 rechazos del verificador real.
-- [ ] Ejecutar solo mediante SSH privado del usuario.
-- [ ] Validar recibo de este intento; conservar datos, servicios y fuentes sin cambios.
+- [x] Ejecutar solo mediante SSH privado del usuario.
+- [x] Validar recibo20261103-162622-901:33 modelos, READ ONLY/rollback,137 fuentes y PID intactos.
 
 ### Task2: Especificar y entregar el primer incremento de KPI
 

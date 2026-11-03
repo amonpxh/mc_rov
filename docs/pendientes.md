@@ -5,14 +5,22 @@ roles/permisos, procedimientos/capacitación, operación técnica, ensayo genera
 Diseño: `docs/superpowers/specs/2026-11-03-preparacion-uso-real-design.md`.
 Plan por proyectos: `docs/superpowers/plans/2026-11-03-preparacion-uso-real.md`.
 Rama local `feature/preparacion-uso-real`, en el checkout ya aislado; baseline40ce2fe
-y notas de cierre5ad4a9a conservadas. No hay cambios nuevos de producto ni producción.
+y notas de cierre5ad4a9a conservadas. Producción no cambia.
 
-Primer corte preparado: `.tmp/staging-preparacion-uso-real-source.ps1` en Code.
-Consulta READ ONLY/rollback de KPI, Compras, capacidades IA y cobertura agregada de
-datos maestros en STAGING; no instala, reinicia, ejecuta compras ni lee secretos.
-Paquete local comprobado: sintaxis Bash/PowerShell/Python, dos respuestas válidas y
-13 rechazos del verificador real, límites de solo lectura. Auditoría remota todavía
-pendiente de SSH privado del usuario. No confundir paquete preparado con datos auditados.
+Auditoría ejecutada y verificada: `installed-20261103-162622-901.json`,33 modelos,
+READ ONLY/rollback,137 fuentes y PID intactos. Compras/purchase_stock instalados;
+agentes IA ausentes entre los modelos registrados. Falta completar el módulo exacto
+`ai` y sus manifiestos disponibles antes de elegir instalación/proveedor.
+
+Primer incremento KPI: núcleo puro local con16 pruebas GREEN tras RED14 fallos/2 controles,
+sin consulta BD ni instalación. Plazo original/vigente separados y cobertura explícita;
+Reparación no conserva plazo final histórico y no se reconstruye desde chatter.
+Diseño: `docs/superpowers/specs/2026-11-03-work-kpi-design.md`.
+Adaptador autorizado, pruebas nativas y tablero todavía pendientes.
+RED36 preparado: `.tmp/staging-work-kpi-service-red.ps1`, seis controles nativos y30
+fallos esperados por servicio ausente; solo pruebas temporales, sin instalar KPI.
+Incluye auditoría READ ONLY del módulo exacto IA. Paquete local validado con dos
+recibos aceptados y21 rechazos; pendiente de ejecución SSH. No declarar RED confirmado.
 
 Propuesta inicial de KPI: pendientes/vencidos, cumplimiento de plazos, tiempos de
 resolución y rechazos/reaperturas. Fórmulas y fuentes se fijarán tras la auditoría;
