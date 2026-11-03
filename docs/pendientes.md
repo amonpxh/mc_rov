@@ -1,3 +1,26 @@
+## Programa de preparación del uso real autorizado — 2026-11-03
+
+Usuario autorizó KPI, Compras/abastecimiento, agente IA Odoo/Telegram, datos maestros,
+roles/permisos, procedimientos/capacitación, operación técnica, ensayo general y arranque.
+Diseño: `docs/superpowers/specs/2026-11-03-preparacion-uso-real-design.md`.
+Plan por proyectos: `docs/superpowers/plans/2026-11-03-preparacion-uso-real.md`.
+Rama local `feature/preparacion-uso-real`, en el checkout ya aislado; baseline40ce2fe
+y notas de cierre5ad4a9a conservadas. No hay cambios nuevos de producto ni producción.
+
+Primer corte preparado: `.tmp/staging-preparacion-uso-real-source.ps1` en Code.
+Consulta READ ONLY/rollback de KPI, Compras, capacidades IA y cobertura agregada de
+datos maestros en STAGING; no instala, reinicia, ejecuta compras ni lee secretos.
+Paquete local comprobado: sintaxis Bash/PowerShell/Python, dos respuestas válidas y
+13 rechazos del verificador real, límites de solo lectura. Auditoría remota todavía
+pendiente de SSH privado del usuario. No confundir paquete preparado con datos auditados.
+
+Propuesta inicial de KPI: pendientes/vencidos, cumplimiento de plazos, tiempos de
+resolución y rechazos/reaperturas. Fórmulas y fuentes se fijarán tras la auditoría;
+no inferir personas desde cuentas compartidas ni medir QA como rendimiento real.
+Compras/IA requieren planes específicos según las funciones instaladas. Credenciales,
+responsables, umbrales y activaciones reales siguen sin fijarse; no suponerlos.
+Defontana/SII permanece fuera de este programa.
+
 ## Producción instalada: Inventario y cierre real de actividades — 2026-11-03
 
 **19.0.25.6.0 instalada y verificada**, commit `40ce2fe`, [PR #113](https://github.com/amonpxh/mc_rov/pull/113).
