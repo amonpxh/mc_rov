@@ -1,7 +1,8 @@
-from odoo import Command
+from odoo import Command, _
 from odoo.exceptions import UserError, ValidationError
 from odoo.tests import tagged
 
+from .automatic_completion_assertions import assert_automatic_close_rejected
 from . import test_repair_activity_generation as generation_tests
 from .test_mc_rov_revision import RevisionCommon
 
@@ -82,23 +83,25 @@ class TestRepairActivityLifecycle(RevisionCommon):
         self.assertFalse(diagnosis.activity_id and diagnosis.activity_id.active)
         self.assertFalse(repair.activity_id and repair.activity_id.active)
 
-    def test_manual_done_does_not_confirm_source_or_recreate(self):
+    def test_manual_done_is_blocked_without_confirming_or_recreating(self):
         _policy, order, diagnosis, repair = self._visit()
         activity = diagnosis.activity_id
-        activity.action_feedback(feedback="QA cierre manual")
+        with assert_automatic_close_rejected(self, diagnosis):
+            activity.action_feedback(feedback="QA cierre manual")
         order.write({"state": "under_repair"})
-        self.assertEqual(diagnosis.outcome, "manual_done")
-        self.assertFalse(activity.active)
+        self.assertEqual(diagnosis.outcome, "pending")
+        self.assertTrue(activity.active)
         self.assertEqual(diagnosis.revision_id.estado, "borrador")
         self.assertEqual(order.state, "under_repair")
         self.assertTrue(repair.activity_id.active)
         self.assertEqual(len(self._runs(order)), 2)
 
-    def test_manual_cancel_does_not_change_order_or_recreate(self):
+    def test_manual_cancel_is_blocked_without_changing_or_recreating(self):
         _policy, order, diagnosis, repair = self._visit()
-        repair.activity_id.action_cancel()
+        with assert_automatic_close_rejected(self, repair):
+            repair.activity_id.action_cancel()
         order.write({"state": "under_repair"})
-        self.assertEqual(repair.outcome, "cancelled")
+        self.assertEqual(repair.outcome, "pending")
         self.assertEqual(order.state, "under_repair")
         self.assertTrue(diagnosis.activity_id.active)
         self.assertEqual(len(self._runs(order)), 2)
@@ -153,7 +156,7 @@ class TestRepairActivityLifecycle(RevisionCommon):
         with self.assertRaises(ValidationError), self.cr.savepoint():
             self._confirm(revision)
             self.assertEqual(diagnosis.outcome, "business_done")
-            raise ValidationError("QA fallo posterior a confirmación")
+            raise ValidationError(_("QA fallo posterior a confirmación"))
         revision.invalidate_recordset()
         diagnosis.invalidate_recordset()
         self.assertEqual(revision.estado, "borrador")

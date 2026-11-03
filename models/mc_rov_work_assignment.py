@@ -7,6 +7,7 @@ from odoo.tools.safe_eval import safe_eval
 _PROCESS_MODELS = {
     "repair": ("repair.order",),
     "manufacturing": ("mrp.production",),
+    "inventory": ("stock.picking",),
     "equipment": ("stock.lot",),
     "quality": ("quality.alert", "quality.check"),
     "design": ("product.template", "product.product", "mrp.bom", "mrp.eco"),
@@ -49,6 +50,7 @@ class McRovWorkAssignment(models.AbstractModel):
             "all": _("Todos los procesos"),
             "repair": _("Reparación"),
             "manufacturing": _("Fabricación"),
+            "inventory": _("Inventario"),
             "acceptance": _("Aceptación"),
             "equipment": _("Equipo"),
             "quality": _("Calidad"),
@@ -64,13 +66,22 @@ class McRovWorkAssignment(models.AbstractModel):
                     and self.env["mail.activity"].has_access("read")
                     and len(self._acceptance_type_ids()) == len(_ACCEPTANCE_STAGES)
                 )
+            if kind == "activities" and key == "inventory":
+                available = self.env["stock.picking"].has_access("read") and self.env[
+                    "mail.activity"
+                ].has_access("read")
             hint = ""
             if not available:
-                hint = (
-                    _("Las actividades de aceptación no están disponibles para esta cuenta.")
-                    if kind == "activities" and key == "acceptance"
-                    else _("Las tareas y proyectos aún no tienen un vínculo directo al proceso.")
-                )
+                if kind == "activities" and key == "acceptance":
+                    hint = _(
+                        "Las actividades de aceptación no están disponibles para esta cuenta."
+                    )
+                elif kind == "activities" and key == "inventory":
+                    hint = _(
+                        "Las actividades de inventario no están disponibles para esta cuenta."
+                    )
+                else:
+                    hint = _("Las tareas y proyectos aún no tienen un vínculo directo al proceso.")
             options.append({"key": key, "label": label, "available": available, "hint": hint})
         return options
 

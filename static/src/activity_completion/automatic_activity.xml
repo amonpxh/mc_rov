@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-inherit="mail.Activity" t-inherit-mode="extension">
+        <xpath expr="//button[contains(@class, 'o-mail-Activity-markDone')]" position="attributes">
+            <attribute name="t-if">!props.activity.mc_automatic_pending</attribute>
+        </xpath>
+        <xpath expr="//button[@t-on-click='unlink']" position="attributes">
+            <attribute name="t-if">!props.activity.mc_automatic_pending</attribute>
+        </xpath>
+        <xpath expr="//FileUploader" position="attributes">
+            <attribute name="t-if">!props.activity.mc_automatic_pending and props.activity.activity_category === 'upload_file'</attribute>
+        </xpath>
+        <xpath expr="//span[@class='fw-bolder px-2 text-break']" position="replace">
+            <a t-if="props.activity.mc_automatic_pending" href="#" class="o_mc_activity_reference fw-bolder px-2 text-break" t-on-click.stop.prevent="mcOpenOperation"><t t-esc="displayName"/></a>
+            <span t-else="" class="fw-bolder px-2 text-break"><t t-esc="displayName"/></span>
+        </xpath>
+    </t>
+    <t t-inherit="mail.ActivityListPopoverItem" t-inherit-mode="extension">
+        <xpath expr="//b[@t-esc='props.activity.summary']" position="replace">
+            <a t-if="props.activity.mc_automatic_pending" href="#" class="o_mc_activity_reference text-900 me-2 text-truncate flex-grow-1 flex-basis-0" t-on-click.stop.prevent="mcOpenOperation" t-esc="props.activity.summary"/>
+            <b t-else="" class="text-900 me-2 text-truncate flex-grow-1 flex-basis-0" t-esc="props.activity.summary"/>
+        </xpath>
+        <xpath expr="//b[@t-esc='props.activity.activity_type_id[1]']" position="replace">
+            <a t-if="props.activity.mc_automatic_pending" href="#" class="o_mc_activity_reference text-900 me-2 text-truncate flex-grow-1" t-on-click.stop.prevent="mcOpenOperation" t-esc="props.activity.activity_type_id.name || props.activity.activity_type_id[1] || props.activity.display_name"/>
+            <b t-else="" class="text-900 me-2 text-truncate flex-grow-1" t-esc="props.activity.activity_type_id[1]"/>
+        </xpath>
+        <xpath expr="//ActivityMarkAsDone" position="attributes">
+            <attribute name="t-if">state.hasMarkDoneView and !props.activity.mc_automatic_pending</attribute>
+        </xpath>
+    </t>
+    <t t-inherit="mail.ActivityMarkAsDone" t-inherit-mode="extension">
+        <xpath expr="//button[@t-on-click='onClickDone']" position="attributes">
+            <attribute name="t-if">!props.activity.mc_automatic_pending and isSuggested</attribute>
+        </xpath>
+        <xpath expr="//button[@t-on-click='onClickDoneAndScheduleNext']" position="attributes">
+            <attribute name="t-if">!props.activity.mc_automatic_pending</attribute>
+        </xpath>
+        <xpath expr="//textarea" position="attributes">
+            <attribute name="t-att-readonly">props.activity.mc_automatic_pending</attribute>
+        </xpath>
+    </t>
+    <t t-inherit="mail.ActivityCalendarCommonPopover.footer" t-inherit-mode="extension">
+        <xpath expr="//button[@t-on-click='openRecord']" position="attributes">
+            <attribute name="t-if">!props.record.rawRecord.mc_automatic_pending</attribute>
+        </xpath>
+    </t>
+    <t t-name="mc_rov.AutomaticActivityCalendarBody" t-inherit="web.CalendarCommonPopover.body" t-inherit-mode="primary">
+        <xpath expr="//ul[1]" position="before">
+            <div t-if="props.record.rawRecord.mc_automatic_pending" class="px-3 py-2">
+                <a href="#" class="o_mc_activity_reference" t-on-click.stop.prevent="openRecord" t-esc="props.record.title"/>
+            </div>
+        </xpath>
+    </t>
+</templates>

@@ -44,3 +44,11 @@ from . import test_engineering_activity_events
 from . import test_engineering_activity_boundaries
 from . import test_engineering_activity_review
 from . import test_engineering_activity_final_review
+from . import inventory_activity_common
+from . import test_inventory_activity_policy
+from . import test_inventory_activity_events
+from . import test_inventory_activity_boundaries
+
+from . import test_automatic_activity_completion
+from . import test_automatic_activity_presentation
+from . import test_automatic_activity_views

@@ -4,6 +4,7 @@ from unittest.mock import patch
 from odoo.tests import tagged
 from odoo.tests.common import new_test_user
 
+from .automatic_completion_assertions import assert_automatic_close_rejected
 from .acceptance_activity_common import AcceptanceActivityCommon
 
 
@@ -256,32 +257,35 @@ class TestAcceptanceActivityLifecycle(AcceptanceActivityCommon):
         self.assertEqual(run.started_at, instant)
         self.assertEqual(run.original_deadline, policy._deadline(instant, policy.rejection_days))
 
-    def test_manual_done_does_not_approve_test(self):
+    def test_manual_done_is_blocked_without_approving_test(self):
         service, _policy, lot, cycle = self._visit()
         rnd = self._selected(service, lot)
         run = self._pending(cycle, "performance")
-        run.activity_id.action_feedback(feedback="Revisar posteriormente")
-        self.assertEqual(run.outcome, "manual_done")
+        with assert_automatic_close_rejected(self, run):
+            run.activity_id.action_feedback(feedback="Revisar posteriormente")
+        self.assertEqual(run.outcome, "pending")
         self.assertEqual(rnd.estado, "borrador")
         self.assertFalse(rnd.resultado)
 
-    def test_manual_cancel_does_not_reject_or_close_business(self):
+    def test_manual_cancel_is_blocked_without_rejecting_or_closing(self):
         service, _policy, lot, cycle = self._visit()
         rnd = self._selected(service, lot)
         run = self._pending(cycle, "performance")
-        run.activity_id.action_cancel()
-        self.assertEqual(run.outcome, "cancelled")
+        with assert_automatic_close_rejected(self, run):
+            run.activity_id.action_cancel()
+        self.assertEqual(run.outcome, "pending")
         self.assertEqual(rnd.estado, "borrador")
         self.assertEqual(cycle.state, "open")
 
-    def test_manual_fen_cancel_is_not_recreated_by_unrelated_edit(self):
+    def test_blocked_fen_cancel_and_unrelated_edit_keep_one_pending(self):
         service, _policy, lot, cycle = self._visit()
         rnd, _trn = self._accepted_pair(service, lot)
-        self._pending(cycle, "fen").activity_id.action_cancel()
+        with assert_automatic_close_rejected(self, self._pending(cycle, "fen")):
+            self._pending(cycle, "fen").activity_id.action_cancel()
         rnd.write({"condiciones_notas": "Nota sin cambiar requisitos"})
         service._reconcile(lot)
         self.assertEqual(len(self._stage_runs(cycle, "fen")), 1)
-        self.assertFalse(self._pending(cycle, "fen"))
+        self.assertTrue(self._pending(cycle, "fen").activity_id.active)
 
     def test_business_closure_is_not_overwritten_by_feedback_hook(self):
         service, _policy, lot, cycle = self._visit()

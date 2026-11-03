@@ -8,6 +8,7 @@ from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import tagged
 from odoo.tests.common import new_test_user
 
+from .automatic_completion_assertions import assert_automatic_close_rejected
 from .quality_activity_common import QualityActivityCommon
 
 
@@ -345,13 +346,14 @@ class TestQualityActivityBoundaries(QualityActivityCommon):
         with self.assertRaises(ValidationError), self.cr.savepoint():
             run.activity_id.write({"res_id": other.id})
 
-    def test_owner_can_finish_pending_without_private_ledger_permission(self):
+    def test_owner_cannot_hide_pending_without_private_ledger_permission(self):
         policy, alert, run = self._visit()
-        run.activity_id.with_user(policy.user_id).action_feedback(
-            feedback="QA decisión del taller"
-        )
-        self.assertEqual(run.outcome, "manual_done")
-        self.assertEqual(run.finished_by_id, policy.user_id)
+        with assert_automatic_close_rejected(self, run):
+            run.activity_id.with_user(policy.user_id).action_feedback(
+                feedback="QA decisión del taller"
+            )
+        self.assertEqual(run.outcome, "pending")
+        self.assertFalse(run.finished_by_id)
         self.assertFalse(alert.stage_id.done)
         self.assertFalse(run.with_user(policy.user_id).has_access("read"))
 

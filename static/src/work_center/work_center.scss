@@ -108,6 +108,15 @@
         min-height: 480px; height: 70vh; max-height: 680px; display: flex; flex-direction: column;
         border-top: 1px solid $border-color;
         > .o_view_controller { flex: 1; min-height: 0; }
+        // Embedded calendars need the height normally supplied by the action layout.
+        > .o_calendar_view {
+            display: flex; flex-direction: column;
+            > .o_content { flex: 1; min-height: 0; }
+        }
+        // Native mobile wrappers survive a resize beyond the mobile media query.
+        .o_calendar_renderer {
+            .o_actionswiper, .o_actionswiper_overflow_container, .o_actionswiper_target_container { height: 100%; }
+        }
     }
 }
 

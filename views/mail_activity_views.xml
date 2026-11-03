@@ -8,7 +8,23 @@
             <field name="user_id" position="after">
                 <field name="mc_employee_id" readonly="1" invisible="1" column_invisible="1" options="{'no_open': True, 'no_create': True}"/>
                 <field name="mc_employee_display" optional="show"/>
+                <field name="mc_automatic_pending" invisible="1" column_invisible="1"/>
             </field>
+            <xpath expr="//list" position="attributes">
+                <attribute name="js_class">mc_automatic_activity_list</attribute>
+            </xpath>
+            <xpath expr="//list/button[@name='action_done']" position="attributes">
+                <attribute name="invisible" add="mc_automatic_pending" separator=" or "/>
+            </xpath>
+            <xpath expr="//list/button[@name='unlink']" position="attributes">
+                <attribute name="invisible" add="mc_automatic_pending" separator=" or "/>
+            </xpath>
+            <xpath expr="//header/button[@name='action_done']" position="attributes">
+                <attribute name="invisible">context.get('mc_automatic_close_forbidden', False)</attribute>
+            </xpath>
+            <xpath expr="//header/button[@name='action_cancel']" position="attributes">
+                <attribute name="invisible">context.get('mc_automatic_close_forbidden', False)</attribute>
+            </xpath>
         </field>
     </record>
     <record id="view_activity_employee_form" model="ir.ui.view">
@@ -19,7 +35,11 @@
             <field name="user_id" position="after">
                 <field name="mc_employee_id" readonly="1" invisible="1" options="{'no_open': True, 'no_create': True}"/>
                 <field name="mc_employee_display"/>
+                <field name="mc_automatic_pending" invisible="1"/>
             </field>
+            <xpath expr="//button[@name='action_done']" position="attributes">
+                <attribute name="invisible" add="mc_automatic_pending" separator=" or "/>
+            </xpath>
         </field>
     </record>
     <record id="view_activity_employee_calendar" model="ir.ui.view">
@@ -30,6 +50,7 @@
             <field name="user_id" position="after">
                 <field name="mc_employee_id" invisible="1"/>
                 <field name="mc_employee_display"/>
+                <field name="mc_automatic_pending" invisible="1"/>
             </field>
         </field>
     </record>
@@ -38,6 +59,15 @@
         <field name="model">mail.activity</field>
         <field name="inherit_id" ref="mail.mail_activity_view_kanban_open_target"/>
         <field name="arch" type="xml">
+            <field name="active" position="after">
+                <field name="mc_automatic_pending" invisible="1"/>
+            </field>
+            <xpath expr="//button[@name='action_done']" position="attributes">
+                <attribute name="invisible" add="mc_automatic_pending" separator=" or "/>
+            </xpath>
+            <xpath expr="//button[@name='unlink']" position="attributes">
+                <attribute name="invisible">mc_automatic_pending</attribute>
+            </xpath>
             <xpath expr="//t[@t-name='card']/footer" position="before">
                 <div class="text-muted small mt-2">
                     <field name="mc_employee_id" invisible="1"/>
@@ -59,6 +89,30 @@
             <filter name="group_by_user_id" position="after">
                 <filter name="mc_group_employee" string="Empleado asignado" context="{'group_by': 'mc_employee_id'}"/>
             </filter>
+        </field>
+    </record>
+    <record id="view_activity_automatic_list_selection" model="ir.ui.view">
+        <field name="name">mail.activity.automatic.list.selection</field>
+        <field name="model">mail.activity</field>
+        <field name="inherit_id" ref="mail.mail_activity_view_tree_open_target"/>
+        <field name="priority">50</field>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="attributes">
+                <attribute name="js_class">mc_automatic_activity_list</attribute>
+            </xpath>
+        </field>
+    </record>
+    <record id="view_activity_automatic_restricted_form" model="ir.ui.view">
+        <field name="name">mail.activity.automatic.restricted.form</field>
+        <field name="model">mail.activity</field>
+        <field name="inherit_id" ref="mail.mail_activity_view_form_without_record_access"/>
+        <field name="arch" type="xml">
+            <field name="display_name" position="after">
+                <field name="mc_automatic_pending" invisible="1"/>
+            </field>
+            <xpath expr="//button[@name='action_done_redirect_to_other']" position="attributes">
+                <attribute name="invisible">mc_automatic_pending</attribute>
+            </xpath>
         </field>
     </record>
 </odoo>

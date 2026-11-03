@@ -1,6 +1,36 @@
 # Changelog
 
-## [19.0.25.4.0] — Unreleased
+## [19.0.25.6.0] — Unreleased
+
+### Added
+
+- Seguimiento de recepciones, entregas y transferencias internas para los tipos de
+  operación seleccionados, con tres días laborables e historial privado.
+- Las operaciones previstas para el futuro cuentan desde su fecha prevista. Los
+  pedidos restantes de una operación parcial conservan el compromiso del original.
+- Filtro Inventario en Trabajo asignado, respetando los permisos y empresas activos.
+
+### Fixed
+
+- Las actividades automáticas de Reparación, Fabricación, Aceptación, Calidad,
+  Ingeniería e Inventario permanecen pendientes hasta completar o cancelar realmente
+  su documento. Se bloquea su cierre manual también desde el servidor.
+- Las actividades automáticas abren su documento desde la tarjeta o referencia y
+  muestran sus opciones de edición autorizadas. Los recordatorios manuales y las
+  aprobaciones nativas conservan sus acciones habituales.
+- El calendario integrado conserva su altura en móvil y al cambiar el ancho de la ventana.
+
+### Validation
+
+- Última suite completa de STAGING: 1246 casos exactos; navegador: 94 pruebas.
+  Seis carreras de Inventario y cuatro de cierre/reprogramación aprobadas en copias aisladas.
+- QA operativo con Taller y Supervisor, recordatorios manuales, cierre real, reparto,
+  reprogramación y calendario en ambos temas aprobados. Copia QA cerrada, con historial
+  conservado y conexiones bloqueadas. Revisión independiente y controles locales aprobados.
+- No activa destinatarios reales ni reconstruye actividades históricas. Publicación,
+  CI de esta versión y despliegue pendientes.
+
+## [19.0.25.4.0] — 2026-10-27
 
 ### Added
 
@@ -18,7 +48,7 @@
 
 - STAGING: 870 casos backend por descubrimiento exacto, 63 pruebas de navegador y revisión
   visual en ambos temas aprobados. Pruebas temporales retiradas; existencias/configuraciones
-  conservadas. La publicación y el despliegue de esta versión siguen pendientes.
+  conservadas. Instalada en producción desde `3588f52`.
 
 ## [19.0.23.6.0] — 2026-09-24
 
