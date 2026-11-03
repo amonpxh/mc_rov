@@ -1,3 +1,13 @@
+## Entrega preparada: Inventario y cierre real de actividades — 2026-11-03
+
+Versión local **19.0.25.6.0**, rama `feature/inventory-activities`, corrección revisada
+en `aeb6113`. Suite STAGING1246, navegador94 y carreras aisladas6+4 aprobadas;
+QA Taller/Supervisor y calendario en ambos temas y cambios de ancho aprobados.
+Copia `mc_rov_inventory_qa_wamR0o` cerrada: servidor detenido, historial respaldado
+y conexiones bloqueadas. STAGING activo; producción sigue en19.0.25.5.0.
+Controles locales aprobados. Quedan publicación/PR, CI y entrega autorizada.
+No activar destinatarios reales ni reconstruir pendientes pasados.
+
 ## Inventario: Task3 guardada; RED315 del filtro en Trabajo asignado preparado — 2026-10-30
 
 Protecciones296nativas guardadas`b76b10a`, hooks aprobados y task-done3 revalidado8b6..b76. Task4BASEb76/brief leído; solo pruebas nuevas en test_work_assignment_process.py:11contratos de opciónInventario/stockacceso/solo picking/títuloindependiente/ninguno/empleado/mío-equipo/empresa/origenrestringido/dominiodinámico/sinProyectos/tiposmanualesypropios, más2controlesnativos. Seis casos anteriores de procesos idénticos porAST.296anteriores+6procesos+2controles+11nuevos=**315total**.
