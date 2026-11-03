@@ -82,6 +82,10 @@ con una solicitud interna del taller ni instalarlo por el nombre.
 No aparecen modelos `ai.*` o `llm.*`. Solo `ai_auto_install` figura instalado entre las
 extensiones listadas; auditar el módulo exacto `ai`, manifiestos y dependencias disponibles
 antes de escoger motor o instalar. La consulta inicial por prefijo no cierra esa cuestión.
+Suplemento20261103-165902-021 confirmó archivos de `ai` y `ai_app` disponibles,
+ambos sin instalar, licencia declarada OEEL-1. `ai_auto_install` instalado; no se
+leyeron configuraciones, agentes, prompts ni credenciales. Disponibilidad de archivos
+no implica proveedor configurado ni autorización para contratar o activar IA.
 En STAGING hay15 series ROV sin puesta en servicio y24 productos sin categoría, campo
 opcional en esta instalación. Son candidatos de revisión, no errores confirmados ni
 motivo para inventar fechas o categorías.

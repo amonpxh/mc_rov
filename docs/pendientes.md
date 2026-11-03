@@ -9,21 +9,32 @@ y notas de cierre5ad4a9a conservadas. Producción no cambia.
 
 Auditoría ejecutada y verificada: `installed-20261103-162622-901.json`,33 modelos,
 READ ONLY/rollback,137 fuentes y PID intactos. Compras/purchase_stock instalados;
-agentes IA ausentes entre los modelos registrados. Falta completar el módulo exacto
-`ai` y sus manifiestos disponibles antes de elegir instalación/proveedor.
+agentes IA ausentes entre los modelos registrados. Suplemento20261103-165902-021:
+`ai` y `ai_app` disponibles pero sin instalar, manifiestos OEEL-1, ningún secreto leído.
 
 Primer incremento KPI: núcleo puro local con16 pruebas GREEN tras RED14 fallos/2 controles,
-sin consulta BD ni instalación. Plazo original/vigente separados y cobertura explícita;
+sin consultas BD desde el núcleo. Plazo original/vigente separados y cobertura explícita;
 Reparación no conserva plazo final histórico y no se reconstruye desde chatter.
 Diseño: `docs/superpowers/specs/2026-11-03-work-kpi-design.md`.
-Adaptador autorizado, pruebas nativas y tablero todavía pendientes.
-RED36 preparado: `.tmp/staging-work-kpi-service-red.ps1`, seis controles nativos y30
-fallos esperados por servicio ausente; solo pruebas temporales, sin instalar KPI.
-Incluye auditoría READ ONLY del módulo exacto IA. Paquete local validado con dos
-recibos aceptados y21 rechazos; pendiente de ejecución SSH. No declarar RED confirmado.
+RED36 confirmado, intento20261103-165902-021:30 fallos esperados y seis controles
+nativos verdes, cero errores. STAGING activo; fuentes, datos y pruebas conservados.
+Servicio KPI instalado en STAGING, sin nuevas ACL; filtra empresa/documento antes
+de consultar historial privado, conserva fuentes archivadas autorizadas y cobertura.
+GREEN36/36 verificado20261103-173705-971, cero fallos/errores; respaldo
+`/var/tmp/mc-rov-kpi-service-green-QC9PNr`.139 fuentes exactas tras instalación;
+pruebas temporales restauradas, datos/configuraciones/stock/historial/PDFs intactos.
+La preparación corrigió UTF-8 del manifiesto y auxiliares QA (entorno, ValidationError,
+dominio nativo id=0); conservó casos, aserciones y producto. Intentos fallidos y sus
+recuperaciones se conservan en `.tmp/preparacion-uso-real-pilot`.
+
+Regresión completa1282 preparada en `.tmp/staging-work-kpi-regression.ps1`,
+1246 anteriores más36 KPI, con descubrimiento exacto por nombre; pendiente SSH.
+El tablero visual, revisión final e integración siguen pendientes. Producción6.0 intacta;
+no activar responsables ni automatismos reales ni reabrir la copia QA cerrada.
 
 Propuesta inicial de KPI: pendientes/vencidos, cumplimiento de plazos, tiempos de
-resolución y rechazos/reaperturas. Fórmulas y fuentes se fijarán tras la auditoría;
+resolución y rechazos/reaperturas. Núcleo y servicio tienen fórmulas especificadas;
+rechazos y reaperturas se definirán por flujo en otro incremento, sin contarlos por run;
 no inferir personas desde cuentas compartidas ni medir QA como rendimiento real.
 Compras/IA requieren planes específicos según las funciones instaladas. Credenciales,
 responsables, umbrales y activaciones reales siguen sin fijarse; no suponerlos.

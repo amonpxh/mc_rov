@@ -48,10 +48,10 @@ fuentes seleccionadas, permisos nativos y estadísticas agregadas; sin secretos 
 
 ### Task2: Especificar y entregar el primer incremento de KPI
 
-- [ ] Mapear cada indicador a campos/hitos realmente disponibles y fijar población,
+- [x] Mapear cada indicador a campos/hitos realmente disponibles y fijar población,
   plazo original/vigente, cobertura, fechas/filtros y evidencia accesible por rol.
-- [ ] Escribir diseño y plan específicos con archivos, interfaces y pruebas exactas.
-- [ ] TDD: fórmulas y permisos; RED/implementación mínima/GREEN; casos ficticios conocidos.
+- [x] Escribir diseño y plan específicos con archivos, interfaces y pruebas exactas.
+- [x] TDD: fórmulas y permisos;16 cálculos puros y36 contratos nativos en GREEN.
 - [ ] Tablero y navegación autorizada; pruebas de interfaz/ambos temas/roles y revisión independiente.
 - [ ] Integración y entrega concretas; no usar datos QA para metas de rendimiento reales.
 

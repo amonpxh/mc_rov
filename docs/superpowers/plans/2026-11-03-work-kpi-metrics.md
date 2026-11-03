@@ -47,5 +47,5 @@ tendrán un plan posterior con pruebas nativas de permisos y orígenes; el núcl
 
 - [x] Añadir fase `PYTHONPATH=ci-addons/mc_rov/models python3 -m unittest discover -s ci-addons/mc_rov/tests/unit -v`.
 - [x] Comprobar sintaxis/formato/lint: Black99 y pylint10/10; ejecución Odoo original conservada.
-- [ ] Guardar commit local; declarar núcleo probado localmente, no tablero instalado.
+- [x] Guardar commit local8af81cf; núcleo probado localmente, no tablero instalado.
 - [x] Siguiente corte especificado en `2026-11-03-work-kpi-service.md`; RED36 preparado, aún no ejecutado.

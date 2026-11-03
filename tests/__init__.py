@@ -52,3 +52,4 @@ from . import test_inventory_activity_boundaries
 from . import test_automatic_activity_completion
 from . import test_automatic_activity_presentation
 from . import test_automatic_activity_views
+from . import test_work_kpi

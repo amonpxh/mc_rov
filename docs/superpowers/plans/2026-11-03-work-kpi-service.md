@@ -32,9 +32,25 @@ no se pueden asignar a un período acotado; documentar esta cobertura en siguien
   Reutilizar métodos de fixture, sin heredar clases que contengan tests.
 - [x] Preparar transporte temporal con baseline137, respaldo, restauración y snapshot sin cambios.
   Bash/PowerShell/Python válidos; verificador real: dos recibos válidos y21 rechazos.
-- [ ] Confirmar RED exacto en STAGING:30 Missing work KPI service, seis controles verdes, cero errores.
-- [ ] Implementar `models/work_kpi.py`, importar servicio y núcleo; mantener permisos originales.
-- [ ] GREEN36 y pruebas puras16; revisar cobertura/seguridad antes del tablero.
+- [x] Confirmar RED exacto en STAGING:30 Missing work KPI service, seis controles verdes, cero errores.
+  Intento20261103-165902-021, respaldo `/var/tmp/mc-rov-kpi-service-red-tL6hSb`;
+  producto, configuración y pruebas restaurados, servicio activo.
+- [x] Implementar `models/work_kpi.py`, importar servicio y núcleo; mantener permisos originales.
+  Implementación local, Black99/pylint10,16 pruebas puras conservadas en GREEN.
+- [x] Preparar GREEN36 con respaldo/recuperación fresca y restauración de pruebas.
+  Paquete: `.tmp/staging-work-kpi-service-green.ps1`; dos recibos válidos y16 rechazos,
+  sintaxis Bash/PowerShell y preflight de hashes aprobados. Ejecutado: véase GREEN final.
+  v1 falló antes de instalar por lectura local de acentos del manifiesto; reproducido
+  con el precheck real. v2 UTF-8 explícito y bytes fijados al SHA instalado; mismo
+  producto/pruebas. Regresión: manifiesto exacto aceptado, cuatro alterados rechazados.
+  v2:17 verdes/19 errores QA/0 fallos; recuperación verificada. v3 corrige solo el
+  entorno del auxiliar `_team` y cuatro assertRaises a ValidationError concreto;
+ 36 casos conservados y producto idéntico. Registro `kpi-service-fixture-correction.json`.
+- [x] GREEN36 y pruebas puras16; revisar cobertura/seguridad antes del tablero.
+ 36/36 nativos, cero fallos/errores, intento20261103-173705-971; respaldo QC9PNr.
+  Recibo revalidado;139 fuentes exactas, datos intactos, pruebas restauradas y STAGING activo.
+- [x] Preparar regresión1282 (1246 anteriores y36 KPI) con fuente exacta y restauración.
+- [ ] Ejecutar regresión1282 en STAGING y validar el recibo de ese intento.
 - [ ] Regresión completa apropiada al cambio y revisión independiente al terminar la entrega.
 
 ## Decisiones
