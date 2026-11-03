@@ -1,12 +1,22 @@
-## Entrega preparada: Inventario y cierre real de actividades — 2026-11-03
+## Producción instalada: Inventario y cierre real de actividades — 2026-11-03
 
-Versión local **19.0.25.6.0**, rama `feature/inventory-activities`, corrección revisada
-en `aeb6113`. Suite STAGING1246, navegador94 y carreras aisladas6+4 aprobadas;
-QA Taller/Supervisor y calendario en ambos temas y cambios de ancho aprobados.
-Copia `mc_rov_inventory_qa_wamR0o` cerrada: servidor detenido, historial respaldado
-y conexiones bloqueadas. STAGING activo; producción sigue en19.0.25.5.0.
-Controles locales aprobados. Quedan publicación/PR, CI y entrega autorizada.
-No activar destinatarios reales ni reconstruir pendientes pasados.
+**19.0.25.6.0 instalada y verificada**, commit `40ce2fe`, [PR #113](https://github.com/amonpxh/mc_rov/pull/113).
+CI del PR y de main: 1246 casos exactos, cero fallos y errores; formato aprobado.
+STAGING: 94 pruebas de navegador, carreras aisladas 6+4, QA Taller/Supervisor y
+calendario en ambos temas y cambios de ancho aprobados. Revisión independiente aprobada.
+Copia `mc_rov_inventory_qa_wamR0o` cerrada, con historial conservado y conexiones bloqueadas.
+
+Recibo productivo `INVENTORY_PRODUCTION_DEPLOY=PASSED`; Odoo activo desde
+2026-11-03 19:03:58 UTC. Respaldo: `/var/backups/mc-rov-prod-inventory-activities-yu8541`.
+Verificados esquema, permisos, protección de cierre manual en los seis flujos y vistas
+nativas. Existencias, operaciones, políticas, calendarios, historial y PDFs emitidos
+conservados; cero cuentas, actividades, políticas e historial de Inventario nuevos.
+Solo se renovó `write_date` de las series 3 y 5, diferencia previamente diagnosticada.
+Evidencia local del paquete: `.tmp/prod-inventory-activities` en el workspace Code.
+
+Queda preparar el uso real: definir responsables, calendarios y tipos de operación,
+acordar los KPI mínimos y activar las políticas elegidas. La instalación no activó
+automatismos reales ni reconstruyó pendientes antiguos. No repetir el instalador.
 
 ## Inventario: Task3 guardada; RED315 del filtro en Trabajo asignado preparado — 2026-10-30
 

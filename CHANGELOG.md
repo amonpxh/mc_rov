@@ -1,6 +1,6 @@
 # Changelog
 
-## [19.0.25.6.0] — Unreleased
+## [19.0.25.6.0] — 2026-11-03
 
 ### Added
 
@@ -27,8 +27,10 @@
 - QA operativo con Taller y Supervisor, recordatorios manuales, cierre real, reparto,
   reprogramación y calendario en ambos temas aprobados. Copia QA cerrada, con historial
   conservado y conexiones bloqueadas. Revisión independiente y controles locales aprobados.
-- No activa destinatarios reales ni reconstruye actividades históricas. Publicación,
-  CI de esta versión y despliegue pendientes.
+- CI del PR #113 y de main aprobado: 1246 casos exactos, cero fallos y errores.
+  Instalada y verificada en producción desde `40ce2fe`, con respaldo y Odoo activo.
+- Datos, permisos, calendarios y PDFs conservados. No activó destinatarios reales
+  ni reconstruyó actividades históricas; la configuración operativa sigue pendiente.
 
 ## [19.0.25.4.0] — 2026-10-27
 
