@@ -4,6 +4,7 @@ from unittest.mock import patch
 from odoo import Command
 from odoo.tests import tagged
 
+from .automatic_completion_assertions import assert_automatic_close_rejected
 from .quality_activity_common import QualityActivityCommon
 
 
@@ -250,44 +251,54 @@ class TestQualityActivityLifecycle(QualityActivityCommon):
         alert.write({"description": "QA sin evento nuevo"})
         self.assertFalse(self._runs(alert))
 
-    def test_manual_done_audits_without_resolving_or_recreating(self):
+    def test_manual_done_is_blocked_without_resolving_or_recreating(self):
         _policy, alert, run = self._scenario()
-        run.activity_id.action_feedback(feedback="QA decisión manual")
-        self.assertEqual(run.outcome, "manual_done")
+        with assert_automatic_close_rejected(self, run):
+            run.activity_id.action_feedback(feedback="QA decisión manual")
+        self.assertEqual(run.outcome, "pending")
         self.assertFalse(alert.stage_id.done)
-        self.assertEqual(run.finished_by_id, self.env.user)
-        self.assertTrue(run.finished_at)
-        self.assertTrue(run.finish_reason)
+        self.assertFalse(run.finished_by_id)
+        self.assertFalse(run.finished_at)
+        self.assertFalse(run.finish_reason)
         alert.write({"description": "QA edición abierta"})
         self.assertEqual(self._runs(alert), run)
 
-    def test_manual_cancel_audits_without_resolving_or_recreating(self):
+    def test_manual_cancel_is_blocked_without_resolving_or_recreating(self):
         _policy, alert, run = self._scenario()
-        run.activity_id.action_cancel()
-        self.assertEqual(run.outcome, "cancelled")
+        with assert_automatic_close_rejected(self, run):
+            run.activity_id.action_cancel()
+        self.assertEqual(run.outcome, "pending")
         self.assertFalse(alert.stage_id.done)
-        self.assertEqual(run.finished_by_id, self.env.user)
-        self.assertTrue(run.finish_reason)
+        self.assertFalse(run.finished_by_id)
+        self.assertFalse(run.finish_reason)
         alert.write({"description": "QA edición abierta"})
         self.assertEqual(self._runs(alert), run)
 
-    def test_manual_archive_is_audited_without_resolving(self):
+    def test_manual_archive_is_blocked_without_resolving(self):
         _policy, alert, run = self._scenario()
-        run.activity_id.write({"active": False})
-        self.assertEqual(run.outcome, "cancelled")
+        with assert_automatic_close_rejected(self, run):
+            run.activity_id.write({"active": False})
+        self.assertEqual(run.outcome, "pending")
         self.assertFalse(alert.stage_id.done)
-        self.assertTrue(run.finish_reason)
+        self.assertFalse(run.finish_reason)
 
-    def test_manual_unlink_preserves_history_and_current_deadline(self):
+    def test_blocked_manual_unlink_preserves_pending_history_and_deadline(self):
         _policy, alert, run = self._scenario()
+        captured = run.current_deadline
         changed = date(2026, 12, 4)
         run.activity_id.date_deadline = changed
-        run.activity_id.unlink()
-        self.assertEqual(run.outcome, "cancelled")
-        self.assertFalse(run.activity_id)
-        self.assertEqual(run.current_deadline, changed)
+        with assert_automatic_close_rejected(self, run):
+            run.activity_id.unlink()
+        self.assertEqual(run.outcome, "pending")
+        self.assertTrue(run.activity_id.active)
+        self.assertEqual(run.current_deadline, captured)
+        self.assertEqual(run.activity_id.date_deadline, changed)
         self.assertFalse(alert.stage_id.done)
-        self.assertTrue(run.finish_reason)
+        self.assertFalse(run.finish_reason)
+        # Solo el cierre real captura el plazo editado y termina el seguimiento.
+        alert.stage_id = self._stage(True)
+        self.assertEqual(run.outcome, "business_done")
+        self.assertEqual(run.current_deadline, changed)
 
     def test_manual_homonymous_activity_is_not_closed(self):
         policy, alert, run = self._scenario()
@@ -335,15 +346,16 @@ class TestQualityActivityLifecycle(QualityActivityCommon):
         alert.stage_id = self._stage(True)
         self.assertEqual(run.outcome, "business_done")
 
-    def test_manual_outcome_survives_close_and_reopen_starts_new_cycle(self):
+    def test_real_close_after_blocked_cancel_and_reopen_starts_new_cycle(self):
         _policy, alert, first = self._scenario()
-        first.activity_id.action_cancel()
+        with assert_automatic_close_rejected(self, first):
+            first.activity_id.action_cancel()
         alert.stage_id = self._stage(True)
-        self.assertEqual(first.outcome, "cancelled")
+        self.assertEqual(first.outcome, "business_done")
         alert.stage_id = self._stage()
         runs = self._runs(alert)
         self.assertEqual(runs.mapped("cycle"), [1, 2])
-        self.assertEqual(runs.mapped("outcome"), ["cancelled", "pending"])
+        self.assertEqual(runs.mapped("outcome"), ["business_done", "pending"])
 
     def test_general_paused_reopen_is_not_backfilled_by_later_open_move(self):
         _policy, alert, first = self._scenario()

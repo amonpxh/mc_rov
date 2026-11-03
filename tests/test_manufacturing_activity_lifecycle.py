@@ -1,10 +1,11 @@
 from datetime import date
 from unittest.mock import patch
 
-from odoo import Command
+from odoo import Command, _
 from odoo.exceptions import ValidationError
 from odoo.tests import tagged
 
+from .automatic_completion_assertions import assert_automatic_close_rejected
 from .manufacturing_activity_common import ManufacturingActivityCommon
 
 
@@ -119,28 +120,31 @@ class TestManufacturingActivityLifecycle(ManufacturingActivityCommon):
         self.assertEqual(production.state, "done")
         self.assertEqual(run.outcome, "business_done")
 
-    def test_manual_done_does_not_finish_or_recreate_production(self):
+    def test_manual_done_is_blocked_without_finishing_or_recreating(self):
         _policy, production, run = self._visit()
-        run.activity_id.action_feedback(feedback="QA cierre manual")
+        with assert_automatic_close_rejected(self, run):
+            run.activity_id.action_feedback(feedback="QA cierre manual")
         production.write({"origin": "QA edición posterior"})
         self.assertEqual(production.state, "confirmed")
-        self.assertEqual(run.outcome, "manual_done")
-        self.assertEqual(run.finish_reason, "QA cierre manual")
+        self.assertEqual(run.outcome, "pending")
+        self.assertFalse(run.finish_reason)
         self.assertEqual(self._runs(production), run)
-        self.assertFalse(production.activity_ids)
+        self.assertEqual(production.activity_ids, run.activity_id)
 
-    def test_manual_cancel_does_not_cancel_production(self):
+    def test_manual_cancel_is_blocked_without_cancelling_production(self):
         _policy, production, run = self._visit()
-        run.activity_id.action_cancel()
+        with assert_automatic_close_rejected(self, run):
+            run.activity_id.action_cancel()
         self.assertEqual(production.state, "confirmed")
-        self.assertEqual(run.outcome, "cancelled")
-        self.assertFalse(production.activity_ids)
+        self.assertEqual(run.outcome, "pending")
+        self.assertEqual(production.activity_ids, run.activity_id)
         self.assertEqual(self._runs(production), run)
 
-    def test_manual_archive_records_cancellation(self):
+    def test_manual_archive_is_blocked_and_keeps_pending(self):
         _policy, production, run = self._visit()
-        run.activity_id.active = False
-        self.assertEqual(run.outcome, "cancelled")
+        with assert_automatic_close_rejected(self, run):
+            run.activity_id.active = False
+        self.assertEqual(run.outcome, "pending")
         self.assertEqual(production.state, "confirmed")
 
     def test_policy_pause_still_allows_completion(self):
@@ -181,7 +185,7 @@ class TestManufacturingActivityLifecycle(ManufacturingActivityCommon):
         with self.assertRaises(ValidationError), self.cr.savepoint():
             self._finish(production)
             self.assertEqual(run.outcome, "business_done")
-            raise ValidationError("QA fallo posterior")
+            raise ValidationError(_("QA fallo posterior"))
         production.invalidate_recordset()
         run.invalidate_recordset()
         self.assertEqual(production.state, "confirmed")
@@ -211,16 +215,18 @@ class TestManufacturingActivityLifecycle(ManufacturingActivityCommon):
         self.assertTrue(remaining_run.activity_id.active)
         self.assertNotEqual(remaining_run.production_id.state, "done")
 
-    def test_split_after_manual_activity_deletion_keeps_reprogrammed_deadline(self):
+    def test_split_after_blocked_deletion_keeps_reprogrammed_deadline(self):
         _policy, production, run = self._visit(product_qty=2)
         run.activity_id.date_deadline = date(2026, 10, 30)
-        run.activity_id.unlink()
+        with assert_automatic_close_rejected(self, run):
+            run.activity_id.unlink()
         remaining = production._split_productions(amounts={production: [1.0, 1.0]}) - production
         self.assertEqual(self._runs(remaining).activity_id.date_deadline, date(2026, 10, 30))
 
-    def test_manual_result_is_preserved_when_production_finishes(self):
+    def test_real_completion_after_blocked_manual_done_records_business_result(self):
         _policy, production, run = self._visit()
-        run.activity_id.action_feedback(feedback="QA decisión manual")
+        with assert_automatic_close_rejected(self, run):
+            run.activity_id.action_feedback(feedback="QA decisión manual")
         self._finish(production)
         self.assertEqual(production.state, "done")
-        self.assertEqual(run.outcome, "manual_done")
+        self.assertEqual(run.outcome, "business_done")

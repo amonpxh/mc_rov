@@ -8,6 +8,7 @@ from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import tagged
 from odoo.tests.common import new_test_user
 
+from .automatic_completion_assertions import assert_automatic_close_rejected
 from .acceptance_activity_common import AcceptanceActivityCommon
 
 
@@ -354,13 +355,14 @@ class TestAcceptanceActivityBoundaries(AcceptanceActivityCommon):
         self.assertEqual(resolution.outcome, "business_done")
         self.assertEqual(self._stage_runs(cycle, "fen").outcome, "pending")
 
-    def test_unrelated_child_detail_edit_does_not_recreate_cancelled_fen(self):
+    def test_unrelated_detail_edit_keeps_pending_after_blocked_fen_cancel(self):
         service, _policy, lot, cycle = self._visit()
         rnd, _trn = self._pair(service, lot)
-        self._stage_runs(cycle, "fen").activity_id.action_cancel()
+        with assert_automatic_close_rejected(self, self._stage_runs(cycle, "fen")):
+            self._stage_runs(cycle, "fen").activity_id.action_cancel()
         rnd.chequeo_ids[:1].detalle = "Solo aclara la medición"
         self.assertEqual(len(self._stage_runs(cycle, "fen")), 1)
-        self.assertEqual(self._stage_runs(cycle, "fen").outcome, "cancelled")
+        self.assertEqual(self._stage_runs(cycle, "fen").outcome, "pending")
 
     def test_atomic_selection_preserves_previous_pair_on_bad_second_proof(self):
         service, _policy, lot, cycle = self._visit()

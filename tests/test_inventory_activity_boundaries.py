@@ -10,6 +10,7 @@ from odoo.exceptions import AccessError, UserError
 from odoo.tests import tagged
 from odoo.tests.common import new_test_user
 
+from .automatic_completion_assertions import assert_automatic_close_rejected
 from .test_inventory_activity_events import InventoryEventCommon
 
 
@@ -83,43 +84,47 @@ class TestInventoryActivityBoundaries(InventoryEventCommon):
             except IntegrityError:
                 self.fail("Falta explicar la conservación del historial de inventario")
 
-    def test_manual_done_records_actor_without_validating_stock(self):
+    def test_manual_done_is_blocked_without_validating_stock(self):
         _policy, picking, run = self._visit()
         state = picking.state
-        run.activity_id.with_user(self.operator).action_feedback(
-            feedback="QA realizado manualmente"
-        )
-        self.assertEqual(run.outcome, "manual_done")
-        self.assertEqual(run.finished_by_id, self.operator)
-        self.assertTrue(run.finished_at)
-        self.assertIn("QA realizado manualmente", run.finish_reason)
+        with assert_automatic_close_rejected(self, run):
+            run.activity_id.with_user(self.operator).action_feedback(
+                feedback="QA realizado manualmente"
+            )
+        self.assertEqual(run.outcome, "pending")
+        self.assertFalse(run.finished_by_id)
+        self.assertFalse(run.finished_at)
+        self.assertFalse(run.finish_reason)
         self.assertEqual(picking.state, state)
         self.assertNotEqual(picking.state, "done")
 
-    def test_manual_cancel_records_reason_without_cancelling_stock(self):
+    def test_manual_cancel_is_blocked_without_cancelling_stock(self):
         _policy, picking, run = self._visit()
         state = picking.state
-        run.activity_id.with_user(self.operator).action_cancel()
-        self.assertEqual(run.outcome, "cancelled")
-        self.assertEqual(run.finished_by_id, self.operator)
-        self.assertTrue(run.finish_reason)
+        with assert_automatic_close_rejected(self, run):
+            run.activity_id.with_user(self.operator).action_cancel()
+        self.assertEqual(run.outcome, "pending")
+        self.assertFalse(run.finished_by_id)
+        self.assertFalse(run.finish_reason)
         self.assertEqual(picking.state, state)
 
-    def test_manual_archive_records_cancellation(self):
+    def test_manual_archive_is_blocked_and_keeps_pending(self):
         _policy, picking, run = self._visit()
-        run.activity_id.with_user(self.operator).write({"active": False})
-        self.assertEqual(run.outcome, "cancelled")
-        self.assertTrue(run.finish_reason)
+        with assert_automatic_close_rejected(self, run):
+            run.activity_id.with_user(self.operator).write({"active": False})
+        self.assertEqual(run.outcome, "pending")
+        self.assertFalse(run.finish_reason)
         self.assertNotEqual(picking.state, "cancel")
 
-    def test_unlink_records_cancellation_and_preserves_deadline(self):
+    def test_blocked_unlink_preserves_pending_and_deadline(self):
         _policy, picking, run = self._visit()
         deadline = self._reprogram(run)
-        run.activity_id.with_user(self.coordinator).unlink()
-        self.assertEqual(run.outcome, "cancelled")
+        with assert_automatic_close_rejected(self, run):
+            run.activity_id.with_user(self.coordinator).unlink()
+        self.assertEqual(run.outcome, "pending")
         self.assertEqual(run.current_deadline, deadline)
         self.assertEqual(run.cycle_id.current_deadline, deadline)
-        self.assertFalse(run.activity_id)
+        self.assertTrue(run.activity_id.active)
         self.assertNotEqual(picking.state, "done")
 
     def test_reprogram_updates_run_cycle_without_replacing_original(self):
@@ -140,7 +145,7 @@ class TestInventoryActivityBoundaries(InventoryEventCommon):
         self.assertEqual(child.activity_id.date_deadline, deadline)
         self.assertEqual(child.original_deadline, run.original_deadline)
 
-    def test_archive_with_authorized_reprogram_keeps_final_deadline(self):
+    def test_authorized_reprogram_cannot_smuggle_archive_and_rolls_back(self):
         _policy, _picking, run = self._visit()
         activity = run.activity_id
         deadline = run.original_deadline + timedelta(days=2)
@@ -153,25 +158,28 @@ class TestInventoryActivityBoundaries(InventoryEventCommon):
                 values = {**values, "active": False}
             return native_write(records, values)
 
-        with patch.object(model, "write", combined_write):
+        with patch.object(model, "write", combined_write), assert_automatic_close_rejected(
+            self, run
+        ):
             self._wizard(
                 activity,
                 apply_deadline=True,
                 date_deadline=deadline,
                 reason="QA reprogramar y archivar",
             ).action_apply()
-        self.assertEqual(run.outcome, "cancelled")
-        self.assertFalse(activity.active)
-        self.assertEqual(run.current_deadline, deadline)
-        self.assertEqual(run.cycle_id.current_deadline, deadline)
+        self.assertEqual(run.outcome, "pending")
+        self.assertTrue(activity.active)
+        self.assertEqual(run.current_deadline, run.original_deadline)
+        self.assertEqual(run.cycle_id.current_deadline, run.original_deadline)
 
-    def test_reprogrammed_removed_activity_keeps_remaining_commitment(self):
+    def test_reprogrammed_activity_after_blocked_removal_keeps_remaining_commitment(self):
         _policy, picking, run = self._visit()
         deadline = self._reprogram(run)
-        run.activity_id.with_user(self.coordinator).unlink()
+        with assert_automatic_close_rejected(self, run):
+            run.activity_id.with_user(self.coordinator).unlink()
         remaining = self._finish(picking, 1)
         self.assertEqual(self._runs(remaining).current_deadline, deadline)
-        self.assertEqual(run.outcome, "cancelled")
+        self.assertEqual(run.outcome, "business_done")
 
     def test_assignee_cannot_extend_deadline_directly(self):
         _policy, _picking, run = self._visit()
@@ -244,14 +252,15 @@ class TestInventoryActivityBoundaries(InventoryEventCommon):
         self.assertEqual(run.activity_id.mc_employee_id, employee)
         self.assertEqual(run.activity_id.user_id, self.operator)
 
-    def test_feedback_then_reservation_does_not_recreate(self):
+    def test_blocked_feedback_then_reservation_keeps_one_pending(self):
         _policy, picking, run = self._visit()
-        run.activity_id.with_user(self.operator).action_feedback(
-            feedback="QA terminado manualmente"
-        )
+        with assert_automatic_close_rejected(self, run):
+            run.activity_id.with_user(self.operator).action_feedback(
+                feedback="QA terminado manualmente"
+            )
         picking.with_user(self.operator).action_assign()
         self.assertEqual(self._runs(picking), run)
-        self.assertFalse(run.activity_id.filtered("active"))
+        self.assertTrue(run.activity_id.filtered("active"))
 
     def test_schedule_edit_preserves_captured_deadline(self):
         _policy, picking, run = self._visit()
@@ -428,13 +437,14 @@ class TestInventoryActivityBoundaries(InventoryEventCommon):
         self.assertFalse(self._runs(picking))
         self.assertEqual(user.company_ids, other)
 
-    def test_paused_policy_still_records_manual_decision(self):
+    def test_paused_policy_still_blocks_manual_completion(self):
         policy, picking, run = self._visit()
         policy.enabled = False
-        run.activity_id.with_user(self.operator).action_feedback(
-            feedback="QA decisión durante pausa"
-        )
-        self.assertEqual(run.outcome, "manual_done")
+        with assert_automatic_close_rejected(self, run):
+            run.activity_id.with_user(self.operator).action_feedback(
+                feedback="QA decisión durante pausa"
+            )
+        self.assertEqual(run.outcome, "pending")
         self.assertNotEqual(picking.state, "done")
 
     def test_paused_partial_closes_parent_without_new_pending(self):

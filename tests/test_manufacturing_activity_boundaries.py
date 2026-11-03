@@ -9,6 +9,7 @@ from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import tagged
 from odoo.tests.common import new_test_user
 
+from .automatic_completion_assertions import assert_automatic_close_rejected
 from .manufacturing_activity_common import ManufacturingActivityCommon
 
 
@@ -132,13 +133,15 @@ class TestManufacturingActivityBoundaries(ManufacturingActivityCommon):
         with self.assertRaises(AccessError):
             policy.with_user(policy.user_id).read(["lead_days"])
 
-    def test_manual_audit_identifies_actor_without_changing_employee(self):
+    def test_blocked_manual_completion_preserves_actor_and_employee(self):
         policy, _production, run = self._visit()
         run.activity_id.mc_employee_id = self.empleado
-        run.activity_id.with_user(policy.user_id).action_feedback(feedback="QA cierre propio")
-        self.assertEqual(run.finished_by_id, policy.user_id)
-        self.assertEqual(run.outcome, "manual_done")
-        self.assertEqual(run.finish_reason, "QA cierre propio")
+        with assert_automatic_close_rejected(self, run):
+            run.activity_id.with_user(policy.user_id).action_feedback(feedback="QA cierre propio")
+        self.assertFalse(run.finished_by_id)
+        self.assertEqual(run.outcome, "pending")
+        self.assertFalse(run.finish_reason)
+        self.assertEqual(run.activity_id.mc_employee_id, self.empleado)
 
     def test_pending_production_cannot_change_product(self):
         _policy, production, run = self._visit()

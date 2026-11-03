@@ -7,6 +7,7 @@ from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import tagged
 from odoo.tests.common import new_test_user
 
+from .automatic_completion_assertions import assert_automatic_close_rejected
 from .engineering_activity_common import EngineeringActivityCommon
 from .test_engineering_activity_events import _advance_native
 
@@ -77,35 +78,38 @@ class TestEngineeringActivityBoundaries(EngineeringActivityCommon):
             .create({"activity_ids": [Command.set(activity.ids)], **values})
         )
 
-    def test_manual_done_records_actor_without_approving_or_applying(self):
+    def test_manual_done_is_blocked_without_approving_or_applying(self):
         policy, eco, run = self._visit()
         approval = eco.approval_ids.read(["status", "user_id"])
-        run.activity_id.with_user(policy.prepare_user_id).action_feedback(
-            feedback="QA hecho manual"
-        )
-        self.assertEqual(run.outcome, "manual_done")
-        self.assertEqual(run.finished_by_id, policy.prepare_user_id)
-        self.assertTrue(run.finished_at)
-        self.assertIn("QA hecho manual", run.finish_reason)
+        with assert_automatic_close_rejected(self, run):
+            run.activity_id.with_user(policy.prepare_user_id).action_feedback(
+                feedback="QA hecho manual"
+            )
+        self.assertEqual(run.outcome, "pending")
+        self.assertFalse(run.finished_by_id)
+        self.assertFalse(run.finished_at)
+        self.assertFalse(run.finish_reason)
         self.assertEqual(eco.state, "confirmed")
         self.assertEqual(eco.approval_ids.read(["status", "user_id"]), approval)
 
-    def test_manual_cancel_records_reason_without_changing_eco(self):
+    def test_manual_cancel_is_blocked_without_changing_eco(self):
         _policy, eco, run = self._visit()
-        run.activity_id.action_cancel()
-        self.assertEqual(run.outcome, "cancelled")
-        self.assertTrue(run.finish_reason)
-        self.assertEqual(run.finished_by_id, self.env.user)
+        with assert_automatic_close_rejected(self, run):
+            run.activity_id.action_cancel()
+        self.assertEqual(run.outcome, "pending")
+        self.assertFalse(run.finish_reason)
+        self.assertFalse(run.finished_by_id)
         self.assertEqual(eco.state, "confirmed")
 
-    def test_manual_archive_records_cancellation(self):
+    def test_manual_archive_is_blocked_and_keeps_pending(self):
         _policy, eco, run = self._visit()
-        run.activity_id.write({"active": False})
-        self.assertEqual(run.outcome, "cancelled")
-        self.assertTrue(run.finish_reason)
+        with assert_automatic_close_rejected(self, run):
+            run.activity_id.write({"active": False})
+        self.assertEqual(run.outcome, "pending")
+        self.assertFalse(run.finish_reason)
         self.assertTrue(eco.active)
 
-    def test_unlink_preserves_current_deadline_and_reason(self):
+    def test_blocked_unlink_preserves_current_deadline_and_pending(self):
         _policy, _eco, run = self._visit()
         changed = run.original_deadline - timedelta(days=3)
         self._wizard(
@@ -114,11 +118,12 @@ class TestEngineeringActivityBoundaries(EngineeringActivityCommon):
             date_deadline=changed,
             reason="QA reprogramación antes de retirar la actividad",
         ).action_apply()
-        run.activity_id.unlink()
-        self.assertEqual(run.outcome, "cancelled")
+        with assert_automatic_close_rejected(self, run):
+            run.activity_id.unlink()
+        self.assertEqual(run.outcome, "pending")
         self.assertEqual(run.current_deadline, changed)
-        self.assertFalse(run.activity_id)
-        self.assertTrue(run.finish_reason)
+        self.assertTrue(run.activity_id.active)
+        self.assertFalse(run.finish_reason)
 
     def test_reprogram_updates_run_and_cycle_without_replacing_original(self):
         _policy, _eco, run = self._visit()
@@ -135,7 +140,7 @@ class TestEngineeringActivityBoundaries(EngineeringActivityCommon):
         self.assertEqual(run.original_deadline, original)
         self.assertEqual(run.cycle_id.original_deadline, original)
 
-    def test_removed_reprogrammed_activity_keeps_deadline_for_apply(self):
+    def test_blocked_removal_keeps_reprogrammed_deadline_for_apply(self):
         _policy, eco, run = self._visit()
         changed = run.original_deadline - timedelta(days=3)
         self._wizard(
@@ -144,28 +149,31 @@ class TestEngineeringActivityBoundaries(EngineeringActivityCommon):
             date_deadline=changed,
             reason="QA conservar la reprogramación al cambiar de etapa",
         ).action_apply()
-        run.activity_id.unlink()
+        with assert_automatic_close_rejected(self, run):
+            run.activity_id.unlink()
         _advance_native(self, eco)
         apply_run = self._runs(eco).filtered(lambda row: row.stage == "apply")
         self.assertEqual(len(apply_run), 1)
         self.assertEqual(apply_run.activity_id.date_deadline, changed)
 
-    def test_ordinary_edit_does_not_recreate_manually_finished_task(self):
+    def test_ordinary_edit_keeps_one_pending_after_blocked_manual_done(self):
         _policy, eco, run = self._visit()
-        run.activity_id.action_feedback(feedback="QA decisión manual")
+        with assert_automatic_close_rejected(self, run):
+            run.activity_id.action_feedback(feedback="QA decisión manual")
         eco.write({"name": "QA cambio editado"})
         self.assertEqual(self._runs(eco), run)
-        self.assertFalse(run.activity_id.filtered("active"))
+        self.assertTrue(run.activity_id.filtered("active"))
         self.assertEqual(eco.state, "confirmed")
 
-    def test_future_applicable_event_after_manual_done_creates_only_apply(self):
+    def test_future_applicable_event_after_blocked_done_creates_only_apply(self):
         _policy, eco, first = self._visit()
-        first.activity_id.action_feedback(feedback="QA terminado manualmente")
+        with assert_automatic_close_rejected(self, first):
+            first.activity_id.action_feedback(feedback="QA terminado manualmente")
         _advance_native(self, eco)
         pending = self._runs(eco).filtered(lambda row: row.outcome == "pending")
         self.assertEqual(len(pending), 1)
         self.assertEqual(pending.stage, "apply")
-        self.assertEqual(first.outcome, "manual_done")
+        self.assertEqual(first.outcome, "business_done")
 
     def test_homonymous_unlinked_activity_is_not_closed(self):
         policy, eco, run = self._visit()
@@ -390,9 +398,10 @@ class TestEngineeringActivityBoundaries(EngineeringActivityCommon):
         self.assertEqual(run.activity_id.res_id, eco.id)
         self.assertEqual(run.original_deadline, original)
 
-    def test_paused_tracking_still_records_manual_decision(self):
+    def test_paused_tracking_still_blocks_manual_completion(self):
         policy, eco, run = self._visit()
         policy.enabled = False
-        run.activity_id.action_feedback(feedback="QA cierre bajo pausa")
-        self.assertEqual(run.outcome, "manual_done")
+        with assert_automatic_close_rejected(self, run):
+            run.activity_id.action_feedback(feedback="QA cierre bajo pausa")
+        self.assertEqual(run.outcome, "pending")
         self.assertEqual(eco.state, "confirmed")

@@ -1,0 +1,287 @@
+{
+  "count": 35,
+  "removed_tests": 0,
+  "one_for_one": true,
+  "mapping": [
+    {
+      "file": "test_repair_activity_lifecycle.py",
+      "class": "TestRepairActivityLifecycle",
+      "old": "test_manual_done_does_not_confirm_source_or_recreate",
+      "new": "test_manual_done_is_blocked_without_confirming_or_recreating",
+      "before_sha256": "b0942890906e199d0a7f22d253615241b964ed4a8c9a08da3a33e50ad1063710",
+      "after_sha256": "198652a0589066677b250e7b4e64c45ab677a8d334f348afcabfe94541d020a3"
+    },
+    {
+      "file": "test_repair_activity_lifecycle.py",
+      "class": "TestRepairActivityLifecycle",
+      "old": "test_manual_cancel_does_not_change_order_or_recreate",
+      "new": "test_manual_cancel_is_blocked_without_changing_or_recreating",
+      "before_sha256": "cec2e85d633846feede1e4708166cd6723d2468ebf59b3b7be9e4b3348643a78",
+      "after_sha256": "ce09e033e6dee54ef5806e56d5f9fa04ea805d318244b49c42b8d19a36c368dd"
+    },
+    {
+      "file": "test_manufacturing_activity_lifecycle.py",
+      "class": "TestManufacturingActivityLifecycle",
+      "old": "test_manual_done_does_not_finish_or_recreate_production",
+      "new": "test_manual_done_is_blocked_without_finishing_or_recreating",
+      "before_sha256": "965c872bbcf50d1c35e2acfa7e1b437a86df5d47e08a4a588097f14c15263440",
+      "after_sha256": "126ef635c3c88e5da41774a0aa594cbaabe95f99adfbe916a0c0e820808c01ce"
+    },
+    {
+      "file": "test_manufacturing_activity_lifecycle.py",
+      "class": "TestManufacturingActivityLifecycle",
+      "old": "test_manual_cancel_does_not_cancel_production",
+      "new": "test_manual_cancel_is_blocked_without_cancelling_production",
+      "before_sha256": "95d6fdfe4e9c5311934d8249ccef2fc47313b4ebb901fc27129fc167f269b7bc",
+      "after_sha256": "fd35400a34d98ad8b179d92ae0432251de7b01c2e5fcd41f604bad5382935c34"
+    },
+    {
+      "file": "test_manufacturing_activity_lifecycle.py",
+      "class": "TestManufacturingActivityLifecycle",
+      "old": "test_manual_archive_records_cancellation",
+      "new": "test_manual_archive_is_blocked_and_keeps_pending",
+      "before_sha256": "1abb494318a496b90e2d585f80fce1ed931e5adb04964c738673446978fed1ca",
+      "after_sha256": "9eab848300191dc0dcaf8c9fa45d12ff58d3c1197127cedf0fbdff80812a41e2"
+    },
+    {
+      "file": "test_manufacturing_activity_lifecycle.py",
+      "class": "TestManufacturingActivityLifecycle",
+      "old": "test_split_after_manual_activity_deletion_keeps_reprogrammed_deadline",
+      "new": "test_split_after_blocked_deletion_keeps_reprogrammed_deadline",
+      "before_sha256": "4976c2de9998be1c512b54ce8de6deb48dd61189ff71706de4b4d3da9b10efd2",
+      "after_sha256": "a9bc35283b9db3d349991754cc8f6d60cba67faaa5728d764f57ae85e66f7490"
+    },
+    {
+      "file": "test_manufacturing_activity_lifecycle.py",
+      "class": "TestManufacturingActivityLifecycle",
+      "old": "test_manual_result_is_preserved_when_production_finishes",
+      "new": "test_real_completion_after_blocked_manual_done_records_business_result",
+      "before_sha256": "cc2c7e81ed63412bf70362da69149feacdd8c46025e37a0eb634305db72cd866",
+      "after_sha256": "a92a303cb6d01a8df612f20be81f03b4803d6918d20edef697f48311e5c617e4"
+    },
+    {
+      "file": "test_quality_activity_lifecycle.py",
+      "class": "TestQualityActivityLifecycle",
+      "old": "test_manual_done_audits_without_resolving_or_recreating",
+      "new": "test_manual_done_is_blocked_without_resolving_or_recreating",
+      "before_sha256": "cd72c31e9d5ef0768e643f855dcd427e468bf3c1cc22f6a958135b595c93f681",
+      "after_sha256": "9151bea3f2d914cd3f245a0978ee3edb1edb63c22d4ee39eb755de12de470602"
+    },
+    {
+      "file": "test_quality_activity_lifecycle.py",
+      "class": "TestQualityActivityLifecycle",
+      "old": "test_manual_cancel_audits_without_resolving_or_recreating",
+      "new": "test_manual_cancel_is_blocked_without_resolving_or_recreating",
+      "before_sha256": "29b07e2db8f924c24aecc5eddb0d255617db4c357c71bbf6abedddc241b7cfb3",
+      "after_sha256": "b5eda9f4b883878eab377d96b6cce84856f0a51e524d7343cf1d28dfd3596caa"
+    },
+    {
+      "file": "test_quality_activity_lifecycle.py",
+      "class": "TestQualityActivityLifecycle",
+      "old": "test_manual_archive_is_audited_without_resolving",
+      "new": "test_manual_archive_is_blocked_without_resolving",
+      "before_sha256": "7b140538d6b27d997dfdbfe7c6f1fcbeeaaf642101f027b2bd6b989fbef3982b",
+      "after_sha256": "3cd06764cd1272e3a0b81276dcc91bdfc0f9a775d4db000280f880006875983b"
+    },
+    {
+      "file": "test_quality_activity_lifecycle.py",
+      "class": "TestQualityActivityLifecycle",
+      "old": "test_manual_unlink_preserves_history_and_current_deadline",
+      "new": "test_blocked_manual_unlink_preserves_pending_history_and_deadline",
+      "before_sha256": "0fee675e329925b9dc28f2d7465c26bbc5b641d604deef91e8f34c19a4d57a84",
+      "after_sha256": "8d4090b067287cf6cf05011f974dac44be2e4ca8028e553acfebe842ff8d4e45"
+    },
+    {
+      "file": "test_quality_activity_lifecycle.py",
+      "class": "TestQualityActivityLifecycle",
+      "old": "test_manual_outcome_survives_close_and_reopen_starts_new_cycle",
+      "new": "test_real_close_after_blocked_cancel_and_reopen_starts_new_cycle",
+      "before_sha256": "6fa04d5da2633222828644257eab543a43dc7248ca43e7f94ac549db84119125",
+      "after_sha256": "772de6d2c25ff949bc6e9fd5ce1a457b63f88f70924937a2e6d2f65df7e714b9"
+    },
+    {
+      "file": "test_acceptance_activity_lifecycle.py",
+      "class": "TestAcceptanceActivityLifecycle",
+      "old": "test_manual_done_does_not_approve_test",
+      "new": "test_manual_done_is_blocked_without_approving_test",
+      "before_sha256": "ce6c0da2f8cd0a54420620bad61eddf6591fc77045ecb41344beacaa40aed13b",
+      "after_sha256": "f0f5207826fd7d6fbc7f6342f1f8e1a504c0f1a3e178386b05d6233818c65156"
+    },
+    {
+      "file": "test_acceptance_activity_lifecycle.py",
+      "class": "TestAcceptanceActivityLifecycle",
+      "old": "test_manual_cancel_does_not_reject_or_close_business",
+      "new": "test_manual_cancel_is_blocked_without_rejecting_or_closing",
+      "before_sha256": "270a91985262b850c8f0dc33558466b75348736332a52004f4a53477d035e98e",
+      "after_sha256": "37c47f3822e6748445004f153e680ad572386780376a5441dc1c2681c82ed626"
+    },
+    {
+      "file": "test_acceptance_activity_lifecycle.py",
+      "class": "TestAcceptanceActivityLifecycle",
+      "old": "test_manual_fen_cancel_is_not_recreated_by_unrelated_edit",
+      "new": "test_blocked_fen_cancel_and_unrelated_edit_keep_one_pending",
+      "before_sha256": "65c5aaf162425b4a2b1556ce1f4abecb36acbd633c77201de55a3ae110f2f1b1",
+      "after_sha256": "1752dca92dbdbf5a36607684f3570e146e3f0eb174466817d149b45cbd2b0e30"
+    },
+    {
+      "file": "test_acceptance_activity_boundaries.py",
+      "class": "TestAcceptanceActivityBoundaries",
+      "old": "test_unrelated_child_detail_edit_does_not_recreate_cancelled_fen",
+      "new": "test_unrelated_detail_edit_keeps_pending_after_blocked_fen_cancel",
+      "before_sha256": "a4230dac079986b13c6937addf6dd803ac684d956d1297202bced96aa514ec19",
+      "after_sha256": "0c871b16a29994754a33f134fb7805b184566e8751db838908acf064e76a582d"
+    },
+    {
+      "file": "test_manufacturing_activity_boundaries.py",
+      "class": "TestManufacturingActivityBoundaries",
+      "old": "test_manual_audit_identifies_actor_without_changing_employee",
+      "new": "test_blocked_manual_completion_preserves_actor_and_employee",
+      "before_sha256": "247fd7b848edc25ad8a1b18e4ad4700e01f9374a7f45ff8d78d56f09d3e0040e",
+      "after_sha256": "ab01b5297396efe73a2652114c4f77caccbb901b500bc3713a28d9d559069522"
+    },
+    {
+      "file": "test_quality_activity_boundaries.py",
+      "class": "TestQualityActivityBoundaries",
+      "old": "test_owner_can_finish_pending_without_private_ledger_permission",
+      "new": "test_owner_cannot_hide_pending_without_private_ledger_permission",
+      "before_sha256": "08440ce1b9a2169dccb131531526a7202fce15e0274a9dc2d55e75c629d80b86",
+      "after_sha256": "b28041efb96e036a8feaa953e38d32d570a60351d3e61fd302f282bc295cc7c4"
+    },
+    {
+      "file": "test_engineering_activity_boundaries.py",
+      "class": "TestEngineeringActivityBoundaries",
+      "old": "test_manual_done_records_actor_without_approving_or_applying",
+      "new": "test_manual_done_is_blocked_without_approving_or_applying",
+      "before_sha256": "6ad8feef756b6ccf0e4a6e3fd4984daa5e7b09437c6c3859476fa618c3d5ef76",
+      "after_sha256": "54d59b8e1ad3afc3207815664bddc1310253540dec39bf4ccd6561ebaf5f17d3"
+    },
+    {
+      "file": "test_engineering_activity_boundaries.py",
+      "class": "TestEngineeringActivityBoundaries",
+      "old": "test_manual_cancel_records_reason_without_changing_eco",
+      "new": "test_manual_cancel_is_blocked_without_changing_eco",
+      "before_sha256": "7726598065f876487f3bb952adfd289ba3779f2742249ba4a1f1d0aeed57f16b",
+      "after_sha256": "de436e0a08c20721845a745a0dfe5db10387d5fe9b1440200470920a4f342a11"
+    },
+    {
+      "file": "test_engineering_activity_boundaries.py",
+      "class": "TestEngineeringActivityBoundaries",
+      "old": "test_manual_archive_records_cancellation",
+      "new": "test_manual_archive_is_blocked_and_keeps_pending",
+      "before_sha256": "50539b9d6523bae6ac20dc6cfe7dd0a988977314bc258411ac1aefbac55c4e38",
+      "after_sha256": "abc18473d78eef185d63bb41d2123d4fe96b551277f90a52678657a2883c3c09"
+    },
+    {
+      "file": "test_engineering_activity_boundaries.py",
+      "class": "TestEngineeringActivityBoundaries",
+      "old": "test_unlink_preserves_current_deadline_and_reason",
+      "new": "test_blocked_unlink_preserves_current_deadline_and_pending",
+      "before_sha256": "282c4b062cca71676bcef76ca627010f0ffa46c3c38586700c0ec6ceaef8bbce",
+      "after_sha256": "2e6b946ba1d27928bd9974514b152de5d6b248b51679368b05c86e976d97556b"
+    },
+    {
+      "file": "test_engineering_activity_boundaries.py",
+      "class": "TestEngineeringActivityBoundaries",
+      "old": "test_removed_reprogrammed_activity_keeps_deadline_for_apply",
+      "new": "test_blocked_removal_keeps_reprogrammed_deadline_for_apply",
+      "before_sha256": "2800f6f6a570ad7efbdc37021d6f19b1dfdc2b74aa9ba835c3433cdc4a353f62",
+      "after_sha256": "4211432bb6fda7d741a71a5f49b40b8ae7998e7e5e9150f198a31038dab8f9b9"
+    },
+    {
+      "file": "test_engineering_activity_boundaries.py",
+      "class": "TestEngineeringActivityBoundaries",
+      "old": "test_ordinary_edit_does_not_recreate_manually_finished_task",
+      "new": "test_ordinary_edit_keeps_one_pending_after_blocked_manual_done",
+      "before_sha256": "44e087b3019be71d3f17817f0ae811ceabc211e472bbf5fa344b15028ad15292",
+      "after_sha256": "35f32687aac138d9a355050be95e7aaef11ce80354ecb2612323646e08fccf9c"
+    },
+    {
+      "file": "test_engineering_activity_boundaries.py",
+      "class": "TestEngineeringActivityBoundaries",
+      "old": "test_future_applicable_event_after_manual_done_creates_only_apply",
+      "new": "test_future_applicable_event_after_blocked_done_creates_only_apply",
+      "before_sha256": "e70953ae5c36a618a5ba5af4245f1a93cc5b16bb17678ccc66a8509648dff126",
+      "after_sha256": "fb4146b4cbd647e6d3ad83e8546dcef4febd9efffa73eca8785be5a7b27a3299"
+    },
+    {
+      "file": "test_engineering_activity_boundaries.py",
+      "class": "TestEngineeringActivityBoundaries",
+      "old": "test_paused_tracking_still_records_manual_decision",
+      "new": "test_paused_tracking_still_blocks_manual_completion",
+      "before_sha256": "2221931fcb7c8902f190530d47c4273312bfcfec4d766f36fd3fed59fcd4ba28",
+      "after_sha256": "82a2fc399af7814c59de732a7134e41a8b39ce91131d29cc94f324dfcfe6ca38"
+    },
+    {
+      "file": "test_inventory_activity_boundaries.py",
+      "class": "TestInventoryActivityBoundaries",
+      "old": "test_manual_done_records_actor_without_validating_stock",
+      "new": "test_manual_done_is_blocked_without_validating_stock",
+      "before_sha256": "93d064c1e190b0c0a66c27c387932e02aa5628c1247c8f11a1bbee129a0647ce",
+      "after_sha256": "90060bc87d4f2d122aaa710e9338d700e91ca34748f7cf1ff1bb54a8dc2f6efa"
+    },
+    {
+      "file": "test_inventory_activity_boundaries.py",
+      "class": "TestInventoryActivityBoundaries",
+      "old": "test_manual_cancel_records_reason_without_cancelling_stock",
+      "new": "test_manual_cancel_is_blocked_without_cancelling_stock",
+      "before_sha256": "f97e32e176accdb1dd6a40e378dca0fbb6c26639e3967252a318ab9c32f832c0",
+      "after_sha256": "7c49d8e729c49f84d140039e5d1a453fb1f5fc65b683ba3be46b6113e9e1216b"
+    },
+    {
+      "file": "test_inventory_activity_boundaries.py",
+      "class": "TestInventoryActivityBoundaries",
+      "old": "test_manual_archive_records_cancellation",
+      "new": "test_manual_archive_is_blocked_and_keeps_pending",
+      "before_sha256": "aed1ac405549c8de9648f293efe3f47aac46cec370e070267c25470f6ed9f682",
+      "after_sha256": "32d2d5f1cf66751567105e0aca162ea99b0aba1a6873d2dc74aaf816d8c44cd9"
+    },
+    {
+      "file": "test_inventory_activity_boundaries.py",
+      "class": "TestInventoryActivityBoundaries",
+      "old": "test_unlink_records_cancellation_and_preserves_deadline",
+      "new": "test_blocked_unlink_preserves_pending_and_deadline",
+      "before_sha256": "d06b8f198de65407ee23f12492ecc73d42aa65459f0185fd478ad0d7b526a658",
+      "after_sha256": "0b376bb8c83eb4a4bdd68ae0d44a0e5797ac2d766d9f5456ab7dd3ad205349f7"
+    },
+    {
+      "file": "test_inventory_activity_boundaries.py",
+      "class": "TestInventoryActivityBoundaries",
+      "old": "test_reprogrammed_removed_activity_keeps_remaining_commitment",
+      "new": "test_reprogrammed_activity_after_blocked_removal_keeps_remaining_commitment",
+      "before_sha256": "be8a2685568bc93952073afdb4f8d295768814836985429325eb49ece74e5568",
+      "after_sha256": "81dd9340fa387b372f8a134d5f3fbdcada1708d0a257c83ddbd4288e812df342"
+    },
+    {
+      "file": "test_inventory_activity_boundaries.py",
+      "class": "TestInventoryActivityBoundaries",
+      "old": "test_feedback_then_reservation_does_not_recreate",
+      "new": "test_blocked_feedback_then_reservation_keeps_one_pending",
+      "before_sha256": "4be7b0174a84991587ce29bacfda0866a61e7de4c09b89cec7715d88a98a1811",
+      "after_sha256": "85c4aa1185bd295ca3c0fc8888840813ad559f53cb3729741e44844a6c1e351d"
+    },
+    {
+      "file": "test_inventory_activity_boundaries.py",
+      "class": "TestInventoryActivityBoundaries",
+      "old": "test_paused_policy_still_records_manual_decision",
+      "new": "test_paused_policy_still_blocks_manual_completion",
+      "before_sha256": "e19bd3d42fc1a4ed9ad187ec36f384fc63aa4b084f609b13bbbf9e9fc5f7c055",
+      "after_sha256": "83606ad5aca5e01056667a91aae2353c9ce1ca88437edec516ffa747c13f0e07"
+    },
+    {
+      "file": "test_inventory_activity_boundaries.py",
+      "class": "TestInventoryActivityBoundaries",
+      "old": "test_archive_with_authorized_reprogram_keeps_final_deadline",
+      "new": "test_authorized_reprogram_cannot_smuggle_archive_and_rolls_back",
+      "before_sha256": "f1e380eb2a4f9d68d3fb98ebc59e9dae885600116ca1c1efc6ef6b07f8cf4912",
+      "after_sha256": "6ec8f3d081603f3ff7bd32ce1e1e8fc6f977183cd59dcca50217d8b87fa9ae34"
+    },
+    {
+      "file": "test_engineering_activity_final_review.py",
+      "class": "TestEngineeringActivityFinalReview",
+      "old": "test_archive_with_authorized_reprogram_keeps_final_deadline",
+      "new": "test_authorized_reprogram_cannot_smuggle_archive_and_rolls_back",
+      "before_sha256": "7b3f52be9ca81eb460a7e48279b6e5ae4d184c1e0bf749ffd425818359d3dbcc",
+      "after_sha256": "5d64aa50f7276e254ef4a9bc517610b069b74e39bb5f7c43fdb721a735ba2ed0"
+    }
+  ]
+}

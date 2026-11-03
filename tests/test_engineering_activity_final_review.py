@@ -5,6 +5,7 @@ from odoo import Command
 from odoo.exceptions import AccessError, UserError
 from odoo.tests import tagged
 
+from .automatic_completion_assertions import assert_automatic_close_rejected
 from .engineering_activity_common import EngineeringActivityCommon
 from .test_engineering_activity_events import _advance_native
 
@@ -119,7 +120,7 @@ class TestEngineeringActivityFinalReview(EngineeringActivityCommon):
             )
         )
 
-    def test_archive_with_authorized_reprogram_keeps_final_deadline(self):
+    def test_authorized_reprogram_cannot_smuggle_archive_and_rolls_back(self):
         eco, run = self._visit()
         activity = run.activity_id
         changed = run.original_deadline - timedelta(days=2)
@@ -133,13 +134,15 @@ class TestEngineeringActivityFinalReview(EngineeringActivityCommon):
                 values = {**values, "active": False}
             return native_write(records, values)
 
-        with patch.object(model, "write", combined_write):
+        with patch.object(model, "write", combined_write), assert_automatic_close_rejected(
+            self, run
+        ):
             self._wizard(activity, changed).action_apply()
-        self.assertEqual(run.outcome, "cancelled")
-        self.assertFalse(activity.active)
-        self.assertEqual(activity.date_deadline, changed)
-        self.assertEqual(run.current_deadline, changed)
-        self.assertEqual(run.cycle_id.current_deadline, changed)
+        self.assertEqual(run.outcome, "pending")
+        self.assertTrue(activity.active)
+        self.assertEqual(activity.date_deadline, run.original_deadline)
+        self.assertEqual(run.current_deadline, run.original_deadline)
+        self.assertEqual(run.cycle_id.current_deadline, run.original_deadline)
         _advance_native(self, eco)
         pending = self.env["mc.rov.engineering.activity.run"].search(
             [
@@ -149,4 +152,4 @@ class TestEngineeringActivityFinalReview(EngineeringActivityCommon):
         )
         self.assertEqual(len(pending), 1)
         self.assertEqual(pending.stage, "apply")
-        self.assertEqual(pending.activity_id.date_deadline, changed)
+        self.assertEqual(pending.activity_id.date_deadline, run.original_deadline)

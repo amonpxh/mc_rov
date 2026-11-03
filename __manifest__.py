@@ -93,6 +93,9 @@
             "mc_rov/static/src/work_center/work_center.js",
             "mc_rov/static/src/work_center/work_center.xml",
             "mc_rov/static/src/work_center/work_center.scss",
+            "mc_rov/static/src/activity_completion/automatic_activity_list.js",
+            "mc_rov/static/src/activity_completion/automatic_activity.js",
+            "mc_rov/static/src/activity_completion/automatic_activity.xml",
         ],
         "web.assets_unit_tests": [
             "mc_rov/static/tests/work_center.test.js",
