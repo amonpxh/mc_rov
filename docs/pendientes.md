@@ -131,6 +131,11 @@ solo por confirmar una revisión; motivo actual no identifica aceptación final.
 Vínculo al episodio final pendiente de implementación. Casos futuros del adaptador:
 diagnóstico fallido fuera del primer pase; primer final fallido seguido de aprobado
 conserva primer pase fallido. No se han cambiado pruebas ni workflow instalado.
+Siguiente plan preparado: `docs/superpowers/plans/2026-11-04-repair-acceptance-history.md`.
+Captura final explícita, snapshots inmutables por orden/serie y protección de lectura
+por origen; confirmaciones repetidas no duplican, reapertura no borra primer intento.
+Primer paso pendiente: fixtures/RED nativo test-only; no hay producto de captura escrito
+ni instalado y no se ha declarado una nueva suite nativa aprobada.
 
 Propuesta inicial de KPI: pendientes/vencidos, cumplimiento de plazos, tiempos de
 resolución y rechazos/reaperturas. Núcleo y servicio tienen fórmulas especificadas;
