@@ -49,7 +49,10 @@ condicionados; no se usan como resultado global del taller.
   de resolver. Los requisitos de bloqueo de liberación se acuerdan por protocolo;
   un promedio o Pareto no oculta un caso crítico.
 - **P-PRE:** preparación para iniciar (material disponible/reservado, documentación/
-  configuración y recurso requeridos) y para liberar (pruebas, expediente y aprobación).
+  configuración y recurso requeridos) y para liberar. Regla de liberación
+  acordada2026-11-04: pruebas obligatorias aprobadas, documentación requerida completa
+  y ninguna no conformidad bloqueante pendiente, vinculadas al trabajo/serie.
+  Listo para entregar es un hito separado de salida física registrada.
   Mostrar faltantes concretos. Ausencia de bloqueo registrado no demuestra preparación.
 - **P-ET:** lista existente de etapas/actividades vencidas. Sus cierres no representan
   unidades producidas ni puntualidad al cliente.
@@ -65,8 +68,8 @@ En fabricación se concilian producto terminado, cantidades, series y parciales;
 no se presupone una MO por serie ni se cuentan subproductos como ROV nuevos.
 
 **Fechas:** separar fecha efectiva del hecho, fecha de registro y programación.
-La zona del tablero propuesta es America/Santiago, con reglas de cambio horario,
-sin fijar un desplazamiento UTC constante. Se proponen semanas ISO, meses y años locales;
+La zona del tablero acordada2026-11-04 es America/Santiago, con reglas de cambio horario,
+sin fijar un desplazamiento UTC constante. Semanas de lunes a domingo, meses y años locales;
 instantes se conservan en UTC. Consultas por período incluyen inicio local y excluyen
 el inicio del día siguiente al fin. Contratos con otra zona se identifican aparte.
 Una fecha sin hora no se convierte en un instante físico inventado.
@@ -126,15 +129,23 @@ sus subtotales como si fueran categorías exclusivas.
 - **Medidas:** abiertas detenidas / abiertas elegibles; duración detenida total y por causa.
 - **Regla:** material esperado, riesgo de atraso o BoM cambiada son alertas de riesgo;
   para detención debe confirmarse que el trabajo no puede avanzar según su recorrido.
+- **Causas iniciales acordadas2026-11-04:** repuestos/materiales, autorización o
+  información del cliente, ingeniería, documentación, falta de personal/equipo
+  de prueba y servicio externo; Otro exige explicación. Registrar inicio/fin,
+  causa y responsable de destrabar; el catálogo puede ampliarse conservando historia.
 - **Tiempo:** intervalo inicio–fin o inicio–corte si sigue abierto. Total = unión de
-  intervalos; causa principal o reparto acordado para el Pareto de causas simultáneas.
+  intervalos. Decisión de diseño de Codex: duración por causa como unión de sus
+  intervalos, rotulada no aditiva entre causas; no repartir tiempos simultáneos
+  arbitrariamente. Conteos por causa usan intervalos registrados como unidad explícita,
+  no visitas ni días únicos; un Pareto de tiempo aditivo exigiría otra regla de reparto.
 - **Fuentes:** disponibilidad nativa como señal; registros locales de intervalos si
   existen. Falta verificar la captura de inicio/fin/causa/responsable de destrabar.
 - **Cobertura:** no marcado no significa que jamás se detuvo. Duración desconocida
   no es0. Colas normales se muestran aparte de bloqueos hasta acordar su clasificación.
 - **Comprobación:** falta de repuesto que no impide otras operaciones queda como
   riesgo; dos intervalos superpuestos de2 y3 días pueden sumar3 días, no5.
-- **Decisión pendiente:** vocabulario de causas, criterio de detención y reparto de solapes.
+- **Estado:** causas y criterio de detención acordados; captura, permisos y manejo
+  de solapes por comprobar en implementación. No cambia la promesa al cliente.
 
 ### F3 Cumplimiento con el cliente
 
@@ -204,10 +215,12 @@ sus subtotales como si fueran categorías exclusivas.
   antes de definir su lectura. Los saldos entre hitos requieren estado válido al
   corte y reversos/reaperturas; no son resta ciega de acumulados históricos.
 - **Medidas/fechas:** fabricación por salida fabricada done; aceptación por evento
-  de aprobación del protocolo; liberación por autorización/expediente acordados;
+  de aprobación del protocolo; liberación cuando se acreditan pruebas obligatorias
+  aprobadas, documentación requerida completa y ninguna NC bloqueante pendiente;
   salida a cliente por transferencia done. Mostrar existencias entre hitos al corte.
 - **Fuentes:** MO/salidas/series, revisiones, ficha emitida y transferencia. FEN ya
-  conserva pruebas y PDF para equipo nuevo; su equivalencia a liberación debe acordarse.
+  conserva pruebas y PDF para equipo nuevo; comprobar las tres condiciones de
+  liberación, sin inferirlas solo desde ficha emitida.
   Una ficha nueva no sustituye despacho ni se extiende sin más a reparaciones.
 - **Exclusiones:** subproductos, componentes y prototipos separados. Reversos o
   desmontajes posteriores se presentan aparte y no borran la fabricación histórica.
@@ -215,7 +228,8 @@ sus subtotales como si fueran categorías exclusivas.
   cantidades con series sin descartar silenciosamente salidas no serializadas.
 - **Comprobación:** una MO con2 ROV y un parcial de1+1 aporta2 unidades finales;
   aceptar1, liberar1 y entregar0 conserva2/1/1/0 por hito.
-- **Estado:** auditar movimientos/fechas y significado de liberación; no asumir división obligatoria de MO.
+- **Estado:** criterio de liberación acordado; conciliar movimientos/fechas/evidencia
+  y registrar su hito. No asumir división obligatoria de MO.
 
 ### F6 Plazo de reparación y tramos
 
@@ -243,7 +257,10 @@ sus subtotales como si fueran categorías exclusivas.
 - **Denominador:** episodios con primer intento formal adjudicado aprobado/fallido
   en período. Pendientes e inválidos se muestran aparte; no desaparecen sin estado/motivo.
 - **Numerador:** primer intento válido aprobado en todos los requisitos aplicables sin
-  reensayo ni retrabajo. Resultado con observaciones necesita criterio empresarial explícito.
+  reensayo ni retrabajo. Criterio acordado2026-11-04: observaciones únicamente
+  informativas permiten contar aprobación al primer intento si se cumplen todas
+  las pruebas obligatorias y no hay correcciones ni reensayos pendientes. Una nota
+  que exige corregir no se reclasifica como informativa para aprobar.
 - **Regla de fallo:** un fallo real que interrumpe el protocolo adjudica el primer
   intento como fallido aunque falten ensayos. Solo falla de instrumentación/procedimiento
   que invalide realmente el intento puede excluirlo, con motivo y autorización.
@@ -261,7 +278,13 @@ sus subtotales como si fueran categorías exclusivas.
 
 - **Decisión:** investigar eficacia de intervención y recurrencia.
 - **Unidad:** visita entregada original, cohorte por salida registrada y tipo de trabajo.
-- **Ventana:** W pendiente de acuerdo según seguimiento/garantía/uso; no se adopta90 días.
+- **Ventana acordada2026-11-04:** W=180 días desde la salida registrada del taller.
+  Para especificación se interpretan como días corridos de observación, no180 días
+  laborables ni seis meses. Es ventana del indicador, independiente de la garantía
+  comercial; conservar la fecha/tipo del evento de salida sin inventar una hora.
+  Convención técnica de este incremento: trabajar por fecha civil de Santiago y
+  cortes diarios cerrados; el día180 se incluye, el181 no. Un instante se convierte
+  a fecha en el adaptador, sin atribuir esa medianoche como hora física de salida.
 - **Denominador:** visitas elegibles de una cohorte con W íntegramente observado.
 - **Numerador:** visitas originales con al menos un retorno dentro de W y relación
   técnica confirmada con su intervención. Mismo subsistema por sí solo no demuestra relación.
@@ -275,7 +298,13 @@ sus subtotales como si fueran categorías exclusivas.
   observado y muestra esos pendientes; no se presenta como tasa definitiva.
 - **Comprobación:** una visita con dos retornos relacionados aporta1 visita afectada;
   una visita recién salida no entra a la tasa madura. La tasa observada no es fiabilidad de flota.
-- **Estado:** historia por serie reutilizable; enlace/causalidad y W pendientes.
+  Ejemplo:10 visitas con180 días observados,2 afectadas por3 retornos relacionados
+  y4 visitas aún en seguimiento producen2/10, no3/10 ni2/14. Los retornos conocidos
+  de visitas recientes se muestran desde su registro, separados de la tasa madura.
+  Retorno después del día180 queda fuera de esta tasa, sin desaparecer del historial
+  ni del seguimiento operativo.
+- **Estado:** W acordada; historia por serie reutilizable, enlace/causalidad,
+  cobertura efectiva y reglas de cálculo de bordes por especificar/comprobar.
 
 ### Q3 Retrabajo y causas
 
@@ -418,6 +447,19 @@ reutilización de HH/causas/chequeos/catálogos confirmada. Solo completar histo
 clasificación realmente ausentes tras definir el hecho empresarial; no crear trece
 campos nuevos en bloque ni rellenar retrospectivamente desde texto libre.
 
+Revisión técnica adicional del catálogo y aceptación: reutilizar mc.rov.chequeo y
+líneas de revisión, snapshots y PDF emitidos. Las semillas XML son noupdate; no
+representan necesariamente configuración vigente. El audit34 no incluyó registros
+de quality.point ni mc.rov.chequeo: su configuración instalada sigue por verificar,
+sin inferir ausencia de perfiles. El catálogo local aplica chequeos por tipo de
+trabajo; no acredita obligatoriedad/versiones por modelo. Aprobado con observaciones
+nativo tampoco acredita por sí solo que sean exclusivamente informativas.
+
+Antes de construir el adaptador, comprobar la divergencia local entre cálculo que
+excluye funcionamiento continuo en terreno y validación que lo exige. No se ha
+confirmado ni corregido como bug en este incremento. No inventar umbrales de presión,
+tiempo o electricidad a partir de comentarios ni imponer nuevas pruebas reales.
+
 ## Compromiso de salida: regla acordada y detalle del circuito
 
 Regla empresarial aceptada2026-11-04: registrar en Odoo la promesa original cuando
@@ -458,13 +500,19 @@ mensajes. El circuito se probará con datos ficticios y roles equivalentes.
 1. Documento/vínculo y roles del compromiso F3. La fijación al aceptar trabajo y
    fecha ya está acordada. Identificar contratos con recepción en destino u otro
    hito para tratarlos con su definición propia, sin cambiar el rótulo de salidas.
-2. Ventana W y criterio de retorno relacionado; consulta de período enviada,
-   todavía no elegir90 días ni equiparar ventana del indicador a garantía comercial.
-3. Aprobación con observaciones y lista de ensayos/protocolo por modelo.
-4. Qué representa liberación y expediente por tipo de trabajo; no equiparar FEN a despacho.
-5. Vocabulario de detención, intervalos simultáneos y causa principal/reparto.
-6. Calendario y zona empresariales: semana ISO y America/Santiago propuestas;
-   no convertirlas en condición contractual sin verificar su aplicabilidad.
+2. Criterio técnico y registro del retorno relacionado, cobertura de seguimiento
+   y casos de borde. W=180 días elegida por el usuario, independiente de garantía.
+3. Lista de ensayos/protocolo y documentos exigidos por modelo/tipo de trabajo;
+   identificar los perfiles ya existentes antes de completar configuración.
+   Observaciones informativas sin corrección/reensayo y las tres condiciones
+   de liberación ya están acordadas. No equiparar FEN a despacho.
+4. Roles de registro/validación de bloqueo, veredicto, retorno y liberación;
+   no inferir permisos nuevos desde cuentas QA o desde la coordinación de actividades.
+5. Catálogo de bloqueos acordado; conservar solapes y duración no aditiva por causa,
+   salvo que se acuerde después un reparto de tiempo diferente.
+6. Calendario del tablero acordado: America/Santiago, lunes–domingo, meses/años
+   calendario. Las reglas de días laborables mantienen el calendario operativo;
+   contratos con otro calendario se identifican sin cambiar el significado del tablero.
 
 Metas, bandas de color, tramos de antigüedad y ventanas móviles se fijan tras estas
 definiciones y una base representativa. Empezar a conservar eventos necesarios no

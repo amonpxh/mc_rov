@@ -78,11 +78,45 @@ Revisión independiente Q1–Q4 confirma brechas y reutilización; sin cambios d
 El usuario aceptó el circuito propuesto de promesa original/cambios/salida; hoy no
 se formaliza así. Reutilizar commitment_date donde corresponda, sin crear ventas
 ficticias para medir reparación ni equiparar fecha interna a compromiso. Acuerdo
-de negocio documentado; circuito aún no implementado. Consulta siguiente enviada:
-ventana de retorno relacionado tras reparación (30/90/180 días u otra), independiente
-de garantía comercial; no escoger valor por defecto mientras esté pendiente.
+de negocio documentado; circuito aún no implementado. Q2 acordado2026-11-04:
+180 días de observación desde salida del taller, independiente de garantía comercial;
+interpretación de especificación: días corridos, sin equipararlos a seis meses.
+Tasa solo con cohortes que completan180 días y cobertura efectiva; visitas recientes
+en seguimiento y retornos conocidos visibles aparte, sin contarlos como cero fallas.
+Caso de control:10 visitas maduras/2 afectadas/3 retornos más4 recientes =2/10.
+Q1 acordado: cuenta primer pase aprobado con observaciones solo informativas si
+cumple todas las pruebas obligatorias y no requiere corrección/reensayo.
+Liberación acordada: pruebas obligatorias aprobadas, documentación requerida
+completa y ninguna NC bloqueante pendiente; separada de salida física registrada.
+F2 acordado: detención real, no solo alerta material; causas repuestos/materiales,
+cliente (autorización/información), ingeniería, documentación, personal/equipo de
+prueba, servicio externo y Otro con explicación. Unión de intervalos para tiempo
+total; propuesta de diseño conserva duración por causa no aditiva, sin reparto
+arbitrario de solapes. Calendario del tablero acordado: Santiago, lunes–domingo y
+meses/años calendario; plazos laborales mantienen calendario operativo.
 No repetir auditoría ni suite1282 sin cambio relevante; sus pruebas no aprueban
 automáticamente las once definiciones empresariales ni un tablero nuevo.
+
+Primer incremento empresarial local, aún sin instalar: plan
+`docs/superpowers/plans/2026-11-04-business-kpi-quality-foundation.md`, nuevo núcleo
+puro `models/business_kpi_metrics.py`, sin import Odoo/__init__, ACL ni vistas.
+Reglas de retornos180, primer pase y liberación implementadas;50/50 unitarias
+(34 nuevas/16 anteriores), Black99 y pylint10. Revisión independiente corrigió tres
+P2 con RED34/9 fallos/0 errores antes de GREEN: fallo real no se vuelve desconocido
+por invalidación, retornos sin fecha conservan relación/existencia y cualquier
+retorno se cuenta aparte del relacionado. Flags mal tipados rechazados.
+Faltan captura durable, adaptadores autorizados, cálculos de flujo/proveedores,
+tablero y QA instalado; la suite nativa1282 no se declara reejecutada por este paso.
+Configuración real quality.point/mc.rov.chequeo sigue sin consultar; semillas no
+son perfiles vigentes. Divergencia continuo/terreno local por verificar antes de
+usar el confirmador como protocolo KPI; no corregida ni tratada como norma nueva.
+Siguiente consulta preparada, NO ejecutada:
+`.tmp/staging-work-kpi-profiles-source.ps1` en workspaceCode. Solo configuración
+técnica/IDs de chequeos y quality.point, metadatos de tipos y políticas; sin resultados
+de ensayos ni documentos de negocio. READ ONLY/rollback, fuente instalada139 y PID
+intactos, sin instalar/reiniciar ni tocar QA/producción. Verificador2 válidos/24 rechazos,
+PowerShell real1válido/1hash rechazado y Bash aprobados. No asumir perfiles desde XML
+noupdate ni instalar nuevos antes de recibir esta evidencia mediante SSH privado.
 
 Propuesta inicial de KPI: pendientes/vencidos, cumplimiento de plazos, tiempos de
 resolución y rechazos/reaperturas. Núcleo y servicio tienen fórmulas especificadas;
