@@ -150,8 +150,10 @@ sus subtotales como si fueran categorías exclusivas.
   el recorrido instalado. Rótulo propuesto: salida del taller registrada a tiempo.
   Si la validación se registra después del hecho físico, no usar automáticamente
   su hora como hora de salida: hace falta fecha efectiva respaldada por la constancia.
-- **Promesa:** conservar fecha original y recompromisos, motivo y autor. Momento de
-  fijación y lugar de registro actual pendientes de respuesta del usuario.
+- **Promesa:** conservar fecha original y recompromisos, motivo y autor. El usuario
+  indicó que hoy no se formaliza así y que debe quedar firme en Odoo. Se propone
+  fijarla al aceptar el cliente el trabajo y la fecha acordada; el momento y vínculo
+  exactos se cierran con el circuito, sin asumir que toda orden ya tiene promesa.
 - **Vista de vencimientos:** compromisos que vencían en período cumplidos completos
   y a tiempo / compromisos elegibles que vencían en período. Incluye pendientes vencidos.
 - **Vista de completados:** compromisos completados del período a tiempo / compromisos
@@ -331,7 +333,9 @@ sus subtotales como si fueran categorías exclusivas.
   es filtro solo si existe clasificación fiable.
 - **Comprobación:**100 pernos y1 propulsor son2 líneas en la tasa por líneas; otra
   tasa por unidades responde otra pregunta. Un parcial puntual no cumple una línea completa.
-- **Estado:** nativo reutilizable; campos, compromiso original y recepción completa por auditar.
+- **Estado:** Compras/purchase_stock y campos nativos verificados; compromiso original,
+  conciliación de recepción completa y reporte específico aún por validar. Esta
+  copia no contiene órdenes ni líneas de compra para comprobar ejemplos históricos.
 
 ## D1 Cobertura y trazabilidad de los cálculos
 
@@ -344,27 +348,115 @@ Cada resultado debe identificar versión de definición, origen, período, unida
 cobertura y fecha de actualización. Tasas de visitas por tipo superpuesto y series
 únicas no se suman entre grupos/períodos sin volver a deduplicar.
 
-## Inventario previo a crear datos nuevos
+## Fuentes instaladas y brechas antes de crear datos nuevos
 
-| Dato requerido | Evidencia disponible | Trabajo pendiente |
+Auditoría STAGING ejecutada2026-11-04, intento `20261104-115911-124`,34 modelos,
+sin modelos solicitados ausentes. Recibo completo revalidado contra139 hashes y
+comparado con el JSON guardado. READ ONLY/rollback, archivos y PID intactos;
+STAGING activo. Trabajo remoto: `/var/tmp/mc-rov-kpi-catalog-source-fkOLHT`.
+Evidencia en el workspace Code:
+`.tmp/preparacion-uso-real-pilot/catalog-source-installed-20261104-115911-124.json`.
+
+**Límite de los conteos:** incluyen todos los registros de los modelos, sin separar
+QA, componentes, prototipos o ROV elegibles. No representan rendimiento real ni
+confirman las poblaciones del tablero. Los conteos por campo no verifican su
+intersección, exactitud ni historia; campo presente no equivale a dato fiable.
+Producción y copia QA cerrada no fueron consultadas ni modificadas.
+
+| KPI/dato | Reutilización verificada | Brecha que conserva la ficha |
 |---|---|---|
-| Visita/serie/cliente | Registros y enlaces nativos/locales | Cobertura histórica y asignación al trabajo, no dueño actual |
-| Cierre/entrega | Movimiento candidato y fecha_entrega_real propia | Semántica, done y excepciones/importados; salida física separada |
-| Tipos y HH | Tipos múltiples, empleado, fecha, horas, acción/origen/causa locales | Cobertura, no duplicación y clasificación de retrabajo |
-| Ensayos y configuración | Revisiones/pases y snapshots al confirmar | Primer resultado durable, episodio y protocolo/versión |
-| Expediente | FEN emitida, pruebas y PDF protegido para equipo nuevo | Equivalencia a liberación, requisitos por modelo y recorrido de reparación |
-| Calidad en reparación | quality_repair y enlace a quality.check auditados | Puntos, eventos, intentos, campos y permisos efectivos |
-| Compromiso original | Fechas nativas editables como candidatas | Momento firme, evento de congelación y cambios trazables |
-| Intervalos de bloqueo | Señales de disponibilidad | Verificar si hay registro efectivo y completar lo realmente ausente |
-| Recurrencia | Historia por serie | Visita anterior, relación técnica, seguimiento y W |
-| Series fabricadas | Campos multiserie y cantidades auditados | Conciliar movimientos, parciales, backorders, subproductos y reversiones |
-| Proveedores | Compras/stock y reportes nativos | Promesa original, línea, recepción completa y permisos |
+| F1 Cartera | Estado de reparación/fabricación, tipo de intervención y serie; reporte nativo de reparación con lista/gráfico/pivote | Saldo actual posible con población acordada; corte histórico y entradas físicas requieren eventos válidos, no create_date |
+| F2 Bloqueos | Señales nativas de disponibilidad de piezas/productos | No se acredita un registro de intervalos de detención efectiva; acordar causas y solapes antes de completar captura |
+| F3 Salidas al cliente | Picking con origen/destino, cliente, date_done, firma y líneas con serie; sale.order.commitment_date | No se acredita promesa original congelada ni constancia clasificada de retiro/despacho; fecha de validación no prueba hora física |
+| F4 Reparaciones terminadas | repair.order con serie, cliente de la visita, tipos, fecha_entrega_real y move_id | Fecha propia es Date editable y se completa al cierre si falta; no equipararla a salida al cliente ni a historia inmutable del primer cierre |
+| F5 Unidades fabricadas | MO con fecha de término, cantidades, varias series y vínculo a venta; movimientos terminados y FEN | Conciliar unidades ROV, parciales/reversos y series; MO no equivale a unidad ni exige cliente si se fabrica para stock |
+| F6 Plazos de reparación | Orden, revisión, movimiento y relaciones a picking/venta existentes | Verificar semántica y continuidad de recepción, diagnóstico, autorización, cierre y salida; relación a picking no acredita por sí sola cada hito |
+| Q1 Primer pase | Revisión, chequeos, motivo, serie/visita, responsable, resultado actual y software/configuración | Primer veredicto adjudicable y protocolo/versión no quedan acreditados como historia durable; secuencia en visita no equivale a primer intento formal |
+| Q2 Retornos relacionados | Historia de visitas por serie y revisiones | Mismo equipo no demuestra causalidad; falta acreditar enlace técnico, dictamen, salida original y seguimiento suficiente durante W |
+| Q3 Retrabajo | Línea de trabajo con orden, componente/subtipo, acción, empleado, fecha, HH, origen, causa, hallazgo y alerta | Clasificar retrabajo con evidencia; no duplicar campos de HH/persona/causa ni inferir retrabajo desde origen de manufactura |
+| Q4 Hallazgos/Pareto | Observaciones de revisión y catálogos de hallazgo, severidad y componente/subtipo | Observación no equivale a incidente único; catálogo de componente no identifica instancia/posición física |
+| A1 Proveedores | purchase/purchase_stock instalados; aprobación, fecha prevista, cantidades recibidas, movimientos y líneas | Promesa original por línea, recepción completa/retornos y acción de reporte concreta aún por validar; no usar primer recibo como fin completo |
+
+### Cobertura observada en esta copia
+
+- Reparación:6 órdenes done;4 con serie,4 con cliente,3 con fecha_entrega_real y5
+  con movimiento done. Son conteos separados; no aseguran que los mismos registros
+  cumplan todos los criterios ni que sean reparaciones ROV reales.
+- Fabricación:11 MO done;11 con date_finished,9 con conjunto de series y0 con
+  sale_line_id. El9 cuenta órdenes con serie, no nueve equipos; fabricar para stock
+  sin cliente puede ser válido.
+- Inventario:1 picking done;0 done de tipo outgoing y0 done desde ubicación interna
+  hacia cliente. Hay campos para el recorrido propuesto, pero ningún ejemplo de
+  salida completa en las poblaciones consultadas. No extrapolar el cero a producción.
+- Revisión:31 registros,11 vinculados a reparación,31 con responsable y6 confirmados.
+  Diagnóstico/reensayo no se confunden con aceptación formal. resultado puede volver
+  a vacío al reabrir y no acredita primer veredicto histórico; confirmar alguna vez
+  no conserva por sí solo el veredicto original o protocolo.
+- Trabajo/HH:6 líneas,6 con origen clasificado,2 con horas positivas,1 con empleado y0
+  con enlace a hallazgo. Se conserva captura existente; no imputar horas ni personas
+  faltantes. Los conteos no validan clasificación, duplicación o causalidad.
+- Calidad/expediente:20 categorías de hallazgo,0 observaciones de revisión;3 FEN y1
+  emitida con PDF. Un catálogo no son20 fallas ocurridas. FEN no acredita salida.
+- Compras:0 órdenes y0 líneas. maintenance está instalado, sin equipos/solicitudes;
+  sus métricas no aportan una base de fiabilidad ROV en esta copia.
+
+### Qué verifica y qué no verifica esta auditoría
+
+Los metadatos confirman tipos y relaciones; readonly de un campo no demuestra
+inmutabilidad histórica ni permisos efectivos por rol. El colector leyó el método
+efectivo seleccionado: algunos son envoltorios de quality_repair o mc_rov que
+delegan a super, no toda la cadena nativa. No se ejecutaron acciones de negocio.
+
+Se confirmaron acciones de análisis de reparación y producción con gráfico/pivote.
+spreadsheet_dashboard base está instalado; la auditoría no acredita una plantilla
+específica de Compras/Producción ni una vista KPI utilizable por todos los roles.
+Los controles de permiso del servicio de etapas siguen aprobados, pero los nuevos
+KPI empresariales necesitarán sus propios casos de empresa/origen/población.
+
+Revisión independiente Q1–Q4: tres fuentes locales cotejadas con los hashes instalados;
+reutilización de HH/causas/chequeos/catálogos confirmada. Solo completar historia y
+clasificación realmente ausentes tras definir el hecho empresarial; no crear trece
+campos nuevos en bloque ni rellenar retrospectivamente desde texto libre.
+
+## Compromiso de salida: propuesta de circuito en Odoo
+
+Respuesta del usuario2026-11-04: la fecha debe quedar firme en Odoo; actualmente
+no se hace así. Esto fija el sistema de registro deseado, no demuestra que las
+fechas actuales de la base sean promesas acordadas. El momento de fijación siguiente
+es recomendación de Codex, pendiente de cerrar como regla del circuito.
+
+1. En cotización/pedido, reutilizar `sale.order.commitment_date` como candidata a
+   fecha acordada. Mientras sea propuesta comercial, distinguirla de una promesa
+   firme. Fecha prevista interna, duración estimada y fecha de creación son otras cosas.
+2. Cuando el cliente acepta el trabajo y la fecha, conservar el compromiso original,
+   documento/alcance, autor y momento de fijación. En reparación normalmente ocurre
+   después del diagnóstico/presupuesto, sin darlo por hecho en todos los contratos.
+   Si aún no hay acuerdo de fecha, mostrar sin compromiso definido; no inventar uno
+   desde schedule_date o el plazo de una actividad.
+3. Mantener la fecha original y cada nuevo compromiso con motivo y autorización
+   del rol que se defina. Reprogramar trabajo interno no cambia por sí solo lo
+   prometido al cliente. No conceder permisos comerciales por tener coordinación
+   de actividades ni reemplazar silenciosamente el original al editar el pedido.
+4. Vincular las salidas validadas a la serie y al compromiso, conciliando parciales
+   y requisitos. `stock.picking.signature` existe y puede ser una evidencia a
+   reutilizar; su captura, significado, acceso y recorrido necesitan verificación.
+   No identifica por sí sola recepción en destino o modalidad despacho/retiro.
+5. Comparar la salida que completa el compromiso con su fecha original; mostrar
+   aparte cumplimiento del nuevo compromiso. Conservar pendientes vencidos en la
+   vista de vencimientos y mostrar cobertura de los que aún no tienen fecha firme.
+
+No imponer un pedido ficticio a reparaciones sin documento comercial válido: antes
+de la implementación, precisar dónde vive el compromiso y su vínculo con cada
+trabajo elegible. No registrar promesas retroactivas ni fabricar historia desde
+mensajes. El circuito se probará con datos ficticios y roles equivalentes.
 
 ## Decisiones de negocio pendientes
 
 1. Evento de cumplimiento de entrega: salida/retiro registrado propuesto tras
    consulta del usuario; cerrar si aplica a todo trabajo o depende del contrato.
-2. Cuándo se fija la promesa y dónde se registra hoy: consulta enviada, pendiente.
+2. Odoo como registro deseado de la promesa indicado por el usuario; cerrar momento
+   de fijación, documento/vínculo y permisos. Aceptación del trabajo y fecha acordada
+   es la recomendación; hoy no se registra de ese modo.
 3. Ventana W y criterio de retorno relacionado; todavía no elegir90 días.
 4. Aprobación con observaciones y lista de ensayos/protocolo por modelo.
 5. Qué representa liberación y expediente por tipo de trabajo; no equiparar FEN a despacho.
@@ -378,10 +470,9 @@ significa habilitar nuevas cuentas/políticas ni modificar datos históricos.
 
 ## Próximo trabajo y límites
 
-Auditoría complementaria de solo lectura preparada para modelos/campos/reportes y
-cobertura agregada, sin registros individuales ni secretos; pendiente de ejecutar
-por SSH privado. El paquete conserva139 fuentes y PID, exige READ ONLY/rollback;
-su verificador local acepta2 respuestas válidas y rechaza20 variantes inválidas.
+Auditoría complementaria terminada y mapa de fuentes actualizado. No repetirla
+sin una necesidad nueva. El servicio de cálculo existente no implementa aún las
+once fichas empresariales y no hay tablero nuevo instalado por este paso.
 Tras responder las decisiones que afecten una ficha, especificar su incremento
 con fuentes reales, casos conocidos y permisos; reutilizar reporte nativo antes
 de crear otra interfaz. No empezar por programar22 familias de una vez.

@@ -60,17 +60,28 @@ Definiciones de negocio siguen propuestas; sin metas ni ventanas adoptadas.
 El usuario consultó si salida/retiro del taller es trazable: se recomienda salida
 registrada al cliente mediante transferencia validada con series y constancia;
 no confundir con recepción en destino, cierre técnico o FEN. Sigue pendiente
-cuándo se fija y dónde se registra la promesa original al cliente.
+cerrar el momento de fijación y el vínculo de la promesa original al trabajo.
 
-Auditoría complementaria preparada, **todavía sin ejecutar**:
-`.tmp/staging-work-kpi-catalog-source.ps1`, solo metadatos y conteos agregados,
-READ ONLY/rollback, baseline139 y PID intactos, sin instalar/reiniciar ni tocar
-copia QA o producción. Verifica cobertura de HH/hallazgos/visitas/series/FEN y
-transferencias hacia cliente antes de proponer capturas nuevas. Paquete local
-validado: Python, PowerShell, Bash, integridad y verificador2 válidos/20 rechazos.
-Ejecutar por SSH privado del usuario y revisar evidencia antes de declarar fuentes
-disponibles o implementar el tablero. Las1282 pruebas anteriores no aprueban
-automáticamente estas definiciones nuevas.
+Auditoría complementaria **ejecutada y revalidada**, intento20261104-115911-124:
+34 modelos, READ ONLY/rollback,139 fuentes y PID intactos, STAGING activo;
+sin instalar/reiniciar ni tocar copia QA o producción. Recibo coincide exactamente
+con JSON guardado. Evidencia workspaceCode `.tmp/preparacion-uso-real-pilot/`
+`catalog-source-installed-20261104-115911-124.json`; trabajo remoto
+`/var/tmp/mc-rov-kpi-catalog-source-fkOLHT`. Mapa y brechas añadidos al catálogo.
+Reutilizar órdenes/series/movimientos, HH/empleado/causas, revisiones/chequeos y
+catálogos; no duplicar su captura. Quedan historia de promesa original/primer
+veredicto, bloqueos efectivos y relaciones de retorno/retrabajo por especificar.
+En esta copia no hay salida interna→cliente done ni compras; conteos incluyen QA
+y productos no ROV, sin rendimiento real ni inferencia sobre producción. Campos
+editables y métodos delegados no prueban historia inmutable ni cadena nativa completa.
+Revisión independiente Q1–Q4 confirma brechas y reutilización; sin cambios de producto.
+Usuario indicó que hoy no se formaliza así, pero la promesa debe quedar firme en
+Odoo. Propuesta de circuito añadida al catálogo: reutilizar commitment_date cuando
+corresponda, conservar original/cambios y fijar al aceptar trabajo y fecha; ese
+momento es recomendación de Codex, no confirmación adicional del usuario. No crear
+ventas ficticias para medir reparación ni equiparar fecha interna a compromiso.
+No repetir auditoría ni suite1282 sin cambio relevante; sus pruebas no aprueban
+automáticamente las once definiciones empresariales ni un tablero nuevo.
 
 Propuesta inicial de KPI: pendientes/vencidos, cumplimiento de plazos, tiempos de
 resolución y rechazos/reaperturas. Núcleo y servicio tienen fórmulas especificadas;
