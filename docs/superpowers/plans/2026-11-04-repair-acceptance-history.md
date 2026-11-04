@@ -104,14 +104,14 @@ de instrumento como fallo real ni permitir borrar fallo real mediante invalidaci
 
 ## Task2: GREEN de captura y privacidad
 
-- [ ] Implementar campos/modelo/API anteriores con pruebas de permisos por origen;
+- [x] Implementar campos/modelo/API anteriores con pruebas de permisos por origen;
   usar los campos de empleado existentes y guardar actor de cuenta por separado.
-- [ ] Capturar configuración vigente y resultado tras super; ningún snapshot histórico
+- [x] Capturar configuración vigente y resultado tras super; ningún snapshot histórico
   se completa desde chatter, tipo de secuencia ni fecha de última modificación.
-- [ ] Comprobar mismas pruebas focalizadas y controles de revisión/seguridad anteriores.
-- [ ] Preparar instalación solo STAGING con respaldo y recuperación probados; conservar
+- [x] Comprobar mismas pruebas focalizadas y controles de revisión/seguridad anteriores.
+- [x] Preparar instalación solo STAGING con respaldo y recuperación probados; conservar
   la fallida si ocurre error, sin instalar perfiles ni destinatarios reales.
-- [ ] Comprobar hashes, datos, stock, configuración y PDFs emitidos intactos.
+- [x] Comprobar hashes, datos, stock, configuración y PDFs emitidos intactos.
 
 ## Task3: Clasificación visible y lectura empresarial
 
@@ -129,10 +129,26 @@ de instrumento como fallo real ni permitir borrar fallo real mediante invalidaci
 RED nativo52 confirmado (13 ausentes y39 controles); GREEN focalizado52/52 instalado
 solo en STAGING, intento20261104-165400-603, backup
 /var/tmp/mc-rov-repair-acceptance-green-HSL19z. Captura/no-retroactivos, hashes141,
-configuración y pruebas restauradas verificados. Producto aún sin interfaz nueva.
+configuración y pruebas restauradas verificados. Interfaz nativa instalada tras GREEN82/82, intento20261104-173022-174, backup
+/var/tmp/mc-rov-repair-acceptance-presentation-green-VrwEcR.142 fuentes verificadas;
+pendiente comprobación visual. Controles de permisos y rollback aprobados72/72.
 
-El lote focalizado no cubre toda la matriz de empresas/origen y rollback. Ampliarla
-antes de declarar la captura integral terminada; después verificar interfaz,
-concurrencia, regresión completa y revisión independiente final. La liberación completa
+Permisos/origen/empresas y rollback comprobados por los20 controles adicionales.
+Pendientes: regresión completa1328, concurrencia aislada, revisión visual y revisión
+independiente final. No declarar la entrega integral todavía. La liberación completa
 aún requiere evidencia documental/NC, y compromisos/bloqueos/retornos tienen incrementos
 separados. No presentar esta captura como entrega del tablero de11 familias.
+
+### Concreción de interfaz nativa (decisiones de implementación)
+
+En la misma revisión: finalidad y corrección/reensayo explícitos; indicador de intento
+pendiente, botón Iniciar intento final y motivo de fallo con acción Registrar fallo.
+Esta última delegará en la interrupción validada: exige evidencia real y no confirma
+una revisión incompleta. Confirmar final solo visible tras inicio pendiente. No añade
+Hecho, Cancelar ni retirada genérica del seguimiento.
+
+Historial HTML calculado, sin almacenar ni conceder ACL al modelo privado, campo
+restringido a consulta del equipo. Cada lectura valida origen/empresas antes de sudo;
+texto libre escapado, conserva primer rechazo y aprobaciones posteriores. No consulta
+Ventana de acción ni crea asistentes. Un fallo requiere motivo introducido en borrador.
+RED UI:8 contratos ausentes y2 controles nativos, junto con72 anteriores =82.

@@ -20,7 +20,25 @@ parser2válidos/15rechazos, AST y preflight locales. GREEN72/72 verificado
 20261104-171248-523, backup /var/tmp/mc-rov-repair-acceptance-boundaries-DdstEn;
 141 fuentes y datos/historial intactos, pruebas restauradas y STAGING activo.
 
-Siguiente: interfaz de clasificación e historial desde el origen autorizado; luego
+Interfaz nativa definida en el plan: finalidad, inicio, motivo/fallo validado e
+historial HTML de solo lectura autorizado; sin Ventana de acción ni ACL nueva.
+Preparados8 contratos RED de presentación y2 controles nativos, junto con72 previos:
+82 exactos: RED confirmado (8 ausentes/74 verdes), copiaNwBEZ9 y pruebas restauradas.
+Implementación local de presentación en modelo nuevo/import/vista, sin instalar todavía.
+GREEN82 preparado con baseline141 y resultado142 fuentes; preserva historial/datos
+existentes, excluye del snapshot de revisión solo el campo nuevo de motivo, añade
+recuperación fresh-DB que conserva el modelo de captura ya instalado. Validación local
+Black99/pylint10, XML/AST/Bash/PS/hashgate y parser2válidos/16rechazos. Fixture ajustado
+para que la cuenta QA transaccional tenga explícitamente consulta del equipo; se exige
+esa única transformación del archivo RED, mismos82 casos/aserciones, sin permisos reales.
+GREEN82/82 instalado y recibo revalidado20261104-173022-174; backup
+/var/tmp/mc-rov-repair-acceptance-presentation-green-VrwEcR.142 fuentes, sin captura
+retrospectiva, datos/config intactos y pruebas restauradas. Falta comprobación visual.
+Regresión completa preparada:1328 exactos =1282 previos+46 de reparación, sin sustituciones;
+solo pruebas, snapshot completo de historial/revisión incluido el motivo ya instalado.
+Parser2positivos/19rechazos y AST/Bash/PS/hashgate locales; no ejecutada todavía.
+
+Siguiente: ejecutar staging-repair-acceptance-regression.ps1; después
 concurrencia, regresión completa y revisión independiente final. No presentar el
 GREEN52 como tablero KPI terminado ni como validación integral de la función.
 

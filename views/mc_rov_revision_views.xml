@@ -7,8 +7,17 @@
         <field name="arch" type="xml">
             <form string="Revisión técnica">
                 <header>
+                    <field name="mc_final_attempt_pending" invisible="1"/>
+                    <field name="mc_final_identity_locked" invisible="1"/>
+                    <button name="action_start_final_acceptance" type="object"
+                            string="Iniciar intento final" class="btn-primary"
+                            invisible="mc_acceptance_purpose != 'final' or estado != 'borrador' or mc_final_attempt_pending"/>
+                    <button name="action_record_final_failure" type="object"
+                            string="Registrar fallo"
+                            confirm="Se conservará el intento como rechazado por un fallo real. La revisión seguirá en borrador."
+                            invisible="mc_acceptance_purpose != 'final' or estado != 'borrador' or not mc_final_attempt_pending"/>
                     <button name="action_confirmar" type="object" string="Confirmar"
-                            class="btn-primary" invisible="estado != 'borrador'"/>
+                            class="btn-primary" invisible="estado != 'borrador' or (mc_acceptance_purpose == 'final' and not mc_final_attempt_pending)"/>
                     <button name="action_volver_a_borrador" type="object"
                             string="Volver a borrador"
                             invisible="estado != 'confirmado'"/>
@@ -69,12 +78,12 @@
                          cuando cada una dice qué contiene. -->
                     <group>
                         <group string="Equipo y visita">
-                            <field name="lot_id" readonly="estado == 'confirmado'"/>
+                            <field name="lot_id" readonly="estado == 'confirmado' or mc_final_identity_locked"/>
                             <field name="es_un_rov" invisible="1"/>
                             <field name="documento_emitido" invisible="1"/>
                             <field name="product_id"/>
                             <field name="propietario_id"/>
-                            <field name="repair_id" readonly="estado == 'confirmado'"/>
+                            <field name="repair_id" readonly="estado == 'confirmado' or mc_final_identity_locked"/>
                             <field name="partner_id" invisible="not repair_id"/>
                         </group>
                         <group string="Esta revisión">
@@ -83,7 +92,7 @@
                                  para corregir un dato ya salió con su número puesto, y
                                  cambiarle el tipo ahí la renumeraría — rompiendo la
                                  referencia que el cliente tiene en la mano. -->
-                            <field name="tipo" readonly="documento_emitido"/>
+                            <field name="tipo" readonly="documento_emitido or mc_final_identity_locked"/>
                             <field name="fecha" readonly="estado == 'confirmado'"/>
                             <field name="responsable_id" required="1"
                                    readonly="estado == 'confirmado'"/>
@@ -105,7 +114,30 @@
                          Eran cinco hasta 19.0.14.0.0: "Corridas" se fusionó en Pruebas
                          —la corrida no es una prueba sino la condición bajo la cual se probó, y
                          ocurre en la misma sesión— y "Condiciones" desapareció con ella. -->
+                    <group string="Aceptación final de reparación" invisible="tipo != 'reparacion' or not repair_id">
+                        <group>
+                            <field name="mc_acceptance_purpose" string="Finalidad"
+                                   readonly="estado != 'borrador' or mc_final_identity_locked"/>
+                            <field name="mc_correction_required" string="Requiere corrección"
+                                   invisible="mc_acceptance_purpose != 'final'" readonly="estado != 'borrador'"/>
+                            <field name="mc_retest_required" string="Requiere reensayo"
+                                   invisible="mc_acceptance_purpose != 'final'" readonly="estado != 'borrador'"/>
+                        </group>
+                        <group invisible="mc_acceptance_purpose != 'final'">
+                            <div class="text-muted" colspan="2">
+                                Iniciar el intento fija los requisitos de esta comprobación.
+                                Confirmar registra su resultado; la liberación y la salida del equipo son pasos posteriores.
+                            </div>
+                            <field name="mc_final_failure_reason" placeholder="Explique el fallo real antes de pulsar Registrar fallo"
+                                   readonly="estado != 'borrador' or not mc_final_attempt_pending"/>
+                        </group>
+                    </group>
                     <notebook>
+                        <page string="Aceptación final" name="repair_acceptance_history"
+                              groups="mc_rov.group_work_assignment_team"
+                              invisible="mc_acceptance_purpose != 'final'">
+                            <field name="mc_acceptance_history_html" nolabel="1" readonly="1"/>
+                        </page>
                         <page string="Sellos" name="page_sellos"
                               invisible="tipo != 'reparacion'">
                             <!-- Una fila por componente sellado, y siempre el estado con
