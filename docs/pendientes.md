@@ -136,6 +136,19 @@ Captura final explícita, snapshots inmutables por orden/serie y protección de 
 por origen; confirmaciones repetidas no duplican, reapertura no borra primer intento.
 Primer paso pendiente: fixtures/RED nativo test-only; no hay producto de captura escrito
 ni instalado y no se ha declarado una nueva suite nativa aprobada.
+RED inicial de captura preparado: `tests/test_repair_acceptance_history.py`,16
+casos (13 contratos ausentes y3 controles nativos), más36 KPI anteriores =52.
+Fixtures reutilizan RevisionCommon y action_confirmar real; sin _emitir ni estados
+forzados para simular captura. Cubre diagnóstico/final, identidad, inicio repetido,
+snapshot/actor, confirmación repetida, reapertura, catálogo, interrupción incompleta,
+forja de estado e historial sellado. Casos adicionales de empresas/origen y rollback
+siguen pendientes antes del GREEN integral; este primer lote no los sustituye.
+Paquete workspaceCode `.tmp/staging-repair-acceptance-history-red.ps1`, marcador
+final-repair-native-history52-v1, baseline instalado139. Respaldo/restauración de
+pruebas y reinicio solo STAGING; protege snapshot negocio/stock/historial/PDF.
+Black99/pylint10, AST1298 declarados/52 focalizados, Bash, PowerShell/preflight real
+y lector2válidos/16rechazos aprobados. RED nativo NO ejecutado; no hay código de
+captura implementado. Esperado13FAIL/39PASS/0ERROR; no aceptar fallos de fixture.
 
 Propuesta inicial de KPI: pendientes/vencidos, cumplimiento de plazos, tiempos de
 resolución y rechazos/reaperturas. Núcleo y servicio tienen fórmulas especificadas;

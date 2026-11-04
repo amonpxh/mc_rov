@@ -130,3 +130,10 @@ Plan técnico preparado. No hay campos nuevos instalados ni RED nativo de este
 incremento ejecutado. La liberación completa aún requiere evidencia documental/NC
 y los compromisos/bloqueos/retornos tienen incrementos separados. No presentar esta
 captura como entrega del tablero de11 familias.
+
+Primer lote RED preparado:16 casos nuevos (13 esperados ausentes/3 controles nativos)
+y36 KPI previos,52 total. tests/test_repair_acceptance_history.py reutiliza fixtures
+nativas; Black99/pylint10. Transporte test-only/139 fuentes, parser exacto por nombre
+con2válidos/16rechazos, AST/Bash/PowerShell y hashgate locales aprobados. Pendiente
+SSH privado para observar RED. Añadir después los casos restantes de empresas/origen
+y rollback antes de declarar GREEN integral de Task1; no están cubiertos por el lote52.
