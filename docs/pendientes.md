@@ -57,10 +57,10 @@ Consolidación autorizada2026-11-04: catálogo único en
 Revisión independiente de conteos, fórmulas y casos aplicada: compromisos únicos,
 reapertura/recierre, intentos inválidos, cohortes con dictamen pendiente y reversos.
 Definiciones de negocio siguen propuestas; sin metas ni ventanas adoptadas.
-El usuario consultó si salida/retiro del taller es trazable: se recomienda salida
-registrada al cliente mediante transferencia validada con series y constancia;
-no confundir con recepción en destino, cierre técnico o FEN. Sigue pendiente
-cerrar el momento de fijación y el vínculo de la promesa original al trabajo.
+F3 acordado2026-11-04: promesa original en Odoo al aceptar el cliente trabajo y
+fecha; cambios con motivo/autor y comparación con salida validada del taller.
+Sin fecha acordada, sin compromiso definido. Salida registrada no equivale a
+recepción en destino, cierre técnico o FEN. Documento/vínculo y roles pendientes.
 
 Auditoría complementaria **ejecutada y revalidada**, intento20261104-115911-124:
 34 modelos, READ ONLY/rollback,139 fuentes y PID intactos, STAGING activo;
@@ -75,11 +75,12 @@ En esta copia no hay salida interna→cliente done ni compras; conteos incluyen 
 y productos no ROV, sin rendimiento real ni inferencia sobre producción. Campos
 editables y métodos delegados no prueban historia inmutable ni cadena nativa completa.
 Revisión independiente Q1–Q4 confirma brechas y reutilización; sin cambios de producto.
-Usuario indicó que hoy no se formaliza así, pero la promesa debe quedar firme en
-Odoo. Propuesta de circuito añadida al catálogo: reutilizar commitment_date cuando
-corresponda, conservar original/cambios y fijar al aceptar trabajo y fecha; ese
-momento es recomendación de Codex, no confirmación adicional del usuario. No crear
-ventas ficticias para medir reparación ni equiparar fecha interna a compromiso.
+El usuario aceptó el circuito propuesto de promesa original/cambios/salida; hoy no
+se formaliza así. Reutilizar commitment_date donde corresponda, sin crear ventas
+ficticias para medir reparación ni equiparar fecha interna a compromiso. Acuerdo
+de negocio documentado; circuito aún no implementado. Consulta siguiente enviada:
+ventana de retorno relacionado tras reparación (30/90/180 días u otra), independiente
+de garantía comercial; no escoger valor por defecto mientras esté pendiente.
 No repetir auditoría ni suite1282 sin cambio relevante; sus pruebas no aprueban
 automáticamente las once definiciones empresariales ni un tablero nuevo.
 

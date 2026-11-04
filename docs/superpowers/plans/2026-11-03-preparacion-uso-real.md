@@ -62,6 +62,9 @@ fuentes seleccionadas, permisos nativos y estadísticas agregadas; sin secretos 
 - [x] Auditoría complementaria READ ONLY mediante SSH privado: recibo20261104-115911-124
   revalidado,34 modelos/139 fuentes/PID intactos. Mapa actualizado; revisión Q1–Q4
   distingue captura existente e historia faltante, sin inferir rendimiento desde QA.
+- [x] F3: regla de promesa en Odoo al aceptar trabajo y fecha, original/cambios con
+  motivo/autor, comparación con salida validada y sin compromiso cuando falta fecha,
+  aceptada2026-11-04. Documento/vínculo/roles y captura concreta siguen pendientes.
 - [ ] Acordar con el usuario el catálogo empresarial y las fichas de medida antes
   de continuar el tablero; el primer servicio de etapas fue propuesta de Codex.
 - [ ] Tablero y navegación autorizada; pruebas de interfaz/ambos temas/roles y revisión independiente.

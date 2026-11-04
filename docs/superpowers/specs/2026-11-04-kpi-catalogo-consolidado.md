@@ -141,19 +141,19 @@ sus subtotales como si fueran categorías exclusivas.
 - **Decisión:** compromisos en riesgo y cumplimiento de lo prometido.
 - **Unidad:** compromiso de visita/serie/línea de entrega con cantidad y requisitos,
   definido antes del cálculo. No mezclar un pedido de varias series con una sola.
-- **Entrega propuesta:** salida del taller registrada al cliente, mediante transferencia
+- **Entrega acordada:** salida del taller registrada al cliente, mediante transferencia
   validada con serie y constancia de despacho o retiro. La validación acredita el
   registro; no demuestra por sí sola el movimiento físico ni confirma recepción
   en destino. Identificar retiro por el cliente solo cuando exista esa constancia.
-  El usuario preguntó qué permite el sistema con trazabilidad; se recomendó este
-  criterio, todavía pendiente de cerrar como definición empresarial y de comprobar
-  el recorrido instalado. Rótulo propuesto: salida del taller registrada a tiempo.
+  Criterio aceptado2026-11-04 dentro del circuito de compromiso y salida; el recorrido
+  instalado y la constancia concreta siguen por comprobar. Rótulo: salida del taller
+  registrada a tiempo.
   Si la validación se registra después del hecho físico, no usar automáticamente
   su hora como hora de salida: hace falta fecha efectiva respaldada por la constancia.
-- **Promesa:** conservar fecha original y recompromisos, motivo y autor. El usuario
-  indicó que hoy no se formaliza así y que debe quedar firme en Odoo. Se propone
-  fijarla al aceptar el cliente el trabajo y la fecha acordada; el momento y vínculo
-  exactos se cierran con el circuito, sin asumir que toda orden ya tiene promesa.
+- **Promesa acordada2026-11-04:** conservar en Odoo fecha original y recompromisos,
+  motivo y autor. Queda firme cuando el cliente acepta el trabajo y la fecha acordada.
+  Sin fecha acordada, mostrar sin compromiso definido. Documento/vínculo y roles
+  siguen por precisar; no asumir que toda orden actual ya tiene promesa válida.
 - **Vista de vencimientos:** compromisos que vencían en período cumplidos completos
   y a tiempo / compromisos elegibles que vencían en período. Incluye pendientes vencidos.
 - **Vista de completados:** compromisos completados del período a tiempo / compromisos
@@ -418,12 +418,15 @@ reutilización de HH/causas/chequeos/catálogos confirmada. Solo completar histo
 clasificación realmente ausentes tras definir el hecho empresarial; no crear trece
 campos nuevos en bloque ni rellenar retrospectivamente desde texto libre.
 
-## Compromiso de salida: propuesta de circuito en Odoo
+## Compromiso de salida: regla acordada y detalle del circuito
 
-Respuesta del usuario2026-11-04: la fecha debe quedar firme en Odoo; actualmente
-no se hace así. Esto fija el sistema de registro deseado, no demuestra que las
-fechas actuales de la base sean promesas acordadas. El momento de fijación siguiente
-es recomendación de Codex, pendiente de cerrar como regla del circuito.
+Regla empresarial aceptada2026-11-04: registrar en Odoo la promesa original cuando
+el cliente acepta el trabajo y la fecha; conservar cambios con motivo y autor;
+comparar con la salida validada y mostrar sin compromiso definido cuando no se
+haya pactado fecha. Actualmente no se formaliza así: las fechas existentes no se
+convierten automáticamente en promesas acordadas. La selección del documento,
+vínculo al trabajo, permisos y captura de evidencia son detalles de implementación
+todavía por cerrar; no se han creado campos ni desplegado este circuito.
 
 1. En cotización/pedido, reutilizar `sale.order.commitment_date` como candidata a
    fecha acordada. Mientras sea propuesta comercial, distinguirla de una promesa
@@ -452,16 +455,15 @@ mensajes. El circuito se probará con datos ficticios y roles equivalentes.
 
 ## Decisiones de negocio pendientes
 
-1. Evento de cumplimiento de entrega: salida/retiro registrado propuesto tras
-   consulta del usuario; cerrar si aplica a todo trabajo o depende del contrato.
-2. Odoo como registro deseado de la promesa indicado por el usuario; cerrar momento
-   de fijación, documento/vínculo y permisos. Aceptación del trabajo y fecha acordada
-   es la recomendación; hoy no se registra de ese modo.
-3. Ventana W y criterio de retorno relacionado; todavía no elegir90 días.
-4. Aprobación con observaciones y lista de ensayos/protocolo por modelo.
-5. Qué representa liberación y expediente por tipo de trabajo; no equiparar FEN a despacho.
-6. Vocabulario de detención, intervalos simultáneos y causa principal/reparto.
-7. Calendario y zona empresariales: semana ISO y America/Santiago propuestas;
+1. Documento/vínculo y roles del compromiso F3. La fijación al aceptar trabajo y
+   fecha ya está acordada. Identificar contratos con recepción en destino u otro
+   hito para tratarlos con su definición propia, sin cambiar el rótulo de salidas.
+2. Ventana W y criterio de retorno relacionado; consulta de período enviada,
+   todavía no elegir90 días ni equiparar ventana del indicador a garantía comercial.
+3. Aprobación con observaciones y lista de ensayos/protocolo por modelo.
+4. Qué representa liberación y expediente por tipo de trabajo; no equiparar FEN a despacho.
+5. Vocabulario de detención, intervalos simultáneos y causa principal/reparto.
+6. Calendario y zona empresariales: semana ISO y America/Santiago propuestas;
    no convertirlas en condición contractual sin verificar su aplicabilidad.
 
 Metas, bandas de color, tramos de antigüedad y ventanas móviles se fijan tras estas
