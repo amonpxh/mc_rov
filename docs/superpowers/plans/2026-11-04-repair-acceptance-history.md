@@ -33,7 +33,7 @@
 - Create models/repair_acceptance_history.py: modelo privado `mc.rov.repair.acceptance.attempt` y API de lectura protegida.
 - Create models/repair_acceptance_capture.py: extensión de revisión y confirmación validada.
 - Modify models/__init__.py: registrar únicamente esos dos módulos al instalar GREEN.
-- Modify security/ir.model.access.csv y security/mc_rov_security.xml: historial privado y frontera empresarial, sin ampliar permisos del origen.
+- Seguridad: sin ACL pública ni regla nueva para historial privado, como los historiales existentes; comprobar origen y empresa antes de consultas sudo. No modificar permisos del origen.
 - Create tests/test_repair_acceptance_history.py: escenarios nativos focalizados.
 - Modify tests/__init__.py: registro de las pruebas temporales para RED y definitivo en rama.
 - Interfaz visual de clasificación final se añade después del GREEN de modelo, con pruebas propias.
@@ -126,14 +126,13 @@ de instrumento como fallo real ni permitir borrar fallo real mediante invalidaci
 
 ## Estado y dependencias
 
-Plan técnico preparado. No hay campos nuevos instalados ni RED nativo de este
-incremento ejecutado. La liberación completa aún requiere evidencia documental/NC
-y los compromisos/bloqueos/retornos tienen incrementos separados. No presentar esta
-captura como entrega del tablero de11 familias.
+RED nativo52 confirmado (13 ausentes y39 controles); GREEN focalizado52/52 instalado
+solo en STAGING, intento20261104-165400-603, backup
+/var/tmp/mc-rov-repair-acceptance-green-HSL19z. Captura/no-retroactivos, hashes141,
+configuración y pruebas restauradas verificados. Producto aún sin interfaz nueva.
 
-Primer lote RED preparado:16 casos nuevos (13 esperados ausentes/3 controles nativos)
-y36 KPI previos,52 total. tests/test_repair_acceptance_history.py reutiliza fixtures
-nativas; Black99/pylint10. Transporte test-only/139 fuentes, parser exacto por nombre
-con2válidos/16rechazos, AST/Bash/PowerShell y hashgate locales aprobados. Pendiente
-SSH privado para observar RED. Añadir después los casos restantes de empresas/origen
-y rollback antes de declarar GREEN integral de Task1; no están cubiertos por el lote52.
+El lote focalizado no cubre toda la matriz de empresas/origen y rollback. Ampliarla
+antes de declarar la captura integral terminada; después verificar interfaz,
+concurrencia, regresión completa y revisión independiente final. La liberación completa
+aún requiere evidencia documental/NC, y compromisos/bloqueos/retornos tienen incrementos
+separados. No presentar esta captura como entrega del tablero de11 familias.

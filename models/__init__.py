@@ -67,3 +67,5 @@ from . import inventory_activity_source
 # El guard debe ejecutarse antes de que los hooks registren un cierre manual.
 from . import automatic_activity_completion
 from . import work_kpi
+from . import repair_acceptance_history
+from . import repair_acceptance_capture

@@ -1,5 +1,20 @@
 ## Programa de preparación del uso real autorizado — 2026-11-03
 
+### Estado actual — aceptación final de reparación (2026-11-04)
+
+Captura explícita e historial privado instalados solo en STAGING: GREEN focalizado
+52/52, intento `20261104-165400-603`, respaldo
+`/var/tmp/mc-rov-repair-acceptance-green-HSL19z`. Recibo, hashes de141 fuentes,
+configuración intacta, ausencia de clasificación/captura retrospectiva y restauración
+de pruebas verificados. No hay interfaz nueva, activación real ni cambio en producción.
+El intento anterior pasó pruebas/captura pero el shell buscaba una etiqueta antigua;
+recuperación verificada y base fallida conservada. Paquetev2 corrige solo esa etiqueta,
+con regresión local de consistencia, sin cambiar producto ni los52 casos.
+
+Siguiente: ampliar permisos/origen/empresas, identidad y rollback; luego interfaz,
+concurrencia, regresión completa y revisión independiente final. No presentar el
+GREEN52 como tablero KPI terminado ni como validación integral de la función.
+
 Usuario autorizó KPI, Compras/abastecimiento, agente IA Odoo/Telegram, datos maestros,
 roles/permisos, procedimientos/capacitación, operación técnica, ensayo general y arranque.
 Diseño: `docs/superpowers/specs/2026-11-03-preparacion-uso-real-design.md`.
@@ -149,6 +164,34 @@ pruebas y reinicio solo STAGING; protege snapshot negocio/stock/historial/PDF.
 Black99/pylint10, AST1298 declarados/52 focalizados, Bash, PowerShell/preflight real
 y lector2válidos/16rechazos aprobados. RED nativo NO ejecutado; no hay código de
 captura implementado. Esperado13FAIL/39PASS/0ERROR; no aceptar fallos de fixture.
+
+RED52 confirmado y revalidado20261104-154312-684:13 fallos esperados/39 controles
+verdes/0 errores, nombres exactos. Respaldo `/var/tmp/mc-rov-repair-acceptance-red-w3s4FT`;
+139 fuentes y datos/configuraciones conservados, pruebas restauradas y STAGING activo.
+Se conserva ese recibo y sus logs; el estado preparado anterior queda superado.
+
+Implementación LOCAL sin instalar ni commitear producto hasta GREEN nativo:
+models/repair_acceptance_history.py y repair_acceptance_capture.py, más models/__init__.
+Modelo privado sin ACL pública ni nueva regla, siguiendo historiales existentes;
+capacidad interna no serializable para crear/sellar, lectura autorizada por origen
+y empresa antes de sudo. Bloqueo ordenado del padre y ordinal único; inicio repetido
+no duplica, reapertura conserva intento cerrado, interrupción requiere fallo real.
+Identidad protegida tanto en revisión como en orden; diagnóstico queda por vía nativa.
+Instantánea conserva configuración, resultados,51 campos escalares propios candidatos
+(solo almacenados/sin grupo; excluye correo heredado), cliente/producto de la visita,
+autor de cuenta y empleado informado. No deriva personas desde cuenta compartida.
+Black99/pylint10 y AST aprobados; todavía SIN prueba runtime de estos dos modelos.
+
+GREEN52 preparado: workspaceCode `.tmp/staging-repair-acceptance-history-green.ps1`,
+marcador final-repair-immutable-history52-v1. Revalida RED y mismos tests sin relajar
+aserciones; parchea3 fuentes, producto instalado139→141. El núcleo empresarial puro
+e1fa472 sigue local y no se incluye innecesariamente en este parche de captura.
+Respalda BD/fuentes y recupera en base nueva si falla, conserva la fallida, restaura
+tests y reinicia STAGING. Protege stock/configuración/historial/PDF y exige0 intentos
+reales/retrospectivos y0 revisiones antiguas clasificadas final al verificar.
+Paquete y recuperación: Bash/AST/PS, preflight de hashes y parser2válidos/16rechazos
+aprobados. NO ejecutado remotamente. Matriz ampliada de permisos/rollback, concurrencia,
+interfaz, suite integral y revisión independiente final siguen pendientes.
 
 Propuesta inicial de KPI: pendientes/vencidos, cumplimiento de plazos, tiempos de
 resolución y rechazos/reaperturas. Núcleo y servicio tienen fórmulas especificadas;
