@@ -254,6 +254,15 @@ sus subtotales como si fueran categorías exclusivas.
 - **Decisión:** calidad de la primera presentación formal y necesidad de repetir trabajo.
 - **Unidad:** episodio de aceptación = visita/orden + serie + protocolo/versión;
   fabricación y reparación separadas. Una serie reparada dos veces tiene dos episodios.
+- **Reparación final:** ante la propuesta del usuario de usar revisión de reparación
+  final, se recomienda esa revisión como comprobación formal del trabajo terminado.
+  Debe quedar vinculada explícitamente a la aceptación final; tipo reparacion o
+  estado confirmado por sí solos no la identifican. Diagnóstico inicial y pruebas
+  durante intervención se mantienen aparte. Rendimiento/terreno se añaden cuando
+  el requisito aplicable al trabajo los exija, sin imponerlos a toda reparación.
+  No sobrecargar el motivo actual: no contiene una opción de aceptación final.
+  Casos del adaptador: diagnóstico rechazado no es primer fallo de aceptación;
+  primera revisión final rechazada y segunda aprobada conservan primer pase fallido.
 - **Denominador:** episodios con primer intento formal adjudicado aprobado/fallido
   en período. Pendientes e inválidos se muestran aparte; no desaparecen sin estado/motivo.
 - **Numerador:** primer intento válido aprobado en todos los requisitos aplicables sin

@@ -122,10 +122,15 @@ QA/producción. Evidencia workspaceCode `.tmp/preparacion-uso-real-pilot/`
 semillas sobre configuración existente. Siguiente incremento: captura durable de
 configuración/veredicto del intento formal, con reapertura conservando original;
 observaciones informativas frente a correcciones requieren clasificación explícita.
-Consulta de negocio pendiente: en reparación terminada, qué revisión/pruebas forman
-la aceptación final (reparación, rendimiento/terreno o combinación por intervención).
+Usuario propone revisión final de reparación; se recomienda usarla como comprobación
+formal del trabajo terminado, diferenciada explícitamente del diagnóstico y pruebas
+durante intervención. Rendimiento/terreno solo cuando requisitos aplicables lo exijan;
+no convertir esa condición en exigencia nueva para todas las reparaciones.
 No contar primer diagnóstico/retest/comparación de cable como presentación formal
 solo por confirmar una revisión; motivo actual no identifica aceptación final.
+Vínculo al episodio final pendiente de implementación. Casos futuros del adaptador:
+diagnóstico fallido fuera del primer pase; primer final fallido seguido de aprobado
+conserva primer pase fallido. No se han cambiado pruebas ni workflow instalado.
 
 Propuesta inicial de KPI: pendientes/vencidos, cumplimiento de plazos, tiempos de
 resolución y rechazos/reaperturas. Núcleo y servicio tienen fórmulas especificadas;
