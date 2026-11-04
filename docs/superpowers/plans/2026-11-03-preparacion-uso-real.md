@@ -78,8 +78,9 @@ fuentes seleccionadas, permisos nativos y estadísticas agregadas; sin secretos 
 - [x] Primer núcleo empresarial local Q1/Q2/liberación:34 pruebas nuevas y16 anteriores,
   revisión independiente corregida en RED/GREEN,50/50 unitarias y pylint10/Black99.
   Plan: `docs/superpowers/plans/2026-11-04-business-kpi-quality-foundation.md`.
-- [ ] Consultar perfiles/chequeos/puntos de calidad instalados antes de ampliar captura;
-  paquete READ ONLY preparado, aún no ejecutado; no usar semillas como perfiles vigentes.
+- [x] Configuración instalada consultada: recibo20261104-145645-429 revalidado,25
+  chequeos activos (18/24/18 por tipo),1 punto de calidad inactivo;139 fuentes/PID
+  intactos. Reutilizar catálogo y conservar instantánea histórica, sin reactivar puntos.
 - [ ] Acordar con el usuario el catálogo empresarial y las fichas de medida antes
   de continuar el tablero; el primer servicio de etapas fue propuesta de Codex.
 - [ ] Tablero y navegación autorizada; pruebas de interfaz/ambos temas/roles y revisión independiente.

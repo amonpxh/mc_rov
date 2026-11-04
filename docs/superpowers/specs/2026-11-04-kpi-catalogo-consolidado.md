@@ -450,10 +450,29 @@ campos nuevos en bloque ni rellenar retrospectivamente desde texto libre.
 Revisión técnica adicional del catálogo y aceptación: reutilizar mc.rov.chequeo y
 líneas de revisión, snapshots y PDF emitidos. Las semillas XML son noupdate; no
 representan necesariamente configuración vigente. El audit34 no incluyó registros
-de quality.point ni mc.rov.chequeo: su configuración instalada sigue por verificar,
-sin inferir ausencia de perfiles. El catálogo local aplica chequeos por tipo de
+de quality.point ni mc.rov.chequeo; se completó con la consulta siguiente. El catálogo aplica chequeos por tipo de
 trabajo; no acredita obligatoriedad/versiones por modelo. Aprobado con observaciones
 nativo tampoco acredita por sí solo que sean exclusivamente informativas.
+
+Consulta técnica instalada2026-11-04, intento20261104-145645-429: cinco modelos
+presentes y recibo revalidado contra139 hashes. mc.rov.chequeo contiene25 registros,
+todos activos:18 aplican a rendimiento,24 a reparación y18 a terreno; categorías
+solapadas, no60 pruebas distintas. quality.point contiene un registro inactivo,
+sin alcance explícito de producto/categoría, y quality.point.test_type tiene9 tipos.
+quality.test_type no está registrado; no crear un sustituto por ese nombre.
+No leer esos valores como umbrales aprobados ni reactivar el punto para generar datos.
+
+La consulta confirma reutilización del catálogo vigente, no una matriz aprobada por
+modelo ni historia del primer intento. Próxima captura debe guardar instantánea
+de requisitos aplicables y veredicto formal, manteniendo configuración actual y
+resultados posteriores separados. Los cambios del catálogo no reescriben intentos.
+Un aprobado con observaciones requiere clasificar explícitamente corrección/reensayo;
+no convertir automáticamente la etiqueta nativa en observación informativa.
+
+Evidencia workspaceCode `.tmp/preparacion-uso-real-pilot/`
+`profiles-source-installed-20261104-145645-429.json`, trabajo remoto
+`/var/tmp/mc-rov-kpi-profiles-source-sHqsH1`; READ ONLY/rollback, archivos/PID
+intactos, sin instalar ni reiniciar y sin consultar QA/producción.
 
 Antes de construir el adaptador, comprobar la divergencia local entre cálculo que
 excluye funcionamiento continuo en terreno y validación que lo exige. No se ha

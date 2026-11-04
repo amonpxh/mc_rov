@@ -107,16 +107,25 @@ por invalidación, retornos sin fecha conservan relación/existencia y cualquier
 retorno se cuenta aparte del relacionado. Flags mal tipados rechazados.
 Faltan captura durable, adaptadores autorizados, cálculos de flujo/proveedores,
 tablero y QA instalado; la suite nativa1282 no se declara reejecutada por este paso.
-Configuración real quality.point/mc.rov.chequeo sigue sin consultar; semillas no
+Configuración técnica STAGING consultada y revalidada20261104-145645-429:25 chequeos
+activos,18 rendimiento/24 reparación/18 terreno (con solapes);1 punto quality.point
+inactivo y9 tipos quality.point.test_type. quality.test_type no registrado; cinco
+modelos presentes. No hay campos de versión/obligatoriedad/producto en mc.rov.chequeo;
+no concluir que chequeos activos sean perfiles aprobados por modelo. Semillas no
 son perfiles vigentes. Divergencia continuo/terreno local por verificar antes de
 usar el confirmador como protocolo KPI; no corregida ni tratada como norma nueva.
-Siguiente consulta preparada, NO ejecutada:
-`.tmp/staging-work-kpi-profiles-source.ps1` en workspaceCode. Solo configuración
-técnica/IDs de chequeos y quality.point, metadatos de tipos y políticas; sin resultados
-de ensayos ni documentos de negocio. READ ONLY/rollback, fuente instalada139 y PID
-intactos, sin instalar/reiniciar ni tocar QA/producción. Verificador2 válidos/24 rechazos,
-PowerShell real1válido/1hash rechazado y Bash aprobados. No asumir perfiles desde XML
-noupdate ni instalar nuevos antes de recibir esta evidencia mediante SSH privado.
+Recibo profiles-source revalidado contra139 hashes e idéntico al JSON guardado.
+READ ONLY/rollback y PID conservados, STAGING activo; sin instalar/reiniciar ni tocar
+QA/producción. Evidencia workspaceCode `.tmp/preparacion-uso-real-pilot/`
+`profiles-source-installed-20261104-145645-429.json`; trabajo remoto
+`/var/tmp/mc-rov-kpi-profiles-source-sHqsH1`. No reactivar punto inactivo ni copiar
+semillas sobre configuración existente. Siguiente incremento: captura durable de
+configuración/veredicto del intento formal, con reapertura conservando original;
+observaciones informativas frente a correcciones requieren clasificación explícita.
+Consulta de negocio pendiente: en reparación terminada, qué revisión/pruebas forman
+la aceptación final (reparación, rendimiento/terreno o combinación por intervención).
+No contar primer diagnóstico/retest/comparación de cable como presentación formal
+solo por confirmar una revisión; motivo actual no identifica aceptación final.
 
 Propuesta inicial de KPI: pendientes/vencidos, cumplimiento de plazos, tiempos de
 resolución y rechazos/reaperturas. Núcleo y servicio tienen fórmulas especificadas;
