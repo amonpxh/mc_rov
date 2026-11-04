@@ -50,10 +50,16 @@ no se pueden asignar a un período acotado; documentar esta cobertura en siguien
  36/36 nativos, cero fallos/errores, intento20261103-173705-971; respaldo QC9PNr.
   Recibo revalidado;139 fuentes exactas, datos intactos, pruebas restauradas y STAGING activo.
 - [x] Preparar regresión1282 (1246 anteriores y36 KPI) con fuente exacta y restauración.
-- [ ] Ejecutar regresión1282 en STAGING y validar el recibo de ese intento.
+- [x] Ejecutar regresión1282 en STAGING y validar el recibo de ese intento.
+ 1282/1282, cero fallos/errores, intento20261104-091932-672; respaldo gPJAxl,
+  fuentes/datos intactos, pruebas restauradas y STAGING activo.
 - [ ] Regresión completa apropiada al cambio y revisión independiente al terminar la entrega.
 
 ## Decisiones
+
+Ruling2026-11-04: el usuario pidió investigar y acordar el catálogo de KPI de negocio
+antes de continuar. Investigación de Odoo19/referencias típicas/giro ROV guardada en
+el diseño. No tratar el servicio de etapas probado como catálogo empresarial aprobado.
 
 Ruling: primera vista por proceso/equipo, sin ranking por empleado — no existe atribución
 histórica homogénea — atribuir por cuenta compartida falsearía productividad.

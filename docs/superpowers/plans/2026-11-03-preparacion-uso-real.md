@@ -52,6 +52,10 @@ fuentes seleccionadas, permisos nativos y estadísticas agregadas; sin secretos 
   plazo original/vigente, cobertura, fechas/filtros y evidencia accesible por rol.
 - [x] Escribir diseño y plan específicos con archivos, interfaces y pruebas exactas.
 - [x] TDD: fórmulas y permisos;16 cálculos puros y36 contratos nativos en GREEN.
+- [x] Investigación2026-11-04 de reportes Odoo19, KPI típicos y giro ROV, con cobertura
+  y brechas de datos. Regresión del servicio1282/1282 aprobada en STAGING.
+- [ ] Acordar con el usuario el catálogo empresarial y las fichas de medida antes
+  de continuar el tablero; el primer servicio de etapas fue propuesta de Codex.
 - [ ] Tablero y navegación autorizada; pruebas de interfaz/ambos temas/roles y revisión independiente.
 - [ ] Integración y entrega concretas; no usar datos QA para metas de rendimiento reales.
 

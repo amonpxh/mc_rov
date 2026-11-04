@@ -27,10 +27,22 @@ La preparación corrigió UTF-8 del manifiesto y auxiliares QA (entorno, Validat
 dominio nativo id=0); conservó casos, aserciones y producto. Intentos fallidos y sus
 recuperaciones se conservan en `.tmp/preparacion-uso-real-pilot`.
 
-Regresión completa1282 preparada en `.tmp/staging-work-kpi-regression.ps1`,
-1246 anteriores más36 KPI, con descubrimiento exacto por nombre; pendiente SSH.
-El tablero visual, revisión final e integración siguen pendientes. Producción6.0 intacta;
-no activar responsables ni automatismos reales ni reabrir la copia QA cerrada.
+Regresión completa1282/1282 verificada20261104-091932-672,1246 anteriores más36 KPI,
+cero fallos/errores y descubrimiento exacto por nombre. Respaldo
+`/var/tmp/mc-rov-kpi-regression-gPJAxl`, producto/datos intactos, pruebas restauradas,
+STAGING activo. El tablero visual, revisión final e integración siguen pendientes.
+Producción6.0 intacta; no activar responsables reales ni reabrir la copia QA cerrada.
+
+**Revisión de alcance2026-11-04:** el usuario señaló que no se había acordado el
+catálogo de KPI empresarial y pidió investigar Odoo, métricas típicas y giro ROV antes
+de continuar. Investigación terminada y añadida a
+`docs/superpowers/specs/2026-11-03-work-kpi-design.md`, sección Revisión del catálogo.
+Odoo19 sí trae análisis de reparaciones; necesita fecha/población correcta para
+terminadas por período. Reutilizar producción, compras, inventario y PLM donde sirvan;
+adaptar cliente/series/hallazgos y capturar primer veredicto/bloqueos para tasas históricas.
+MTBF de Mantenimiento Odoo no equivale a fiabilidad de la flota ROV por horas de uso.
+Prioridades/fórmulas/metas finales siguen como propuesta, no aprobación del usuario.
+No continuar implementación de la interfaz como si ese catálogo ya estuviera acordado.
 
 Propuesta inicial de KPI: pendientes/vencidos, cumplimiento de plazos, tiempos de
 resolución y rechazos/reaperturas. Núcleo y servicio tienen fórmulas especificadas;
