@@ -236,3 +236,111 @@ No auditado no significa ausente. Los datos de ensayo no representan desempeño 
 - [R2 Ensayo de vacío Blue Robotics](https://bluerobotics.com/learn/using-the-vacuum-test-plug/)
 - [R3 Ficha pública IMCA R006](https://www.imca-int.com/resources/technical-library/document/aed42e5e-c55b-ee11-8def-6045bdf1ea43/)
 - [R4 Manual VideoRay Pro4](https://download.videoray.com/documentation/pro_4/pdf/videoray_doc_pro_4.pdf)
+
+## Contraste con la propuesta externa recibida el 4 de noviembre de 2026
+
+El usuario aportó una propuesta independiente con23 candidatos,11 indicadores de
+primer tablero y D1 como panel de cobertura. Se revisó el texto completo y sus
+fichas. Sigue siendo una propuesta, no una aprobación de KPI, parámetros ni capturas.
+No se suman sus11 a nuestros10; son alternativas sobre poblaciones similares.
+
+### Aportes que conviene conservar
+
+- Separar importancia de negocio de facilidad actual; capturar información antes
+  de pretender reportar historia que no existe.
+- F1/F2/F3: cartera/antigüedad, intervalos de bloqueo, promesa original y recompromisos.
+  Su ficha F3 sí incluye abiertas vencidas; no atribuirle su omisión.
+- Q2: cohortes maduras para retorno relacionado, casos por confirmar y retorno por
+  cualquier causa como medida diferente. Sí controla seguimiento suficiente.
+- F4/F5: visitas, equipos distintos y series por hito separados, sin medir órdenes
+  como unidades. Cliente histórico y desconocido separado de cero.
+- D1: visibilidad de cobertura; corregir población/denominador según el dato.
+- Lista operativa de etapas vencidas aparte del resultado empresarial; OEE global,
+  fiabilidad de flota sin exposición y rankings personales siguen fuera del tablero inicial.
+
+### Correcciones y decisiones antes de fusionar fichas
+
+1. **Q1 primer pase:** serie+protocolo no basta para visitas sucesivas. Identidad por
+   episodio de aceptación, serie, visita/orden y protocolo/versión. Fallo real que
+   obliga a interrumpir el protocolo debe cerrar el primer intento como fallo, aunque
+   no se ejecuten todos los ensayos. Distinguir pendiente e inválido por instrumentación
+   con motivo autorizado. La expresión primera ejecución completa era ambigua también
+   en nuestra propuesta y se precisa para ambas; no se atribuye un conteo errado ya existente.
+2. **Q4 hallazgo único:** visita+componente+modo de falla es una agrupación candidata,
+   no identidad segura. Puede haber dos componentes físicos iguales o reincidencia
+   durante la misma visita. Separar incidente, instancia/posición de componente y
+   observaciones que lo documentan. Mientras falte identidad, mostrar observaciones
+   registradas y visitas/series afectadas, sin presentar incidentes únicos inventados.
+3. **D1 cobertura:** medir por dato/unidad/población elegible, con faltante, inválido
+   y no aplicable separados. La causa solo aplica a hallazgos y la recepción física
+   del equipo a visitas elegibles. Incluir abiertas para promesas/bloqueos; todas las
+   órdenes cerradas no es un denominador universal válido.
+4. **F2 detención:** material esperado/atrasado y BoM desactualizada son señales de
+   riesgo; no demuestran que ninguna operación pueda avanzar. Registrar detención
+   efectiva y sus intervalos. Tiempo total detenido = unión de intervalos; evitar
+   sumar dos veces causas simultáneas y fijar reparto/causa principal para el Pareto.
+5. **F3 puntualidad:** entregadas en período mide comportamiento de lo que salió;
+   compromisos que vencían en período mide cumplimiento del plan, incluyendo lo
+   todavía no entregado. Ambas vistas son válidas con nombres/denominadores distintos.
+   No usar primera entrega parcial de una venta como cumplimiento completo.
+6. **F1 coherencia:** reconciliar primero saldo inicial + entradas − salidas −
+   cancelaciones/ajustes = saldo final por unidad/población. No mezclar visitas,
+   órdenes y series. Cierre técnico y entrega definen carteras distintas. La ley
+   de Little requiere igual límite, unidad y promedios compatibles; no valida
+   automáticamente semanas ni usa la mediana recepción–entrega para WIP hasta cierre.
+7. **Historia:** cancelaciones, desmontajes y reversos posteriores no borran que una
+   fabricación ocurrió. Conservar fecha efectiva y fecha de registro/corrección;
+   acordar tratamiento histórico. Snapshots deben cubrir los cortes requeridos,
+   no prometer saldo mensual exacto desde fotografías semanales incompletas.
+8. **Severidad/Pareto:** estratificar criticidad; no sumar números ordinales de
+   severidad como costo sin pesos/interpretación acordados. Mantener vistas por
+   frecuencia, horas o costo real y una alerta separada de casos críticos.
+9. **A1 proveedor:** tasa nativa por unidades/fecha vigente y tasa propuesta por
+   líneas completas/promesa original son métricas distintas. Versionar/nombrar;
+   no comparar series antes/después de cambiar fórmula como si fueran homogéneas.
+10. Ventanas90 días,13 semanas,12 meses, mínimo10 y tramos de antigüedad fueron
+    marcados como propuestas por la otra IA. Siguen sin acordarse; no son valores
+    adoptados automáticamente ni estándares obligatorios para MC.
+
+### Aplicación a mc_rov y fuentes nativas
+
+La revisión externa estudió Odoo estándar sin acceder al código local ni a sus
+datos. Clasificar sus13 datos como nuevos requeriría antes el siguiente inventario:
+existente utilizable / existente con semántica o cobertura pendiente / realmente faltante.
+
+- Reparación: el core crea/valida un movimiento al cerrar [O11], pero eso no demuestra
+  fecha física completa para todas nuestras órdenes e importaciones. Ya existe
+  fecha_entrega_real editable y autollenada al cerrar (`models/repair_order.py`),
+  que no equivale a timestamp de cierre ni retiro efectivo certificado.
+- Tipos/HH: ya hay tipos de intervención múltiples, empleado, fecha, horas, acción,
+  origen y análisis de causa (`models/repair_order.py`, `models/mc_rov_componente.py`).
+  Verificar cobertura y evitar duplicar visitas en tipos que se superponen.
+- Ensayos/configuración: ya existen revisiones/pases, motivos y snapshots de
+  software/controlador/umbilical al confirmar (`models/mc_rov_revision.py`). Falta
+  demostrar conservación del primer veredicto y cobertura completa de configuración.
+- FEN ya conserva fecha/responsable, pruebas aprobadas y PDF emitido protegido
+  (`models/mc_rov_ficha_equipo_nuevo.py`). Verificar si su emisión es la liberación
+  empresarial deseada; no extenderla a reparaciones ni equipararla a despacho.
+- La auditoría STAGING sí verifica quality_repair instalado y quality_check_ids en
+  repair.order. Queda comprobar configuración de puntos, intentos y cobertura; no
+  crear otra integración por asumir que Calidad en Reparación está ausente.
+- La fuente local y auditoría soportan varias series por MO (lot_producing_ids).
+  La división obligatoria una-MO/una-serie no es un contrato aplicable a todos
+  nuestros recorridos. Conciliar parciales/backorders/subproductos/cantidades.
+
+### Resultado de la comparación
+
+Conservar la estructura por flujo/calidad/abastecimiento/ingeniería/capacidad y la
+captura anticipada. Mantener no conformidades críticas y preparación de materiales/
+documentación visibles, aunque no sean tarjetas del resumen de11. Retornos, retrabajo
+y proveedores tienen valor; su puesto en el primer resumen requiere prioridad y
+cobertura acordadas. D1 es apoyo, no KPI de productividad del taller.
+Se prepara una sola selección consolidada y fichas corregidas antes de programar.
+No hay cambio de producto ni autorización inferida de este informe externo.
+
+Referencias contrastadas:
+- [O11 Cierre estándar de reparación Odoo19](https://github.com/odoo/odoo/blob/19.0/addons/repair/models/repair.py)
+- [Límites de Little y promedios compatibles](https://projectproduction.org/journal/littles-law-a-practical-approach-to-understanding-production-system-performance/)
+- La copia aportada enumera fuentes pero perdió sus hipervínculos. IMCA R006 citada
+  como rev2.1 ya tiene [rev3 octubre2026 en su ficha pública](https://www.imca-int.com/resources/technical-library/document/aed42e5e-c55b-ee11-8def-6045bdf1ea43/).
+  No se verificaron íntegramente las normas de pago ni se deduce obligatoriedad.

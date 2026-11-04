@@ -43,6 +43,34 @@ adaptar cliente/series/hallazgos y capturar primer veredicto/bloqueos para tasas
 MTBF de Mantenimiento Odoo no equivale a fiabilidad de la flota ROV por horas de uso.
 Prioridades/fórmulas/metas finales siguen como propuesta, no aprobación del usuario.
 No continuar implementación de la interfaz como si ese catálogo ya estuviera acordado.
+Propuesta externa recibida y contrastada:23 candidatos,11 iniciales y panel de
+cobertura; no se suman a la lista anterior. Revisión guardada al final del diseño.
+Conservar cohortes maduras, compromiso original y cobertura; precisar primer intento
+por episodio, deduplicación de incidentes, poblaciones de cobertura, bloqueos efectivos
+y significado de fechas reales. Auditar datos ya existentes antes de crear13 capturas.
+La clasificación/prioridades/fórmulas corregidas siguen pendientes de acuerdo; sin
+cambios de producto ni despliegue por la recepción de la propuesta externa.
+
+Consolidación autorizada2026-11-04: catálogo único en
+`docs/superpowers/specs/2026-11-04-kpi-catalogo-consolidado.md`,22 familias,
+11 fichas iniciales (F1–F6/Q1–Q4/A1), D1 y paneles P-NC/P-PRE/P-ET aparte.
+Revisión independiente de conteos, fórmulas y casos aplicada: compromisos únicos,
+reapertura/recierre, intentos inválidos, cohortes con dictamen pendiente y reversos.
+Definiciones de negocio siguen propuestas; sin metas ni ventanas adoptadas.
+El usuario consultó si salida/retiro del taller es trazable: se recomienda salida
+registrada al cliente mediante transferencia validada con series y constancia;
+no confundir con recepción en destino, cierre técnico o FEN. Sigue pendiente
+cuándo se fija y dónde se registra la promesa original al cliente.
+
+Auditoría complementaria preparada, **todavía sin ejecutar**:
+`.tmp/staging-work-kpi-catalog-source.ps1`, solo metadatos y conteos agregados,
+READ ONLY/rollback, baseline139 y PID intactos, sin instalar/reiniciar ni tocar
+copia QA o producción. Verifica cobertura de HH/hallazgos/visitas/series/FEN y
+transferencias hacia cliente antes de proponer capturas nuevas. Paquete local
+validado: Python, PowerShell, Bash, integridad y verificador2 válidos/20 rechazos.
+Ejecutar por SSH privado del usuario y revisar evidencia antes de declarar fuentes
+disponibles o implementar el tablero. Las1282 pruebas anteriores no aprueban
+automáticamente estas definiciones nuevas.
 
 Propuesta inicial de KPI: pendientes/vencidos, cumplimiento de plazos, tiempos de
 resolución y rechazos/reaperturas. Núcleo y servicio tienen fórmulas especificadas;
