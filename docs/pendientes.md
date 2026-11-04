@@ -11,7 +11,16 @@ El intento anterior pasó pruebas/captura pero el shell buscaba una etiqueta ant
 recuperación verificada y base fallida conservada. Paquetev2 corrige solo esa etiqueta,
 con regresión local de consistencia, sin cambiar producto ni los52 casos.
 
-Siguiente: ampliar permisos/origen/empresas, identidad y rollback; luego interfaz,
+Preparados20 controles adicionales (72 junto con los52 anteriores): autorizaciones
+por revisión/reparación/serie, empresa seleccionada, portal/sin rol, historial privado,
+identidad, inicio formal y rollback de confirmación/captura. Transporte test-only
+`staging-repair-acceptance-history-boundaries.ps1`; exige72/72 y0 errores, conserva
+141 fuentes y snapshot completo del nuevo historial y revisiones. Black99/pylint10,
+parser2válidos/15rechazos, AST y preflight locales. GREEN72/72 verificado
+20261104-171248-523, backup /var/tmp/mc-rov-repair-acceptance-boundaries-DdstEn;
+141 fuentes y datos/historial intactos, pruebas restauradas y STAGING activo.
+
+Siguiente: interfaz de clasificación e historial desde el origen autorizado; luego
 concurrencia, regresión completa y revisión independiente final. No presentar el
 GREEN52 como tablero KPI terminado ni como validación integral de la función.
 
