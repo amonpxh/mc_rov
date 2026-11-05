@@ -52,7 +52,7 @@ de inspección; resuelto por inspección, pendiente evidencia nativa ampliada.
 
 GREENfull1339 conserva1328previos+11nuevos sin sustituir casos. Corrige solo captura
 y vista; sin ACL ni esquema nuevo ni activación real. Relectura estática del mismo
-revisor aprobada; octava carrera nativa aprobada; QA visual aún pendiente.
+revisor aprobada; octava carrera nativa aprobada; QA visual aprobada el 2026-11-05.
 
 Concurrencia ampliada8/8 nativa revalidada20261105-100833-976. Copia
 /var/tmp/mc-rov-repair-acceptance-race-UaTSL5 y BDmc_rov_repair_acceptance_ci_UaTSL5
@@ -61,7 +61,7 @@ primero; cambio tardío de componente se reintenta y rechaza,scope_verifiedTrue.
 Cero intentos huérfanos/duplicados, primerrechazo y actor real conservados. FuenteQA
 coincide con recibo; no cambio de producto desdeGREEN1339.
 
-Siguiente: staging-repair-acceptance-qa-users.ps1. Copia QA visual NUEVA y aislada en
+QA visual creada con staging-repair-acceptance-qa-users.ps1. Copia nueva y aislada en
 8071; empresa/calendario nativos, usuariosmcqa.repair.final.taller/supervisor, empleados,
 producto serial, cuatro series/órdenes/revisiones (DIAGNOSTICO/NORMAL/FALLO/HISTORIAL).
 HISTORIAL usa acciones nativas de Taller y contiene rechazo→aprobación preservados.
@@ -75,8 +75,48 @@ Servidor temporal127.0.0.1:8071 con red limitada a localhost,cron/correo apagado
 filestorecopia, source142 hashes deGREEN1339 yrace8vinculados. Respalda/preserva copia;
 fallo detiene y bloquea solo esaQA. Scriptcierre staging-repair-acceptance-qa-close.ps1
 ya preparado. AST/Bash/PS/hashpreflight y checks estáticos de aislamiento/roles/4recorridos
-aprobados; seed nativo aún NOejecutado. Después tunnel/login privado y QA visual en IAB
-propio deCodex. Sin afirmar tablero KPI ni preparación operativa integral terminados.
+aprobados; seed nativo y revisión visual ejecutados. Copia
+mc_rov_repair_acceptance_qa_tnuRgD, work
+/var/tmp/mc-rov-repair-acceptance-operational-qa-tnuRgD, empresa1503.
+En el navegador integrado de Codex, Taller confirmó diagnóstico20527 y aceptación
+normal20528; en esta última Confirmar aparece tras iniciar el intento, con identidad
+bloqueada. Registró fallo con motivo en20529: queda borrador y permite nuevo intento.
+Taller no ve la pestaña privada. Supervisor verificó el autor Taller y los resultados
+de20528/20529; en20530 permanecen rechazo y aprobación posterior, sin borrar el primero.
+Historial legible en claro/oscuro a1440x1000 y390x844; en móvil el contenedor desplaza
+la tabla horizontalmente y la página conserva390px de ancho. Tema Sistema y viewport
+original restaurados. Evidencia local repair-acceptance-visual-taller.json y cuatro
+capturas repair-acceptance-history-{dark,light}-{desktop,mobile}.png.
+Pendiente ejecutar staging-repair-acceptance-qa-close.ps1 para respaldar historial,
+detener servidor y bloquear conexiones a esta copia, conservándola. No repetir seed.
+Después conectar esta evidencia al cálculo KPI; tablero y preparación integral pendientes.
+
+Corrección solicitada tras QA: historial «Aceptación final» al final del notebook,
+después de Hallazgos. Movimiento local exclusivo de la página XML; permisos/campos
+idénticos. Paquete staging-repair-acceptance-tab-order.ps1 preparado, aún NO ejecutado:
+respalda BD/vista, verifica fuente anterior exacta, escribe solo la arquitectura de
+la vista, conserva hashes de los demás archivos y datos de stock/reparación/intentos.
+Actualiza la misma QA solo si su servicio sigue activo; no reabre una copia cerrada.
+Validación local XML de equivalencia salvo orden y sintaxis Python/Bash/PS aprobadas.
+Falta instalación nativa y revisión visual del nuevo orden; capturas anteriores
+documentan la versión previa con historial primero. No repetir full1339 por este
+ajuste exclusivamente visual salvo fallo o nueva evidencia.
+
+Orden instalado y validado en ambas BD, intento20261105-110302-226, backup
+/var/tmp/mc-rov-repair-tab-order-c4kTMU; STAGING activo, datos comparados intactos.
+Visual IAB: recargar la revisión ya abierta conservó temporalmente el orden previo;
+abrir directamente otra revisión20530 cargó Sellos/Mediciones/Chequeos/Hallazgos/
+Aceptación final. Captura repair-acceptance-tab-order-verified.png confirma orden y
+ambos intentos históricos intactos. No se repitió instalador ni se cambió producto
+para resolver la vista abierta.
+
+Copia QA cerrada y recibo local operational-qa-close-response.txt verificado el
+2026-11-05: servidor detenido, conexiones bloqueadas e historial respaldado y
+conservado; STAGING activo. No se borró la copia ni se tocó producción. Este incremento
+de captura de aceptación final queda validado en STAGING; pendiente integración y
+entrega, junto con el cálculo KPI que consumirá sus intentos. Siguiente trabajo:
+conectar primer intento formal al indicador, excluyendo diagnósticos y preservando
+el primer fallo aunque después haya aprobación. El tablero KPI aún no está entregado.
 
 Usuario autorizó KPI, Compras/abastecimiento, agente IA Odoo/Telegram, datos maestros,
 roles/permisos, procedimientos/capacitación, operación técnica, ensayo general y arranque.

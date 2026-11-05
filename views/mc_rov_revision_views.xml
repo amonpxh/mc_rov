@@ -133,11 +133,6 @@
                         </group>
                     </group>
                     <notebook>
-                        <page string="Aceptación final" name="repair_acceptance_history"
-                              groups="mc_rov.group_work_assignment_team"
-                              invisible="mc_acceptance_purpose != 'final'">
-                            <field name="mc_acceptance_history_html" nolabel="1" readonly="1"/>
-                        </page>
                         <page string="Sellos" name="page_sellos"
                               invisible="tipo != 'reparacion'">
                             <!-- Una fila por componente sellado, y siempre el estado con
@@ -686,6 +681,11 @@
                             </field>
                         </page>
 
+                        <page string="Aceptación final" name="repair_acceptance_history"
+                              groups="mc_rov.group_work_assignment_team"
+                              invisible="mc_acceptance_purpose != 'final'">
+                            <field name="mc_acceptance_history_html" nolabel="1" readonly="1"/>
+                        </page>
                     </notebook>
                 </sheet>
                 <chatter/>

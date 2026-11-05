@@ -211,3 +211,31 @@ El cambio de componente posterior a clasificación/inicio desde snapshot antiguo
 rechaza y conserva alcance; producto sin cambios desde full1339. Preparada QAvisual
 nueva en copia8071 con empresa/roles/seriales/4recorridos propios, automatismos apagados;
 no reutilizar ni abrir las copias de carreras. Falta seed nativo, visual y cierre QA.
+
+### QA visual ejecutada — 2026-11-05
+
+Seed nativo aprobado en copia mc_rov_repair_acceptance_qa_tnuRgD, empresa1503,
+work /var/tmp/mc-rov-repair-acceptance-operational-qa-tnuRgD. Sin cambios a STAGING
+o producción ni activaciones reales. Acceso exclusivamente en IAB de Codex.
+
+- Taller: diagnóstico20527 confirma sin iniciar aceptación formal; normal20528
+  inicia y confirma Aprobado con identidad protegida; fallo20529 registra motivo,
+  conserva borrador y permite iniciar otro intento. No ve historial privado.
+- Supervisor:20528 conserva un intento aprobado por Taller;20529 conserva un intento
+  rechazado con su motivo y autor;20530 muestra rechazo seguido de aprobación sin
+  sustituir el primer resultado. Tabla sin edición directa.
+- Claro y oscuro, escritorio1440x1000 y móvil390x844 inspeccionados. Tabla móvil en
+  contenedor con overflow auto, página390px; tema Sistema y viewport restaurados.
+  Cuatro capturas y recibo Taller guardados en preparacion-uso-real-pilot.
+
+Sin defectos nuevos observados ni cambios de producto; full1339 y carreras8 previos
+siguen siendo la evidencia nativa. Falta cerrar la copia con el script preparado,
+respaldando historial y bloqueando conexiones; no recrear escenarios.
+
+Orden final solicitado por usuario e instalado con validación nativa en STAGING y
+QA: Sellos, Mediciones, Chequeos, Hallazgos, Aceptación final. Solo movimiento de página
+XML, respaldo /var/tmp/mc-rov-repair-tab-order-c4kTMU; datos intactos. Nueva apertura
+de20530 y captura repair-acceptance-tab-order-verified.png confirman orden/historial.
+Cierre QA ejecutado y recibo verificado2026-11-05: servicio detenido, conexiones
+bloqueadas, historial respaldado/conservado, STAGING activo. No cambios a producción.
+Incremento validado solo en STAGING; integración/entrega y adaptador KPI pendientes.
