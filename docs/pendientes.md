@@ -52,18 +52,31 @@ de inspección; resuelto por inspección, pendiente evidencia nativa ampliada.
 
 GREENfull1339 conserva1328previos+11nuevos sin sustituir casos. Corrige solo captura
 y vista; sin ACL ni esquema nuevo ni activación real. Relectura estática del mismo
-revisor aprobada; evidencia nativa de la octava carrera y QA visual aún pendientes.
+revisor aprobada; octava carrera nativa aprobada; QA visual aún pendiente.
 
-Siguiente: staging-repair-acceptance-concurrency.ps1, versión
-isolated-eight-final-repair-races-full1339-v2. Ocho carreras, dos conexiones/cuentas
-normales. La nueva8 mantiene una lectura antigua sin orden ni finalidad final; primero
-la otra transacción clasifica/inicia y confirma su commit, después la lectura antigua
-intenta cambiar inspección.componente_id: debe rechazarse y conservar alcancecapturado.
-Arnés7 y evidencia anteriores preservados en .tmp/preparacion-uso-real-pilot/
-repair-acceptance-seven-proof. Paquete8 ligado a GREEN1339 actual; Black99/pylint10,
-AST/Bash/PS/hashgate, parser2positivos/29negativos. No ejecutado todavía.
-Después: QA visual en copia autorizada y cierre del review independiente. Producción
-intacta; el tablero y la preparación para uso real todavía no están terminados.
+Concurrencia ampliada8/8 nativa revalidada20261105-100833-976. Copia
+/var/tmp/mc-rov-repair-acceptance-race-UaTSL5 y BDmc_rov_repair_acceptance_ci_UaTSL5
+preservadas y bloqueadas. Case8: ambosleenunset/sinrepair, clasificación+inicio confirman
+primero; cambio tardío de componente se reintenta y rechaza,scope_verifiedTrue.
+Cero intentos huérfanos/duplicados, primerrechazo y actor real conservados. FuenteQA
+coincide con recibo; no cambio de producto desdeGREEN1339.
+
+Siguiente: staging-repair-acceptance-qa-users.ps1. Copia QA visual NUEVA y aislada en
+8071; empresa/calendario nativos, usuariosmcqa.repair.final.taller/supervisor, empleados,
+producto serial, cuatro series/órdenes/revisiones (DIAGNOSTICO/NORMAL/FALLO/HISTORIAL).
+HISTORIAL usa acciones nativas de Taller y contiene rechazo→aprobación preservados.
+Control automático propio apagado; sin políticas reales ni cambios enSTAGING/producción.
+Cuentas copiadas inhabilitadas, técnico restaurado con credenciales aleatorias no
+publicadas, QA sin System; cuentaSupervisor consulta equipo, Taller no recibe ese rol.
+Warehouse/repair_type propios por fábrica nativa y ubicación válida explícita al crear
+órdenes; no genera movimientos ni valida reparaciones. Password≥12 privado solo terminal.
+
+Servidor temporal127.0.0.1:8071 con red limitada a localhost,cron/correo apagados,
+filestorecopia, source142 hashes deGREEN1339 yrace8vinculados. Respalda/preserva copia;
+fallo detiene y bloquea solo esaQA. Scriptcierre staging-repair-acceptance-qa-close.ps1
+ya preparado. AST/Bash/PS/hashpreflight y checks estáticos de aislamiento/roles/4recorridos
+aprobados; seed nativo aún NOejecutado. Después tunnel/login privado y QA visual en IAB
+propio deCodex. Sin afirmar tablero KPI ni preparación operativa integral terminados.
 
 Usuario autorizó KPI, Compras/abastecimiento, agente IA Odoo/Telegram, datos maestros,
 roles/permisos, procedimientos/capacitación, operación técnica, ensayo general y arranque.

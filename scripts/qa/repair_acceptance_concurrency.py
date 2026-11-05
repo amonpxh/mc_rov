@@ -4,7 +4,7 @@
 # pylint: disable=unknown-option-value,print-used,too-many-locals
 import concurrent.futures
 import json
-from threading import Barrier
+from threading import Barrier, Event
 
 from psycopg2.errors import DeadlockDetected, SerializationFailure
 
@@ -84,16 +84,26 @@ def _new_episode(registry, context, fixture, label):
                 "company_id": fixture["company"],
             }
         )
+        scope_components = False
+        if label == "classification_vs_scope":
+            scope_components = setup["mc.rov.componente"].create(
+                [
+                    {"name": "QA race scope A", "es_inspeccionable": True},
+                    {"name": "QA race scope B", "es_inspeccionable": True},
+                ]
+            )
         revisions = []
         for _index in range(2 if second else 1):
             revision = setup["mc.rov.revision"].create(
                 {
                     "lot_id": lot.id,
                     "responsable_id": fixture["employee"],
-                    "repair_id": repair.id,
+                    "repair_id": False if label == "classification_vs_scope" else repair.id,
                     "tipo": "reparacion",
                     "motivo": "otro",
-                    "mc_acceptance_purpose": "final",
+                    "mc_acceptance_purpose": (
+                        "unset" if label == "classification_vs_scope" else "final"
+                    ),
                     "mc_correction_required": "no",
                     "mc_retest_required": "no",
                 }
@@ -115,8 +125,18 @@ def _new_episode(registry, context, fixture, label):
             else:
                 revision.chequeo_ids[0].resultado = "no_ok"
             revisions.append(revision.id)
+        episode = {"repair": repair.id, "lot": lot.id, "revisions": revisions}
+        if scope_components:
+            inspection = revision.inspeccion_ids.filtered(
+                lambda row: row.componente_id == scope_components[0]
+            ).ensure_one()
+            episode.update(
+                inspection=inspection.id,
+                original_component=scope_components[0].id,
+                replacement_component=scope_components[1].id,
+            )
         cursor.commit()
-        return {"repair": repair.id, "lot": lot.id, "revisions": revisions}
+        return episode
 
 
 def _start(registry, context, fixture, episode):
@@ -126,10 +146,44 @@ def _start(registry, context, fixture, episode):
         cursor.commit()
 
 
+def _race_action(actor, revision, phase, work):  # pylint: disable=too-many-branches
+    """Dispatch native events through the same two-transaction harness."""
+    if phase in ("start_pair", "competing_revisions", "restart_pair"):
+        revision.action_start_final_acceptance()
+    elif phase == "classification_vs_scope":
+        if work["index"] == 0:
+            revision.write(
+                {
+                    "repair_id": work["episode"]["repair"],
+                    "mc_acceptance_purpose": "final",
+                }
+            )
+            revision.action_start_final_acceptance()
+        else:
+            assert work["classified"].wait(timeout=30), "Classification did not commit"
+            actor["mc.rov.revision.inspeccion"].browse(work["episode"]["inspection"]).write(
+                {"componente_id": work["episode"]["replacement_component"]}
+            )
+    elif phase == "identity_vs_start":
+        if work["index"] == 0:
+            revision.action_start_final_acceptance()
+        else:
+            revision.write({"mc_acceptance_purpose": "diagnostic"})
+    elif phase == "abort_pair":
+        revision.action_abort_final_acceptance("QA fallo concurrente")
+    elif phase in ("confirm_pair", "rollback_vs_confirm"):
+        revision.action_confirmar()
+        if phase == "rollback_vs_confirm" and work["index"] == 0:
+            raise ProbeRollback()
+    else:
+        raise AssertionError("Unknown phase")
+
+
 def _race(registry, context, fixture, episode, phase):
     barrier = Barrier(2, timeout=20)
+    classified = Event()
 
-    def worker(index):  # pylint: disable=too-many-branches
+    def worker(index):
         first_pid, first_read = None, None
         for retry in range(1, 5):
             try:
@@ -146,31 +200,27 @@ def _race(registry, context, fixture, episode, phase):
                             "state": revision.estado,
                             "purpose": revision.mc_acceptance_purpose,
                         }
+                        if phase == "classification_vs_scope":
+                            first_read["repair_linked"] = bool(revision.repair_id)
                         cursor.execute("SELECT pg_backend_pid()")
                         first_pid = cursor.fetchone()[0]
                         barrier.wait()
                     result = "committed"
                     try:
                         with cursor.savepoint():
-                            if phase in ("start_pair", "competing_revisions", "restart_pair"):
-                                revision.action_start_final_acceptance()
-                            elif phase == "identity_vs_start":
-                                if index == 0:
-                                    revision.action_start_final_acceptance()
-                                else:
-                                    revision.write({"mc_acceptance_purpose": "diagnostic"})
-                            elif phase == "abort_pair":
-                                revision.action_abort_final_acceptance("QA fallo concurrente")
-                            elif phase in ("confirm_pair", "rollback_vs_confirm"):
-                                revision.action_confirmar()
-                                if phase == "rollback_vs_confirm" and index == 0:
-                                    raise ProbeRollback()
-                            else:
-                                raise AssertionError("Unknown phase")
+                            _race_action(
+                                actor,
+                                revision,
+                                phase,
+                                {"index": index, "episode": episode, "classified": classified},
+                            )
                     except UserError as error:
                         assert error.__class__ is UserError
                         allowed = {
                             "competing_revisions": ("Otra revisión tiene un intento pendiente",),
+                            "classification_vs_scope": (
+                                "El intento final conserva sus filas y componentes",
+                            ),
                             "identity_vs_start": (
                                 "Solo una revisión final en borrador",
                                 "La identidad de la aceptación final",
@@ -181,6 +231,8 @@ def _race(registry, context, fixture, episode, phase):
                         ), str(error)
                         result = "blocked"
                     cursor.commit()
+                    if phase == "classification_vs_scope" and index == 0:
+                        classified.set()
                     return {
                         "pid": first_pid,
                         "read": first_read,
@@ -245,6 +297,18 @@ def _check(registry, context, fixture, episode, case):
             assert len(attempts) == 2 and not pending
             assert attempts.mapped("state") == ["aborted", "confirmed"]
             assert attempts.mapped("verdict_snapshot") == ["rechazado", "aprobado"]
+        elif phase == "classification_vs_scope":
+            assert len(attempts) == len(pending) == 1
+            assert revision.mc_acceptance_purpose == "final"
+            inspection = check["mc.rov.revision.inspeccion"].browse(episode["inspection"])
+            assert inspection.componente_id.id == episode["original_component"]
+            captured = next(
+                row
+                for row in attempts.requirements_snapshot["configuration"]["inspections"]
+                if row["line_id"] == inspection.id
+            )
+            assert captured["component_id"] == episode["original_component"]
+            assert [worker["result"] for worker in workers] == ["committed", "blocked"]
         elif phase == "identity_vs_start":
             assert (len(attempts) == 1 and revision.mc_acceptance_purpose == "final") or (
                 not attempts and revision.mc_acceptance_purpose == "diagnostic"
@@ -264,6 +328,7 @@ def _check(registry, context, fixture, episode, case):
                     "revision_state": revision.estado,
                     "purpose": revision.mc_acceptance_purpose,
                     "actor_verified": phase == "rollback_vs_confirm",
+                    "scope_verified": phase == "classification_vs_scope",
                 }
             )
         )
@@ -288,6 +353,7 @@ def run_probe(registry, database):
         "abort_pair",
         "rollback_vs_confirm",
         "identity_vs_start",
+        "classification_vs_scope",
     ):
         episode = _new_episode(registry, context, fixture, phase)
         if phase in ("confirm_pair", "abort_pair", "rollback_vs_confirm"):

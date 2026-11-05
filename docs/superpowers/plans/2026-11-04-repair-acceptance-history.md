@@ -205,3 +205,9 @@ sobre diagnóstico aún sin orden vs cambio tardío de componente; evento garant
 ambos lean antes y que el intento se confirme transaccionalmente antes del cambio.
 Exige bloqueo del cambio, vínculo final válido y scope de inspección intacto. Arreglo
 sin orden cubierto por lock de revisión además del padre; validación real pendiente.
+
+Concurrencia8/8 nativa aprobada20261105-100833-976, copyUaTSL5 bloqueada/conservada.
+El cambio de componente posterior a clasificación/inicio desde snapshot antiguo se
+rechaza y conserva alcance; producto sin cambios desde full1339. Preparada QAvisual
+nueva en copia8071 con empresa/roles/seriales/4recorridos propios, automatismos apagados;
+no reutilizar ni abrir las copias de carreras. Falta seed nativo, visual y cierre QA.
