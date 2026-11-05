@@ -152,3 +152,18 @@ restringido a consulta del equipo. Cada lectura valida origen/empresas antes de 
 texto libre escapado, conserva primer rechazo y aprobaciones posteriores. No consulta
 Ventana de acción ni crea asistentes. Un fallo requiere motivo introducido en borrador.
 RED UI:8 contratos ausentes y2 controles nativos, junto con72 anteriores =82.
+
+### Verificación integral y concurrencia preparada
+
+Full1328/1328 comprobado20261104-173604-112, backupF7Y66w, fuentes142 y datos intactos.
+Sin cambio de producto desde cc8022e y sin reemplazar casos anteriores. Preparado
+probador nativo de siete carreras en copia neutralizada: inicio repetido, dos revisiones
+del mismo episodio, doble confirmación, doble interrupción, reinicio tras fallo seguido
+de aprobación, rollback frente a confirmación y finalidad frente a inicio. Exige ordinales
+consecutivos, máximo un pendiente por episodio, cero intentos huérfanos, conservación
+del primer rechazo y actor correcto cuando otro cierre se revierte. Usa usuarios propios
+con permisos nativos; eventos sin sudo. No ejecutar contra STAGING directamente.
+
+Concurrencia7/7 nativa verificada20261105-090113-594; copia y BDyz8uRM
+preservadas/bloqueadas. Primer rechazo inmutable, ordinales coherentes, cero intentos
+huérfanos, rollback no roba autor del cierre real. QA visual y revisión final pendientes.

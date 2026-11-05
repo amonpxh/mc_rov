@@ -1,46 +1,45 @@
 ## Programa de preparación del uso real autorizado — 2026-11-03
 
-### Estado actual — aceptación final de reparación (2026-11-04)
+### Estado actual — aceptación final de reparación (2026-11-05)
 
-Captura explícita e historial privado instalados solo en STAGING: GREEN focalizado
-52/52, intento `20261104-165400-603`, respaldo
-`/var/tmp/mc-rov-repair-acceptance-green-HSL19z`. Recibo, hashes de141 fuentes,
-configuración intacta, ausencia de clasificación/captura retrospectiva y restauración
-de pruebas verificados. No hay interfaz nueva, activación real ni cambio en producción.
-El intento anterior pasó pruebas/captura pero el shell buscaba una etiqueta antigua;
-recuperación verificada y base fallida conservada. Paquetev2 corrige solo esa etiqueta,
-con regresión local de consistencia, sin cambiar producto ni los52 casos.
+Captura explícita e historial privado instalados solo en STAGING; producción40ce2fe
+no cambia ni se activan cuentas/políticas reales. Rama feature/preparacion-uso-real.
+Hitos locales:11f8dd6 captura;9ff4118 controles;cc8022e interfaz nativa.
 
-Preparados20 controles adicionales (72 junto con los52 anteriores): autorizaciones
-por revisión/reparación/serie, empresa seleccionada, portal/sin rol, historial privado,
-identidad, inicio formal y rollback de confirmación/captura. Transporte test-only
-`staging-repair-acceptance-history-boundaries.ps1`; exige72/72 y0 errores, conserva
-141 fuentes y snapshot completo del nuevo historial y revisiones. Black99/pylint10,
-parser2válidos/15rechazos, AST y preflight locales. GREEN72/72 verificado
-20261104-171248-523, backup /var/tmp/mc-rov-repair-acceptance-boundaries-DdstEn;
-141 fuentes y datos/historial intactos, pruebas restauradas y STAGING activo.
+- GREEN52 captura:20261104-165400-603, backup
+  /var/tmp/mc-rov-repair-acceptance-green-HSL19z.
+- GREEN72 permisos/origen/empresas/identidad/rollback:20261104-171248-523,
+  backup /var/tmp/mc-rov-repair-acceptance-boundaries-DdstEn.
+- RED82 interfaz:8 ausentes/74 controles; backupNwBEZ9. GREEN82/82 instalado y
+  revalidado20261104-173022-174, backup
+  /var/tmp/mc-rov-repair-acceptance-presentation-green-VrwEcR.142 fuentes exactas.
+- Regresión completa1328/1328 verificada20261104-173604-112, backup
+  /var/tmp/mc-rov-repair-acceptance-regression-F7Y66w.1282 anteriores+46 nuevos,
+  sin sustituciones; cada caso por nombre,0 errores. Producto, datos, stock,
+  permisos, historial y PDFs intactos; pruebas temporales restauradas y STAGING activo.
 
-Interfaz nativa definida en el plan: finalidad, inicio, motivo/fallo validado e
-historial HTML de solo lectura autorizado; sin Ventana de acción ni ACL nueva.
-Preparados8 contratos RED de presentación y2 controles nativos, junto con72 previos:
-82 exactos: RED confirmado (8 ausentes/74 verdes), copiaNwBEZ9 y pruebas restauradas.
-Implementación local de presentación en modelo nuevo/import/vista, sin instalar todavía.
-GREEN82 preparado con baseline141 y resultado142 fuentes; preserva historial/datos
-existentes, excluye del snapshot de revisión solo el campo nuevo de motivo, añade
-recuperación fresh-DB que conserva el modelo de captura ya instalado. Validación local
-Black99/pylint10, XML/AST/Bash/PS/hashgate y parser2válidos/16rechazos. Fixture ajustado
-para que la cuenta QA transaccional tenga explícitamente consulta del equipo; se exige
-esa única transformación del archivo RED, mismos82 casos/aserciones, sin permisos reales.
-GREEN82/82 instalado y recibo revalidado20261104-173022-174; backup
-/var/tmp/mc-rov-repair-acceptance-presentation-green-VrwEcR.142 fuentes, sin captura
-retrospectiva, datos/config intactos y pruebas restauradas. Falta comprobación visual.
-Regresión completa preparada:1328 exactos =1282 previos+46 de reparación, sin sustituciones;
-solo pruebas, snapshot completo de historial/revisión incluido el motivo ya instalado.
-Parser2positivos/19rechazos y AST/Bash/PS/hashgate locales; no ejecutada todavía.
+Interfaz: finalidad explícita, inicio de intento, fallo real con motivo e historial
+HTML de solo lectura autorizado; sin ACL nueva ni acceso técnico a Ventana de acción.
+Fixture UI asigna consulta del equipo solo a la cuenta transaccional, sin permisos
+reales nuevos. No clasifica ni captura revisiones antiguas retrospectivamente.
 
-Siguiente: ejecutar staging-repair-acceptance-regression.ps1; después
-concurrencia, regresión completa y revisión independiente final. No presentar el
-GREEN52 como tablero KPI terminado ni como validación integral de la función.
+Concurrencia7/7 nativa aprobada y recibo revalidado20261105-090113-594;
+copia /var/tmp/mc-rov-repair-acceptance-race-yz8uRM y BD
+mc_rov_repair_acceptance_ci_yz8uRM conservadas y bloqueadas. Producto intacto y STAGING
+activo. Se comprobaron7 carreras con dos cuentas y conexiones independientes: inicio repetido, revisiones
+competidoras, confirmación repetida, fallo repetido, reinicio y posterior aprobación,
+rollback frente a confirmación, cambio de finalidad frente a inicio. Solo copia aislada
+sin cron/correo, conserva y bloquea la copia al terminar; no instala ni reinicia STAGING.
+Probador scripts/qa/repair_acceptance_concurrency.py, Black99/pylint10; parser2válidos/
+26rechazos, AST/Bash/PS/hashgate locales. Preflight2026-11-05 corrigió solo el hash
+del verificador para comparar bytes CRLF reales; regresión local añadida y aprobada.
+Concurrencia nativa verificada7/7; sin cambios de producto desde full1328.
+
+Siguiente: QA visual autorizada y revisión independiente final. Revisor solo lectura
+repair_acceptance_final_review iniciado; no presentar entrega integral hasta resolver
+sus hallazgos y terminar QA visual. La adaptación empresarial
+a los KPI y la liberación documental/NC siguen pendientes: no presentar esta captura
+como tablero de11 familias terminado ni como preparación operativa integral.
 
 Usuario autorizó KPI, Compras/abastecimiento, agente IA Odoo/Telegram, datos maestros,
 roles/permisos, procedimientos/capacitación, operación técnica, ensayo general y arranque.
