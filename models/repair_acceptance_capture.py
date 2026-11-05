@@ -150,14 +150,24 @@ class RepairAcceptanceRevision(models.Model):
                     "sequence": check.sequence,
                     "section": check.seccion,
                     "per_component": check.por_componente,
+                    "component_id": line.componente_id.id or None,
+                    "component_name": line.componente_id.name or None,
                     "repair": check.aplica_reparacion,
                 }
             )
         configuration = {
-            "schema": 1,
+            "schema": 2,
             "type": self.tipo,
             "checks": checks,
             "inspection_ids": sorted(self.inspeccion_ids.ids),
+            "inspections": [
+                {
+                    "line_id": line.id,
+                    "component_id": line.componente_id.id,
+                    "component_name": line.componente_id.name,
+                }
+                for line in self.inspeccion_ids.sorted("id")
+            ],
         }
         digest = hashlib.sha256(
             json.dumps(configuration, sort_keys=True, ensure_ascii=False).encode()
@@ -192,12 +202,68 @@ class RepairAcceptanceRevision(models.Model):
             "source_types": {name: self._fields[name].type for name in scalar_names},
             "customer_id": self.repair_id.partner_id.id or None,
             "product_id": self.repair_id.product_id.id or None,
-            "checks": self.chequeo_ids.read(["chequeo_id", "resultado"], load=None),
-            "inspections": self.inspeccion_ids.read(["estado_sello"], load=None),
+            "checks": self.chequeo_ids.read(
+                ["chequeo_id", "componente_id", "resultado", "detalle"], load=None
+            ),
+            "inspections": self.inspeccion_ids.read(
+                ["componente_id", "estado_sello", "detalle"], load=None
+            ),
             "continuous": self.funcionamiento_continuo_resultado,
             "continuous_duration": self.funcionamiento_continuo_duracion,
             "findings": self.hallazgo_ids.read(["severidad"], load=None),
         }
+
+    def _check_final_acceptance_scope_edit(self):
+        # Lock before reading finality: a diagnostic edit may race classification/start.
+        saved = self.filtered(lambda row: isinstance(row.id, int) and row.id > 0)
+        saved.check_access("write")
+        for repair in saved.mapped("repair_id").sorted("id"):
+            self.env.cr.execute(
+                "UPDATE repair_order SET write_date=write_date WHERE id=%s", [repair.id]
+            )
+        # The revision lock also covers a diagnostic revision not yet linked to a repair.
+        for revision in saved.sorted("id"):
+            self.env.cr.execute(
+                "UPDATE mc_rov_revision SET write_date=write_date WHERE id=%s", [revision.id]
+            )
+        saved.invalidate_recordset()
+        for revision in saved.filtered(lambda row: row.mc_acceptance_purpose == "final"):
+            revision._acceptance_source_access()
+            if revision._acceptance_attempts().filtered(
+                lambda row, source=revision: row.revision_id == source and row.state == "pending"
+            ):
+                raise UserError(
+                    _(
+                        "El intento final conserva sus filas y componentes hasta registrar su resultado."
+                    )
+                )
+
+    def action_actualizar_checklist(self):
+        self._check_final_acceptance_scope_edit()
+        return super().action_actualizar_checklist()
+
+    def _validate_captured_acceptance_scope(self, configuration):
+        if configuration.get("schema") != 2:
+            raise UserError(
+                _("El intento requiere comprobar su configuración histórica antes de continuar.")
+            )
+        captured_checks = sorted(
+            (row["line_id"], row["check_id"], row["component_id"] or False)
+            for row in configuration["checks"]
+        )
+        current_checks = sorted(
+            (row.id, row.chequeo_id.id, row.componente_id.id) for row in self.chequeo_ids
+        )
+        captured_inspections = sorted(
+            (row["line_id"], row["component_id"]) for row in configuration["inspections"]
+        )
+        current_inspections = sorted((row.id, row.componente_id.id) for row in self.inspeccion_ids)
+        if (
+            configuration["type"] != self.tipo
+            or captured_checks != current_checks
+            or captured_inspections != current_inspections
+        ):
+            raise UserError(_("El alcance actual no coincide con el intento final iniciado."))
 
     def _pending_acceptance_attempt(self):
         pending = self._acceptance_attempts().filtered(lambda row: row.state == "pending")
@@ -238,9 +304,14 @@ class RepairAcceptanceRevision(models.Model):
         return True
 
     def _seal_acceptance_attempt(self, attempt, state, verdict, reason=False):
-        configuration, digest = self._acceptance_configuration()
+        # The catalog is live metadata; adjudicate the immutable protocol captured at start.
+        configuration = attempt.requirements_snapshot["configuration"]
+        digest = hashlib.sha256(
+            json.dumps(configuration, sort_keys=True, ensure_ascii=False).encode()
+        ).hexdigest()
         if digest != attempt.configuration_digest:
-            raise UserError(_("Los requisitos cambiaron durante el intento; revise el protocolo."))
+            raise UserError(_("La configuración histórica del intento no coincide con su huella."))
+        self._validate_captured_acceptance_scope(configuration)
         now = fields.Datetime.now()
         attempt.with_context(**{_CAPTURE_KEY: _CAPTURE}).write(
             {
@@ -381,16 +452,22 @@ class RepairAcceptanceRevision(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
+        defaults = self.default_get(["mc_acceptance_purpose", "estado"])
         for values in vals_list:
+            effective = {**defaults, **values}
             if (
-                values.get("mc_acceptance_purpose") == "final"
-                and values.get("estado", "borrador") != "borrador"
+                effective.get("mc_acceptance_purpose") == "final"
+                and effective.get("estado", "borrador") != "borrador"
             ):
                 raise UserError(
                     _("La revisión final se inicia en borrador, sin aceptación retrospectiva.")
                 )
         revisions = super().create(vals_list)
         for revision in revisions.filtered(lambda row: row.mc_acceptance_purpose == "final"):
+            if revision.estado != "borrador":
+                raise UserError(
+                    _("La revisión final se crea en borrador mediante su recorrido validado.")
+                )
             revision._acceptance_source_access()
         return revisions
 
@@ -422,3 +499,59 @@ class RepairAcceptanceOrder(models.Model):
                             )
                         )
         return super().write(values)
+
+
+def _check_new_acceptance_lines(model, vals_list):
+    default_revision = model.default_get(["revision_id"]).get("revision_id")
+    ids = {values.get("revision_id", default_revision) for values in vals_list}
+    model.env["mc.rov.revision"].browse(
+        sorted(value for value in ids if value)
+    )._check_final_acceptance_scope_edit()
+
+
+def _check_acceptance_line_change(records, values, operation):
+    records.check_access(operation)
+    revisions = records.mapped("revision_id")
+    if values.get("revision_id"):
+        revisions |= records.env["mc.rov.revision"].browse(values["revision_id"])
+    revisions._check_final_acceptance_scope_edit()
+
+
+class RepairAcceptanceCheckScope(models.Model):
+    """Keep checklist membership fixed during a formal attempt, while answers remain editable."""
+
+    _inherit = "mc.rov.revision.chequeo"
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        _check_new_acceptance_lines(self, vals_list)
+        return super().create(vals_list)
+
+    def write(self, values):
+        if {"revision_id", "chequeo_id", "componente_id"}.intersection(values):
+            _check_acceptance_line_change(self, values, "write")
+        return super().write(values)
+
+    def unlink(self):
+        _check_acceptance_line_change(self, {}, "unlink")
+        return super().unlink()
+
+
+class RepairAcceptanceInspectionScope(models.Model):
+    """Freeze inspected components during a formal attempt without freezing seal responses."""
+
+    _inherit = "mc.rov.revision.inspeccion"
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        _check_new_acceptance_lines(self, vals_list)
+        return super().create(vals_list)
+
+    def write(self, values):
+        if {"revision_id", "componente_id"}.intersection(values):
+            _check_acceptance_line_change(self, values, "write")
+        return super().write(values)
+
+    def unlink(self):
+        _check_acceptance_line_change(self, {}, "unlink")
+        return super().unlink()

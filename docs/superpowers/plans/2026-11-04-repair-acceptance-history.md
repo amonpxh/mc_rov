@@ -167,3 +167,41 @@ con permisos nativos; eventos sin sudo. No ejecutar contra STAGING directamente.
 Concurrencia7/7 nativa verificada20261105-090113-594; copia y BDyz8uRM
 preservadas/bloqueadas. Primer rechazo inmutable, ordinales coherentes, cero intentos
 huérfanos, rollback no roba autor del cierre real. QA visual y revisión final pendientes.
+
+### Hallazgos de revisión independiente y lote RED93 (2026-11-05)
+
+Antes de declarar terminado el incremento, corregir estos defectos demostrables:
+1. P1: el digest basado en catálogo mutable impide cierre normal y por fallo tras
+   renombrar/reordenar; Actualizar checklist puede alterar el alcance durante pendiente.
+2. P2: faltan componentes en requisitos/evidencia de chequeos e inspecciones.
+3. P2: create mira vals incompletos, sin defaults efectivos, y admite final confirmada.
+
+Test-only93 preparado:9 regresiones y2 controles nuevos, mantiene82 previos. Exige
+9 fallos concretos/84 verdes/0errores. No cambiar producto antes de observar ese RED.
+Dirección de corrección: conservar configuración original, separar identidad/alcance
+estructural de metadatos vivos; impedir alteraciones estructurales de un intento abierto
+sin ofrecer retirada genérica ni borrar fallos. Completar identidad congelada de cada
+componente y validar finalidad/estado efectivos incluidos defaults. Mantener edición
+normal de respuestas y flujo diagnóstico. Definir cobertura adicional estructural si
+surgen más entradas públicas equivalentes; no reducir a ocultar botones.
+
+RED93 confirmado20261105-092032-493 (9fallos/84verdes, backupWERXY1).
+Fix local: schema2 congela componente/nombre en requisitos de chequeos e inspecciones;
+evidencia conserva componente/detalle. Cierre valida scope de filas e identidad y usa
+configuración/digest inicial, sin comparar nombres/secuencias de catálogo vivo.
+Guards de create/write/unlink de ambas líneas y refresh toman locks antes de consultar
+finalidad; reparación→revisión incluye diagnóstico aún sinrepair y se revalida tras
+invalidar caché. Respuestas continúan editables; no retirada genérica. Defaults efectivos
+validados antes de create y estado final revalidado después. Vista oculta refresh pendiente.
+Revisor original acepta por inspección los3hallazgos y la carrera adicional. Falta caso8
+real clasificación/inicio vs edición de componente de inspección con snapshot anterior.
+GREENfull1339 preparado, sin instalar:2productos/baseline142, recupera freshDB anterior,
+snapshot íntegro y82contratos anteriores conservados además del resto de1328 previos.
+
+GREENfull1339 nativo aprobado20261105-094259-101, backupZbbonp,142 fuentes y datos
+intactos. Correcciones de revisión instaladas, sin ACL/esquema/activación real.
+Paquete8races preparado y NO ejecutado: anterior7 archivado, nueva clasificación/inicio
+sobre diagnóstico aún sin orden vs cambio tardío de componente; evento garantiza que
+ambos lean antes y que el intento se confirme transaccionalmente antes del cambio.
+Exige bloqueo del cambio, vínculo final válido y scope de inspección intacto. Arreglo
+sin orden cubierto por lock de revisión además del padre; validación real pendiente.

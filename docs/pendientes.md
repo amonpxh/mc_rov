@@ -35,11 +35,35 @@ Probador scripts/qa/repair_acceptance_concurrency.py, Black99/pylint10; parser2v
 del verificador para comparar bytes CRLF reales; regresión local añadida y aprobada.
 Concurrencia nativa verificada7/7; sin cambios de producto desde full1328.
 
-Siguiente: QA visual autorizada y revisión independiente final. Revisor solo lectura
-repair_acceptance_final_review iniciado; no presentar entrega integral hasta resolver
-sus hallazgos y terminar QA visual. La adaptación empresarial
-a los KPI y la liberación documental/NC siguen pendientes: no presentar esta captura
-como tablero de11 familias terminado ni como preparación operativa integral.
+Revisión independiente solo lectura completada: tres defectos por corregir antes de
+entregar. P1: cambios de nombre/secuencia o actualización del checklist bloquean cierre
+normal y por fallo de un pendiente. P2: digest/snapshot no fijan el componente de chequeos
+e inspecciones. P2: defaults de contexto eluden guard de creación final ya confirmada.
+Informe local repair-acceptance-independent-review.json; los9 disparadores se
+confirmaron en RED93/84controles, intento20261105-092032-493, backupWERXY1.
+Correcciones instaladas en STAGING tras GREENfull1339/1339 revalidado
+20261105-094259-101, backup /var/tmp/mc-rov-repair-acceptance-review-green-Zbbonp;
+142 fuentes, datos/config/PDFs intactos, sin retrospectivos y pruebas restauradas.
+Configuraciónschema2
+con componentes congelados, guard de filas con locks reparación→revisión antes de
+consultar finalidad, digest inicial reutilizado y validación de defaults efectivos.
+Mismo revisor releyó el fix y su carrera adicional clasificación/inicio frente a edición
+de inspección; resuelto por inspección, pendiente evidencia nativa ampliada.
+
+GREENfull1339 conserva1328previos+11nuevos sin sustituir casos. Corrige solo captura
+y vista; sin ACL ni esquema nuevo ni activación real. Relectura estática del mismo
+revisor aprobada; evidencia nativa de la octava carrera y QA visual aún pendientes.
+
+Siguiente: staging-repair-acceptance-concurrency.ps1, versión
+isolated-eight-final-repair-races-full1339-v2. Ocho carreras, dos conexiones/cuentas
+normales. La nueva8 mantiene una lectura antigua sin orden ni finalidad final; primero
+la otra transacción clasifica/inicia y confirma su commit, después la lectura antigua
+intenta cambiar inspección.componente_id: debe rechazarse y conservar alcancecapturado.
+Arnés7 y evidencia anteriores preservados en .tmp/preparacion-uso-real-pilot/
+repair-acceptance-seven-proof. Paquete8 ligado a GREEN1339 actual; Black99/pylint10,
+AST/Bash/PS/hashgate, parser2positivos/29negativos. No ejecutado todavía.
+Después: QA visual en copia autorizada y cierre del review independiente. Producción
+intacta; el tablero y la preparación para uso real todavía no están terminados.
 
 Usuario autorizó KPI, Compras/abastecimiento, agente IA Odoo/Telegram, datos maestros,
 roles/permisos, procedimientos/capacitación, operación técnica, ensayo general y arranque.

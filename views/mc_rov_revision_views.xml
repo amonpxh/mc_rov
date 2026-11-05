@@ -27,7 +27,7 @@
                          solo alcanza a los equipos que lleguen después. -->
                     <button name="action_actualizar_checklist" type="object"
                             string="Actualizar checklist"
-                            invisible="estado != 'borrador'"/>
+                            invisible="estado != 'borrador' or mc_final_attempt_pending"/>
                     <field name="estado" widget="statusbar" statusbar_visible="borrador,confirmado"/>
                 </header>
                 <sheet>
