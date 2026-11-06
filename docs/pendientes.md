@@ -2,6 +2,58 @@
 
 ### Estado actual — aceptación final de reparación (2026-11-05)
 
+Siguiente incremento en curso: adaptador Q1 de primera aceptación de reparación.
+GREEN127 nativo aprobado y recibo revalidado20261106-112304-186, backup
+/var/tmp/mc-rov-repair-first-pass-kpi-green-QeveTB.144 fuentes exactas instaladas,
+sin retrospectivos ni cambios a configuración/stock/historial/PDFs; tests restaurados,
+STAGING activo. Revisión independiente final del adaptador sin hallazgos accionables:
+permisos, empresas, fuentes históricas, ordinales, flags sellados y cobertura cumplen
+el plan. Regresión integral1373 preparada y aún NO ejecutada:1339 anteriores+34 nuevos,
+comparación exacta por nombre sin sustituciones. Script
+staging-repair-first-pass-kpi-regression.ps1; solo pruebas temporales, producto intacto.
+Preparador exacto probado localmente, parser2válidos/19rechazos, AST/Bash/PS aprobados.
+Pendientes: regresión nativa e integración/entrega; sin tablero nuevo ni despliegue real.
+
+RED127 nativo confirmado y recibo revalidado20261106-104314-691:30 fallos de
+adaptador ausente y97 controles verdes,0 errores; backup
+/var/tmp/mc-rov-repair-first-pass-kpi-red-7zIpGz. Configuraciones/producto intactos,
+tests temporales restaurados y STAGING activo. Servicio abstracto implementado
+localmente en models/repair_first_pass_kpi.py, importa núcleo puro existente.
+Sin ACL, interfaz ni esquema persistente nuevo. Identidades fuente y empresas se
+autorizan antes de leer intentos privados; revisiones históricas restringidas
+rechazan el episodio entero. Solo snapshots de veredicto/flags y ordinal histórico,
+sin respuestas vivas para inferir aprobación ni datos privados en la salida.
+Unitarias50/50, Black99/pylint10 aprobados. GREEN127 preparado y NO instalado:
+staging-repair-first-pass-kpi-green.ps1, tres archivos de producto (import, cálculo
+puro y adaptador),144 fuentes esperadas. Respaldo/recuperación freshDB, sin tocar QA
+cerrada ni producción. Preparador real ejecutado localmente, validadores2válidos/
+16rechazos y AST/Bash/PS aprobados. Falta GREEN nativo, revisión final y regresión.
+Primer GREEN20261106-111443-049:126 verdes,0 fallos,1 error antes de consultar KPI;
+la prueba readonly hacía revision.read() sin filtrar y computaba HTML privado sin
+rol del equipo. Recuperación verificada y base fallida KyTIrT preservada, STAGING
+activo. Se corrige solo esa comparación: snapshot SQL de columnas almacenadas
+revisión/intento/orden, antes/después de la consulta, con flush/precommit previo.
+No concede roles ni cambia producto; mismos127 contratos. Paquete GREEN actualizado
+stored-evidence-readonly-fixture127-v2: transformación de un solo test fijada por
+AST/hashes, recibo fallido/recovery comprobados. Repetir mismo script GREEN.
+
+Contrato docs/superpowers/plans/2026-11-05-repair-first-pass-kpi.md. Nuevo test nativo
+test_repair_first_pass_kpi.py:30 contratos del servicio ausente y4 controles nativos,
+sumados a93 anteriores =127 focalizados. RED aún NO ejecutado; ningún adaptador nuevo
+ni import de producto implementado. Script staging-repair-first-pass-kpi-red.ps1
+preparado: transporte solo tests, baseline142 con vista ya reordenada, snapshot y
+restauración de pruebas. Black99/pylint10, sintaxis AST/Bash/PS y validadores2válidos/
+16rechazos aprobados. No confundir estas verificaciones locales con RED nativo.
+Población explícita de órdenes seleccionadas; estados passed/failed/pending/unknown,
+cobertura y tasa con denominador evaluable; sin período inferido ni tablero todavía.
+Intento20261106-103333-602 conectó por SSH pero abortó antes de pruebas: preparador
+remoto conservaba constante93 en vez de127. Producto/configuraciones intactos, tests
+restaurados y STAGING activo; backupwXB77l. Error reproducido localmente ejecutando
+el bloque real del preparador; generador corregido, misma suite/casos/aserciones.
+Paquete ahora exact-server-preparer127-red-v2; comprobación del preparador completo,
+validadores2válidos/16rechazos y sintaxis aprobadas. RED nativo aún pendiente; repetir
+el mismo staging-repair-first-pass-kpi-red.ps1 actualizado.
+
 Captura explícita e historial privado instalados solo en STAGING; producción40ce2fe
 no cambia ni se activan cuentas/políticas reales. Rama feature/preparacion-uso-real.
 Hitos locales:11f8dd6 captura;9ff4118 controles;cc8022e interfaz nativa.

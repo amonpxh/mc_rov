@@ -56,3 +56,4 @@ from . import test_work_kpi
 from . import test_repair_acceptance_history
 from . import test_repair_acceptance_presentation
 from . import test_repair_acceptance_review
+from . import test_repair_first_pass_kpi
