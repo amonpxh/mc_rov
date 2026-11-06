@@ -54,3 +54,10 @@ Este paso no entrega el tablero de once familias ni activa cuentas reales.
   ni SSH. Elegibilidad empresarial y período quedan explícitamente para el tablero.
 - Full1373 preparado:1339 anteriores+34 nuevos, sin sustitución. Preparador exacto y
   parser2válidos/19rechazos locales aprobados. Ejecución nativa aún pendiente.
+
+Full1373 nativo aprobado y recibo revalidado20261106-113317-034, backup
+/var/tmp/mc-rov-repair-first-pass-kpi-regression-smA0SI.1339 anteriores+34 nuevos
+una vez por nombre,0 errores/fallos;144 fuentes/datos/configuraciones intactos,
+tests restaurados y STAGING activo. Commitc8116d8, revisión independiente sin hallazgos.
+Incremento validado solo en STAGING; tablero, filtros empresariales/período y entrega
+a producción siguen fuera de este paso.

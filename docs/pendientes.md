@@ -3,6 +3,17 @@
 ### Estado actual — aceptación final de reparación (2026-11-05)
 
 Siguiente incremento en curso: adaptador Q1 de primera aceptación de reparación.
+Regresión integral1373/1373 nativa aprobada y recibo revalidado20261106-113317-034,
+backup /var/tmp/mc-rov-repair-first-pass-kpi-regression-smA0SI.1339 anteriores y34
+nuevos descubiertos una vez por nombre,0 fallos/errores;144 fuentes y datos/config/
+stock/historial/PDFs intactos, pruebas restauradas y STAGING activo. Servicio guardado
+en commitc8116d8; revisión independiente sin hallazgos. Q1 de reparación validado
+en STAGING para selección actual explícita, con cobertura; no tablero ni período/
+elegibilidad empresarial completa. No desplegado en producción ni políticas reales
+activadas. Siguiente: continuar las fuentes/capturas del catálogo empresarial;
+primera aceptación de fabricación requiere su perfil/evidencia propios, no reutilizar
+revisiones de diagnóstico ni contar este adaptador como todo Q1 entregado.
+
 GREEN127 nativo aprobado y recibo revalidado20261106-112304-186, backup
 /var/tmp/mc-rov-repair-first-pass-kpi-green-QeveTB.144 fuentes exactas instaladas,
 sin retrospectivos ni cambios a configuración/stock/historial/PDFs; tests restaurados,
