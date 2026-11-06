@@ -2,6 +2,58 @@
 
 ### Estado actual — aceptación final de reparación (2026-11-05)
 
+Nuevo incremento iniciado2026-11-06: aceptación al primer intento de ROV nuevo.
+GREEN161 aprobado y recibo revalidado20261106-123243-038, backup
+/var/tmp/mc-rov-new-acceptance-start-green-ZHubzw.145 fuentes exactas, esquema privado
+sin ACL pública ni historia retrospectiva; datos/config/stock/PDFs intactos, pruebas
+restauradas y STAGING activo. Solo apertura y protecciones instaladas, sin UI ni
+captura de resultados todavía. Próximo incremento: eventos nativos de rendimiento/
+terreno y fallo interrumpido con evidencia, conservando el primer intento conjunto.
+
+RED161 nativo confirmado y recibo revalidado20261106-121251-779:30 ausencias/131
+controles verdes/0 errores; backup /var/tmp/mc-rov-new-acceptance-start-red-P2mSxJ.
+Producto/config intactos, pruebas restauradas y STAGING activo. Implementación
+local models/new_acceptance_start.py más import: episodio/attempt privados sin ACL,
+apertura conjunta por MO/serie/RND/TRN autorizados, snapshot de ambos alcances,
+idempotencia, capacidad interna y bloqueos de identidad/alcance. No resultados ni
+UI todavía. GREEN161 preparado y NO ejecutado, dos archivos de producto,145 fuentes
+esperadas. Script staging-new-acceptance-start-green.ps1; backup/freshDB recovery,
+misma suite exacta. Black99/pylint10, AST/Bash/PS, parser2válidos/16rechazos y ejecución
+local del preparador exacto aprobados. No entregar como flujo completo: eventos,
+KPI/UI, concurrencia, regresión/revisión final siguen pendientes.
+Intento GREEN20261106-122723-614 aprobó161/161 y verificación nativa de esquema/
+historial, pero el grep del instalador buscaba MENU_AND_NO_CONFIG en vez del mensaje
+SCHEMA_AND_NO_HISTORY emitido. Se recuperó correctamente, base fallida jZ0VNp
+conservada y STAGING activo; no declarar instalación. Error de empaquetado reproducido
+localmente mediante comprobación de igualdad entre marcador producido/requerido;
+generador corregido, sin cambios al producto ni tests. Versión
+consistent-schema-postcheck161-v2 preparada; repetir mismo script GREEN.
+
+Auditoría nativa revalidada20261106-120322-119:7 modelos,144 fuentes y PID intactos,
+rollback confirmado, work /var/tmp/mc-rov-new-acceptance-source-mkyHbR. Código MRP
+instalado confirma que backorders conservan production_group_id y distribuyen
+movimientos/series. Plan2026-11-06-new-acceptance-start.md: episodio explícito de
+unidad nueva por empresa/serie con MO/grupo original, sin depender de recordatorios.
+Primero apertura conjunta y protección; resultados/UI/KPI después. Tests nuevos:
+30 contratos ausentes y4 controles nativos, más127 anteriores =161 focalizados;
+total declarado1407. Script staging-new-acceptance-start-red.ps1 preparado, aún NO
+ejecutado. Ningún modelo de producto nuevo implementado antes de RED. Black99/
+pylint10, parser2válidos/16rechazos, preparador real/AST/Bash/PS locales aprobados.
+Ejecutar RED161; exige solo30 ausencias y131 verdes,0 errores, pruebas restauradas.
+
+Usuario confirmó que el intento formal incluye rendimiento y terreno y basta un
+fallo real en cualquiera para adjudicar fallo. Lectura local muestra que el ciclo
+de aceptación depende de política/control activos; el historial existente registra
+selección de RND/TRN, no un veredicto formal congelado. No usarlo como sustituto del
+primer intento ni exigir activar recordatorios para medir calidad. Falta identidad
+estable de unidad fabricada frente a MO/backorders antes de definir nueva captura.
+Consulta nativa READ ONLY preparada: staging-new-acceptance-kpi-source.ps1, baseline
+144 del full1373; solo campos/relaciones y código de métodos de división/backorders
+y emisión FEN. Sin registros individuales, permisos nuevos ni acciones de negocio.
+Parser2válidos/14rechazos, AST/Bash/PS y guardas de solo lectura locales aprobados.
+Auditoría aún NO ejecutada; producción/copia QA cerrada intactas. No se implementó
+captura nueva ni se inventaron umbrales/protocolos por modelo.
+
 Siguiente incremento en curso: adaptador Q1 de primera aceptación de reparación.
 Regresión integral1373/1373 nativa aprobada y recibo revalidado20261106-113317-034,
 backup /var/tmp/mc-rov-repair-first-pass-kpi-regression-smA0SI.1339 anteriores y34

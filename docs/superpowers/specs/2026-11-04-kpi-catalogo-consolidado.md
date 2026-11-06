@@ -254,6 +254,11 @@ sus subtotales como si fueran categorías exclusivas.
 - **Decisión:** calidad de la primera presentación formal y necesidad de repetir trabajo.
 - **Unidad:** episodio de aceptación = visita/orden + serie + protocolo/versión;
   fabricación y reparación separadas. Una serie reparada dos veces tiene dos episodios.
+- **Equipo nuevo, decisión2026-11-06:** el intento formal comprende rendimiento y
+  terreno; un fallo real en cualquiera adjudica el intento como fallido aunque la
+  otra prueba todavía no esté completa. Registrar conjuntamente el alcance y
+  conservar los resultados posteriores sin sustituir el primero. Esta regla no
+  convierte automáticamente revisiones antiguas ni emisiones FEN en primeros intentos.
 - **Reparación final:** ante la propuesta del usuario de usar revisión de reparación
   final, se recomienda esa revisión como comprobación formal del trabajo terminado.
   Debe quedar vinculada explícitamente a la aceptación final; tipo reparacion o

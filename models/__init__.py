@@ -71,3 +71,4 @@ from . import repair_acceptance_history
 from . import repair_acceptance_capture
 from . import repair_acceptance_presentation
 from . import repair_first_pass_kpi
+from . import new_acceptance_start
