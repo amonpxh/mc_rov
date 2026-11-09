@@ -106,11 +106,25 @@ class NewAcceptanceAttempt(models.Model):
         return super().create(vals_list)
 
     def write(self, values):
-        # Stage writes will get a separately tested capability-bound implementation.
-        # pylint: disable=method-required-super
         _check_capability(self)
-        # No event write gateway is exposed before the stage outcome increment exists.
-        raise UserError(_("El intento conserva el alcance formal registrado."))
+        if set(values) - {
+            "state",
+            "closed_at",
+            "finished_by_id",
+            "first_pass_snapshot",
+            "requirements_snapshot",
+        } or any(row.state != "pending" for row in self):
+            raise UserError(_("El intento conserva su identidad y evidencia cerrada."))
+        for row in self:
+            snapshot = values.get("requirements_snapshot", row.requirements_snapshot)
+            if snapshot.get("configuration") != row.requirements_snapshot.get("configuration"):
+                raise UserError(_("El alcance original no puede sustituirse."))
+            previous = row.requirements_snapshot.get("results", {})
+            if any(
+                snapshot.get("results", {}).get(key) != value for key, value in previous.items()
+            ):
+                raise UserError(_("El resultado capturado de una prueba no puede sustituirse."))
+        return super().write(values)
 
     @api.ondelete(at_uninstall=False)
     def _unlink_except_formal_attempt(self):
@@ -160,9 +174,11 @@ class NewAcceptanceService(models.AbstractModel):
                 raise ValidationError(
                     _("Seleccione rendimiento y terreno de esta unidad, sin reparación.")
                 )
-            if revision.estado != "borrador":
+            if revision.estado != "borrador" or revision.documento_emitido:
                 raise UserError(
-                    _("Inicie el intento antes de confirmar cualquiera de sus pruebas.")
+                    _(
+                        "Seleccione pruebas nuevas sin confirmar; el intento se inicia antes de sus resultados."
+                    )
                 )
 
     @api.model
@@ -264,6 +280,7 @@ class NewAcceptanceRevision(models.Model):
         _lock_rows(self.env, "stock_lot", episodes.lot_id.ids)
         _lock_rows(self.env, "mc_rov_revision", self.ids)
         self.invalidate_recordset()
+        attempts.invalidate_recordset()
         return attempts
 
     def _check_final_acceptance_scope_edit(self):

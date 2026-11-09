@@ -3,7 +3,7 @@ from functools import lru_cache
 from pathlib import Path
 import textwrap
 
-from odoo import models, fields, api
+from odoo import _, models, fields, api
 from odoo.exceptions import UserError
 
 
@@ -1038,6 +1038,21 @@ class McRovRevision(models.Model):
         )
 
     def write(self, vals):
+        if "documento_emitido" in vals and not vals["documento_emitido"]:
+            self.check_access("write")
+            # Read the monotonic flag under a fresh row lock: reopening, importing
+            # or an older RPC cache must never erase a previous confirmation.
+            saved = self.filtered(lambda row: isinstance(row.id, int) and row.id > 0)
+            for revision in saved.sorted("id"):
+                self.env.cr.execute(
+                    "UPDATE mc_rov_revision SET write_date=write_date WHERE id=%s",
+                    [revision.id],
+                )
+            saved.invalidate_recordset(["documento_emitido"])
+            if any(revision.documento_emitido for revision in self):
+                raise UserError(
+                    _("Una prueba confirmada conserva su marca de emisión al reabrirse.")
+                )
         # El tipo de un documento ya emitido no se toca. Es un candado de modelo y no de
         # vista a propósito: la vista lo bloquea para el técnico, pero una importación, una
         # acción de servidor o un `write` desde otro módulo no pasan por la vista.

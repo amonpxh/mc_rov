@@ -1,6 +1,440 @@
 ## Programa de preparación del uso real autorizado — 2026-11-03
 
-### Estado actual — aceptación final de reparación (2026-11-05)
+### Estado actual — aceptación de equipos nuevos (2026-11-09)
+
+Cierre de QA confirmado y recibo revalidado: CLOSED=True, CONNECTIONS_BLOCKED=True,
+HISTORY_PRESERVED=True; STAGING activo. Misma base ssRigi conservada con dump final,
+sin borrar ni reabrir. Incremento validado: full1528 y9 carreras finales, revisión
+independiente con hallazgos corregidos, cuatro recorridos visuales con cuentas
+operativas y etiquetas españolas en modo normal. Auditoría local previa a commit
+confirmó que todas las fuentes coinciden con full1528 excepto los dos atributos
+string explícitos de la vista, cubiertos por get_view/ambos idiomas/ambas cuentas
+y verificación web. No se repite suite integral para ese ajuste solo de textos.
+Integración todavía pendiente: preparar commit revisable en
+feature/preparacion-uso-real; sin publicación, merge o despliegue de este incremento.
+No tablero de11 KPI terminado, compras/IA implementadas ni activación real.
+Al preparar commit, el hook detectó dos directivas de lint incompatibles entre
+catálogos de pylint-odoo. Se alinearon con el patrón ya usado: únicamente comentario
+unknown-option-value en events/presentation, sin cambiar AST ni comportamiento.
+La suite nativa no se repite por estos comentarios; se vuelven a pasar todos los hooks.
+
+QA visual APROBADA, incluida corrección de etiquetas en modo normal. Diagnóstico
+READ ONLY20261109-154721-501 confirmó get_view correcto para ambos usuarios con
+es_CL y arch_db correcto en ambos idiomas; idioma descartado. Causa localizada
+en caché persistente del navegador de get_views (web/static/src/views/view_service.js
+usa orm.cache(type=disk)). Contraste UI con debug=1 solicitó variante nueva y
+mostró etiquetas españolas; salida mediante menú nativo «Salir del modo de
+depuración» dejó URL ?debug= y ambas etiquetas correctas en modo normal, sin
+modificar fuentes/datos ni reiniciar. Estado confirmado e historial presentes.
+Comprobado en navegador integrado de Codex, nunca Edge personal. Evidencia local
+new-acceptance-qa-verification.json actualizada. Copia ssRigi todavía ACTIVA:
+próximo staging-new-acceptance-qa-close.ps1 para dump final y bloqueo conservando
+historial; después preparar commit/integración. Producción sigue intacta y no
+se entrega todavía tablero KPI completo ni políticas reales activadas.
+
+Refresco nativo ejecutado: ambos SIGNAL=PASSED, archivo/PIDs/vistas/datos
+intactos, work /var/tmp/mc-rov-new-labels-refresh-2OyyRC. La comprobación web en
+pestaña nueva15 sigue mostrando las etiquetas técnicas inglesas; hipótesis de
+solo invalidación entre procesos NO suficiente. No declarar QA visual cerrada.
+Preparado staging-new-acceptance-labels-diagnose.ps1: solo READ ONLY/rollback,
+compara claves de traducción arch_db, etiquetas por idioma y get_view con idioma
+real de cada cuenta (la comprobación anterior con with_user heredaba contexto
+del shell). Sin modificación, reinicios ni señalización. AST/Bash/PS aprobados;
+esperar evidencia del diagnóstico antes de otro ajuste. Misma copia ssRigi activa.
+
+Etiquetas instaladas en ambas BD20261109-151958-395, backup
+/var/tmp/mc-rov-new-acceptance-labels-4BA8Xa; native get_view y18 tablas intactas.
+QA web tras reload todavía muestra textos ingleses: NO declarar cierre visual.
+Diagnóstico: aplicación por shell confirmó arch_db pero omitió publicar
+invalidaciones entre procesos (registry.signal_changes); shell nuevo ve etiquetas
+españolas y proceso HTTP conserva vista anterior. API oficial19 revisada en
+https://github.com/odoo/odoo/blob/19.0/odoo/orm/registry.py (clear_cache,
+signal_changes, check_signaling). Preparado NO ejecutado
+staging-new-acceptance-labels-refresh.ps1: valida fuente ya instalada, dos backups
+previos, fuente de métodos nativos/registro listo; clear_cache(default,templates)
+y signal_changes, comprueba secuencias técnicas y18 tablas/vista/archivo/PIDs
+intactos. Sin producto, reinicios ni reconstrucción de QA. AST/Bash/PS y alcance
+local verificados. Después reload visual y cierre de la misma copia.
+
+QA funcional visual comprobada en la misma copia ssRigi con Taller y Supervisor:
+diálogo propone serie real, selecciona RND/TRN y abre borrador; una fase aprobada
+mantiene conjunto pendiente y ambas lo confirman. Fallo nativo en RND/07544 deja
+conjunto fallido; nuevo intento RND/07545+TRN/04749 confirma y Supervisor ve filas
+1 Fallido/Rechazado/Sin resultado/Fallido y2 Confirmado/Aprobado/Aprobado/Aprobado,
+con autor Taller y fechas. Caso NORMAL tiene una sola fila aprobada. Caso HISTORIAL
+conserva las dos filas creadas; selector de MO9020 ofrece RND/07548 y excluye
+RND/07549 histórica reabierta. Pestaña final y privacidad Taller/Supervisor comprobadas.
+Hallazgo visual menor: dos campos muestran nombres técnicos en inglés. Corrección
+LOCAL solo2 atributos string en la página new_acceptance, con las mismas etiquetas
+españolas ya usadas en reparación. Paquete staging-new-acceptance-labels.ps1
+preparado NO ejecutado: backup de ambas bases/vista, native get_view de ambas
+cuentas, snapshots de18 tablas y protección del resto de fuentes; sin módulo,
+reinicio, esquema, ACL ni lógica nuevos. AST/XML/Bash/PS/hashes y diff exacto contra
+vista del full1528 aprobados. Tras instalar: reabrir vista, verificar etiquetas y
+cerrar copia con staging-new-acceptance-qa-close.ps1; después integración pendiente.
+
+QA creada y recibo revalidado20261109-145122-219: empresa1808, base
+mc_rov_new_acceptance_qa_ssRigi y work
+/var/tmp/mc-rov-new-acceptance-operational-qa-ssRigi. Cuatro fabricaciones
+9017/9018/9019/9020 y escenarios nativos creados; servidor QA listo, fuentes
+intactas y STAGING activo. Comprobación visual todavía pendiente: el navegador
+integrado muestra desconectado y no hay escucha local8071. Se pidió abrir túnel
+SSH8071; después iniciar sesión Taller exclusivamente en la página integrada,
+sin contraseña en chat. No repetir creación ni modificar la copia existente.
+
+QA visual preparada y NO ejecutada: staging-new-acceptance-qa-users.ps1,
+ligada a full1528 y concurrencia final9. Copia nueva mc_rov_new_acceptance_qa_*,
+empresa propia y cuentas mcqa.new.final.taller/supervisor (MRP/stock, supervisor
+con consulta de equipo/coordinación; sin administración). Cuatro unidades
+fabricadas nativamente: NORMAL, FALLO con protocolos frescos para reintento,
+HISTORIAL con primer fallo y segundo aprobado, PROTOCOLO_HISTORICO con prueba
+confirmada/reabierta que el selector debe excluir. Políticas de la empresa QA
+apagadas; no crea actividades ni emite FEN. Baseline149 exacto, cron/correo y
+cuentas copiadas desactivados, servidor temporal127.0.0.1:8071 sin Internet,
+backup/filestore propios y cierre preparado staging-new-acceptance-qa-close.ps1.
+Paquete local validado: recibos previos, AST, transporte UTF-8/base64, hashes,
+aislamiento, sintaxis Bash/PowerShell. Creación nativa y comprobación visual
+pendientes. SSH y clave temporal únicamente en terminal del usuario; navegador
+integrado de Codex para QA, sin usar el navegador personal ni cambiar producción.
+
+Full1528 nativo aprobado y recibo revalidado20261109-142110-230; backup
+/var/tmp/mc-rov-new-acceptance-review-regression-73GVSm.1528 nombres exactos,
+149 fuentes y datos/config/ACL/historial/PDFs intactos, pruebas restauradas y
+STAGING activo. Hallazgos independientes corregidos y regresión integral verde.
+Concurrencia FINAL aprobada y recibo revalidado20261109-144257-686:9 carreras
+ligadas a este full1528, sin intentos huérfanos y con autores reales verificados.
+Base conservada mc_rov_new_acceptance_final_ci_QrGY9Q, conexiones bloqueadas;
+evidencia en /var/tmp/mc-rov-new-acceptance-final-race-QrGY9Q. Producto intacto
+y STAGING activo. Se conservan el
+script staging-new-acceptance-final-concurrency.ps1 y probador separado
+scripts/qa/new_acceptance_final_concurrency.py (conserva probador/evidencia previos8).
+Ocho recorridos previos más flag_clear_vs_confirm: dos conexiones leen emisión
+False; una confirma nativamente y hace commit; la otra intenta borrar desde
+snapshot previo y debe reintentar/bloquearse, conservando flagTrue/estado confirmado/
+autor real, sin crear intento formal retrospectivo. Copia aislada propia
+mc_rov_new_acceptance_final_ci_*, sin cron/correo/HTTP, respaldo y conexiones bloqueadas
+al terminar; sin instalar/reiniciar STAGING ni tocar producción/QA cerrada.
+Black99/pylint10, hashes/AST/Bash/PS y parser2válidos/30rechazos locales aprobados.
+Próximo QA visual aislado con cuentas operativas y cierre de
+revisión/integración. Ninguna contraseña del chat se usa ni se guarda en artefactos.
+
+GREEN282 revisión nativo aprobado y recibo revalidado20261109-141315-986; backup
+/var/tmp/mc-rov-new-acceptance-review-green-SzoVAD.149 fuentes exactas, dominios de
+pruebas nuevas y marca monotónica verificados; datos/config/ACL/historial/PDFs
+intactos, pruebas restauradas y STAGING activo. Hallazgos independientes corregidos
+y cubiertos por controles nativos (reapertura, copia y falsy RPC incluidos).
+Regresión completa1528 preparada y NO ejecutada:1487 anteriores más41 de KPI y
+revisión (34+7), todos por nombre. Script
+staging-new-acceptance-review-regression.ps1; solo pruebas temporales con backup/
+restauración y reinicio STAGING, sin producto ni ACL nueva. Snapshot estricto,
+baseline149 del GREEN282, preparador exacto local, parser2válidos/19rechazos,
+hashes/AST/Bash/PS aprobados. Full1521 preparado previo ya superado, no ejecutar.
+Después full1528: comprobar concurrencia del producto final y QA visual aislado,
+documentar cierre y revisar integración; producción sigue sin cambios.
+
+RED282 revisión nativo confirmado y recibo revalidado20261109-105614-948:
+4 fallos concretos/278 controles verdes/0 errores; backup
+/var/tmp/mc-rov-new-acceptance-review-red-j8gbFN. Producto/config intactos, pruebas
+restauradas y STAGING activo. Corrección LOCAL en3 archivos existentes: start
+rechaza documento_emitido aunque esté borrador; ambos dominios del diálogo exigen
+no emitido; mc_rov_revision.write impide borrar marca verdadera con valores falsy
+tras check_access(write), locks ordenados de filas e invalidación/lectura fresca.
+Reabrir conserva marca y copiar crea registro nuevo no emitido; sin clases/ACL/
+columnas nuevas. Revisor independiente revisó snippets finales y confirmó que
+ambos hallazgos quedan cubiertos localmente, sin regresión concreta identificada;
+no sustituye evidencia nativa. GREEN282 preparado y NO ejecutado:
+staging-new-acceptance-review-green.ps1, marcador
+reviewed-prospective-history-monotonic-flag282-v1.149 fuentes, backup/recovery en
+base nueva, snapshots estrictos, postcheck de dominios y privacidad. Preparador
+exacto/parser2válidos16rechazos/tags/XML/hashes/AST/Bash/PS aprobados. Black99 y
+pylint10 para new_acceptance_start; modelo base conserva exactamente9 diagnósticos
+de lint preexistentes (comparación contra HEAD verificada, cero nuevos); no se
+alteró código ajeno para silenciarlos. Después GREEN, full1528 y QA visual aislado.
+
+GREEN275 KPI nativo aprobado y recibo revalidado20261109-103838-598; backup
+/var/tmp/mc-rov-new-first-pass-kpi-green-DkhduJ.149 fuentes, datos/config/ACL intactos,
+sin historia retrospectiva, pruebas restauradas y STAGING activo. Adaptador instalado.
+Full1521 preparado pero NO ejecutado; quedó pendiente de corregir hallazgo material
+de revisión independiente /root/new_acceptance_final_review (READ ONLY, sin tests
+nativos por el revisor). Hallazgo P1 confirmado estáticamente: una prueba histórica
+confirmada/rechazada puede reabrirse y usarse como primer intento nuevo porque start
+solo verifica estado borrador y no documento_emitido. Además readonly del indicador
+es solo de UI: RPC puede borrarlo, por lo que requerirá guard monotónico de modelo
+con lectura fresca bajo lock. Ningún otro hallazgo material de alta confianza.
+Informe guardado .tmp/preparacion-uso-real-pilot/new-acceptance-independent-review.json.
+RED282 de revisión preparado y NO ejecutado:4 fallos concretos (RND histórica,
+TRN histórica, borrado del flag por RPC, dominio del diálogo) más3 controles nativos
+(flag persiste al reabrir, copia nueva no emitida, inicio con borradores nuevos),
+conserva275 anteriores. Exige4 fallos/278 verdes/0 errores; total declarado1528.
+Script staging-new-acceptance-review-red.ps1; solo pruebas temporales, backup/
+restauración y reinicio STAGING. Baseline149 del GREEN275, parser2válidos/16rechazos,
+preparador exacto, hashes/AST/Bash/PS y Black99/pylint10 aprobados. Producto sin
+corrección todavía, primero reproducción nativa. Full1521 previo no ejecutar:
+después de corregir deberá incluir estos7 casos. QA visual/revisión final pendientes.
+
+RED275 KPI nativo confirmado y recibo revalidado20261109-101440-885:30 ausencias/
+245 controles verdes/0 errores; backup /var/tmp/mc-rov-new-first-pass-kpi-red-XpuuZU.
+Producto/config intactos, pruebas restauradas y STAGING activo. Adaptador LOCAL
+models/new_first_pass_kpi.py + import: get_summary(production_ids), selección
+explícita actual autorizada; categorías ROV configuradas y salidas positivas nativas
+por serie, deduplicación empresa/serie/grupo, lectura autorizada de MO original y
+ambas revisiones históricas. Primer estado sellado normalizado a first_pass_status,
+fallo inicial conservado, pendientes/desconocidos separados, valor/cobertura None
+sin denominador, episodios mínimos sin snapshots. Sin escritura ni permisos nuevos.
+GREEN275 preparado y NO ejecutado, dos archivos de producto,149 fuentes esperadas.
+Wrapper staging-new-first-pass-kpi-green.ps1; backup/freshDB recovery, snapshots
+estrictos sin excepción de datos/ACL, postcheck abstracto/privado/sin captura antigua.
+Black99/pylint10, hashes/AST/Bash/PS, parser2válidos/16rechazos, preparador exacto y
+tags aprobados. Después GREEN nativo, regresión completa1521, QA visual y revisión
+independiente del incremento completo. No declarar tablero ni producción listos.
+
+Regresión integral1487 nativa aprobada y recibo revalidado20261109-095631-144;
+backup /var/tmp/mc-rov-new-acceptance-wizard-regression-vnrMdC.1487 nombres exactos,
+cero fallos/errores,148 fuentes y datos/config/ACL/historial/PDFs intactos, pruebas
+restauradas y STAGING activo. Base final de captura/presentación/diálogo validada.
+Adaptador KPI iniciado según plan2026-11-09-new-first-pass-kpi.md: selección explícita
+actual de fabricaciones, unidades ROV realmente producidas, primer intento sellado
+y denominador/cobertura separados de pendientes/desconocidos. No agrega indicador
+nuevo, metas ni tablero; implementa el primer pase conjunto ya acordado.
+RED275 preparado y NO ejecutado:30 ausencias del adaptador y4 controles nativos,
+conserva241 anteriores, exige30 fallos concretos/245 verdes/0 errores. Test nuevo
+test_new_first_pass_kpi.py, total declarado1521. Wrapper
+staging-new-first-pass-kpi-red.ps1; solo pruebas temporales, backup/restauración y
+reinicio STAGING. Baseline148 del full1487 exacto. Black99/pylint10, parser2válidos/
+16rechazos, preparador exacto, hashes/AST/Bash/PS aprobados. Ningún adaptador nuevo
+de producto implementado antes del RED. Después GREEN, suite integral, QA visual
+aislado y revisión independiente final. Producción/QA cerrada sin cambios.
+
+GREEN241 diálogo v3 nativo aprobado y recibo revalidado20261109-091549-069;
+backup /var/tmp/mc-rov-new-acceptance-wizard-green-PnVGHf.148 fuentes exactas, ACL
+única prevista validada por XML ID/modelo/grupo, todo permiso/membresía/dato previo
+intacto. Esquema/vista verificados, sin historia retrospectiva ni QA persistente;
+pruebas restauradas y STAGING activo. Diálogo de fabricación instalado.
+Regresión integral1487 preparada y NO ejecutada:1441 anteriores más46 de fronteras,
+presentación y diálogo (16+12+18), cada caso por nombre. Script
+staging-new-acceptance-wizard-regression.ps1; solo pruebas temporales, backup,
+restauración y reinicio STAGING, producto final148 intacto y snapshot estricto sin
+excepciones de ACL/esquema (ya forman parte del baseline instalado). Preparador
+exacto ejecutado localmente, parser2válidos/19rechazos, hashes/AST/Bash/PS aprobados.
+Próximo ejecutar1487; después adaptador KPI, QA visual aislado con cuentas operativas
+y revisión independiente final. Producción sigue sin cambios en este programa.
+
+Diagnóstico wizard revalidado20261109-090820-955:única diferencia es una ACL añadida
+en access_rights (id1293/model1122/group37, flags activos de lectura/escritura/
+creación/borrado). Ningún permiso existente, membresía o dato cambió. STAGING activo.
+GREEN241 v3 preparado y NO ejecutado: verified-exact-transient-acl241-v3, mismo
+staging-new-acceptance-wizard-green.ps1. Producto/tests/full148 hashes idénticos
+a v2; paquete anterior conservado. El postcheck nativo READ ONLY se ejecuta antes
+de comparar y resuelve mc_rov.access_new_acceptance_wizard_mrp, exige modelo
+mc.rov.new.acceptance.wizard y grupo mrp.group_mrp_user, registra IDs/flags de esa
+ACL desde ORM. Comparador nuevo permite exclusivamente la fila adicional exacta
+resuelta (no IDs hardcodeados del intento anterior); JSON canónico estricto mantiene
+todo permiso previo, membresías, orden/tipos y datos/historial restantes idénticos.
+Recibo exige ALLOWED_ACL_ONLY y metadatos del postcheck. Comparador pinneado en
+hashes/ejecutado como heredoc real en preflight. Pruebas locales2válidos/21rechazos
+del comparador y2válidos/17rechazos del recibo, preparador exacto, tags y hashes/
+AST/Bash/PS aprobados. Repetir GREEN ya diagnosticado; conservar backup/freshDB
+recovery. No declarar diálogo instalado hasta recibo completo nuevo. Después KPI,
+suite integral, QA aislado y revisión independiente del flujo completo.
+
+GREEN241 v2 intento20261106-172330-039 NO confirmado:241/241 pasan, pero cmp
+before.sha256/after.sha256 falla antes de CONFIGURATIONS_UNCHANGED y del postcheck.
+Recuperación RC0 verificada; base fallida odoo_staging_failed_new_wiz_ObHXfY y backup
+/var/tmp/mc-rov-new-acceptance-wizard-green-ObHXfY conservados, pruebas restauradas y
+STAGING activo. Snapshot contiene access_rights completo, por lo que añadir la ACL
+transitoria prevista necesariamente cambia su contenido. Falta comprobar que ese
+sea el único delta: diagnóstico SOLO LECTURA preparado, mismo par de snapshots
+guardados, sin abrir BD ni mostrar datos de negocio. Script
+staging-new-acceptance-wizard-diagnose.ps1; reporta sección/campo/tipo/conteo y
+metadatos de ACL añadida (IDs/flags), no valores de negocio. Pruebas locales positiva/
+negativa y parserPS aprobados. No repetir GREEN ni relajar comparación de permisos
+existentes hasta evidencia. No hay cambio de producto posterior al GREEN241 v2.
+
+GREEN241 intento20261106-170443-909 NO confirmado:0fallos/1error/241, único error
+en test_submit_rejects_other_produced_serial antes de invocar producto. Auxiliar
+Odoo assertRaises usa issubclass(exception,AccessError) y rechaza tupla
+(UserError,ValidationError) con TypeError.240 controles restantes verdes. Recuperación
+RC0 verificada; base fallida odoo_staging_failed_new_wiz_wIP4dM y backup
+/var/tmp/mc-rov-new-acceptance-wizard-green-wIP4dM conservados, pruebas restauradas,
+STAGING activo. Corregida SOLO una línea QA a assertRaises(UserError), excepción
+nativa exacta de serie ajena a MO terminada; mantiene241 nombres/aserciones y
+código de producto idéntico (cuatro archivos/full148 hashes). Original v1 archivado.
+Builder v2 permite exclusivamente ese reemplazo contra payload/hash del RED;
+cualquier otro cambio QA se rechaza. GREEN241 v2 preparado y NO ejecutado:
+native-usererror-serial-fixture241-v2, mismo staging-new-acceptance-wizard-green.ps1.
+Fallo Python reproducido localmente, Black99/pylint10, hashes/AST/Bash/PS,
+parser2válidos/16rechazos y preparador exacto aprobados. Repetir GREEN ya diagnosticado;
+no dar diálogo por instalado hasta recibo nativo completo.
+
+RED241 nativo confirmado y recibo revalidado20261106-163611-338:16 ausencias/
+225 verdes/0 errores; backup /var/tmp/mc-rov-new-acceptance-wizard-red-g044nD.
+Producto/config intactos, pruebas restauradas y STAGING activo. Implementación
+LOCAL del diálogo en wizards/mc_rov_new_acceptance_wizard.py, import de wizards,
+vista MRP existente y una ACL transitoria exclusiva mrp.group_mrp_user; sin ACL
+de episodios/intentos ni permisos nuevos a cuentas concretas. Fabricación terminada
+con acceso read/write y empresa activa, serie única prellenada/múltiples explícitas,
+dominios de RND/TRN en borrador y submit al servicio existente sin sudo. Iniciar abre
+RND sin confirmar; descartar no inicia ni retira seguimiento. GREEN241 preparado
+y NO ejecutado, cuatro archivos de producto,148 fuentes esperadas. Wrapper
+staging-new-acceptance-wizard-green.ps1, backup/freshDB recovery, snapshot estricto
+sin excepción de esquema, postcheck de wizard/ACL/vista y ausencia de historia QA.
+Black99/pylint10, XML/CSV/hashes/AST/Bash/PS, parser2válidos/16rechazos, preparador
+exacto y tags aprobados. Después KPI, regresión integral, QA visual y revisión final.
+
+Intento RED24120261106-161402-880 no ejecutó comando remoto:respuesta local0 bytes,
+log SSH termina en Next authentication method: password / Connection closed by
+64.176.17.240 port22, sin Authenticated/Entering session/Sending command. Registro
+local leído y comprobado; conexión cerrada antes de autenticar. Ninguna evidencia
+de instalación o prueba iniciada. Repetir mismo staging-new-acceptance-wizard-red.ps1
+e introducir SSH en la terminal; paquete241 sin cambios. No diagnosticar como fallo
+de producto ni usar recibo vacío como RED. Sin cambios en STAGING/QA/producción.
+
+GREEN223 presentación v2 nativo aprobado y recibo revalidado20261106-160633-948;
+backup /var/tmp/mc-rov-new-acceptance-presentation-green-SWST2l. Esquema nuevo NULL
+en31 revisiones verificado explícitamente, todo dato previo intacto.147 fuentes,
+vista última, ACL privada, ausencia de historia retrospectiva, pruebas restauradas
+y STAGING activo. Presentación instalada; falta QA visual del recorrido completo.
+Próximo incremento de apertura nativa desde Fabricación: pruebas RED241 preparadas
+y NO ejecutadas (16 ausencias/225 verdes/0 errores),223 anteriores más18 nuevos.
+Test_new_acceptance_wizard.py: diálogo transitorio, MO terminada autorizada,
+serie única prellenada/múltiples explícitas, dos pruebas en borrador, submit al
+servicio existente, idempotencia, rechazo de selección/contexto/acceso indebidos y
+descarte sin captura. Devuelve RND para continuar, sin confirmar ni emitir FEN.
+Wrapper staging-new-acceptance-wizard-red.ps1; solo pruebas temporales con backup/
+restauración y reinicio STAGING. Baseline147 del GREEN223, total declarado1487.
+Black99/pylint10, parser2válidos/16rechazos, preparador exacto, hashes/AST/Bash/PS
+aprobados. Ningún wizard ni cambio de producto nuevo implementado antes de RED.
+Después GREEN del diálogo, KPI, regresión completa, QA aislado y revisión final.
+
+Diagnóstico solo lectura revalidado20261106-155709-579:única diferencia de snapshots
+es repair_revisions.mc_new_failure_reason añadida NULL en31 filas; ningún otro
+campo/valor/sección cambió. STAGING activo. Fallo del comparador del instalador,
+no de las223 pruebas. Paquete v1/prepared conservados. GREEN223 v2 preparado y
+NO ejecutado: verified-empty-column-snapshot223-v2, mismo wrapper
+staging-new-acceptance-presentation-green.ps1. Producto/tests/full147 hashes
+idénticos al intento v1. Comparador conserva snapshots originales y permite solo
+esa columna nueva NULL; exige mismas identidades/orden/filas y JSON canónico
+estricto para todo lo demás (incluidos tipos booleanos/números, stock e historial).
+Postcheck/recibo exige SCHEMA_EXTENSION_ONLY y conteo de revisiones; comparador
+incluido en hashes del paquete y ejecutado localmente como heredoc real.
+Pruebas locales:comparador2válidos/16rechazos; recibo2válidos/18rechazos; preparador
+exacto, tags, hashes/AST/Bash/PS aprobados. Autorizado reintento ya diagnosticado;
+no declarar instalado hasta nuevo recibo completo. Conserva backup/recovery freshDB.
+
+Intento GREEN223 presentación20261106-145831-499 NO confirmado:223/223 pasan,
+pero cmp before.sha256/after.sha256 falla antes de CONFIGURATIONS_UNCHANGED y antes
+del postcheck de vista. RC recuperación0; base fallida
+odoo_staging_failed_new_ui_XF8i59 conservada, fuentes/pruebas restauradas y STAGING
+activo. Backup /var/tmp/mc-rov-new-acceptance-presentation-green-XF8i59.
+No repetir instalador todavía. Diagnóstico preparado de SOLO LECTURA de snapshots
+guardados (sin abrir BD): staging-new-acceptance-presentation-diagnose.ps1.
+Reporta sección/campo/tipo de cambio/conteo, sin valores. Hipótesis aún no confirmada:
+to_jsonb de toda mc_rov_revision cambia al añadir columna almacenada
+mc_new_failure_reason incluso nula. Diagnóstico distinguirá esa ampliación de esquema
+de una modificación real de datos; no flexibilizar comparador antes de evidencia.
+Pruebas locales positiva/negativa y parser PowerShell del diagnóstico aprobadas.
+
+RED223 presentación confirmado y recibo revalidado20261106-135939-518:10 ausencias,
+213 controles verdes y0 errores; backup /var/tmp/mc-rov-new-acceptance-presentation-red-9fC6UW.
+Producto/config/historial intactos, pruebas restauradas y STAGING activo.
+Presentación LOCAL implementada: models/new_acceptance_presentation.py, import y
+vista nativa existente. Pestaña new_acceptance última y visible para rendimiento/
+terreno sin reparación; estado de participación, fase capturada, flags de corrección/
+reensayo, registro de fallo real con motivo y tabla de todos los intentos de la unidad.
+Historia HTML readonly/team, texto escapado y acceso a ambas fuentes/MO/serie/producto
+revalidado antes de lectura sudo privada. Indicadores sin locks de escritura;
+invalidación de ambas fuentes tras inicio/confirmación/fallo para evitar estado viejo.
+GREEN223 preparado y NO ejecutado, tres archivos de producto,147 fuentes esperadas.
+Script staging-new-acceptance-presentation-green.ps1. Backup/recovery freshDB,
+postcheck de vista/esquema/ACL sin historia retrospectiva. Black99/pylint10, XML/
+hashes/AST/Bash/PS, preparador exacto y parser2válidos/16rechazos aprobados; tags
+nativos exactos comprobados. Falta GREEN nativo. Después apertura desde fabricación,
+KPI, regresión integral, QA visual y revisión independiente. Sin producción/QA real.
+
+Fronteras211 nativas aprobadas y recibo revalidado20261106-135049-882; backup
+/var/tmp/mc-rov-new-acceptance-boundaries-lEHpW7.195 previos y16 adicionales verdes,
+producto/config/historial intactos, pruebas restauradas y STAGING activo.
+Presentación conjunta iniciada según plan2026-11-06-new-acceptance-presentation.md:
+pestaña al final, indicadores de ambas fases, historial privado del episodio y
+fallo real con motivo; después apertura desde fabricación y KPI en incrementos
+separados. No agrega retirada ni cierre genérico de actividades. RED223 preparado
+y NO ejecutado:10 ausencias de presentación y2 controles nativos más211 anteriores,
+exige10 fallos concretos/213 verdes/0 errores.146 fuentes instaladas pinneadas al
+full1441; total declarado1469. Wrapper staging-new-acceptance-presentation-red.ps1,
+solo pruebas temporales con respaldo/restauración y reinicio STAGING. Black99/
+pylint10, hashes/AST/Bash/PS, parser2válidos/16rechazos y preparador exacto locales
+aprobados. Ningún producto/UI nuevo implementado antes de RED; producción/QA intactos.
+
+Concurrencia conjunta8 nativa aprobada y recibo revalidado20261106-134453-340:
+dos conexiones/actores, inicio único, resultados simultáneos, duplicados, fallo,
+interrupción, reinicio y rollback coherentes; cero huérfanos y primer fallo intacto.
+Copia mc_rov_new_acceptance_ci_IYMsNF bloqueada y conservada, work
+/var/tmp/mc-rov-new-acceptance-race-IYMsNF. Producto intacto y STAGING activo.
+Controles adicionales de fronteras preparados y NO ejecutados:16 nuevos más195
+anteriores =211 exactos. Test nuevo test_new_acceptance_boundaries.py, sin producto
+nuevo: denegación de MO/serie/producto tanto al confirmar como interrumpir,
+historia privada, contexto falsificado, clasificación capturada, rollback de
+interrupción, fallo original frente a aprobación posterior y evidencia bloqueante/
+continuo. Wrapper staging-new-acceptance-boundaries.ps1, exige211 verdes/0 errores.
+Solo pruebas temporales y reinicio STAGING con backup/restauración;146 fuentes
+pinneadas a full1441. Black99/pylint10, hashes/AST/Bash/PS, parser2válidos/15rechazos
+y ejecución local del preparador/checker exactos aprobados. Total declarado1457.
+Sigue pendiente ejecutar211 y después presentación/KPI/revisión final del flujo.
+
+Regresión1441 nativa aprobada y recibo revalidado20261106-130447-818:1441 nombres
+exactos, cero fallos/errores,146 fuentes y datos/config/historial/PDFs intactos;
+backup /var/tmp/mc-rov-new-acceptance-events-regression-urIbsp. Pruebas restauradas
+y STAGING activo. Concurrencia preparada y NO ejecutada, script
+staging-new-acceptance-concurrency.ps1 y probador scripts/qa/new_acceptance_concurrency.py:
+ocho carreras con dos conexiones/actores, inicio repetido y competidor, confirmación
+RND/TRN simultánea, fase repetida, fallo y aborto real frente a aprobación, reinicio
+con dos fuentes nuevas y primer fallo intacto, rollback frente a confirmación.
+Copia propia mc_rov_new_acceptance_ci_*, cron/correo neutralizados y conexiones
+bloqueadas al finalizar; sin instalar/reiniciar STAGING ni producción o abrir QA.
+Preparación ligada a full1441 exacto. Black99/pylint10, hashes/AST/Bash/PS y parser
+2válidos/26rechazos locales aprobados; todavía ninguna carrera nativa de este
+incremento ejecutada. Después siguen fronteras ampliadas, UI/KPI y revisión final.
+
+GREEN195 nativo aprobado y recibo revalidado20261106-125752-253; backup
+/var/tmp/mc-rov-new-acceptance-events-green-DfEfLu.146 fuentes exactas y esquema
+privado verificados, sin historia retrospectiva ni ACL nueva. Datos/config/stock/
+PDFs conservados; pruebas restauradas y STAGING activo. Resultados conjuntos
+instalados; la función completa sigue pendiente de interfaz, KPI y validación final.
+Regresión integral1441 preparada y NO ejecutada:1373 casos previos más68 de
+apertura/resultados conjuntos, todos por nombre. Wrapper
+staging-new-acceptance-events-regression.ps1. Solo pruebas temporales, respaldo y
+reinicio STAGING; incluye snapshots del historial de reparación y de equipo nuevo.
+Preparador exacto ejecutado localmente, hashes146/AST/Bash/PS y parser2válidos/
+19rechazos aprobados. Próximo paso ejecutar esta suite; después concurrencia,
+permisos ampliados, interfaz/KPI y revisión independiente del flujo completo.
+
+RED195 nativo confirmado y recibo revalidado20261106-124959-830:30 ausencias,
+165 controles verdes y0 errores; backup /var/tmp/mc-rov-new-acceptance-events-red-6uEtEq.
+Producto/config/historial intactos, pruebas restauradas y STAGING activo.
+Implementación LOCAL de eventos: models/new_acceptance_events.py y guard del
+attempt en new_acceptance_start.py más import. Confirmación nativa y captura en
+savepoint único; resultados por fase, fallo real interrumpido con motivo/evidencia,
+resultado conjunto inmutable, actor/plazos originales y flags desconocidos sin
+inventar primera aprobación. Raw estado/contexto RPC no sustituye acción nativa;
+reapertura de fase capturada pendiente bloqueada; correcciones posteriores al cierre
+no reescriben el intento. GREEN195 preparado y NO ejecutado, tres archivos de
+producto y146 fuentes esperadas. Wrapper staging-new-acceptance-events-green.ps1;
+respaldo/freshDB recovery, esquema sin ACL/historia retrospectiva y las mismas195
+pruebas. Black99/pylint10, hashes/AST/Bash/PS, parser2válidos/16rechazos y preparador
+exacto locales aprobados. Falta GREEN nativo; no entregar como terminado.
+Luego permisos ampliados/concurrencia/regresión/UI/KPI y revisión independiente.
+
+Siguiente etapa preparada2026-11-06: eventos de aceptación conjunta de ROV nuevo.
+Plan2026-11-06-new-acceptance-events.md y34 pruebas locales nuevas:30 contratos
+de resultados y4 controles nativos, más161 anteriores =195 focalizados;
+total declarado1441. RED195 preparado, todavía NO ejecutado: exige30 ausencias
+concretas y165 controles verdes, sin errores. Solo pruebas temporales, respaldo,
+restauración y reinicio STAGING; incluye comparación de episodios/intentos nuevos
+ya instalados. Wrapper staging-new-acceptance-events-red.ps1. Parser2válidos/
+16rechazos, preparador real, hashes, AST/Bash/PowerShell y Black99/pylint10 locales
+aprobados. No hay implementación de eventos nueva ni cambios QA/producción.
+Apertura anterior guardada en commit9acd1c5; resultados, UI/KPI, concurrencia,
+regresión integral y revisión independiente del flujo completo siguen pendientes.
 
 Nuevo incremento iniciado2026-11-06: aceptación al primer intento de ROV nuevo.
 GREEN161 aprobado y recibo revalidado20261106-123243-038, backup

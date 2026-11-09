@@ -58,3 +58,9 @@ from . import test_repair_acceptance_presentation
 from . import test_repair_acceptance_review
 from . import test_repair_first_pass_kpi
 from . import test_new_acceptance_start
+from . import test_new_acceptance_events
+from . import test_new_acceptance_boundaries
+from . import test_new_acceptance_presentation
+from . import test_new_acceptance_wizard
+from . import test_new_first_pass_kpi
+from . import test_new_acceptance_review

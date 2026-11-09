@@ -686,6 +686,28 @@
                               invisible="mc_acceptance_purpose != 'final'">
                             <field name="mc_acceptance_history_html" nolabel="1" readonly="1"/>
                         </page>
+                        <page name="new_acceptance" string="Aceptación de equipo nuevo"
+                              invisible="tipo not in ['rendimiento', 'terreno'] or repair_id">
+                            <field name="mc_new_attempt_pending" invisible="1"/>
+                            <field name="mc_new_phase_recorded" invisible="1"/>
+                            <group>
+                                <group string="Resultado conjunto">
+                                    <field name="mc_new_acceptance_state" readonly="1"/>
+                                    <field name="mc_correction_required" string="Requiere corrección" readonly="estado != 'borrador'"/>
+                                    <field name="mc_retest_required" string="Requiere reensayo" readonly="estado != 'borrador'"/>
+                                </group>
+                                <group string="Fallo real durante la comprobación"
+                                       invisible="not mc_new_attempt_pending or mc_new_phase_recorded">
+                                    <field name="mc_new_failure_reason"/>
+                                    <button name="action_record_new_acceptance_failure" type="object"
+                                            string="Registrar fallo del intento" class="btn-secondary"/>
+                                </group>
+                            </group>
+                            <p>La aceptación requiere rendimiento y terreno aprobados. Un fallo real
+                               queda registrado aunque después se realice otro intento.</p>
+                            <field name="mc_new_acceptance_history_html" nolabel="1"
+                                   groups="mc_rov.group_work_assignment_team"/>
+                        </page>
                     </notebook>
                 </sheet>
                 <chatter/>
