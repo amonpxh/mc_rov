@@ -13,6 +13,12 @@
         <field name="inherit_id" ref="mrp.mrp_production_form_view"/>
         <field name="arch" type="xml">
 
+            <xpath expr="//header" position="inside">
+                <button name="action_open_new_acceptance" type="object"
+                        string="Iniciar aceptación de equipo nuevo"
+                        groups="mrp.group_mrp_user" invisible="state != 'done'"/>
+            </xpath>
+
             <!-- El aviso va antes de las pestañas y no adentro de una: una pestaña hay
                  que abrirla, y la premisa de todo esto es que nadie va a ir a buscarlas.
                  Mismo patrón que el aviso de "faltan 3 de 16" de la ficha del equipo. -->
@@ -54,6 +60,33 @@
                 </page>
             </xpath>
 
+        </field>
+    </record>
+    <record id="view_mc_rov_new_acceptance_wizard_form" model="ir.ui.view">
+        <field name="name">mc.rov.new.acceptance.wizard.form</field>
+        <field name="model">mc.rov.new.acceptance.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Iniciar aceptación de equipo nuevo">
+                <p>Seleccione la unidad fabricada y sus dos pruebas en borrador.
+                   Iniciar el intento no confirma las pruebas ni emite una ficha.</p>
+                <group>
+                    <field name="production_id" options="{'no_create': True}"/>
+                    <field name="eligible_lot_ids" invisible="1"/>
+                    <field name="lot_id" domain="[('id', 'in', eligible_lot_ids)]"
+                           options="{'no_create': True}"/>
+                    <field name="rnd_id"
+                           domain="[('lot_id', '=', lot_id), ('tipo', '=', 'rendimiento'), ('estado', '=', 'borrador'), ('documento_emitido', '=', False), ('repair_id', '=', False)]"
+                           options="{'no_create': True}"/>
+                    <field name="trn_id"
+                           domain="[('lot_id', '=', lot_id), ('tipo', '=', 'terreno'), ('estado', '=', 'borrador'), ('documento_emitido', '=', False), ('repair_id', '=', False)]"
+                           options="{'no_create': True}"/>
+                </group>
+                <footer>
+                    <button name="action_start" string="Iniciar y abrir rendimiento"
+                            type="object" class="btn-primary"/>
+                    <button string="Volver" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
         </field>
     </record>
 </odoo>

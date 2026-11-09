@@ -33,6 +33,9 @@ jobs:
           path: ci-addons/mc_rov
           persist-credentials: false
 
+      - name: Run pure KPI metrics tests
+        run: PYTHONPATH=ci-addons/mc_rov/models python3 -m unittest discover -s ci-addons/mc_rov/tests/unit -v
+
       - name: Run mc_rov tests
         run: bash ci-addons/mc_rov/scripts/ci/run_odoo_tests.sh
 
