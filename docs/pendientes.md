@@ -1,3 +1,30 @@
+## Estado vigente — instrucciones y flujo Git (2026-11-10)
+
+PR #114 integrado en main dea4efb; CI posterior al merge comprobado: Tests
+42682762063 y Lint 42682761910 success. Producción continúa sin este incremento;
+el último despliegue documentado es 40ce2fe / 19.0.25.6.0. QA de equipo nuevo cerrada,
+con respaldo e historial conservados. El estado vigente prevalece sobre las entradas
+históricas inferiores que todavía describen integración o QA pendientes.
+
+Preparada localmente la rama docs/agent-instructions-git-flow desde main actual:
+AGENTS como fuente única, CLAUDE importador, reglas técnicas preservadas en docs/agents,
+flujo Git y auditoría remota, plantilla de PR, Dependabot de Actions y lint sin develop.
+Preparados también control de título, escaneo Gitleaks y acciones fijadas a SHA.
+Escaneo local completo: 338 commits, cero hallazgos. Squash exclusivo y borrado
+automático comprobados activos. Limpieza autorizada: 49 ramas remotas borradas con
+backup Git y push atómico protegido por SHA; quedan main, tres ramas con worktree
+y la del PR81 cerrado sin integrar. Protección de main bloqueada por el plan (403).
+Archivos de gobernanza preparados para PR separado; pendientes de integración,
+sin despliegue de producto. Release retrospectiva v19.0.25.6.0 preparada como
+borrador contra 40ce2fe, sin publicar tag ni ejecutar instalación.
+Ver docs/agents/github-audit-2026-11-10.md para propuestas y SHA observados.
+
+Siguiente paso de gobernanza: validar CI del PR y revisar su integración; resolver
+el plan compatible antes de exigir protección de main. Publicar la release solo
+tras revisar el borrador retrospectivo. La entrega de producto y el tablero KPI siguen como trabajo aparte.
+
+---
+
 ## Programa de preparación del uso real autorizado — 2026-11-03
 
 ### Estado actual — aceptación de equipos nuevos (2026-11-09)

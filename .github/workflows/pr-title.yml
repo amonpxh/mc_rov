@@ -1,0 +1,32 @@
+name: Título del PR
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, edited, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+
+jobs:
+  conventional-title:
+    name: Conventional Commits
+    runs-on: ubuntu-latest
+    steps:
+      # El título es entrada no confiable: se pasa por entorno, nunca como código shell.
+      - name: Comprobar título
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          python3 - <<'PY'
+          import os
+          import re
+          import sys
+
+          title = os.environ['PR_TITLE']
+          pattern = r'(feat|fix|perf|refactor|docs|test|ci|chore|style|data)(\([^\r\n()]+\))?!?: \S[^\r\n]*'
+          if title != title.strip() or not re.fullmatch(pattern, title):
+              print('::error::Usar tipo(alcance opcional): descripción breve; por ejemplo docs: actualizar instrucciones')
+              sys.exit(1)
+          print('Título Conventional Commits válido')
+          PY
