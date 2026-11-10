@@ -15,8 +15,8 @@ CI de `main` → paquete y despliegue autorizados → activación acordada, si c
 - Abrir PR borrador cuando esté autorizada su publicación. Describir problema,
   resultado, validación, límites y cambios de datos/permisos; usar la plantilla.
 - Antes del merge: comprobar HEAD exacto, diff, CI actual, conflictos y pruebas de
-  staging pertinentes. Los dos controles actuales son
-  `pre-commit (hygiene, pylint-odoo, black)` y `Odoo module tests`.
+  staging pertinentes. Revisar formato, Odoo, Gitleaks y Conventional Commits;
+  en la entrega del versionado se agrega `Pruebas de versionado`.
 - Paulo revisa y autoriza la integración. Un agente puede ejecutarla cuando la haya
   autorizado explícitamente. Usar squash y volver a comprobar commit/CI de `main`.
 - Nada de push directo, force-push a `main` o excepción para un hotfix pequeño.
@@ -45,8 +45,20 @@ una recomputación de datos puede necesitar migración aunque sea compatible.
 - Un tag `v19.0.X.Y.Z` identifica código de una entrega, no demuestra que se instaló.
   Registrar aparte el despliegue efectivo. No mover un tag publicado ni crear etiquetas
   retroactivas de instalación sin evidencia del commit realmente instalado.
-- Tags y releases son pasos explícitos; actualmente no hay un workflow que los cree
-  automáticamente al fusionar. Una release describe contenido y evidencia de entrega.
+- El workflow de versionado propone una entrega como PR borrador y, una vez integrada
+  la entrega con CI aprobado, prepara una release borrador. No publica tags ni instala
+  Odoo. Publicar la release y desplegar son pasos explícitos y separados.
+
+## GitHub gratuito
+
+El usuario decidió mantener el repositorio privado en el plan gratuito. No queda
+pendiente contratar Pro/Team, hacer público el código ni habilitar previews 3D.
+Los agentes comprueban PR, HEAD y CI antes de cada merge autorizado; sin protección
+de pago, GitHub no impide técnicamente que alguien con escritura omita ese acuerdo.
+
+Squash exclusivo y borrado automático sí están habilitados. Dependabot propone
+actualizaciones, pero no se integran por rutina: revisar compatibilidad del runner,
+permisos y CI, especialmente en cambios mayores de acciones.
 
 ## Limpieza de ramas
 

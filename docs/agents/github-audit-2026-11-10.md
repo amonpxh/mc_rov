@@ -142,3 +142,18 @@ Fuentes oficiales:
   de código y un registro separado del despliegue; ver releases.md.
 - Los archivos nuevos siguen sin integrar en main. CI del PR debe validarlos antes
   de considerar instalados los controles. El runner Odoo no cambió de infraestructura.
+
+
+## Cierre de limpieza y decisión de plan gratuito
+
+Por autorización posterior del usuario se revisaron y eliminaron las cuatro refs
+conservadas. Tres tenían cambios locales: se guardaron parches y se verificaron los
+diffs/status intactos después del borrado remoto. PR81 ya estaba representado en la
+vista vigente y en su sección de CHANGELOG; su ref también quedó en bundle verificado.
+Total: 53 ramas antiguas borradas. Los worktrees y ramas locales se conservan.
+
+La rama del PR115 se eliminó automáticamente al integrarlo. Las tres ramas nuevas de
+Dependabot corresponden a PR116/117/118 abiertos y no se borran. La nueva rama de
+versionado también es trabajo activo. No contratar Pro/Team: el usuario excluyó
+protecciones de pago y previews 3D. Las recomendaciones anteriores que dependían
+del plan quedan descartadas para este alcance, no como bloqueo pendiente.
