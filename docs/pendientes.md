@@ -1,3 +1,30 @@
+## Estado vigente — GitHub gratuito y versionado (2026-11-10)
+
+Usuario autorizó integrar PR115, automatizar versiones y revisar las cuatro ramas
+conservadas. PR115 integrado con squash en 7045020ca46ed60092986b2241b79176b5e1cc4a;
+CI posterior de main aprobado: Tests42819988216, Lint42819988265 y Secretos42819988513.
+Decisión explícita: mantener GitHub gratuito y privado, sin protección de pago ni
+previews de componentes 3D. El cumplimiento del merge depende del acuerdo del equipo.
+
+Completada limpieza remota: 49 ramas iniciales más cuatro revisadas, 53 antiguas en
+total. Bundles Git y parches de tres worktrees guardados en .tmp/github-governance-audit;
+SHA, status y diffs locales verificados intactos. PR81 cerrado tenía su cambio ya
+presente en la vista y CHANGELOG de main. No se borraron carpetas ni ramas locales.
+Dependabot abrió PR116/117/118; sus ramas son trabajo nuevo, no pendientes de limpieza.
+No integrar esas actualizaciones mayores sin revisar compatibilidad del runner y CI.
+
+En ci/odoo-release-automation se prepara motor Python y bot para PR de versión Odoo,
+CHANGELOG y release borrador; base 40ce2fe/19.0.25.6.0, excepción feat de PR114 por SHA.
+Primera simulación sin escribir producto propone 19.0.25.7.0 y un commit de producto.
+El bot exige CI de main aprobado y no integra, publica tags ni despliega. Ver plan
+2026-11-10-odoo-release-automation y docs/agents/releases.md. Validación local cerrada: 38 pruebas, hooks y revisión independiente aprobados.
+Se corrigieron dos hallazgos con regresiones: entrega válida después de avanzar main
+y tags existentes que apuntan a otro código (incluidos anotados). Listo para PR
+borrador propio; CI e integración de este incremento aún deben verificarse. Producción sigue en
+40ce2fe/19.0.25.6.0; esta infraestructura no cambia módulo ni activa destinatarios.
+
+---
+
 ## Estado vigente — instrucciones y flujo Git (2026-11-10)
 
 PR #114 integrado en main dea4efb; CI posterior al merge comprobado: Tests

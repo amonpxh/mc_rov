@@ -1,0 +1,57 @@
+name: Versionado Odoo
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_run:
+    workflows: [Lint, Tests, Secretos]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  TZ: America/Santiago
+
+concurrency:
+  group: odoo-release-${{ github.event_name == 'pull_request' && github.event.pull_request.number || 'main' }}
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    name: Pruebas de versionado
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.event.workflow_run.head_sha || github.sha }}
+          persist-credentials: false
+      - name: Probar cálculo y fronteras del bot
+        run: python3 -m unittest discover -s scripts/ci -p 'test_*release*.py' -v
+
+  propose:
+    name: Proponer entrega autorizable
+    needs: verify
+    if: >-
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'workflow_run' &&
+       github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.head_branch == 'main' &&
+       github.event.workflow_run.head_repository.full_name == github.repository)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      checks: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Mantener propuesta sin integrar ni desplegar
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_REPOSITORY: ${{ github.repository }}
+        run: python3 scripts/ci/release_bot.py --repository "$RELEASE_REPOSITORY"
