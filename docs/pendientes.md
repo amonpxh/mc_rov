@@ -1,3 +1,17 @@
+### Actualización de integración y consolidación — 2026-11-10
+
+La entrega36e0f37 pasó CI y el bot creó automáticamente release borrador19.0.25.7.0
+apuntando al SHA exacto, sin publicar tag ni desplegar. Main avanzó después con116
+(0279750, setup-python7.1.0) y118(514abc5, upload-artifact7.0.2), ambos CI aprobado.
+
+117 fue rebasado por Dependabot a38143f0 al cambiar main. Su actualización checkout7.0.1
+se conserva mediante cherry-pick en121, sincronizado con main514abc5. El CLI rechazó
+una composición de workflows sin scope workflow; se usa el flujo Git ya autorizado
+para probar y publicar contenidos finales completos, sin leer ni ampliar tokens.
+Solo121 queda como propuesta consolidada de checkout, cola y callbacks.117 se cerrará
+como sustituido después de preservar esta rama remota. Su test repetido no sustituye
+al CI completo del nuevo HEAD consolidado. No se cambia producto ni producción.
+
 ## Estado vigente — entrega y corrección de cola/callbacks (2026-11-10)
 
 PR120 integrado con autorización del usuario: main36e0f3784ff6e11438cfd567db6393250c833e80,

@@ -30,3 +30,10 @@ al motor (verify vigente aprobado y publicación omitida). No rebajar los contro
 ni dar por exitosa una suite con cero casos.
 
 [Cola oficial de GitHub](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-workflow-concurrency).
+
+
+La actualización restante de checkout se conserva mediante cherry-pick del commit
+38143f05a5b7c1cb514d5b31521e5f046aab7824 de Dependabot117. La rama se sincronizó con
+main514abc5 (setup-python116 y upload-artifact118 ya integrados), de modo que CI
+comprueba la combinación final de workflows y no una mezcla creada durante el merge.
+PR117 queda sustituido por este PR tras preservar su commit; sus cambios no se descartan.
