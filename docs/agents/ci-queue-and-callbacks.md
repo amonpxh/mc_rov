@@ -21,6 +21,8 @@
   Si ese SHA es anterior al motor, se omite su paso de publicación.
 - Se conservan el filtro de repositorio, CI por SHA, controles de identidad,
   lease de ramas, releases borrador y separación del despliegue.
+- Se completa checkout7.0.1 también en este workflow nuevo, que no existía cuando
+  Dependabot abrió PR117. SHA oficial verificado y runtime del runner compatible.
 
 Validación: YAML y hooks,38 contratos del motor/bot; CI del PR. Después de integrar,
 comprobar un callback de Dependabot antiguo (jobs omitidos) y uno de main anterior
