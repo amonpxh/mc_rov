@@ -1,5 +1,13 @@
 # Changelog
 
+## [19.0.25.7.0] — 2026-11-10
+
+### Funcionalidades
+
+- KPI autorizados y aceptación final de reparación y equipos nuevos (#114) (`dea4efb05c9c`).
+
+Entrega de código; no acredita instalación ni activación en producción.
+
 ## [19.0.25.6.0] — 2026-11-03
 
 ### Added
