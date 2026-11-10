@@ -17,15 +17,21 @@ env:
 concurrency:
   group: odoo-release-${{ github.event_name == 'pull_request' && github.event.pull_request.number || 'main' }}
   cancel-in-progress: false
+  queue: max
 
 jobs:
   verify:
     name: Pruebas de versionado
+    if: >-
+      github.event_name != 'workflow_run' ||
+      (github.event.workflow_run.head_branch == 'main' &&
+       github.event.workflow_run.head_repository.full_name == github.repository)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          ref: ${{ github.event.pull_request.head.sha || github.event.workflow_run.head_sha || github.sha }}
+          # En callbacks, probar el motor vigente; un main histórico puede no contenerlo.
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
       - name: Probar cálculo y fronteras del bot
         run: python3 -m unittest discover -s scripts/ci -p 'test_*release*.py' -v
@@ -51,6 +57,8 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
       - name: Mantener propuesta sin integrar ni desplegar
+        # Callbacks de main anteriores a la introducción del motor no tienen nada que publicar.
+        if: hashFiles('scripts/ci/release_bot.py') != ''
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_REPOSITORY: ${{ github.repository }}

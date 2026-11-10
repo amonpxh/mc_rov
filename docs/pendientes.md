@@ -1,3 +1,25 @@
+## Estado vigente — entrega y corrección de cola/callbacks (2026-11-10)
+
+PR120 integrado con autorización del usuario: main36e0f3784ff6e11438cfd567db6393250c833e80,
+parent93c80d0, versión19.0.25.7.0. Los tres archivos de entrega y todos los controles
+fueron aprobados antes del merge. Espera su CI de main para release borrador automático.
+No se desplegó: producción sigue40ce2fe/19.0.25.6.0, cuyo tag/release histórico ya está
+publicado y verificado. Mantener esa separación.
+
+Dependabot116/118 verdes,117 terminando reintento Odoo. Integrar solo después de
+cerrar CI y preparar primero la release de36e0f37 para conservar su SHA exacto.
+Detectado fallo de callback42832103314: workflow_run de rama anterior al motor
+hacía checkout histórico y unittest devolvía5 por cero pruebas. También se comprobó
+que la cola por defecto canceló pending116/117 aunque cancel-in-progress=false.
+
+En fix/ci-queue-and-release-guards se preparan únicamente guards de callbacks,
+verify sobre motor vigente y queue:max en Tests/versionado. Sin producto, permisos
+nuevos ni infraestructura de servidor. Hooks/YAML aprobados;38 contratos existentes
+verdes. Ver docs/agents/ci-queue-and-callbacks.md y evidencia de logs. Se publicará
+PR revisable para validar la configuración real antes de integrarla.
+
+---
+
 ## Estado vigente — GitHub gratuito y versionado (2026-11-10)
 
 Usuario autorizó integrar PR115, automatizar versiones y revisar las cuatro ramas
