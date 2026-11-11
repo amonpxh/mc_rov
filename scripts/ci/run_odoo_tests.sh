@@ -37,6 +37,12 @@ print('CI_ODOO_SOURCE=' + resolved)
 PY
 
 LOG=$(mktemp "${RUNNER_TEMP:?}/mc-rov-tests.XXXXXX.log")
+# Solo capacidad existente: no instalar navegador ni modificar el host para comprobarla.
+if command -v google-chrome >/dev/null || command -v chromium >/dev/null || command -v chromium-browser >/dev/null; then
+    echo CI_BROWSER_AVAILABLE=True
+else
+    echo CI_BROWSER_AVAILABLE=False
+fi
 odoo -d odoo_test -u mc_rov --test-tags /mc_rov --stop-after-init --no-http \
     --http-port 8199 --gevent-port 8198 --workers 0 --max-cron-threads 0 \
     --db-filter '^odoo_test$' --log-level test --logfile '' \

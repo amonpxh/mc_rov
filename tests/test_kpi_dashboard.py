@@ -192,6 +192,8 @@ class TestKPIDashboard(RevisionCommon):
 
     def test_coverage_contains_eleven_initial_families(self):
         report = self._dashboard().get_dashboard()
+        for row in report["coverage"]:
+            self.assertTrue({"decision", "source", "population", "formula"} <= set(row))
         self.assertEqual(
             {row["key"] for row in report["coverage"]},
             {"F1", "F2", "F3", "F4", "F5", "F6", "Q1", "Q2", "Q3", "Q4", "A1"},

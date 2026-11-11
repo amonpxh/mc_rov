@@ -1,0 +1,76 @@
+.mc_kpi_dashboard {
+    height: 100%;
+    overflow: auto;
+    padding: 1.25rem;
+    color: var(--bs-body-color, inherit);
+
+    .mc_kpi_header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 1rem;
+        margin-bottom: 1.25rem;
+    }
+
+    h1 { font-size: 1.65rem; margin-bottom: .35rem; }
+    h2 { font-size: 1.2rem; margin-bottom: .75rem; }
+    h3 { font-size: 1rem; line-height: 1.4; }
+
+    .mc_kpi_tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .25rem 1rem;
+        border-bottom: 1px solid var(--bs-border-color, #ddd);
+        margin-bottom: 1.25rem;
+    }
+    .mc_kpi_tab {
+        background: transparent;
+        border: 0;
+        border-bottom: 3px solid transparent;
+        color: inherit;
+        padding: .75rem .25rem;
+        &.is_selected { border-bottom-color: currentColor; font-weight: 600; }
+    }
+    .mc_kpi_cards, .mc_kpi_catalog {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1rem;
+    }
+    .mc_kpi_card {
+        border: 1px solid var(--bs-border-color, #ddd);
+        border-radius: .5rem;
+        padding: 1.15rem;
+        min-width: 0;
+        header { display: flex; gap: .5rem; align-items: baseline; flex-wrap: wrap; }
+        .badge { white-space: normal; }
+    }
+    .mc_kpi_value { font-size: 2rem; line-height: 1.2; font-weight: 600; margin: .8rem 0; }
+    .mc_kpi_counts {
+        margin: 1rem 0;
+        div { display: flex; justify-content: space-between; gap: 1rem; margin-bottom: .4rem; }
+        dt { font-weight: 400; }
+        dd { margin: 0; font-weight: 600; }
+    }
+    .mc_kpi_filters {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        gap: .75rem;
+        margin-bottom: 1.5rem;
+        label { display: grid; gap: .3rem; }
+        p { flex-basis: 100%; }
+    }
+    .mc_kpi_tracking {
+        min-width: 64rem;
+        th, td { padding: .75rem; vertical-align: top; }
+        small { display: block; margin-top: .35rem; }
+    }
+    .mc_kpi_loading { padding: 2rem 0; }
+
+    @media (max-width: 767px) {
+        padding: .85rem;
+        .mc_kpi_cards, .mc_kpi_catalog { grid-template-columns: minmax(0, 1fr); }
+        .mc_kpi_header { flex-wrap: wrap; }
+        .mc_kpi_filters label { width: 100%; }
+    }
+}

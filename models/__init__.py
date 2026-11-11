@@ -75,3 +75,4 @@ from . import new_acceptance_start
 from . import new_acceptance_events
 from . import new_acceptance_presentation
 from . import new_first_pass_kpi
+from . import kpi_dashboard

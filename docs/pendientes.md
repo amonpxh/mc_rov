@@ -1,3 +1,33 @@
+## Tablero KPI: primer incremento implementado localmente — 2026-11-11
+
+PR122 borrador publicado con autorización: https://github.com/amonpxh/mc_rov/pull/122.
+Primer HEADac32b0b contiene contratos/diseño. CI43097150390 yotros4workflows están
+queued sinjobs desde20:37UTC peseActionsenabled/runnervps-odoo onlineidle. API
+cancel rechazó «completed» y rerun rechazó «already running» mientras GET mantiene
+queued0jobs. No repetir intentos de reactivación a ciegas. No resultado nativo aún.
+
+Implementación local: puente mc.rov.kpi.dashboard READONLY con selección completa
+ROV autorizada; Q1 delega ambos adaptadores y no devuelve episodios; cartera usa
+Centro; seguimiento conserva fechas/plazos y unidades de etapas. Entrada Indicadores
+con cuatro secciones, contexto de empresasOdoo19userBus, protección contra respuestas
+obsoletas y navegación que preserva filtros. Sin tablas/ACL nuevas o roles reales.
+
+55unittest locales pasan, incluidos3ejecutoresNode que corren22contratos JS
+(presentación8,cargador6,componente8). Pre-commit/XML/Black/Pylint pasaron salvo
+ajustes finales documentales, se revisan antes del commit.8contratos nativos de
+vistas añadidos:1558declarados por nombre,NOejecutados.11HOOTescritos,NOejecutados.
+Node prueba clase/lifecycle con importsOdoo simulados; no equivale a DOM/OWL real.
+
+Revisor independiente kpi_dashboard_final_review:sinP1,2P2 (definiciones incompletas
+y coberturaQ1 implícita). Corregidos con RED→GREEN: oncefichas muestran decisión,
+fuente,población,fórmula; Q1 presenta evaluados/población y porcentaje de cobertura,
+incluido caso1/100juntoa100%aprobación. Roles/empresas y cifras inexistentes protegidos.
+
+Ruling de ejecución: se avanzó código local contra18MissingKPIDashboard ya observados
+enSTAGING mientrasCI valida fixture corregido; no se declara RED126 limpio ni GREEN.
+SIGUIENTE: publicar implementación en mismoPR, seguirCI y corregir casos nativos;
+comprobarHOOT/render real antes de entregar/integrar. No merge/despliegue autorizados.
+
 ## Tablero KPI: continuación autónoma por CI autorizada — 2026-11-11
 
 Usuario autorizó publicar feature/kpi-dashboard y crear PR borrador para seguir

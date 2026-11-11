@@ -64,4 +64,5 @@ from . import test_new_acceptance_presentation
 from . import test_new_acceptance_wizard
 from . import test_new_first_pass_kpi
 from . import test_kpi_dashboard
+from . import test_kpi_dashboard_views
 from . import test_new_acceptance_review
