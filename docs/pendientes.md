@@ -1,5 +1,16 @@
 ## F4/F5/Q4: auditoría de fuentes y revisiones de diseño — 2026-11-12
 
+Auditoría recogida: CI43233553711 sobre9d207a3 terminó aprobado. Recibo READ ONLY
+y rollback de11modelos; sin registros individuales ni acciones de negocio. Conserva
+1558Odoo,3HttpCase y105HOOT en verde;71pruebas puras locales. Los otros controles
+del PR124 también aprobaron. El hook de exportación de fuentes se retira tras recoger
+el artefacto; no publicar código Enterprise extraído en el repositorio.
+Usuario confirmó que no fabrica prototipos: no crear finalidad por MO ni catálogo.
+Diseño propuesto en specs/2026-11-12-kpi-volumen-pareto-design.md; revisión de builder
+solo pide concretar documentos/validador para liberación. Consulta pendiente al usuario;
+puede quedar el hito explícitamente pendiente mientras avanzan fabricación/aceptación.
+No interpretar esta auditoría como nuevos KPI implementados.
+
 Nueva rama feature/kpi-volume-pareto desde main9116221. Reutiliza el worktree
 kpi-dashboard del mismo agente, conservando sus notas; no modifica los otros
 checkouts. La creación de worktree nativa no respondió y no registró otro checkout.
