@@ -26,7 +26,11 @@ class ProductionKPIService(models.AbstractModel):
             if not template.exists():
                 raise AccessError(_("El modelo no está disponible."))
             template.check_access("read")
-            template.product_variant_ids.check_access("read")
+            # El one2many puede ocultar variantes por regla. Un modelo seleccionado
+            # explícitamente no puede devolver cero a través de ese filtrado.
+            self.env["product.product"].browse(
+                template.sudo().product_variant_ids.ids
+            ).check_access("read")
             product_domain.append(("product_tmpl_id", "=", model_id))
         products = (
             self.env["product.product"].with_context(active_test=False).search(product_domain)

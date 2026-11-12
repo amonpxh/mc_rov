@@ -1,4 +1,5 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_new_unit_release_wizard,Validar liberación de unidad,model_mc_rov_unit_release_wizard,mrp.group_mrp_manager,1,1,1,1
 access_activity_assignment_wizard,mc.rov.activity.assignment.wizard,model_mc_rov_activity_assignment_wizard,mc_rov.group_work_assignment_coordinate,1,1,1,1
 access_mc_rov_ficha_wizard,mc.rov.ficha.wizard,model_mc_rov_ficha_wizard,base.group_user,1,1,1,1
 access_mc_rov_ficha_equipo_nuevo,mc.rov.ficha.equipo.nuevo,model_mc_rov_ficha_equipo_nuevo,base.group_user,1,1,1,0

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_new_unit_release_wizard" model="ir.ui.view">
+        <field name="name">mc.rov.unit.release.wizard.form</field>
+        <field name="model">mc.rov.unit.release.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Validar liberación de unidad">
+                <p>Compruebe las pruebas aprobadas, la ficha emitida y las no conformidades de esta unidad. Esta validación no registra una salida física.</p>
+                <group>
+                    <field name="production_id"/>
+                    <field name="eligible_lot_ids" invisible="1"/>
+                    <field name="lot_id" domain="[('id', 'in', eligible_lot_ids)]" options="{'no_create': True}"/>
+                    <field name="fen_id" domain="[('lot_id', '=', lot_id), ('estado', '=', 'emitida')]" options="{'no_create': True}"/>
+                    <field name="no_blocking_nc"/>
+                </group>
+                <footer>
+                    <button name="action_release" type="object" string="Validar liberación" class="btn-primary"/>
+                    <button special="cancel" string="Volver"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+    <record id="view_production_unit_release" model="ir.ui.view">
+        <field name="name">mrp.production.unit.release</field>
+        <field name="model">mrp.production</field>
+        <field name="inherit_id" ref="mrp.mrp_production_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="action_open_unit_release" type="object" string="Validar liberación"
+                        groups="mrp.group_mrp_manager" invisible="state != 'done'"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

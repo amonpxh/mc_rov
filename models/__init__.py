@@ -80,3 +80,4 @@ from . import production_kpi_event
 from . import production_kpi_capture
 from . import production_kpi_findings
 from . import production_kpi_service
+from . import production_kpi_release

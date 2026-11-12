@@ -32,6 +32,7 @@
     "data": [
         "security/work_assignment_groups.xml",
         "security/ir.model.access.csv",
+        "views/new_unit_release_views.xml",
         "security/repair_activity_policy_rules.xml",
         "security/automation_control_rules.xml",
         "security/manufacturing_activity_policy_rules.xml",
