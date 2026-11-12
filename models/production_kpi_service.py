@@ -153,14 +153,36 @@ class ProductionKPIService(models.AbstractModel):
                 events.filtered(lambda row: row.kind == "observation" and not row.at)
             ),
             "ambiguous_configurations": ambiguous,
+            "unknown_observation_capture": self._unknown_findings(sources[4], events),
         }
         report["filters"] = {
             "revision": revision,
             "revision_options": options,
             "resolved_revisions": resolved,
             "model_id": model_id,
+            "model_options": self._model_options(),
         }
         return report
+
+    def _unknown_findings(self, revisions, events):
+        captured = set(events.filtered(lambda row: row.kind == "observation").mapped("identity"))
+        return sum(f"finding:{line.id}" not in captured for line in revisions.hallazgo_ids)
+
+    def _model_options(self):
+        root = self.env["stock.lot"]._get_rov_root_category()
+        if not root:
+            return []
+        models_available = (
+            self.env["product.template"]
+            .with_context(active_test=False)
+            .search(
+                [
+                    ("categ_id", "child_of", root.id),
+                    ("company_id", "in", [False, *self.env.companies.ids]),
+                ]
+            )
+        )
+        return [{"id": model.id, "label": model.display_name} for model in models_available]
 
     def _observations(self, events, bounds, resolved):
         result = []

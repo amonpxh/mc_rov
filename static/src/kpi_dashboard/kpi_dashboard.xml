@@ -30,7 +30,7 @@
                         <input class="form-control" type="date" data-kpi-to="" t-att-value="state.dateTo" t-att-min="state.dateFrom || undefined"
                                t-on-change="(ev) => this.setFilter('dateTo', ev.target.value)"/>
                     </label>
-                    <label>Proceso
+                    <label t-if="!productionMode">Proceso
                         <select class="form-select" data-kpi-process="" t-att-value="state.process"
                                 t-on-change="(ev) => this.setFilter('process', ev.target.value)">
                             <t t-foreach="processOptions" t-as="option" t-key="option.key">
@@ -38,7 +38,33 @@
                             </t>
                         </select>
                     </label>
-                    <p class="text-muted mb-0">El período filtra los cierres de etapas. Los pendientes y vencimientos siguen siendo actuales; no modifica primera aceptación.</p>
+                    <t t-if="productionMode">
+                        <label>Modelo
+                            <select class="form-select" data-kpi-model="" t-att-value="state.modelId || ''" t-on-change="(ev) => this.setFilter('modelId', ev.target.value)">
+                                <option value="">Todos los modelos</option>
+                                <option t-foreach="modelOptions" t-as="option" t-key="option.id" t-att-value="option.id" t-att-selected="state.modelId === option.id" t-esc="option.label"/>
+                            </select>
+                        </label>
+                        <label>Revisión de diseño
+                            <select class="form-select" data-kpi-revision="" t-att-value="state.revision" t-on-change="(ev) => this.setFilter('revision', ev.target.value)">
+                                <option value="latest" t-att-selected="state.revision === 'latest'">Última vigente por configuración</option>
+                                <option value="all" t-att-selected="state.revision === 'all'">Todas las revisiones</option>
+                                <option t-foreach="revisionOptions" t-as="option" t-key="option.key" t-att-value="option.key" t-att-selected="state.revision === option.key" t-esc="option.label"/>
+                            </select>
+                        </label>
+                        <label t-if="state.section === 'findings'">Agrupar por
+                            <select class="form-select" t-att-value="state.dimension" t-on-change="(ev) => this.setFilter('dimension', ev.target.value)">
+                                <option value="finding">Hallazgo</option><option value="component">Componente</option>
+                            </select>
+                        </label>
+                        <label t-if="state.section === 'findings'">Unidad de conteo
+                            <select class="form-select" t-att-value="state.unit" t-on-change="(ev) => this.setFilter('unit', ev.target.value)">
+                                <option value="observations">Observaciones</option><option value="visits">Visitas por categoría</option><option value="equipment">Equipos por categoría</option>
+                            </select>
+                        </label>
+                    </t>
+                    <p t-if="productionMode" class="text-muted mb-0">Cada hito usa su fecha acreditada en Santiago; los hallazgos usan detección. La revisión histórica se conserva. Los desconocidos se muestran separados de la última revisión.</p>
+                    <p t-else="" class="text-muted mb-0">El período filtra los cierres de etapas. Los pendientes y vencimientos siguen siendo actuales; no modifica primera aceptación.</p>
                 </div>
                 <div t-if="state.error" class="alert alert-warning" role="alert" t-esc="state.error"/>
                 <p t-elif="state.loading" class="mc_kpi_loading" role="status">Cargando indicadores…</p>
@@ -61,6 +87,41 @@
                     </section>
                     <section t-elif="state.section === 'quality'">
                         <t t-call="mc_rov.KPIQualityCards"/>
+                    </section>
+                    <section t-elif="productionMode">
+                        <p t-if="!productionMetrics" class="alert alert-info mc_kpi_volume_restricted">Sin acceso a las fuentes necesarias de producción y hallazgos.</p>
+                        <t t-elif="state.section === 'production'">
+                            <h2>Producción acreditada</h2>
+                            <div class="mc_kpi_cards mc_kpi_volume_cards">
+                                <article t-foreach="volumeCards" t-as="card" t-key="card.key" class="mc_kpi_card" t-att-data-volume="card.key">
+                                    <h3 t-esc="card.title"/><p class="mc_kpi_value" t-esc="card.count"/><p class="text-muted mb-0" t-esc="card.note"/>
+                                </article>
+                            </div>
+                            <div class="mc_kpi_volume_coverage alert alert-light mt-3">
+                                <p>Órdenes cerradas sin primer cierre acreditado: <t t-esc="productionMetrics.coverage.unknown_repair_closure"/></p>
+                                <p>Sin revisión de diseño acreditada: <t t-esc="productionMetrics.repair.unknown_revision"/> cierres y <t t-esc="productionMetrics.manufacturing.unknown_revision"/> hitos de fabricación.</p>
+                                <p>Reversos en el período: <t t-esc="productionMetrics.manufacturing.reversed"/>. No borran unidades fabricadas históricas.</p>
+                                <p class="mb-0">Configuraciones vigentes ambiguas: <t t-esc="productionMetrics.coverage.ambiguous_configurations"/>. No se elige una versión por aproximación.</p>
+                            </div>
+                        </t>
+                        <t t-else="">
+                            <h2>Pareto de hallazgos</h2>
+                            <p class="mc_kpi_pareto_total" t-esc="paretoTotalLabel"/>
+                            <p class="text-muted">Una observación no equivale a un incidente único. La acumulación usa la unidad seleccionada e incluye Sin clasificar y Otros.</p>
+                            <div class="mc_kpi_pareto">
+                                <div class="mc_kpi_pareto_heading"><span>Categoría</span><span>Frecuencia</span><span>Acumulado</span></div>
+                                <div t-foreach="paretoRows" t-as="row" t-key="row.key" class="mc_kpi_pareto_row">
+                                    <div><strong t-esc="row.label"/><div class="mc_kpi_pareto_track"><span t-att-style="row.barStyle"/></div></div>
+                                    <div><t t-esc="row.count"/><small t-esc="row.percentLabel"/></div><div t-esc="row.cumulativeLabel"/>
+                                </div>
+                                <p t-if="!paretoRows.length" class="alert alert-light">Sin observaciones acreditadas para estos filtros. Revise también la cobertura.</p>
+                            </div>
+                            <div class="mc_kpi_findings_coverage mt-3">
+                                <p>Sin fecha de detección acreditada: <t t-esc="productionMetrics.coverage.unknown_detection"/></p>
+                                <p>Sin captura histórica: <t t-esc="productionMetrics.coverage.unknown_observation_capture"/></p>
+                                <p>Sin clasificar: <t t-esc="productionMetrics.findings.unclassified"/>. Sin unidad vinculada: <t t-esc="productionMetrics.findings.missing_unit"/>.</p>
+                            </div>
+                        </t>
                     </section>
                     <section t-elif="state.section === 'tracking'">
                         <h2>Seguimiento de etapas</h2>

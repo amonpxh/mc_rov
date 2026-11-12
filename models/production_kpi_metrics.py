@@ -106,6 +106,82 @@ def _pareto_groups(observations, dimension, unit):
     return groups, labels, missing_unit
 
 
+def _apply_milestone(state, event):
+    """Los reversos cambian existencia actual, sin borrar hitos históricos."""
+    kind = event["kind"]
+    if kind in ("manufactured", "accepted", "released", "outbound"):
+        state[kind] = True
+    elif kind == "unit_movement" and event.get("effect") == "outbound":
+        state["outbound"] = True
+    elif kind == "reversed":
+        target = event.get("reversal_of")
+        if target in ("manufactured", "accepted", "released", "outbound"):
+            state[target] = False
+            if target == "accepted":
+                state["released"] = False
+
+
+def milestone_balances(events, date_to=False):
+    """Reproduce estados hasta el corte; el inicio del período no corta su historia."""
+    cutoff = period_bounds(False, date_to)[1]
+    states = {}
+    unknown = 0
+    unanchored = 0
+    chronological = sorted(
+        enumerate(events), key=lambda item: (item[1].get("at") or "9999", item[0])
+    )
+    for _index, event in chronological:
+        kind = event["kind"]
+        if kind not in (*MILESTONES, "unit_movement"):
+            continue
+        day = local_day(event.get("at"))
+        if day is None:
+            unknown += 1
+            continue
+        if cutoff and day > cutoff:
+            continue
+        identity = event.get("unit_identity") or event["identity"]
+        if kind == "manufactured":
+            states.setdefault(
+                identity,
+                dict.fromkeys(("manufactured", "accepted", "released", "outbound"), False),
+            )
+        if identity not in states:
+            unanchored += 1
+            continue
+        _apply_milestone(states[identity], event)
+    counts = dict.fromkeys(
+        (
+            "manufactured_not_accepted",
+            "accepted_not_released",
+            "released_in_workshop",
+            "outbound",
+            "unbuilt",
+        ),
+        0,
+    )
+    inconsistent = 0
+    for state in states.values():
+        if not state["manufactured"]:
+            counts["unbuilt"] += 1
+        elif state["outbound"]:
+            counts["outbound"] += 1
+            inconsistent += int(not state["released"])
+        elif state["released"]:
+            counts["released_in_workshop"] += 1
+            inconsistent += int(not state["accepted"])
+        elif state["accepted"]:
+            counts["accepted_not_released"] += 1
+        else:
+            counts["manufactured_not_accepted"] += 1
+    return {
+        **counts,
+        "unknown_date": unknown,
+        "unanchored": unanchored,
+        "missing_prerequisite": inconsistent,
+    }
+
+
 def pareto(observations, dimension="finding", unit="observations", limit=10):
     """El denominador incluye Sin clasificar y Otros; jamás inventa incidentes."""
     if dimension not in ("finding", "component") or unit not in (

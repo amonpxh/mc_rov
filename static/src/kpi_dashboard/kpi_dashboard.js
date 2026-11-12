@@ -13,6 +13,7 @@ const SERVICE = "mc.rov.kpi.dashboard";
 const SECTIONS = [
     { key: "summary", label: "Resumen" }, { key: "quality", label: "Calidad" },
     { key: "tracking", label: "Seguimiento" }, { key: "coverage", label: "Cobertura y definiciones" },
+    { key: "production", label: "Producción" }, { key: "findings", label: "Hallazgos" },
 ];
 const PROCESSES = {
     all: "Todos los procesos", repair: "Reparación", manufacturing: "Fabricación",
@@ -38,6 +39,10 @@ export class KPIDashboard extends Component {
             dateFrom: typeof saved.dateFrom === "string" ? saved.dateFrom : "",
             dateTo: typeof saved.dateTo === "string" ? saved.dateTo : "",
             process: Object.hasOwn(PROCESSES, saved.process) ? saved.process : "all",
+            modelId: Number.isInteger(saved.modelId) && saved.modelId > 0 ? saved.modelId : false,
+            revision: typeof saved.revision === "string" ? saved.revision : "latest",
+            dimension: saved.dimension === "component" ? "component" : "finding",
+            unit: ["visits", "equipment"].includes(saved.unit) ? saved.unit : "observations",
             report: null, error: "", loading: true, opening: false, detailError: "",
         });
         this.destroyed = false;
@@ -60,25 +65,63 @@ export class KPIDashboard extends Component {
     }
 
     exportState() {
-        const { section, dateFrom, dateTo, process } = this.state;
-        return { section, dateFrom, dateTo, process };
+        const { section, dateFrom, dateTo, process, modelId, revision, dimension, unit } = this.state;
+        return { section, dateFrom, dateTo, process, modelId, revision, dimension, unit };
     }
 
     fetchData() {
-        return this.orm.call(SERVICE, "get_dashboard", [], {
+        const kwargs = {
             date_from: this.state.dateFrom || false, date_to: this.state.dateTo || false,
             process: this.state.process, context: { ...user.context },
-        });
+        };
+        if (this.productionMode) kwargs.production_filters = {
+            model_id: this.state.modelId, revision: this.state.revision,
+            dimension: this.state.dimension, unit: this.state.unit,
+        };
+        return this.orm.call(SERVICE, "get_dashboard", [], kwargs);
     }
 
     refresh() { this.state.detailError = ""; return this.loader.load(); }
     selectSection(key) {
-        if (SECTIONS.some((item) => item.key === key)) this.state.section = key;
+        if (!SECTIONS.some((item) => item.key === key)) return;
+        this.state.section = key;
+        if (this.productionMode) return this.refresh();
     }
     setFilter(key, value) {
-        if (!["dateFrom", "dateTo", "process"].includes(key)) return;
-        this.state[key] = value;
+        if (!["dateFrom", "dateTo", "process", "modelId", "revision", "dimension", "unit"].includes(key)) return;
+        this.state[key] = key === "modelId" ? (Number(value) || false) : value;
+        if (key === "modelId") this.state.revision = "latest";
         return this.refresh();
+    }
+
+    get productionMode() { return ["production", "findings"].includes(this.state.section); }
+    get productionMetrics() {
+        const row = this.state.report?.production;
+        return row?.available === true ? row.metrics : null;
+    }
+    get modelOptions() { return this.productionMetrics?.filters?.model_options || []; }
+    get revisionOptions() { return this.productionMetrics?.filters?.revision_options || []; }
+    get volumeCards() {
+        const metrics = this.productionMetrics;
+        if (!metrics) return [];
+        return [
+            { key: "repair", title: "Reparaciones terminadas", count: metrics.repair.visits,
+                note: `${metrics.repair.equipment} equipos distintos · primer cierre por visita` },
+            ...[["manufactured", "Unidades fabricadas"], ["accepted", "Unidades aceptadas"],
+                ["released", "Unidades liberadas"], ["outbound", "Unidades salidas al cliente"]]
+                .map(([key, title]) => ({ key, title, count: metrics.manufacturing[key], note: "Unidades por hito acreditado en el período" })),
+        ];
+    }
+    get paretoRows() {
+        return (this.productionMetrics?.findings?.rows || []).map((row) => ({
+            ...row, percentLabel: formatPercent(row.percent), cumulativeLabel: formatPercent(row.cumulative_percent),
+            barStyle: `width:${Math.max(0, Math.min(100, row.percent))}%`,
+        }));
+    }
+    get paretoTotalLabel() {
+        const report = this.productionMetrics?.findings;
+        const unit = { observations: "observaciones", visits: "pertenencias de visitas a categorías", equipment: "pertenencias de equipos a categorías" };
+        return report ? `${report.total} ${unit[report.unit] || "registros"}` : "Sin datos autorizados";
     }
 
     get portfolioCards() {

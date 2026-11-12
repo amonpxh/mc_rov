@@ -134,3 +134,78 @@ class TestProductionMetrics(unittest.TestCase):
     def test_incident_unit_cannot_be_invented(self):
         with self.assertRaises(ValueError):
             metrics.pareto([], unit="incidents")
+
+
+class TestProductionBalances(unittest.TestCase):
+    """Los saldos reproducen hechos y reversos hasta la fecha de corte."""
+
+    event = TestProductionMetrics.event
+
+    def test_balances_use_all_history_at_cutoff(self):
+        self.assertTrue(hasattr(metrics, "milestone_balances"), "Faltan saldos al corte")
+        rows = [
+            self.event("manufactured", "unit:1", at="2026-10-01 12:00:00"),
+            self.event("accepted", "unit:1", at="2026-11-01 12:00:00"),
+        ]
+        report = metrics.milestone_balances(rows, date_to="2026-11-12")
+        self.assertEqual(report["accepted_not_released"], 1)
+        self.assertEqual(report["manufactured_not_accepted"], 0)
+
+    def test_return_changes_balance_but_preserves_delivery_hito(self):
+        self.assertTrue(hasattr(metrics, "milestone_balances"), "Faltan saldos al corte")
+        rows = [
+            self.event(kind, "unit:1")
+            for kind in ("manufactured", "accepted", "released", "outbound")
+        ]
+        rows.append(
+            self.event(
+                "reversed",
+                "move:1",
+                at="2026-11-13 12:00:00",
+                unit_identity="unit:1",
+                reversal_of="outbound",
+            )
+        )
+        self.assertEqual(metrics.milestone_balances(rows)["released_in_workshop"], 1)
+        self.assertEqual(metrics.summarize_events(rows)["manufacturing"]["outbound"], 1)
+
+    def test_return_then_redelivery_keeps_one_manufactured_unit(self):
+        self.assertTrue(hasattr(metrics, "milestone_balances"), "Faltan saldos al corte")
+        rows = [
+            self.event(kind, "unit:1")
+            for kind in ("manufactured", "accepted", "released", "outbound")
+        ]
+        rows += [
+            self.event(
+                "reversed",
+                "move:1",
+                at="2026-11-13 12:00:00",
+                unit_identity="unit:1",
+                reversal_of="outbound",
+            ),
+            self.event(
+                "unit_movement",
+                "move:2",
+                at="2026-11-14 12:00:00",
+                unit_identity="unit:1",
+                effect="outbound",
+            ),
+        ]
+        report = metrics.milestone_balances(rows)
+        self.assertEqual(report["outbound"], 1)
+        self.assertEqual(report["released_in_workshop"], 0)
+
+    def test_unbuild_preserves_historical_manufacture(self):
+        self.assertTrue(hasattr(metrics, "milestone_balances"), "Faltan saldos al corte")
+        rows = [
+            self.event("manufactured", "unit:1"),
+            self.event(
+                "reversed",
+                "unbuild:1",
+                at="2026-11-13 12:00:00",
+                unit_identity="unit:1",
+                reversal_of="manufactured",
+            ),
+        ]
+        self.assertEqual(metrics.milestone_balances(rows)["unbuilt"], 1)
+        self.assertEqual(metrics.summarize_events(rows)["manufacturing"]["manufactured"], 1)
