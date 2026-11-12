@@ -71,3 +71,4 @@ from . import test_production_kpi_capture
 from . import test_production_kpi_service
 from . import test_production_kpi_release
 from . import test_production_kpi_dimensions
+from . import test_production_kpi_boundaries
