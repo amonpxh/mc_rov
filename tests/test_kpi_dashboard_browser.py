@@ -1,7 +1,9 @@
 """Pruebas reales de navegador, separadas de la suite sin HTTP del módulo."""
 
+from unittest.mock import patch
+
 from odoo.tests import HttpCase, tagged
-from odoo.tests.common import new_test_user
+from odoo.tests.common import ChromeBrowser, new_test_user
 
 
 @tagged("post_install", "-at_install", "kpi_dashboard_browser")
@@ -12,6 +14,8 @@ class TestKPIDashboardBrowser(HttpCase):
 
     def _layout(self, size):
         company = self.env["res.company"].create({"name": "QA Tablero visual"})
+        category = self.env["product.category"].create({"name": "QA Vehículos tablero"})
+        self.env["ir.config_parameter"].set_param("mc_rov.rov_category_id", str(category.id))
         viewer = new_test_user(
             self.env,
             login="qa_dashboard_visual",
@@ -24,6 +28,22 @@ class TestKPIDashboardBrowser(HttpCase):
         report = self.env["mc.rov.kpi.dashboard"].with_user(viewer).get_dashboard()
         self.assertEqual(report["cohort"]["company_ids"], company.ids)
         action = self.env.ref("mc_rov.action_kpi_dashboard")
+        original_wait = ChromeBrowser._wait_code_ok  # pylint: disable=protected-access
+
+        def capture(browser, *args, **kwargs):
+            try:
+                return original_wait(browser, *args, **kwargs)
+            finally:
+                # Solo cuenta/empresa ficticias; el log preservado permite inspección visual.
+                result = browser._websocket_request(  # pylint: disable=protected-access
+                    "Page.captureScreenshot", params={"format": "png"}
+                )
+                self._logger.info("CI_KPI_SCREENSHOT size=%s data=%s", size, result["data"])
+
+        with patch.object(ChromeBrowser, "_wait_code_ok", capture):
+            self._open_layout(action, viewer)
+
+    def _open_layout(self, action, viewer):
         self.browser_js(
             f"/odoo/action-{action.id}",
             """

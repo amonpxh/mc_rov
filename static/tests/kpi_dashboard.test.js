@@ -72,6 +72,7 @@ describe("mc_rov KPI dashboard", () => {
     test("Cobertura conserva las once fichas pendientes", async () => {
         await setup();
         await click("[data-section='coverage']");
+        await animationFrame();
         expect(".mc_kpi_catalog [data-family]").toHaveCount(11);
         expect("[data-family='F3']").toHaveText(/Captura pendiente/);
         expect("[data-family='F3']").toHaveText(/Fuente QA/);
@@ -81,6 +82,7 @@ describe("mc_rov KPI dashboard", () => {
     test("el selector de proceso afecta solo al RPC de seguimiento", async () => {
         const { calls } = await setup();
         await click("[data-section='tracking']");
+        await animationFrame();
         await select("[data-kpi-process]", "repair");
         await animationFrame();
         expect(calls.at(-1).kwargs.process).toBe("repair");
