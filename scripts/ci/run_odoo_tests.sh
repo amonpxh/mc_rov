@@ -43,7 +43,7 @@ if command -v google-chrome >/dev/null || command -v chromium >/dev/null || comm
 else
     echo CI_BROWSER_AVAILABLE=False
 fi
-odoo -d odoo_test -u mc_rov --test-tags /mc_rov --stop-after-init --no-http \
+odoo -d odoo_test -u mc_rov --test-tags /mc_rov,-kpi_dashboard_browser --stop-after-init --no-http \
     --http-port 8199 --gevent-port 8198 --workers 0 --max-cron-threads 0 \
     --db-filter '^odoo_test$' --log-level test --logfile '' \
     --config "$CONF" --addons-path "$ADDONS" 2>&1 | tee "$LOG"
@@ -57,6 +57,9 @@ from pathlib import Path
 tests = Path(sys.argv[1])
 expected = set()
 for module in re.findall(r'^from \. import (\w+)', (tests / '__init__.py').read_text(), re.M):
+    # Los HttpCase se verifican aparte con HTTP local y navegador real, nunca por skip.
+    if module == 'test_kpi_dashboard_browser':
+        continue
     tree = ast.parse((tests / (module + '.py')).read_text(encoding='utf-8'))
     for cls in tree.body:
         if isinstance(cls, ast.ClassDef):
@@ -70,3 +73,6 @@ assert expected and not (expected - set(observed)), sorted(expected - set(observ
 assert int(summary[-1][2]) == len(observed) >= len(expected)
 print('CI_ODOO_DISCOVERY=PASSED EXPECTED=%s ACTUAL=%s' % (len(expected), len(observed)))
 PY
+
+# Mismo checkout y base de pruebas; proceso temporal solo en loopback y sin cron.
+python3 "$REPO/scripts/ci/run_kpi_browser_tests.py" "$REPO" "$CONF" "$ADDONS"
