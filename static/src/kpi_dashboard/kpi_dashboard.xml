@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates xml:space="preserve">
+    <t t-name="mc_rov.KPIDashboard">
+        <div class="o_action mc_kpi_dashboard" data-kpi-dashboard="">
+            <header class="mc_kpi_header">
+                <div>
+                    <h1>Indicadores</h1>
+                    <p class="mb-1" t-esc="companyLabel"/>
+                    <small t-if="state.report" class="text-muted">Actualizado: <t t-esc="generatedLabel"/> · Santiago</small>
+                </div>
+                <button class="btn btn-primary" t-on-click="refresh" t-att-disabled="state.loading" data-kpi-refresh="">
+                    <i class="fa fa-refresh me-1" aria-hidden="true"/> Actualizar
+                </button>
+            </header>
+            <nav class="mc_kpi_tabs" role="tablist" aria-label="Secciones de indicadores">
+                <t t-foreach="sections" t-as="section" t-key="section.key">
+                    <button role="tab" class="mc_kpi_tab" t-att-data-section="section.key"
+                            t-att-aria-selected="state.section === section.key"
+                            t-att-class="state.section === section.key ? 'is_selected' : ''"
+                            t-on-click="() => this.selectSection(section.key)"><t t-esc="section.label"/></button>
+                </t>
+            </nav>
+            <main class="mc_kpi_content">
+                <div t-if="state.section === 'tracking'" class="mc_kpi_filters">
+                    <label>Desde (cierres)
+                        <input class="form-control" type="date" data-kpi-from="" t-att-value="state.dateFrom" t-att-max="state.dateTo || undefined"
+                               t-on-change="(ev) => this.setFilter('dateFrom', ev.target.value)"/>
+                    </label>
+                    <label>Hasta (cierres)
+                        <input class="form-control" type="date" data-kpi-to="" t-att-value="state.dateTo" t-att-min="state.dateFrom || undefined"
+                               t-on-change="(ev) => this.setFilter('dateTo', ev.target.value)"/>
+                    </label>
+                    <label>Proceso
+                        <select class="form-select" data-kpi-process="" t-att-value="state.process"
+                                t-on-change="(ev) => this.setFilter('process', ev.target.value)">
+                            <t t-foreach="processOptions" t-as="option" t-key="option.key">
+                                <option t-att-value="option.key" t-att-selected="state.process === option.key" t-esc="option.label"/>
+                            </t>
+                        </select>
+                    </label>
+                    <p class="text-muted mb-0">El período filtra los cierres de etapas. Los pendientes y vencimientos siguen siendo actuales; no modifica primera aceptación.</p>
+                </div>
+                <div t-if="state.error" class="alert alert-warning" role="alert" t-esc="state.error"/>
+                <p t-elif="state.loading" class="mc_kpi_loading" role="status">Cargando indicadores…</p>
+                <t t-elif="state.report">
+                    <div t-if="state.detailError" class="alert alert-warning" role="alert" t-esc="state.detailError"/>
+                    <section t-if="state.section === 'summary'">
+                        <h2>Cartera administrativa actual</h2>
+                        <p class="text-muted">Órdenes abiertas según Centro de trabajo. No representa unidades fabricadas ni equipos cerrados que todavía esperan salir del taller.</p>
+                        <div class="mc_kpi_cards mb-4">
+                            <t t-foreach="portfolioCards" t-as="card" t-key="card.key">
+                                <article class="mc_kpi_card mc_kpi_portfolio" t-att-data-source="card.key">
+                                    <h3 t-esc="card.title"/>
+                                    <p class="mc_kpi_value" t-esc="card.headline"/>
+                                    <button t-if="card.detailKey" class="btn btn-outline-primary" t-att-disabled="state.opening"
+                                            t-on-click="() => this.openDetail(card.detailKey)">Ver órdenes</button>
+                                </article>
+                            </t>
+                        </div>
+                        <t t-call="mc_rov.KPIQualityCards"/>
+                    </section>
+                    <section t-elif="state.section === 'quality'">
+                        <t t-call="mc_rov.KPIQualityCards"/>
+                    </section>
+                    <section t-elif="state.section === 'tracking'">
+                        <h2>Seguimiento de etapas</h2>
+                        <p class="text-muted">Cada cierre es una etapa, no un ROV fabricado o una reparación terminada. Los plazos y cierres usan la zona capturada por el seguimiento; las duraciones son horas corridas, no HH.</p>
+                        <p t-if="state.report.tracking.available === false" class="alert alert-info">Sin acceso al proceso seleccionado.</p>
+                        <div t-else="" class="table-responsive">
+                            <table class="table mc_kpi_tracking">
+                                <thead><tr>
+                                    <th>Proceso</th><th>Pendientes actuales</th><th>Vencidas actuales</th><th>Cierres reales</th>
+                                    <th>Plazo original · n/N</th><th>Plazo vigente · n/N</th><th>Mediana de etapa</th><th>Contexto</th>
+                                </tr></thead>
+                                <tbody>
+                                    <t t-foreach="trackingRows" t-as="row" t-key="row.key">
+                                        <tr t-att-data-process="row.key">
+                                            <th scope="row" t-esc="row.label"/>
+                                            <t t-if="row.available and row.metrics">
+                                                <td><t t-esc="row.metrics.pending"/><small t-if="row.metrics.pending_timing_unknown">Sin plazo conocido: <t t-esc="row.metrics.pending_timing_unknown"/></small></td>
+                                                <td t-esc="row.metrics.overdue"/>
+                                                <td><t t-esc="row.metrics.completed"/><small t-if="row.period_unlocated">Cierres sin fecha local: <t t-esc="row.period_unlocated"/></small></td>
+                                                <td><t t-esc="compliance(row.metrics.original_compliance)"/><small>Sin dato: <t t-esc="row.metrics.original_compliance.unknown"/></small></td>
+                                                <td><t t-esc="compliance(row.metrics.current_compliance)"/><small>Sin dato: <t t-esc="row.metrics.current_compliance.unknown"/></small></td>
+                                                <td><t t-esc="hours(row.metrics.duration_hours.value)"/><small>Con dato: <t t-esc="row.metrics.duration_hours.known"/> · Sin dato: <t t-esc="row.metrics.duration_hours.unknown"/></small></td>
+                                                <td><small>Cancelaciones: <t t-esc="row.metrics.cancelled"/><br/>Cierres manuales históricos: <t t-esc="row.metrics.manual_history"/><br/>Pendientes sin actividad: <t t-esc="row.metrics.pending_activity_missing"/></small></td>
+                                            </t>
+                                            <td t-else="" colspan="7"><t t-esc="row.available === false ? 'Sin acceso' : 'Sin dato'"/></td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+                    <section t-elif="state.section === 'coverage'">
+                        <h2>Cobertura y definiciones</h2>
+                        <p class="text-muted">Once familias del resumen inicial. Una fuente por verificar o una captura pendiente no son un cero medido.</p>
+                        <div class="mc_kpi_catalog">
+                            <t t-foreach="coverageRows" t-as="row" t-key="row.key">
+                                <article class="mc_kpi_card" t-att-data-family="row.key">
+                                    <header><h3><t t-esc="row.key"/> · <t t-esc="row.title"/></h3><span class="badge text-bg-secondary" t-esc="row.label"/></header>
+                                    <p><strong>Unidad:</strong> <t t-esc="row.unit"/></p>
+                                    <p><strong>Decisión:</strong> <t t-esc="row.decision"/></p>
+                                    <p><strong>Fuente:</strong> <t t-esc="row.source"/></p>
+                                    <p><strong>Población:</strong> <t t-esc="row.population"/></p>
+                                    <p><strong>Fórmula:</strong> <t t-esc="row.formula"/></p>
+                                    <p class="mb-0" t-esc="row.requirement"/>
+                                </article>
+                            </t>
+                        </div>
+                    </section>
+                </t>
+            </main>
+        </div>
+    </t>
+
+    <t t-name="mc_rov.KPIQualityCards">
+        <h2>Primera aceptación formal</h2>
+        <p class="text-muted">Selección actual de órdenes ROV accesibles, incluidas cerradas y archivadas. No es una cohorte mensual. La cobertura corresponde a la selección consultada.</p>
+        <div class="mc_kpi_cards">
+            <t t-foreach="qualityCards" t-as="card" t-key="card.key">
+                <article class="mc_kpi_card mc_kpi_quality" t-att-data-source="card.key">
+                    <h3 t-esc="card.title"/>
+                    <p class="mc_kpi_value" t-esc="card.headline"/>
+                    <t t-if="card.population !== null">
+                        <p>Aprobados / evaluados: <strong t-esc="card.ratio"/></p>
+                        <p class="mc_kpi_coverage">Cobertura de la selección consultada: <strong t-esc="card.coverageRatio"/> · <t t-esc="card.coverageHeadline"/></p>
+                        <p t-esc="card.unit"/>
+                        <dl class="mc_kpi_counts">
+                            <div><dt>Población consultada</dt><dd t-esc="card.population"/></div>
+                            <div><dt>Evaluados</dt><dd t-esc="card.evaluated"/></div>
+                            <div><dt>Fallidos al primer intento</dt><dd t-esc="card.failed"/></div>
+                            <div><dt>Pendientes del primer intento</dt><dd t-esc="card.pending"/></div>
+                            <div><dt>Sin evidencia de primer intento</dt><dd t-esc="card.unknown"/></div>
+                        </dl>
+                    </t>
+                    <button t-if="card.detailKey" class="btn btn-outline-primary" t-att-disabled="state.opening"
+                            t-on-click="() => this.openDetail(card.detailKey)">Ver órdenes consultadas</button>
+                </article>
+            </t>
+        </div>
+    </t>
+</templates>

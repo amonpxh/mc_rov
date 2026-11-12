@@ -1,3 +1,116 @@
+## Tablero KPI: validación autónoma en curso — 2026-11-12
+
+PR borrador #122: https://github.com/amonpxh/mc_rov/pull/122.
+Implementación publicada en 32a8297: entrada Indicadores, cartera administrativa
+actual, Q1 separado para reparaciones/equipos nuevos, seguimiento de seis flujos
+y las once fichas con decisión, fuente, población y fórmula. No equivale a tener
+las once familias calculadas. Sin tablas, ACL nuevas ni activación real.
+
+CI 43101756480 ejecutó los 1.558 casos: cero fallos de aserción y un error de
+fixture multiempresa. La orden extranjera heredaba ubicaciones de la empresa
+principal. a6371b5 corrige solo la preparación con with_company, siguiendo el
+control nativo existente; añade comprobación de que la orden sí pertenece a la
+población ROV de su empresa. CI 43214977130 en curso al registrar este estado.
+Formato, secretos, título y versionado de ese commit están aprobados. Después,
+CI 43214977130 confirmó 1.558/1.558 casos y cero fallos/errores.
+
+67 pruebas puras locales aprobadas, incluidos 22 contratos JS y los controles
+del verificador de navegador. Revisión independiente: corregidas definiciones
+incompletas y cobertura Q1 implícita, con regresiones RED/GREEN. Q1 muestra tanto
+aprobados/evaluados como evaluados/población y sus porcentajes.
+
+El runner no tiene navegador. Se prepara Chrome Headless Shell 157.0.8103.78 de
+Google en RUNNER_TEMP, con SHA-256 fijo y limpieza al terminar; no usa apt/sudo,
+no instala paquetes ni modifica el host. HttpCase solo sobre odoo_test, loopback
+8199, sin cron. Verifica escritorio, móvil y HOOT con población exacta derivada
+de los archivos declarados (105 casos actuales). CI 43216446037 repitió los 1.558
+casos correctamente, pero Chrome no abrió: faltaba libasound.so.2. Se incorpora
+solo esa biblioteca oficial, fijada y verificada, dentro del mismo temporal;
+dpkg-deb extrae sin instalar y su LD_LIBRARY_PATH afecta únicamente a Chrome.
+Otros faltantes o una distribución diferente de Ubuntu 24.04 detienen el proceso.
+Navegador se ejecuta primero; el resultado final exige también la suite integral.
+La comprobación visual sigue pendiente;
+CI 43218862099 arrancó Chrome pero omitió los tres HttpCase por falta de
+websocket-client. El verificador rechazó esas omisiones. Se carga una rueda pura
+1.9.0 con SHA-256 fijo únicamente mediante PYTHONPATH del proceso Odoo de pruebas,
+sin pip ni cambios al Python del host. También se distingue el skip de un test
+de la advertencia de una ruta addons inexistente, con regresión local.
+no declarar validación visual por las pruebas Node con imports Odoo simulados.
+
+El primer RED de STAGING observó 18 contratos ausentes y un error de fixture.
+No hubo RED completo limpio posterior: se documentó el avance local contra los
+18 fallos observados, mientras se comprobaban los controles corregidos por CI.
+Los runs iniciales ac32b0b quedaron en cola sin jobs; los pushes posteriores sí
+se ejecutan. No repetir cancelaciones/reintentos a ciegas.
+
+SIGUIENTE: comprobar CI del fixture, publicar el ejecutor de navegador y corregir
+contra su evidencia real. Preparar capturas/QA visual y revisión de entrega.
+Autorizado: rama y PR borrador, seguimiento de CI. No merge ni despliegue.
+Producción permanece en 19.0.25.7.0 / 36e0f37, sin activación de automatismos.
+
+## Tablero KPI: continuación autónoma por CI autorizada — 2026-11-11
+
+Usuario autorizó publicar feature/kpi-dashboard y crear PR borrador para seguir
+pruebas automáticamente sin SSH/contraseña por intento. CI existente usa checkout
+aislado y odoo_test; runner online y libre al consultar. No autoriza merge ni
+despliegue/activación. No configurar claves SSH ni ampliar credenciales por rutina.
+
+Publicar primer commit de contrato/diseño con22casos nuevos: CI integral esperado
+1550casos,18fallos MissingKPIDashboard y1532controles verdes,0errores. Se verificará
+el log y los nombres exactos; CI rojo intencional no permite integrar. Tras RED
+válido, implementar puente y UI, actualizar el mismo PR y seguir sus controles.
+Pre-commit local de cinco archivos pasó. Anotar aquí PR/HEAD al publicarse.
+
+## Tablero KPI: diagnóstico del primer RED y fixture corregido — 2026-11-11
+
+Intento4c17b4ded6564427beaf9ba57d5adf90:126casos descubiertos,18fallos esperados por
+MissingKPIDashboard y1error nativo en test_native_failure_is_preserved;107controles
+pasaron. La prueba quiso interrumpir aceptación sin evidencia real, rechazada
+correctamente por UserError. No es falloSSH ni producto. Fuentes/configuración
+intactas, pruebas restauradas y STAGING activo; respaldo ...red-VYqo1R.
+
+Corregido solo fixture: chequeo no_ok antes de action_abort_final_acceptance.
+Igual preparación corregida en el contrato de fallo inicial/luego aprobado,
+restaurando respuestas ok antes del segundo intento. Mismos22nuevos,104previos,
+126total y18ausencias esperadas; ninguna aserción retirada o relajada.
+
+Paquete original conservado bajo `.tmp/kpi-dashboard/attempt-4c17...` y diagnóstico
+JSON junto al log decodificado. Transporte regenerado v2, ocho pruebas locales del
+verificador y sintaxisBash aprobados. No implementación de producto todavía.
+SIGUIENTE: usuario repite `.tmp/staging-kpi-dashboard-service-red.ps1`; exigir RED
+exacto18fallos/108verdes/0errores antes de construir puente/OWL.
+
+## Tablero KPI: diseño aprobado y RED preparado — 2026-11-11
+
+Usuario aprobó diseño con «ok go». Rama local feature/kpi-dashboard desde
+origin/main97c9348, worktree `.tmp/worktrees/kpi-dashboard`. Se preservaron todos
+los checkouts anteriores. Producción25.7.0/36e0f37 ya está instalada y activa;
+recibo `.tmp/prod-acceptance-kpi/deployment-receipt.json` documenta359tablas/8adjuntos
+sin cambios de negocio. No reinstalar ni inferir activación real de políticas.
+
+Diseño aprobado: docs/superpowers/specs/2026-11-11-tablero-kpi-design.md.
+Plan: docs/superpowers/plans/2026-11-11-kpi-dashboard.md; ledger local .superpowers/sdd.
+Primer incremento: entrada Indicadores, cartera actual/Q1/seguimiento/cobertura.
+Resto de once fichas conserva su recorrido; no presentar contadores de etapas
+como fabricación/reparaciones ni ausencia de evidencia como cero.
+
+Task1:22 contratos nuevos en tests/test_kpi_dashboard.py (18ausencias concretas y
+4controles nativos). Se preservan104contratos work_kpi/repair_first_pass/new_first_pass:
+126exactos,108deben pasar y18fallar solo por MissingKPIDashboard. No existe aún el
+modelo mc.rov.kpi.dashboard ni interfaz nueva; no adelantar GREEN sin observar RED.
+
+Paquete externo `.tmp/kpi-dashboard`, wrapper `.tmp/staging-kpi-dashboard-service-red.ps1`.
+BaselineSTAGING149fuentes de última regresión1528 con hash de vista actualizado por
+las dos etiquetas verificadas. STAGING conserva versión nominal25.2, distinta de
+la producción25.7; no intercambiar hashes con checkoutmain reformateado.
+Solo pruebas temporales; BDrespaldada, fuentes/configuración/stock/historial/PDFs
+comparados, pruebas restauradas y reinicio soloSTAGING. QA cerrada/producción intactas.
+
+Ocho pruebas locales del verificador y sintaxis Bash/PowerShell/Python aprobadas;
+integridad del paquete comprobada. Esto NO es resultado nativo. SIGUIENTE: usuario
+ejecuta wrapper en su terminal (SSH solo allí), revisar evidencia de ese intento.
+Tras RED válido, implementar puente autorizado y luego vista OWL según plan.
+
 ### Actualización de integración y consolidación — 2026-11-10
 
 La entrega36e0f37 pasó CI y el bot creó automáticamente release borrador19.0.25.7.0
