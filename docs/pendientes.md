@@ -11,9 +11,10 @@ fixture multiempresa. La orden extranjera heredaba ubicaciones de la empresa
 principal. a6371b5 corrige solo la preparación con with_company, siguiendo el
 control nativo existente; añade comprobación de que la orden sí pertenece a la
 población ROV de su empresa. CI 43214977130 en curso al registrar este estado.
-Formato, secretos, título y versionado de ese commit están aprobados.
+Formato, secretos, título y versionado de ese commit están aprobados. Después,
+CI 43214977130 confirmó 1.558/1.558 casos y cero fallos/errores.
 
-60 pruebas puras locales aprobadas, incluidos 22 contratos JS y cinco controles
+64 pruebas puras locales aprobadas, incluidos 22 contratos JS y los controles
 del verificador de navegador. Revisión independiente: corregidas definiciones
 incompletas y cobertura Q1 implícita, con regresiones RED/GREEN. Q1 muestra tanto
 aprobados/evaluados como evaluados/población y sus porcentajes.
@@ -22,7 +23,13 @@ El runner no tiene navegador. Se prepara Chrome Headless Shell 157.0.8103.78 de
 Google en RUNNER_TEMP, con SHA-256 fijo y limpieza al terminar; no usa apt/sudo,
 no instala paquetes ni modifica el host. HttpCase solo sobre odoo_test, loopback
 8199, sin cron. Verifica escritorio, móvil y HOOT con población exacta derivada
-de los archivos declarados (105 casos actuales). Esa ejecución sigue pendiente;
+de los archivos declarados (105 casos actuales). CI 43216446037 repitió los 1.558
+casos correctamente, pero Chrome no abrió: faltaba libasound.so.2. Se incorpora
+solo esa biblioteca oficial, fijada y verificada, dentro del mismo temporal;
+dpkg-deb extrae sin instalar y su LD_LIBRARY_PATH afecta únicamente a Chrome.
+Otros faltantes o una distribución diferente de Ubuntu 24.04 detienen el proceso.
+Navegador se ejecuta primero; el resultado final exige también la suite integral.
+La comprobación visual sigue pendiente;
 no declarar validación visual por las pruebas Node con imports Odoo simulados.
 
 El primer RED de STAGING observó 18 contratos ausentes y un error de fixture.

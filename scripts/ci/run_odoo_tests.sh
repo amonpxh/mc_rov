@@ -36,6 +36,10 @@ assert resolved and Path(resolved).resolve() == Path(sys.argv[1]).resolve(), res
 print('CI_ODOO_SOURCE=' + resolved)
 PY
 
+# Primero los recorridos nuevos: un fallo del navegador no repite diez minutos
+# de regresión ya aprobada sobre el mismo producto. El GREEN final exige ambas etapas.
+python3 "$REPO/scripts/ci/run_kpi_browser_tests.py" "$REPO" "$CONF" "$ADDONS"
+
 LOG=$(mktemp "${RUNNER_TEMP:?}/mc-rov-tests.XXXXXX.log")
 # Solo capacidad existente: no instalar navegador ni modificar el host para comprobarla.
 if command -v google-chrome >/dev/null || command -v chromium >/dev/null || command -v chromium-browser >/dev/null; then
@@ -73,6 +77,3 @@ assert expected and not (expected - set(observed)), sorted(expected - set(observ
 assert int(summary[-1][2]) == len(observed) >= len(expected)
 print('CI_ODOO_DISCOVERY=PASSED EXPECTED=%s ACTUAL=%s' % (len(expected), len(observed)))
 PY
-
-# Mismo checkout y base de pruebas; proceso temporal solo en loopback y sin cron.
-python3 "$REPO/scripts/ci/run_kpi_browser_tests.py" "$REPO" "$CONF" "$ADDONS"

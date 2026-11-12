@@ -3,7 +3,9 @@
 import hashlib
 import os
 from pathlib import Path
+import platform
 import re
+import shlex
 import subprocess
 import sys
 import tempfile
@@ -17,17 +19,57 @@ ARCHIVE_URL = (
     f"{VERSION}/linux64/chrome-headless-shell-linux64.zip"
 )
 SHA256 = "f90329720fb61e5a76da9b6b509b6ad12a484c9c5df0359403e935177c6d153a"
+AUDIO_URL = (
+    "https://security.ubuntu.com/ubuntu/pool/main/a/alsa-lib/"
+    "libasound2t64_1.2.11-1ubuntu0.3_amd64.deb"
+)
+AUDIO_SHA256 = "5d17bfb5683eb99f1be951fe48e1be5bf3c52391913b6b74a8aecf9b4f5e779f"
+
+
+def download_verified(url, expected_hash, archive):
+    digest = hashlib.sha256()
+    with urllib.request.urlopen(url, timeout=60) as response, archive.open("wb") as output:
+        while chunk := response.read(1024 * 1024):
+            digest.update(chunk)
+            output.write(chunk)
+    if digest.hexdigest() != expected_hash:
+        raise RuntimeError("La huella de la herramienta no coincide con la versión revisada")
+
+
+def browser_launcher(root, executable):
+    # ldd solo inspecciona el ELF oficial ya verificado. No se instalan dependencias.
+    result = subprocess.run(["ldd", str(executable)], text=True, capture_output=True, check=False)
+    missing = set(re.findall(r"^\s*(\S+) => not found", result.stdout, re.M))
+    if not missing:
+        return executable
+    if missing != {"libasound.so.2"}:
+        raise RuntimeError(f"Bibliotecas nativas no previstas: {sorted(missing)}")
+    release = platform.freedesktop_os_release()
+    if release.get("ID") != "ubuntu" or release.get("VERSION_ID") != "24.04":
+        raise RuntimeError("La biblioteca temporal revisada requiere Ubuntu 24.04")
+    archive = root / "audio.deb"
+    download_verified(AUDIO_URL, AUDIO_SHA256, archive)
+    libraries = root / "audio"
+    subprocess.run(["dpkg-deb", "--extract", str(archive), str(libraries)], check=True, timeout=30)
+    # El entorno de Odoo no cambia: LD_LIBRARY_PATH se aplica solo al proceso Chrome.
+    launcher = root / "chrome-with-temporary-audio"
+    search_path = libraries / "usr" / "lib" / "x86_64-linux-gnu"
+    launcher.write_text(
+        "#!/bin/sh\nexport LD_LIBRARY_PATH="
+        + shlex.quote(str(search_path))
+        + "${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}\nexec "
+        + shlex.quote(str(executable))
+        + ' "$@"\n',
+        encoding="utf-8",
+    )
+    launcher.chmod(0o700)
+    print("CI_BROWSER_AUDIO=temporary-libasound2t64-1.2.11-1ubuntu0.3", flush=True)
+    return launcher
 
 
 def prepare_browser(root):
     archive = root / "browser.zip"
-    digest = hashlib.sha256()
-    with urllib.request.urlopen(ARCHIVE_URL, timeout=60) as response, archive.open("wb") as output:
-        while chunk := response.read(1024 * 1024):
-            digest.update(chunk)
-            output.write(chunk)
-    if digest.hexdigest() != SHA256:
-        raise RuntimeError("La huella del navegador no coincide con la versión revisada")
+    download_verified(ARCHIVE_URL, SHA256, archive)
     with zipfile.ZipFile(archive) as package:
         for member in package.infolist():
             if not (root / member.filename).resolve().is_relative_to(root):
@@ -35,10 +77,11 @@ def prepare_browser(root):
         package.extractall(root)
     executable = root / "chrome-headless-shell-linux64" / "chrome-headless-shell"
     executable.chmod(0o700)
-    subprocess.run([str(executable), "--version"], check=True, timeout=15)
+    launcher = browser_launcher(root, executable)
+    subprocess.run([str(launcher), "--version"], check=True, timeout=15)
     print("CI_BROWSER_VERSION=" + VERSION, flush=True)
     print("CI_BROWSER_SHA256=" + SHA256, flush=True)
-    return executable
+    return launcher
 
 
 def verify_result(text, rc, expected_hoot):

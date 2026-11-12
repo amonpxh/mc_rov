@@ -3,8 +3,11 @@
 from contextlib import redirect_stdout
 import importlib.util
 import io
+import os
 from pathlib import Path
+import tempfile
 import unittest
+from unittest.mock import patch
 
 
 PATH = Path(__file__).resolve().parents[2] / "scripts" / "ci" / "run_kpi_browser_tests.py"
@@ -54,3 +57,45 @@ class TestKPIBrowserVerification(unittest.TestCase):
     def test_rejects_failed_process(self):
         with self.assertRaises(RuntimeError):
             RUNNER.verify_result(self._log(), 1, 105)
+
+    def test_download_checks_reviewed_digest(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "archive"
+            with patch.object(RUNNER.urllib.request, "urlopen", return_value=io.BytesIO(b"abc")):
+                RUNNER.download_verified(
+                    "https://example.invalid/tool",
+                    "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
+                    path,
+                )
+            self.assertEqual(path.read_bytes(), b"abc")
+
+    def test_download_rejects_changed_archive(self):
+        with tempfile.TemporaryDirectory() as directory:
+            with patch.object(
+                RUNNER.urllib.request, "urlopen", return_value=io.BytesIO(b"changed")
+            ):
+                with self.assertRaises(RuntimeError):
+                    RUNNER.download_verified(
+                        "https://example.invalid/tool", "0" * 64, Path(directory) / "archive"
+                    )
+
+    def test_unreviewed_libraries_are_rejected(self):
+        result = RUNNER.subprocess.CompletedProcess([], 0, "libunknown.so => not found\n")
+        with patch.object(RUNNER.subprocess, "run", return_value=result):
+            with self.assertRaises(RuntimeError):
+                RUNNER.browser_launcher(Path("unused"), Path("unused/chrome"))
+
+    def test_temporary_library_does_not_modify_odoo_environment(self):
+        result = RUNNER.subprocess.CompletedProcess([], 0, "libasound.so.2 => not found\n")
+        before = dict(os.environ)
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            with patch.object(RUNNER.subprocess, "run", return_value=result), patch.object(
+                RUNNER.platform,
+                "freedesktop_os_release",
+                return_value={"ID": "ubuntu", "VERSION_ID": "24.04"},
+            ), patch.object(RUNNER, "download_verified"):
+                launcher = RUNNER.browser_launcher(root, root / "chrome")
+            self.assertIn('"$@"', launcher.read_text(encoding="utf-8"))
+            self.assertIn("LD_LIBRARY_PATH=", launcher.read_text(encoding="utf-8"))
+        self.assertEqual(dict(os.environ), before)
