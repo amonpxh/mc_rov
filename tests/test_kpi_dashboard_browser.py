@@ -70,6 +70,8 @@ class TestKPIDashboardBrowser(HttpCase):
                 root.querySelector("[data-section='tracking']").click();
                 await wait(() => root.querySelector("[data-kpi-process]"));
                 if (root.scrollWidth > root.clientWidth + 1) throw new Error("Seguimiento desborda la pantalla");
+                root.querySelector("[data-section='summary']").click();
+                await wait(() => root.querySelectorAll(".mc_kpi_quality").length === 2);
                 console.log("test successful");
             })().catch((error) => console.error(error));
             """,

@@ -83,7 +83,8 @@ describe("mc_rov KPI dashboard", () => {
         const { calls } = await setup();
         await click("[data-section='tracking']");
         await animationFrame();
-        await select("[data-kpi-process]", "repair");
+        await click("[data-kpi-process]");
+        await select("repair");
         await animationFrame();
         expect(calls.at(-1).kwargs.process).toBe("repair");
         expect(".mc_kpi_filters").toHaveText(/Los pendientes y vencimientos siguen siendo actuales/);
