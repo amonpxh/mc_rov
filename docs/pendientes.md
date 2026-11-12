@@ -7,8 +7,10 @@ del PR124 también aprobaron. El hook de exportación de fuentes se retira tras 
 el artefacto; no publicar código Enterprise extraído en el repositorio.
 Usuario confirmó que no fabrica prototipos: no crear finalidad por MO ni catálogo.
 Diseño propuesto en specs/2026-11-12-kpi-volumen-pareto-design.md; revisión de builder
-solo pide concretar documentos/validador para liberación. Consulta pendiente al usuario;
-puede quedar el hito explícitamente pendiente mientras avanzan fabricación/aceptación.
+solo pidió concretar documentos/validador para liberación. Usuario respondió:
+solo Ficha de Equipo Nuevo; valida Supervisor. Se mantienen rendimiento/terreno
+aprobados y ninguna NC bloqueante pendiente. El diseño incorpora validación
+explícita con evidencia y distingue liberación de salida física; no concede roles.
 No interpretar esta auditoría como nuevos KPI implementados.
 
 Nueva rama feature/kpi-volume-pareto desde main9116221. Reutiliza el worktree

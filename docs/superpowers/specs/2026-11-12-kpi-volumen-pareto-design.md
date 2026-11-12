@@ -9,6 +9,9 @@ Continúa las fichas F4, F5 y Q4 del catálogo consolidado del 4 de noviembre.
 - Comparar todas las revisiones o una concreta; vista inicial de la última revisión.
 - La empresa no fabrica prototipos: no crear una finalidad por fabricación ni un
   catálogo de prototipos para resolver una distinción que no utiliza.
+- Para liberar un equipo nuevo, el único documento exigido es la Ficha de Equipo
+  Nuevo. Supervisor valida la liberación. Se mantienen rendimiento y terreno
+  aprobados y ninguna no conformidad bloqueante pendiente.
 - Mantener las definiciones, fechas y coberturas del catálogo acordado. Hora de
   Santiago, semanas lunes–domingo, meses y años calendario.
 
@@ -91,8 +94,12 @@ Exponer incoherencias y cantidades sin serie, sin descartarlas silenciosamente.
 
 - Fabricada: salida de producto final done con cantidad positiva y serie válida.
 - Aceptada: aprobación conjunta formal de rendimiento y terreno ya capturada.
-- Liberada: pruebas obligatorias aprobadas, documentación requerida completa y
-  ninguna no conformidad bloqueante. No deducirlo solo de una FEN emitida.
+- Liberada: rendimiento y terreno aprobados, Ficha de Equipo Nuevo emitida y
+  ninguna no conformidad bloqueante pendiente; validación explícita de Supervisor.
+  No deducir liberación automáticamente de una FEN emitida. Conservar fecha, actor
+  y referencias a la evidencia que Supervisor validó. No exigir otros documentos.
+  El rol funcional Supervisor debe mapearse a permisos existentes comprobados;
+  esta decisión no concede permisos ni activa cuentas reales.
 - Salida al cliente: transferencia efectiva done hacia cliente; una reparación
   posterior del mismo ROV no vuelve a ser una unidad nueva fabricada.
 
