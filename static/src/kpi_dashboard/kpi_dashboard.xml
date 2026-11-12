@@ -21,12 +21,12 @@
                 </t>
             </nav>
             <main class="mc_kpi_content">
-                <div t-if="state.section === 'tracking'" class="mc_kpi_filters">
-                    <label>Desde (cierres)
+                <div t-if="state.section === 'tracking' or productionMode" class="mc_kpi_filters">
+                    <label>Desde
                         <input class="form-control" type="date" data-kpi-from="" t-att-value="state.dateFrom" t-att-max="state.dateTo || undefined"
                                t-on-change="(ev) => this.setFilter('dateFrom', ev.target.value)"/>
                     </label>
-                    <label>Hasta (cierres)
+                    <label>Hasta
                         <input class="form-control" type="date" data-kpi-to="" t-att-value="state.dateTo" t-att-min="state.dateFrom || undefined"
                                t-on-change="(ev) => this.setFilter('dateTo', ev.target.value)"/>
                     </label>

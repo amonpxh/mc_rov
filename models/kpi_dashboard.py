@@ -144,6 +144,9 @@ class KPIDashboard(models.AbstractModel):
                 "revision",
                 "dimension",
                 "unit",
+                "customer_id",
+                "severity",
+                "intervention",
             }:
                 raise ValidationError(_("Los filtros de producción no son válidos."))
             try:

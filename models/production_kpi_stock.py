@@ -25,7 +25,7 @@ class ProductionMilestoneStock(models.Model):
                 lot = line.lot_id
                 if not lot.es_un_rov:
                     continue
-                lock_source(lot)
+                lock_source(lot, access="read")
                 made = (
                     self.env["mc.rov.production.event"]
                     .sudo()
@@ -53,5 +53,60 @@ class ProductionMilestoneStock(models.Model):
                     at=move.date or fields.Datetime.now(),
                     production_id=made.production_id.id,
                     move_id=move.id,
+                )
+                if outward:
+                    append_event(
+                        move,
+                        lot,
+                        "unit_movement",
+                        f"move:{move.id}:lot:{lot.id}",
+                        {
+                            "unit_identity": made.identity,
+                            "effect": "outbound",
+                            **unit_design(move, lot, move.company_id),
+                        },
+                        at=move.date or fields.Datetime.now(),
+                        production_id=made.production_id.id,
+                        move_id=move.id,
+                    )
+        return result
+
+
+class ProductionUnbuildCapture(models.Model):
+    """El desmontaje modifica saldo vigente y conserva fabricación histórica."""
+
+    _inherit = "mrp.unbuild"
+
+    def action_unbuild(self):
+        lock_source(self)
+        result = super().action_unbuild()
+        for unbuild in self.filtered(lambda row: row.state == "done" and row.lot_id.es_un_rov):
+            lot = unbuild.lot_id
+            lock_source(lot, access="read")
+            made = (
+                self.env["mc.rov.production.event"]
+                .sudo()
+                .search(
+                    [
+                        ("kind", "=", "manufactured"),
+                        ("lot_id", "=", lot.id),
+                        ("company_id", "=", unbuild.company_id.id),
+                    ]
+                )
+            )
+            if len(made) == 1:
+                append_event(
+                    unbuild,
+                    lot,
+                    "reversed",
+                    f"unbuild:{unbuild.id}:lot:{lot.id}",
+                    {
+                        "unit_identity": made.identity,
+                        "reversal_of": "manufactured",
+                        "unbuild_id": unbuild.id,
+                        **unit_design(unbuild, lot, unbuild.company_id),
+                    },
+                    at=fields.Datetime.now(),
+                    production_id=made.production_id.id,
                 )
         return result

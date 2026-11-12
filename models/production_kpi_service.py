@@ -4,7 +4,13 @@ from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, ValidationError
 from odoo.fields import Domain
 
-from .production_kpi_metrics import local_day, pareto, period_bounds, summarize_events
+from .production_kpi_metrics import (
+    local_day,
+    milestone_balances,
+    pareto,
+    period_bounds,
+    summarize_events,
+)
 from .production_kpi_design import design_snapshot
 
 
@@ -37,11 +43,53 @@ class ProductionKPIService(models.AbstractModel):
             self.env["product.product"].with_context(active_test=False).search(product_domain)
         )
         common = [("company_id", "in", companies), ("product_id", "in", products.ids)]
-        repairs = self.env["repair.order"].with_context(active_test=False).search(common)
-        productions = self.env["mrp.production"].with_context(active_test=False).search(common)
+        # Primero candidatos internos por producto histórico; después sus orígenes
+        # se resuelven sin sudo. Así una etiqueta administrativa posterior no borra
+        # un hecho ni habilita leer un origen que su regla de acceso oculta.
+        history = (
+            self.env["mc.rov.production.event"]
+            .sudo()
+            .search(
+                [
+                    ("company_id", "in", companies),
+                    ("product_id", "in", products.ids),
+                ]
+            )
+        )
+        repairs = (
+            self.env["repair.order"]
+            .with_context(active_test=False)
+            .search(
+                Domain.OR(
+                    [
+                        common,
+                        [("id", "in", history.repair_id.ids), ("company_id", "in", companies)],
+                    ]
+                )
+            )
+        )
+        productions = (
+            self.env["mrp.production"]
+            .with_context(active_test=False)
+            .search(
+                Domain.OR(
+                    [
+                        common,
+                        [("id", "in", history.production_id.ids), ("company_id", "in", companies)],
+                    ]
+                )
+            )
+        )
         # La relación de revisión no tiene company_id; la empresa del hecho se filtra
         # en el ledger y la serie/reparación deben ser legibles sin sudo.
-        revisions = self.env["mc.rov.revision"].search([("product_id", "in", products.ids)])
+        revisions = self.env["mc.rov.revision"].search(
+            Domain.OR(
+                [
+                    [("product_id", "in", products.ids)],
+                    [("id", "in", history.revision_id.ids)],
+                ]
+            )
+        )
         for source in (repairs, productions, revisions):
             source.check_access("read")
             source.product_id.check_access("read")
@@ -50,10 +98,10 @@ class ProductionKPIService(models.AbstractModel):
         return companies, products, repairs, productions, revisions
 
     def _events(self, sources):
-        companies, _products, repairs, productions, revisions = sources
+        companies, products, repairs, productions, revisions = sources
         domain = Domain.AND(
             [
-                [("company_id", "in", companies)],
+                [("company_id", "in", companies), ("product_id", "in", products.ids)],
                 Domain.OR(
                     [
                         [("repair_id", "in", repairs.ids), ("kind", "=", "repair_done")],
@@ -126,6 +174,9 @@ class ProductionKPIService(models.AbstractModel):
         revision="latest",
         dimension="finding",
         unit="observations",
+        customer_id=False,
+        severity="all",
+        intervention="all",
     ):
         # API de filtros explícitos; mantener nombres estables para RPC y pruebas.
         # pylint: disable=too-many-arguments,too-many-locals
@@ -137,7 +188,14 @@ class ProductionKPIService(models.AbstractModel):
         events = self._events(sources)
         resolved, options, ambiguous = self._revision_options(sources[1], events, revision)
         normalized = self._normalized(events)
+        normalized = self._dimension_filter(normalized, customer_id, severity, intervention)
         report = summarize_events(normalized, date_from, date_to, resolved)
+        selected = (
+            normalized
+            if resolved == "all"
+            else [row for row in normalized if row.get("revision_key") in resolved]
+        )
+        report["balances"] = milestone_balances(selected, date_to=date_to)
         observations = self._observations(normalized, bounds, resolved)
         try:
             report["findings"] = pareto(observations, dimension=dimension, unit=unit)
@@ -161,8 +219,37 @@ class ProductionKPIService(models.AbstractModel):
             "resolved_revisions": resolved,
             "model_id": model_id,
             "model_options": self._model_options(),
+            "customer_options": self._customer_options(events),
         }
         return report
+
+    def _dimension_filter(self, events, customer_id, severity, intervention):
+        if customer_id is not False and (
+            isinstance(customer_id, bool) or not isinstance(customer_id, int) or customer_id < 1
+        ):
+            raise ValidationError(_("Seleccione un cliente válido."))
+        if customer_id:
+            self.env["res.partner"].browse(customer_id).check_access("read")
+        if severity not in ("all", "informativo", "atencion", "impide_operar"):
+            raise ValidationError(_("La severidad seleccionada no es válida."))
+        if intervention not in ("all", "repair", "maintenance"):
+            raise ValidationError(_("El tipo de intervención no es válido."))
+        return [
+            row
+            for row in events
+            if (not customer_id or row.get("customer_id") == customer_id)
+            and (
+                row["kind"] != "observation"
+                or severity == "all"
+                or row.get("severity") == severity
+            )
+            and (row["kind"] != "repair_done" or intervention == "all" or row.get(intervention))
+        ]
+
+    def _customer_options(self, events):
+        identities = {row.payload.get("customer_id") for row in events} - {None, False}
+        partners = self.env["res.partner"].search([("id", "in", list(identities))])
+        return [{"id": partner.id, "label": partner.display_name} for partner in partners]
 
     def _unknown_findings(self, revisions, events):
         captured = set(events.filtered(lambda row: row.kind == "observation").mapped("identity"))

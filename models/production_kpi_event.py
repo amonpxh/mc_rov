@@ -12,9 +12,9 @@ _CAPTURE = object()
 _KEY = "mc_production_event_capability"
 
 
-def lock_source(source):
+def lock_source(source, access="write"):
     """Serializa también instantáneas que aún no veían un primer evento."""
-    source.check_access("write")
+    source.check_access(access)
     for identity in sorted(source.ids):
         source.env.cr.execute(
             SQL(
@@ -113,6 +113,7 @@ class ProductionKPIEvent(models.Model):
             ("outbound", "Salida al cliente"),
             ("reversed", "Reverso"),
             ("observation", "Observación"),
+            ("unit_movement", "Movimiento de unidad"),
         ],
         required=True,
         index=True,
