@@ -162,7 +162,8 @@ class TestKPIDashboardBrowser(HttpCase):
                     if (!root.textContent.includes('Corrosión QA')) throw new Error('Falta Pareto real');
                     if (FINAL_SECTION === 'production') {
                         root.querySelector('[data-section="production"]').click();
-                        await wait(() => root.querySelector('[data-volume="released"] .mc_kpi_value')?.textContent === '1');
+                        await wait(() => root.querySelector(
+                            '[data-volume="released"] .mc_kpi_value')?.textContent === '1');
                     }
                     console.log('test successful');
                 })().catch(error => console.error(error));
