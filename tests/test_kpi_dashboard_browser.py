@@ -20,6 +20,9 @@ class TestKPIDashboardBrowser(HttpCase):
             lang="es_CL",
         )
         self.browser_size = size
+        # Separar un error del servicio de un fallo de montaje o estilo del navegador.
+        report = self.env["mc.rov.kpi.dashboard"].with_user(viewer).get_dashboard()
+        self.assertEqual(report["cohort"]["company_ids"], company.ids)
         action = self.env.ref("mc_rov.action_kpi_dashboard")
         self.browser_js(
             f"/odoo/action-{action.id}",
@@ -61,11 +64,18 @@ class TestKPIDashboardBrowser(HttpCase):
         self._layout("390x844")
 
     def test_hoot_dashboard_and_existing_controls(self):
+        company = self.env["res.company"].create({"name": "QA HOOT tablero"})
+        viewer = new_test_user(
+            self.env,
+            login="qa_dashboard_hoot",
+            groups="base.group_user,base.group_system",
+            company_id=company.id,
+        )
         # Hash nativo HOOT del módulo completo @mc_rov; incluye los once casos nuevos.
         self.browser_js(
             "/web/tests?headless&loglevel=2&preset=desktop&timeout=15000&id=f92f0bf0",
             "",
-            login="admin",
+            login=viewer.login,
             timeout=420,
             success_signal="[HOOT] Test suite succeeded",
             error_checker=lambda message: "[HOOT]" not in message,
