@@ -12,8 +12,13 @@ class RepairProductionCapture(models.Model):
 
     def action_repair_done(self):
         lock_source(self)
-        result = super().action_repair_done()
-        for order in self:
+        pending = self.filtered(lambda row: row.state != "done" or not row.lot_id.es_un_rov)
+        if not pending:
+            return True
+        # Un reintento RPC sobre un cierre ya completado no debe ejecutar otra vez
+        # el movimiento nativo. Una reapertura real sí pasa por la acción normal.
+        result = super(RepairProductionCapture, pending).action_repair_done()
+        for order in pending:
             move = order.move_id
             if order.state != "done" or not order.lot_id.es_un_rov or move.state != "done":
                 continue

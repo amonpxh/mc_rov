@@ -40,7 +40,9 @@ class ProductionDesignSnapshot(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        if any(values.get("mc_design_snapshot") for values in vals_list):
+        if self.env.context.get("default_mc_design_snapshot") or any(
+            values.get("mc_design_snapshot") for values in vals_list
+        ):
             raise UserError(_("El diseño se acredita desde la confirmación de Fabricación."))
         return super().create(vals_list)
 
@@ -60,4 +62,22 @@ class ProductionDesignSnapshot(models.Model):
         candidates.filtered(
             lambda row: row.state not in ("draft", "cancel")
         )._capture_design_snapshot()
+        return result
+
+    def _split_productions(self, *args, **kwargs):
+        snapshots = {
+            (
+                production.production_group_id.id,
+                production.bom_id.id,
+                production.product_id.id,
+            ): dict(production.mc_design_snapshot or {})
+            for production in self
+        }
+        result = super()._split_productions(*args, **kwargs)
+        for part in result:
+            key = part.production_group_id.id, part.bom_id.id, part.product_id.id
+            if key in snapshots:
+                part.with_context(**{_KEY: _SNAPSHOT}).write(
+                    {"mc_design_snapshot": snapshots[key]}
+                )
         return result

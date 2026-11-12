@@ -43,6 +43,9 @@ export class KPIDashboard extends Component {
             revision: typeof saved.revision === "string" ? saved.revision : "latest",
             dimension: saved.dimension === "component" ? "component" : "finding",
             unit: ["visits", "equipment"].includes(saved.unit) ? saved.unit : "observations",
+            customerId: Number.isInteger(saved.customerId) && saved.customerId > 0 ? saved.customerId : false,
+            severity: ["informativo", "atencion", "impide_operar"].includes(saved.severity) ? saved.severity : "all",
+            intervention: ["repair", "maintenance"].includes(saved.intervention) ? saved.intervention : "all",
             report: null, error: "", loading: true, opening: false, detailError: "",
         });
         this.destroyed = false;
@@ -65,8 +68,8 @@ export class KPIDashboard extends Component {
     }
 
     exportState() {
-        const { section, dateFrom, dateTo, process, modelId, revision, dimension, unit } = this.state;
-        return { section, dateFrom, dateTo, process, modelId, revision, dimension, unit };
+        const { section, dateFrom, dateTo, process, modelId, revision, dimension, unit, customerId, severity, intervention } = this.state;
+        return { section, dateFrom, dateTo, process, modelId, revision, dimension, unit, customerId, severity, intervention };
     }
 
     fetchData() {
@@ -77,6 +80,7 @@ export class KPIDashboard extends Component {
         if (this.productionMode) kwargs.production_filters = {
             model_id: this.state.modelId, revision: this.state.revision,
             dimension: this.state.dimension, unit: this.state.unit,
+            customer_id: this.state.customerId, severity: this.state.severity, intervention: this.state.intervention,
         };
         return this.orm.call(SERVICE, "get_dashboard", [], kwargs);
     }
@@ -88,9 +92,9 @@ export class KPIDashboard extends Component {
         if (this.productionMode) return this.refresh();
     }
     setFilter(key, value) {
-        if (!["dateFrom", "dateTo", "process", "modelId", "revision", "dimension", "unit"].includes(key)) return;
-        this.state[key] = key === "modelId" ? (Number(value) || false) : value;
-        if (key === "modelId") this.state.revision = "latest";
+        if (!["dateFrom", "dateTo", "process", "modelId", "revision", "dimension", "unit", "customerId", "severity", "intervention"].includes(key)) return;
+        this.state[key] = ["modelId", "customerId"].includes(key) ? (Number(value) || false) : value;
+        if (key === "modelId") { this.state.revision = "latest"; this.state.customerId = false; }
         return this.refresh();
     }
 
@@ -101,6 +105,7 @@ export class KPIDashboard extends Component {
     }
     get modelOptions() { return this.productionMetrics?.filters?.model_options || []; }
     get revisionOptions() { return this.productionMetrics?.filters?.revision_options || []; }
+    get customerOptions() { return this.productionMetrics?.filters?.customer_options || []; }
     get volumeCards() {
         const metrics = this.productionMetrics;
         if (!metrics) return [];

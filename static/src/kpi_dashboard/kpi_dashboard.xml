@@ -52,14 +52,35 @@
                                 <option t-foreach="revisionOptions" t-as="option" t-key="option.key" t-att-value="option.key" t-att-selected="state.revision === option.key" t-esc="option.label"/>
                             </select>
                         </label>
+                        <label>Cliente del hecho
+                            <select class="form-select" data-kpi-customer="" t-on-change="(ev) => this.setFilter('customerId', ev.target.value)">
+                                <option value="" t-att-selected="!state.customerId">Todos / para stock / desconocidos</option>
+                                <option t-foreach="customerOptions" t-as="option" t-key="option.id" t-att-value="option.id" t-att-selected="state.customerId === option.id" t-esc="option.label"/>
+                            </select>
+                        </label>
+                        <label t-if="state.section === 'production'">Intervención de la visita
+                            <select class="form-select" data-kpi-intervention="" t-on-change="(ev) => this.setFilter('intervention', ev.target.value)">
+                                <option value="all" t-att-selected="state.intervention === 'all'">Todas las visitas</option>
+                                <option value="repair" t-att-selected="state.intervention === 'repair'">Reparación</option>
+                                <option value="maintenance" t-att-selected="state.intervention === 'maintenance'">Mantención</option>
+                            </select>
+                        </label>
+                        <label t-if="state.section === 'findings'">Severidad
+                            <select class="form-select" data-kpi-severity="" t-on-change="(ev) => this.setFilter('severity', ev.target.value)">
+                                <option value="all" t-att-selected="state.severity === 'all'">Todas las severidades</option>
+                                <option value="informativo" t-att-selected="state.severity === 'informativo'">Informativo</option>
+                                <option value="atencion" t-att-selected="state.severity === 'atencion'">Atención</option>
+                                <option value="impide_operar" t-att-selected="state.severity === 'impide_operar'">Impide operar</option>
+                            </select>
+                        </label>
                         <label t-if="state.section === 'findings'">Agrupar por
                             <select class="form-select" t-att-value="state.dimension" t-on-change="(ev) => this.setFilter('dimension', ev.target.value)">
-                                <option value="finding">Hallazgo</option><option value="component">Componente</option>
+                                <option value="finding" t-att-selected="state.dimension === 'finding'">Hallazgo</option><option value="component" t-att-selected="state.dimension === 'component'">Componente</option>
                             </select>
                         </label>
                         <label t-if="state.section === 'findings'">Unidad de conteo
                             <select class="form-select" t-att-value="state.unit" t-on-change="(ev) => this.setFilter('unit', ev.target.value)">
-                                <option value="observations">Observaciones</option><option value="visits">Visitas por categoría</option><option value="equipment">Equipos por categoría</option>
+                                <option value="observations" t-att-selected="state.unit === 'observations'">Observaciones</option><option value="visits" t-att-selected="state.unit === 'visits'">Visitas por categoría</option><option value="equipment" t-att-selected="state.unit === 'equipment'">Equipos por categoría</option>
                             </select>
                         </label>
                     </t>
@@ -96,6 +117,18 @@
                                 <article t-foreach="volumeCards" t-as="card" t-key="card.key" class="mc_kpi_card" t-att-data-volume="card.key">
                                     <h3 t-esc="card.title"/><p class="mc_kpi_value" t-esc="card.count"/><p class="text-muted mb-0" t-esc="card.note"/>
                                 </article>
+                            </div>
+                            <div t-if="productionMetrics.balances" class="mc_kpi_balances mt-4">
+                                <h3>Saldos al corte</h3>
+                                <p class="text-muted">Usan todo el historial hasta «Hasta», o el historial registrado si no indica fin. No son una resta de los hitos del período.</p>
+                                <dl class="mc_kpi_counts">
+                                    <div><dt>Fabricadas sin aceptar: <t t-esc="productionMetrics.balances.manufactured_not_accepted"/></dt></div>
+                                    <div><dt>Aceptadas sin liberar: <t t-esc="productionMetrics.balances.accepted_not_released"/></dt></div>
+                                    <div><dt>Liberadas en taller: <t t-esc="productionMetrics.balances.released_in_workshop"/></dt></div>
+                                    <div><dt>Fuera del taller: <t t-esc="productionMetrics.balances.outbound"/></dt></div>
+                                    <div><dt>Desmontadas: <t t-esc="productionMetrics.balances.unbuilt"/></dt></div>
+                                </dl>
+                                <p t-if="productionMetrics.balances.missing_prerequisite" class="alert alert-warning">Unidades con hito anterior sin acreditar: <t t-esc="productionMetrics.balances.missing_prerequisite"/>. Revise la evidencia antes de conciliar.</p>
                             </div>
                             <div class="mc_kpi_volume_coverage alert alert-light mt-3">
                                 <p>Órdenes cerradas sin primer cierre acreditado: <t t-esc="productionMetrics.coverage.unknown_repair_closure"/></p>

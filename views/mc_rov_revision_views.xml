@@ -673,6 +673,7 @@
                                            domain="[('componente_id', '=', componente_id)]"/>
                                     <field name="hallazgo_id"/>
                                     <field name="severidad"/>
+                                    <field name="mc_detected_at" optional="show"/>
                                     <field name="chequeo_origen_id"
                                            domain="[('revision_id', '=', parent.id)]"
                                            optional="show"/>

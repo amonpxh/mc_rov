@@ -1,6 +1,7 @@
 """Sella observaciones confirmadas sin equipararlas a incidentes únicos."""
 
-from odoo import fields, models
+from odoo import _, api, fields, models
+from odoo.exceptions import ValidationError
 
 from .production_kpi_event import append_event, lock_source, unit_design
 
@@ -15,6 +16,13 @@ class FindingDetection(models.Model):
         help="Fecha real de detección. Déjela vacía si no está acreditada; no es la fecha de registro.",
         copy=False,
     )
+
+    @api.constrains("mc_detected_at")
+    def _check_detection_not_future(self):
+        if any(
+            line.mc_detected_at and line.mc_detected_at > fields.Datetime.now() for line in self
+        ):
+            raise ValidationError(_("La detección real no puede estar en el futuro."))
 
 
 class RevisionFindingCapture(models.Model):
