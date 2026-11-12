@@ -1,6 +1,6 @@
 """Consulta de volumen e historial con autorización de todos los documentos de origen."""
 
-from odoo import _, api, fields, models
+from odoo import _, api, models
 from odoo.exceptions import AccessError, ValidationError
 from odoo.fields import Domain
 
@@ -9,9 +9,11 @@ from .production_kpi_metrics import (
     milestone_balances,
     pareto,
     period_bounds,
+    project_observations,
     summarize_events,
 )
 from .production_kpi_design import design_snapshot
+from .production_kpi_event import event_values
 
 
 class ProductionKPIService(models.AbstractModel):
@@ -106,7 +108,10 @@ class ProductionKPIService(models.AbstractModel):
                     [
                         [("repair_id", "in", repairs.ids), ("kind", "=", "repair_done")],
                         [("production_id", "in", productions.ids), ("kind", "!=", "observation")],
-                        [("revision_id", "in", revisions.ids), ("kind", "=", "observation")],
+                        [
+                            ("revision_id", "in", revisions.ids),
+                            ("kind", "in", ["observation", "observation_correction"]),
+                        ],
                     ]
                 ),
             ]
@@ -154,16 +159,10 @@ class ProductionKPIService(models.AbstractModel):
         return resolved, list(options.values()), ambiguous
 
     def _normalized(self, events):
+        rows = [event_values(event) for event in events]
         return [
-            {
-                **event.payload,
-                "identity": event.identity,
-                "kind": event.kind,
-                "at": fields.Datetime.to_string(event.at) if event.at else False,
-                "lot_id": event.lot_id.id,
-            }
-            for event in events
-        ]
+            row for row in rows if row["kind"] not in ("observation", "observation_correction")
+        ] + project_observations(rows)
 
     @api.model
     def get_summary(
@@ -207,8 +206,11 @@ class ProductionKPIService(models.AbstractModel):
                 repairs.filtered(lambda row: row.state == "done")
                 - events.filtered(lambda row: row.kind == "repair_done").repair_id
             ),
-            "unknown_detection": len(
-                events.filtered(lambda row: row.kind == "observation" and not row.at)
+            "unknown_detection": sum(
+                row["kind"] == "observation" and not row.get("at") for row in normalized
+            ),
+            "observation_corrections": len(
+                events.filtered(lambda row: row.kind == "observation_correction")
             ),
             "ambiguous_configurations": ambiguous,
             "unknown_observation_capture": self._unknown_findings(sources[4], events),

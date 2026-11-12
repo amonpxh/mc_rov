@@ -164,6 +164,8 @@ class TestKPIDashboardBrowser(HttpCase):
                         root.querySelector('[data-section="production"]').click();
                         await wait(() => root.querySelector(
                             '[data-volume="released"] .mc_kpi_value')?.textContent === '1');
+                    } else {
+                        root.querySelector('.mc_kpi_pareto').scrollIntoView({block: 'start'});
                     }
                     console.log('test successful');
                 })().catch(error => console.error(error));

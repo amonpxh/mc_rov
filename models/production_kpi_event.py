@@ -12,6 +12,17 @@ _CAPTURE = object()
 _KEY = "mc_production_event_capability"
 
 
+def event_values(event):
+    """Normalización interna; el llamador ya debe haber autorizado el origen."""
+    return {
+        **event.payload,
+        "identity": event.identity,
+        "kind": event.kind,
+        "at": fields.Datetime.to_string(event.at) if event.at else False,
+        "lot_id": event.lot_id.id,
+    }
+
+
 def lock_source(source, access="write"):
     """Serializa también instantáneas que aún no veían un primer evento."""
     source.check_access(access)
@@ -114,6 +125,7 @@ class ProductionKPIEvent(models.Model):
             ("reversed", "Reverso"),
             ("observation", "Observación"),
             ("unit_movement", "Movimiento de unidad"),
+            ("observation_correction", "Corrección de observación"),
         ],
         required=True,
         index=True,
