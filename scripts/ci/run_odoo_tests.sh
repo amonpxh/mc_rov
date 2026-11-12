@@ -36,6 +36,12 @@ assert resolved and Path(resolved).resolve() == Path(sys.argv[1]).resolve(), res
 print('CI_ODOO_SOURCE=' + resolved)
 PY
 
+# Consulta técnica para F4/F5/Q4: solo registry/fuentes, READ ONLY y rollback.
+KPI_SOURCE_REPO="$REPO" odoo shell -d odoo_test --no-http --max-cron-threads 0 \
+    --workers 0 --http-port 8199 --gevent-port 8198 \
+    --db-filter '^odoo_test$' --config "$CONF" --addons-path "$ADDONS" \
+    < "$REPO/scripts/ci/audit_volume_sources.py"
+
 # Primero los recorridos nuevos: un fallo del navegador no repite diez minutos
 # de regresión ya aprobada sobre el mismo producto. El GREEN final exige ambas etapas.
 python3 "$REPO/scripts/ci/run_kpi_browser_tests.py" "$REPO" "$CONF" "$ADDONS"
