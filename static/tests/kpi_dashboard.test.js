@@ -30,7 +30,8 @@ const report = () => ({
         ] },
         coverage: { unknown_repair_closure: 1, unknown_detection: 2, unknown_observation_capture: 3, ambiguous_configurations: 0 },
         filters: { revision: "latest", revision_options: [{ key: "bom:1:v2", label: "Diseño 2" }],
-            model_options: [{ id: 1, label: "ROV QA" }], resolved_revisions: ["bom:1:v2"] },
+            model_options: [{ id: 1, label: "ROV QA" }], customer_options: [{ id: 7, label: "Cliente QA" }], resolved_revisions: ["bom:1:v2"] },
+        balances: { manufactured_not_accepted: 1, accepted_not_released: 0, released_in_workshop: 1, outbound: 0, unbuilt: 0, missing_prerequisite: 0 },
     } },
     coverage: ["F1", "F2", "F3", "F4", "F5", "F6", "Q1", "Q2", "Q3", "Q4", "A1"].map((key) => ({ key, title: key, status: "capture_pending", unit: "Unidad QA", requirement: "Dato pendiente QA", decision: "Decisión QA", source: "Fuente QA", population: "Población QA", formula: "Fórmula QA" })),
 });
@@ -112,6 +113,25 @@ describe("mc_rov KPI dashboard", () => {
         await animationFrame();
         expect(".mc_kpi_findings_coverage").toHaveText(/Sin fecha de detección acreditada: 2/);
         expect(".mc_kpi_findings_coverage").toHaveText(/Sin captura histórica: 3/);
+    });
+
+    test("Cliente e intervención filtran con contexto histórico", async () => {
+        const { calls } = await setup();
+        await click("[data-section='production']");
+        await animationFrame();
+        await click("[data-kpi-customer]"); await select("7"); await animationFrame();
+        expect(calls.at(-1).kwargs.production_filters.customer_id).toBe(7);
+        await click("[data-kpi-intervention]"); await select("repair"); await animationFrame();
+        expect(calls.at(-1).kwargs.production_filters.intervention).toBe("repair");
+    });
+
+    test("Saldos se separan de hitos del período", async () => {
+        await setup();
+        await click("[data-section='production']");
+        await animationFrame();
+        expect(".mc_kpi_balances").toHaveText(/Saldos al corte/);
+        expect(".mc_kpi_balances").toHaveText(/Fabricadas sin aceptar: 1/);
+        expect(".mc_kpi_balances").toHaveText(/Liberadas en taller: 1/);
     });
 
     test("Resumen distingue órdenes de unidades producidas", async () => {
