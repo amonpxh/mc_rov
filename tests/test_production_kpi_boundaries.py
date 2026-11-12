@@ -2,8 +2,10 @@
 
 import inspect
 
+from lxml import etree
+
 from odoo import Command
-from odoo.exceptions import AccessError
+from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import tagged
 
 from .acceptance_activity_common import AcceptanceActivityCommon
@@ -119,3 +121,52 @@ class TestProductionKPIBoundaries(AcceptanceActivityCommon):
         unbuild.action_unbuild()
         self.assertEqual(len(self._events("manufactured", lot)), 1)
         self.assertEqual(len(self._events("reversed", lot)), 1)
+
+    def test_repeated_native_close_does_not_repeat_stock(self):
+        order = self._repair()
+        order.action_repair_done()
+        moves = self.env["stock.move"].search([("repair_id", "=", order.id)])
+        order.action_repair_done()
+        self.assertEqual(self.env["stock.move"].search([("repair_id", "=", order.id)]), moves)
+
+    def test_default_context_cannot_forge_design_on_create(self):
+        with self.assertRaises(UserError):
+            self.env["mrp.production"].with_context(
+                default_mc_design_snapshot={"revision_key": "forged"}
+            ).create(
+                {
+                    "product_id": self.product.id,
+                    "product_qty": 1,
+                    "product_uom_id": self.product.uom_id.id,
+                }
+            )
+
+    def test_split_inherits_original_design_even_after_product_eco(self):
+        bom = self.env["mrp.bom"].create({"product_tmpl_id": self.product.product_tmpl_id.id})
+        production = self._production(product_qty=2, bom_id=bom.id)
+        production.action_confirm()
+        original = production.mc_design_snapshot
+        self.product.product_tmpl_id.version += 1
+        parts = production._split_productions(amounts={production: [1, 1]})
+        self.assertEqual(len(parts), 2)
+        self.assertTrue(all(part.mc_design_snapshot == original for part in parts))
+
+    def test_future_detection_is_not_accepted_as_actual_evidence(self):
+        revision = self._revision(tipo="reparacion", motivo="otro")
+        with self.assertRaises(ValidationError):
+            self.env["mc.rov.revision.hallazgo"].create(
+                {
+                    "revision_id": revision.id,
+                    "componente_id": self.env.ref("mc_rov.comp_motor").id,
+                    "hallazgo_id": self.env.ref("mc_rov.hallazgo_corrosion").id,
+                    "mc_detected_at": "2099-01-01 00:00:00",
+                }
+            )
+
+    def test_detection_is_captured_from_revision_form(self):
+        view = self.env.ref("mc_rov.view_mc_rov_revision_form")
+        arch = etree.fromstring(view.arch_db.encode())
+        self.assertTrue(
+            arch.xpath("//field[@name='hallazgo_ids']//field[@name='mc_detected_at']"),
+            "Falta fecha de detección en el formulario de hallazgos",
+        )
