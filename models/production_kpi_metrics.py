@@ -135,8 +135,14 @@ def _apply_milestone(state, event):
     kind = event["kind"]
     if kind in ("manufactured", "accepted", "released", "outbound"):
         state[kind] = True
-    elif kind == "unit_movement" and event.get("effect") == "outbound":
-        state["outbound"] = True
+    elif kind == "unit_movement":
+        effect = event.get("effect")
+        if effect in ("accepted", "released", "outbound"):
+            state[effect] = True
+        elif effect == "invalidate_acceptance":
+            state.update(accepted=False, released=False)
+        elif effect == "invalidate_release":
+            state["released"] = False
     elif kind == "reversed":
         target = event.get("reversal_of")
         if target in ("manufactured", "accepted", "released", "outbound"):

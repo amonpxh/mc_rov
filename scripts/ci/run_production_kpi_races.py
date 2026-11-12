@@ -8,6 +8,7 @@ import json
 import os
 from pathlib import Path
 import re
+import subprocess
 import sys
 import tempfile
 from threading import Barrier
@@ -20,6 +21,7 @@ from odoo import SUPERUSER_ID, Command, api, fields, sql_db
 from odoo.modules.module import get_module_path, initialize_sys_path
 from odoo.modules.registry import Registry
 from odoo.tools import SQL, config
+from odoo.tools.misc import exec_pg_environ, find_pg_tool
 
 
 class ProbeRollback(Exception):
@@ -321,6 +323,42 @@ def _source_fingerprint():
         sql_db.close_db("odoo_test")
 
 
+def _restore_source(database):
+    """No exige ser dueño de odoo_test ni habilita funciones de administración web."""
+    with tempfile.TemporaryDirectory(
+        prefix="mc-rov-kpi-dump-", dir=os.environ["RUNNER_TEMP"]
+    ) as work:
+        backup = Path(work) / "source.dump"
+        subprocess.run(
+            [
+                find_pg_tool("pg_dump"),
+                "--no-owner",
+                "--format=custom",
+                "--file",
+                str(backup),
+                "odoo_test",
+            ],
+            env=exec_pg_environ(),
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.PIPE,
+            check=True,
+        )
+        subprocess.run(
+            [
+                find_pg_tool("pg_restore"),
+                "--no-owner",
+                "--no-privileges",
+                "--exit-on-error",
+                "--dbname=" + database,
+                str(backup),
+            ],
+            env=exec_pg_environ(),
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.PIPE,
+            check=True,
+        )
+
+
 def main():
     repo = Path(sys.argv[1]).resolve()
     config.parse_config(
@@ -351,8 +389,9 @@ def main():
     }
     baseline = _source_fingerprint()
     try:
-        _admin("CREATE DATABASE %s TEMPLATE odoo_test", database)
+        _admin("CREATE DATABASE %s TEMPLATE template0", database)
         created = True
+        _restore_source(database)
         registry = Registry.new(database)
         fixture, context = _base(registry)
         for phase in (

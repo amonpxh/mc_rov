@@ -210,6 +210,20 @@ class TestProductionBalances(unittest.TestCase):
         self.assertEqual(metrics.milestone_balances(rows)["unbuilt"], 1)
         self.assertEqual(metrics.summarize_events(rows)["manufacturing"]["manufactured"], 1)
 
+    def test_protocol_reopen_changes_readiness_not_historical_hitos(self):
+        rows = [self.event(kind, "unit:1") for kind in ("manufactured", "accepted", "released")]
+        rows.append(
+            self.event(
+                "unit_movement",
+                "reopen:1",
+                at="2026-11-13 12:00:00",
+                unit_identity="unit:1",
+                effect="invalidate_acceptance",
+            )
+        )
+        self.assertEqual(metrics.milestone_balances(rows)["manufactured_not_accepted"], 1)
+        self.assertEqual(metrics.summarize_events(rows)["manufacturing"]["released"], 1)
+
 
 class TestObservationCorrections(unittest.TestCase):
     """Corregir una observación conserva el original y no crea otra ocurrencia."""

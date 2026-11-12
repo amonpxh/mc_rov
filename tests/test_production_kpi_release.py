@@ -145,3 +145,18 @@ class TestProductionKPIRelease(AcceptanceActivityCommon):
             "Falta invalidar la preparación al reabrir el protocolo vigente",
         )
         self.assertEqual(len(self._events("released", unit)), 1)
+
+    def test_new_approved_attempt_can_release_with_its_own_fen(self):
+        unit = self._accepted()
+        self._wizard(unit, self._fen(unit)).action_release()
+        rnd = self._revision(lot_id=unit[1].id, tipo="rendimiento")
+        trn = self._revision(lot_id=unit[1].id, tipo="terreno")
+        self._complete(rnd | trn)
+        self.env["mc.rov.new.acceptance"].start_attempt(unit[0].id, unit[1].id, rnd.id, trn.id)
+        (rnd | trn).action_confirmar()
+        renewed = unit[0], unit[1], rnd, trn
+        try:
+            self._wizard(renewed, self._fen(renewed)).action_release()
+        except UserError as error:
+            self.fail(f"La liberación debe usar el protocolo vigente: {error}")
+        self.assertEqual(len(self._events("released", unit)), 1)
