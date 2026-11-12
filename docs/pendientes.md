@@ -14,7 +14,7 @@ población ROV de su empresa. CI 43214977130 en curso al registrar este estado.
 Formato, secretos, título y versionado de ese commit están aprobados. Después,
 CI 43214977130 confirmó 1.558/1.558 casos y cero fallos/errores.
 
-64 pruebas puras locales aprobadas, incluidos 22 contratos JS y los controles
+67 pruebas puras locales aprobadas, incluidos 22 contratos JS y los controles
 del verificador de navegador. Revisión independiente: corregidas definiciones
 incompletas y cobertura Q1 implícita, con regresiones RED/GREEN. Q1 muestra tanto
 aprobados/evaluados como evaluados/población y sus porcentajes.
@@ -30,6 +30,11 @@ dpkg-deb extrae sin instalar y su LD_LIBRARY_PATH afecta únicamente a Chrome.
 Otros faltantes o una distribución diferente de Ubuntu 24.04 detienen el proceso.
 Navegador se ejecuta primero; el resultado final exige también la suite integral.
 La comprobación visual sigue pendiente;
+CI 43218862099 arrancó Chrome pero omitió los tres HttpCase por falta de
+websocket-client. El verificador rechazó esas omisiones. Se carga una rueda pura
+1.9.0 con SHA-256 fijo únicamente mediante PYTHONPATH del proceso Odoo de pruebas,
+sin pip ni cambios al Python del host. También se distingue el skip de un test
+de la advertencia de una ruta addons inexistente, con regresión local.
 no declarar validación visual por las pruebas Node con imports Odoo simulados.
 
 El primer RED de STAGING observó 18 contratos ausentes y un error de fixture.

@@ -24,6 +24,12 @@ AUDIO_URL = (
     "libasound2t64_1.2.11-1ubuntu0.3_amd64.deb"
 )
 AUDIO_SHA256 = "5d17bfb5683eb99f1be951fe48e1be5bf3c52391913b6b74a8aecf9b4f5e779f"
+WEBSOCKET_URL = (
+    "https://files.pythonhosted.org/packages/34/db/"
+    "b10e48aa8fff7407e67470363eac595018441cf32d5e1001567a7aeba5d2/"
+    "websocket_client-1.9.0-py3-none-any.whl"
+)
+WEBSOCKET_SHA256 = "af248a825037ef591efbf6ed20cc5faa03d3b47b9e5a2230a529eeee1c1fc3ef"
 
 
 def download_verified(url, expected_hash, archive):
@@ -95,7 +101,7 @@ def verify_result(text, rc, expected_hoot):
         raise RuntimeError("HttpCase no confirmó sus tres casos de navegador")
     if re.search(
         r"(Chrome executable not found|websocket-client module is not installed|"
-        r"Failed to detect chrome devtools port|skipped)",
+        r"Failed to detect chrome devtools port|skipped TestKPIDashboardBrowser\.)",
         text,
         re.I,
     ):
@@ -105,6 +111,14 @@ def verify_result(text, rc, expected_hoot):
     if not expected_hoot or not re.search(rf"Passed {expected_hoot} tests \(", text):
         raise RuntimeError("La población ejecutada por HOOT no coincide con sus contratos")
     print(f"CI_KPI_BROWSER=PASSED CASES=3 HOOT={expected_hoot}", flush=True)
+
+
+def browser_environment(root, executable):
+    # Rueda Python pura leída por zipimport: sin pip, .pth ni cambios al Python del host.
+    wheel = root / "websocket_client-1.9.0-py3-none-any.whl"
+    download_verified(WEBSOCKET_URL, WEBSOCKET_SHA256, wheel)
+    python_path = os.pathsep.join(filter(None, [str(wheel), os.environ.get("PYTHONPATH")]))
+    return {**os.environ, "ODOO_BROWSER_BIN": str(executable), "PYTHONPATH": python_path}
 
 
 def main():
@@ -117,7 +131,7 @@ def main():
         raise RuntimeError("El navegador exige un checkout aislado de CI")
     with tempfile.TemporaryDirectory(prefix="mc-rov-browser-", dir=temporary) as workspace:
         executable = prepare_browser(Path(workspace))
-        environment = {**os.environ, "ODOO_BROWSER_BIN": str(executable)}
+        environment = browser_environment(Path(workspace), executable)
         command = [
             "odoo",
             "-d",
