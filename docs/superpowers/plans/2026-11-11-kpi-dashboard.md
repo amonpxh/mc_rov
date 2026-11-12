@@ -40,7 +40,7 @@ repair/manufacturing. Métodos auxiliares privados para seleccionar fuente compl
 - [x] Diagnosticar fixture que interrumpía sin fallo real y corregir su preparación.
 - [x] Usuario autoriza publicar rama y PR borrador para continuar automáticamente por CI.
 - [ ] Observar RED exacto del intento real; errores de fixtures no son RED válido.
-- [ ] Implementar puente READ ONLY delegando Q1/seguimiento; no devolver `episodes`
+- [x] Implementar puente READ ONLY delegando Q1/seguimiento; no devolver `episodes`
       ni IDs de intentos privados, solamente resúmenes y acciones autorizadas.
 - [ ] Verificar GREEN focalizado con nombres exactos y datos/fuentes intactos.
 
@@ -51,16 +51,16 @@ presentación puro; `views/kpi_dashboard_views.xml`; pruebas HOOT y puras apropi
 **Modificar:** assets/data del manifiesto, registro de pruebas según convenciones.
 **Consumir:** respuesta de Task1; ORM y action Odoo. Guardar pestaña/filtros al volver.
 
-- [ ] Pruebas antes de código: Sin base, desconocido, sin acceso, empresa cambiada,
+- [x] Pruebas antes de código: Sin base, desconocido, sin acceso, empresa cambiada,
       error RPC, respuesta tardía y navegación al detalle/vuelta.
-- [ ] Resumen/Calidad/Seguimiento/Cobertura; filtros de cierre solo en Seguimiento.
-- [ ] Menú para grupo de consulta del equipo sin nuevas membresías.
+- [x] Resumen/Calidad/Seguimiento/Cobertura; filtros de cierre solo en Seguimiento.
+- [x] Menú para grupo de consulta del equipo sin nuevas membresías.
 - [ ] RED/GREEN de vistas y HOOT, escritorio/móvil en navegador integrado.
 
 ### Task 3: revisión y entrega del primer incremento
 
 - [ ] Permisos, empresas, lectura sin escrituras, sin fuga de privados o episodios.
-- [ ] Revisión independiente del conjunto; corregir fallos con regresiones.
+- [x] Revisión independiente del conjunto; corregir fallos con regresiones.
 - [ ] Regresión integral sobre producto final una vez; UI y QA aislado donde corresponda.
 - [ ] Documentar evidencia, actualizar pendientes y preparar publicación solo cuando
       se autorice. Integración y producción no se infieren de este desarrollo.

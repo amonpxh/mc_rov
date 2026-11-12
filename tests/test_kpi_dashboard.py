@@ -177,7 +177,18 @@ class TestKPIDashboard(RevisionCommon):
     def test_foreign_company_orders_are_not_included(self):
         service = self._dashboard()
         foreign = self.env["res.company"].create({"name": "QA otro origen tablero"})
-        self._orders(company_id=foreign.id, lot_id=False)
+        # Los defaults nativos de ubicaciones deben pertenecer a la empresa de la orden.
+        order = (
+            self.env["repair.order"]
+            .with_company(foreign)
+            .create({"product_id": self.product.id, "company_id": foreign.id})
+        )
+        definition, domain = (
+            self.env["mc.rov.work.center"]
+            .with_company(foreign)
+            ._get_domain("repair", "orders", "all")
+        )
+        self.assertIn(order, self.env[definition[0]].with_company(foreign).search(domain))
         self.assertEqual(self._quality(service.get_dashboard())["population"], 0)
 
     def test_read_keeps_native_source_unchanged(self):
