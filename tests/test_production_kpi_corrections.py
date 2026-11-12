@@ -74,15 +74,16 @@ class TestProductionKPICorrections(AcceptanceActivityCommon):
         finding.mc_detected_at = "2026-11-09 13:00:00"
         revision.mc_findings_correction_reason = "Fecha comprobada en registro QA"
         revision.action_confirmar()
+        service = self._service()
         self.assertEqual(
-            self._service().get_summary(
-                revision="all", date_from="2026-11-09", date_to="2026-11-09"
-            )["findings"]["total"],
+            service.get_summary(revision="all", date_from="2026-11-09", date_to="2026-11-09")[
+                "findings"
+            ]["total"],
             1,
         )
         self.assertEqual(
-            self._service().get_summary(
-                revision="all", date_from="2026-11-10", date_to="2026-11-10"
-            )["findings"]["total"],
+            service.get_summary(revision="all", date_from="2026-11-10", date_to="2026-11-10")[
+                "findings"
+            ]["total"],
             0,
         )
