@@ -125,3 +125,23 @@ class TestProductionKPIRelease(AcceptanceActivityCommon):
         other = self._accepted()
         with self.assertRaises(UserError):
             self._wizard(unit, self._fen(other)).action_release()
+
+    def test_reopening_current_protocol_invalidates_current_readiness(self):
+        unit = self._accepted()
+        self._wizard(unit, self._fen(unit)).action_release()
+        unit[2].action_volver_a_borrador()
+        events = (
+            self.env["mc.rov.production.event"]
+            .sudo()
+            .search(
+                [
+                    ("lot_id", "=", unit[1].id),
+                    ("kind", "=", "unit_movement"),
+                ]
+            )
+        )
+        self.assertTrue(
+            events.filtered(lambda row: row.payload.get("effect") == "invalidate_acceptance"),
+            "Falta invalidar la preparación al reabrir el protocolo vigente",
+        )
+        self.assertEqual(len(self._events("released", unit)), 1)

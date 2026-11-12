@@ -105,3 +105,15 @@ class TestProductionKPIService(AcceptanceActivityCommon):
         )
         with self.assertRaises(AccessError):
             self._summary(service, revision="all")
+
+    def test_source_action_uses_business_records_not_private_event_ids(self):
+        service = self._service()
+        self.assertTrue(
+            callable(getattr(service, "action_sources", None)), "Falta navegación por origen KPI"
+        )
+        self._finished_production()
+        action = service.action_sources(
+            "manufactured", revision="all", model_id=self.product.product_tmpl_id.id
+        )
+        self.assertEqual(action["res_model"], "mrp.production")
+        self.assertTrue(action["domain"])

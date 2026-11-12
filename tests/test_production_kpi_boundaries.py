@@ -170,3 +170,20 @@ class TestProductionKPIBoundaries(AcceptanceActivityCommon):
             arch.xpath("//field[@name='hallazgo_ids']//field[@name='mc_detected_at']"),
             "Falta fecha de detección en el formulario de hallazgos",
         )
+
+    def test_manufactured_unit_keeps_native_sales_customer(self):
+        service = self._filters_feature()
+        customer = self.env["res.partner"].create({"name": "QA cliente de fabricación"})
+        sale = self.env["sale.order"].create({"partner_id": customer.id})
+        line = self.env["sale.order.line"].create(
+            {"order_id": sale.id, "product_id": self.product.id, "product_uom_qty": 1}
+        )
+        production = self._production(sale_line_id=line.id)
+        production.action_confirm()
+        self._finish_acceptance_production(production, self._serials())
+        self.assertEqual(
+            service.get_summary(revision="all", customer_id=customer.id)["manufacturing"][
+                "manufactured"
+            ],
+            1,
+        )
