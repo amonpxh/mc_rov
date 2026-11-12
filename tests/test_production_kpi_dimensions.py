@@ -1,8 +1,11 @@
 """Configuración de diseño histórica, movimientos y cobertura del tablero."""
 
+import inspect
+
 from odoo import Command
 from odoo.exceptions import UserError
 from odoo.tests import tagged
+from odoo.tests.common import new_test_user
 
 from .acceptance_activity_common import AcceptanceActivityCommon
 
@@ -46,7 +49,6 @@ class TestProductionKPIDimensions(AcceptanceActivityCommon):
     def _move(self, lot, source, destination):
         move = self.env["stock.move"].create(
             {
-                "name": "QA transferencia por hito",
                 "product_id": self.product.id,
                 "product_uom_qty": 1,
                 "product_uom": self.product.uom_id.id,
@@ -118,10 +120,14 @@ class TestProductionKPIDimensions(AcceptanceActivityCommon):
         self.assertEqual(len(self._events("reversed", lot)), 1)
 
     def test_dashboard_exposes_production_only_when_requested(self):
-        service = self.env["mc.rov.kpi.dashboard"]
+        viewer = new_test_user(
+            self.env,
+            login="qa_volume_bridge",
+            groups="base.group_user,stock.group_stock_user,mrp.group_mrp_user,mc_rov.group_work_assignment_team",
+        )
+        service = self.env["mc.rov.kpi.dashboard"].with_user(viewer)
         self.assertTrue(
-            "production_filters"
-            in __import__("inspect").signature(service.get_dashboard).parameters,
+            "production_filters" in inspect.signature(service.get_dashboard).parameters,
             "Falta integración del tablero",
         )
         report = service.get_dashboard(production_filters={"revision": "all"})
