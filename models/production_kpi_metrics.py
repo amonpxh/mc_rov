@@ -106,6 +106,30 @@ def _pareto_groups(observations, dimension, unit):
     return groups, labels, missing_unit
 
 
+def project_observations(events):
+    """Aplica enmiendas sin modificar los eventos ni sumar otra ocurrencia."""
+    originals = {row["identity"]: row for row in events if row["kind"] == "observation"}
+    current = {key: dict(value) for key, value in originals.items()}
+    for correction in events:
+        if correction["kind"] != "observation_correction":
+            continue
+        identity = correction.get("observation_identity")
+        if identity not in originals:
+            continue
+        replacement = correction.get("replacement")
+        if replacement is False:
+            current[identity] = None
+        else:
+            current[identity] = {
+                **(current.get(identity) or originals[identity]),
+                **(replacement or {}),
+                "identity": identity,
+                "kind": "observation",
+                "at": correction.get("detected_at"),
+            }
+    return [row for row in current.values() if row is not None]
+
+
 def _apply_milestone(state, event):
     """Los reversos cambian existencia actual, sin borrar hitos históricos."""
     kind = event["kind"]

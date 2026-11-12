@@ -209,3 +209,61 @@ class TestProductionBalances(unittest.TestCase):
         ]
         self.assertEqual(metrics.milestone_balances(rows)["unbuilt"], 1)
         self.assertEqual(metrics.summarize_events(rows)["manufacturing"]["manufactured"], 1)
+
+
+class TestObservationCorrections(unittest.TestCase):
+    """Corregir una observación conserva el original y no crea otra ocurrencia."""
+
+    def test_amendment_replaces_category_without_extra_observation(self):
+        self.assertTrue(
+            hasattr(metrics, "project_observations"), "Falta proyección de correcciones"
+        )
+        original = {
+            "kind": "observation",
+            "identity": "finding:1",
+            "at": "2026-11-10 12:00:00",
+            "finding_id": 1,
+        }
+        amendment = {
+            "kind": "observation_correction",
+            "identity": "correction:1",
+            "at": "2026-11-11 12:00:00",
+            "observation_identity": "finding:1",
+            "replacement": {"finding_id": 2},
+            "detected_at": original["at"],
+        }
+        rows = metrics.project_observations([original, amendment])
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["identity"], "finding:1")
+        self.assertEqual(rows[0]["finding_id"], 2)
+        self.assertEqual(original["finding_id"], 1)
+
+    def test_audited_void_removes_occurrence_without_deleting_event(self):
+        self.assertTrue(
+            hasattr(metrics, "project_observations"), "Falta proyección de correcciones"
+        )
+        original = {"kind": "observation", "identity": "finding:1", "at": "2026-11-10 12:00:00"}
+        amendment = {
+            "kind": "observation_correction",
+            "identity": "correction:1",
+            "observation_identity": "finding:1",
+            "replacement": False,
+        }
+        self.assertEqual(metrics.project_observations([original, amendment]), [])
+        self.assertEqual(original["kind"], "observation")
+
+    def test_latest_correction_keeps_corrected_detection_date(self):
+        self.assertTrue(
+            hasattr(metrics, "project_observations"), "Falta proyección de correcciones"
+        )
+        original = {"kind": "observation", "identity": "finding:1", "at": False}
+        amendment = {
+            "kind": "observation_correction",
+            "identity": "correction:1",
+            "observation_identity": "finding:1",
+            "replacement": {},
+            "detected_at": "2026-11-10 12:00:00",
+        }
+        self.assertEqual(
+            metrics.project_observations([original, amendment])[0]["at"], amendment["detected_at"]
+        )
