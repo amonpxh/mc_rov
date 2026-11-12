@@ -77,7 +77,9 @@ from . import new_acceptance_presentation
 from . import new_first_pass_kpi
 from . import kpi_dashboard
 from . import production_kpi_event
+from . import production_kpi_design
 from . import production_kpi_capture
 from . import production_kpi_findings
 from . import production_kpi_service
 from . import production_kpi_release
+from . import production_kpi_stock

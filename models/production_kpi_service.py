@@ -5,6 +5,7 @@ from odoo.exceptions import AccessError, ValidationError
 from odoo.fields import Domain
 
 from .production_kpi_metrics import local_day, pareto, period_bounds, summarize_events
+from .production_kpi_design import design_snapshot
 
 
 class ProductionKPIService(models.AbstractModel):
@@ -94,8 +95,8 @@ class ProductionKPIService(models.AbstractModel):
                 ambiguous += 1
                 continue
             bom = candidates[0]
-            key = f"bom:{bom.id}:v{bom.version}"
-            options[key] = {"key": key, "label": f"{bom.code or 'BoM'} · revisión {bom.version}"}
+            key = design_snapshot(bom)["revision_key"]
+            options[key] = {"key": key, "label": design_snapshot(bom)["revision_label"]}
             latest.append(key)
         if selector not in ("all", "latest") and selector not in options:
             raise ValidationError(

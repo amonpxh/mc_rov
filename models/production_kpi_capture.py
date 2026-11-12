@@ -58,14 +58,12 @@ class ManufacturingProductionCapture(models.Model):
             lambda row: row.state == "done" and previous[row.id] != "done"
         ):
             for lot in service._produced_lots(production).filtered("es_un_rov"):
-                bom = production.bom_id
-                design = {
-                    "bom_id": bom.id,
-                    "revision_key": f"bom:{bom.id}:v{bom.version}" if bom else False,
-                    "revision_label": (
-                        f"{bom.code or 'BoM'} · revisión {bom.version}" if bom else False
-                    ),
-                }
+                design = dict(production.mc_design_snapshot or {})
+                if design.get("bom_id") and (
+                    design["bom_id"] != production.bom_id.id
+                    or design.get("bom_version") != production.bom_id.version
+                ):
+                    design.update(revision_key=False, revision_label=False, design_conflict=True)
                 append_event(
                     production,
                     lot,
