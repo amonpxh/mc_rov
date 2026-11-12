@@ -79,3 +79,4 @@ from . import kpi_dashboard
 from . import production_kpi_event
 from . import production_kpi_capture
 from . import production_kpi_findings
+from . import production_kpi_service
