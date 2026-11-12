@@ -68,3 +68,4 @@ from . import test_kpi_dashboard_views
 from . import test_kpi_dashboard_browser
 from . import test_new_acceptance_review
 from . import test_production_kpi_capture
+from . import test_production_kpi_service

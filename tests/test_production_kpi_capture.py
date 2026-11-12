@@ -16,7 +16,7 @@ class TestProductionKPICapture(AcceptanceActivityCommon):
     # pylint: disable=too-many-public-methods
 
     def _feature(self):
-        self.assertIn("mc.rov.production.event", self.env.registry.models, "Falta captura KPI")
+        self.assertTrue("mc.rov.production.event" in self.env.registry.models, "Falta captura KPI")
         self.assertIn("mc_detected_at", self.env["mc.rov.revision.hallazgo"]._fields)
 
     def _events(self, kind, **domain):
