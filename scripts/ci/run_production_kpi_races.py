@@ -1,4 +1,4 @@
-"""Seis carreras sobre copia efímera de odoo_test, nunca sobre una base servida."""
+"""Siete carreras sobre copia efímera de odoo_test, nunca sobre una base servida."""
 
 # El informe de stdout es un protocolo CI; los casos usan solo identidades QA propias.
 # pylint: disable=unknown-option-value,print-used,too-many-locals
@@ -141,7 +141,7 @@ def _case(registry, context, fixture, phase):
                 }
             )
             case.update(model="repair.order", source=record.id, state="state", kind="repair_done")
-        elif phase in ("manufacture_pair", "release_pair"):
+        elif phase in ("manufacture_pair", "release_pair", "joint_phases"):
             record = env["mrp.production"].create(
                 {
                     "product_id": product.id,
@@ -159,7 +159,7 @@ def _case(registry, context, fixture, phase):
             case.update(
                 model="mrp.production", source=record.id, state="state", kind="manufactured"
             )
-            if phase == "release_pair":
+            if phase in ("release_pair", "joint_phases"):
                 record.with_context(skip_redirection=True).button_mark_done()
                 revisions = env["mc.rov.revision"].create(
                     [
@@ -172,6 +172,16 @@ def _case(registry, context, fixture, phase):
                 env["mc.rov.new.acceptance"].start_attempt(
                     record.id, lot.id, revisions[0].id, revisions[1].id
                 )
+                if phase == "joint_phases":
+                    case.update(
+                        model="mc.rov.revision",
+                        source=revisions[0].id,
+                        sources=revisions.ids,
+                        state="estado",
+                        kind="accepted",
+                    )
+                    cursor.commit()
+                    return case
                 revisions.action_confirmar()
                 fen = env["mc.rov.ficha.equipo.nuevo"].create(
                     {"lot_id": lot.id, "rnd_id": revisions[0].id, "trn_id": revisions[1].id}
@@ -239,6 +249,7 @@ def _race(registry, context, fixture, case):
 
     def worker(index):
         first_pid, first_state = None, None
+        own_case = {**case, "source": case.get("sources", [case["source"]] * 2)[index]}
         for attempt in range(1, 5):
             try:
                 with registry.cursor() as cursor:
@@ -246,11 +257,13 @@ def _race(registry, context, fixture, case):
                     cursor.execute("SET LOCAL statement_timeout='45s'")
                     env = api.Environment(cursor, fixture["users"][index], context)
                     if attempt == 1:
-                        first_state = env[case["model"]].browse(case["source"])[case["state"]]
+                        first_state = env[own_case["model"]].browse(own_case["source"])[
+                            own_case["state"]
+                        ]
                         cursor.execute("SELECT pg_backend_pid()")
                         first_pid = cursor.fetchone()[0]
                         barrier.wait()
-                    _action(env, case)
+                    _action(env, own_case)
                     if case["phase"] == "repair_rollback" and index == 0:
                         raise ProbeRollback()
                     cursor.commit()
@@ -402,10 +415,11 @@ def main():
             "revision_pair",
             "release_pair",
             "correction_pair",
+            "joint_phases",
         ):
             case = _case(registry, context, fixture, phase)
             report["cases"].append(_race(registry, context, fixture, case))
-        assert len(report["cases"]) == 6
+        assert len(report["cases"]) == 7
         report["source_unchanged"] = _source_fingerprint() == baseline
         assert report["source_unchanged"], "Cambió la referencia de odoo_test"
         passed = True
@@ -436,7 +450,7 @@ def main():
             delete=False,
         ) as output:
             json.dump(report, output, ensure_ascii=False, indent=2)
-    print("CI_PRODUCTION_RACES=PASSED CASES=6 CONNECTIONS=2", flush=True)
+    print("CI_PRODUCTION_RACES=PASSED CASES=7 CONNECTIONS=2", flush=True)
 
 
 if __name__ == "__main__":

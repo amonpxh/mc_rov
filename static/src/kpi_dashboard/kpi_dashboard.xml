@@ -158,6 +158,7 @@
                             <div class="mc_kpi_findings_coverage mt-3">
                                 <p>Sin fecha de detección acreditada: <t t-esc="productionMetrics.coverage.unknown_detection"/></p>
                                 <p>Sin captura histórica: <t t-esc="productionMetrics.coverage.unknown_observation_capture"/></p>
+                                <p>Observaciones sin revisión de diseño acreditada: <t t-esc="productionMetrics.coverage.unknown_observation_revision || 0"/>. Consúltelas con «Todas»; no se atribuyen a la última.</p>
                                 <p>Correcciones registradas con motivo: <t t-esc="productionMetrics.coverage.observation_corrections || 0"/>. El original se conserva en la revisión.</p>
                                 <p>Sin clasificar: <t t-esc="productionMetrics.findings.unclassified"/>. Sin unidad vinculada: <t t-esc="productionMetrics.findings.missing_unit"/>.</p>
                             </div>

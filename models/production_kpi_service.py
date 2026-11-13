@@ -259,6 +259,9 @@ class ProductionKPIService(models.AbstractModel):
             "unknown_detection": sum(
                 row["kind"] == "observation" and not row.get("at") for row in normalized
             ),
+            "unknown_observation_revision": sum(
+                row["kind"] == "observation" and not row.get("revision_key") for row in normalized
+            ),
             "observation_corrections": len(
                 events.filtered(lambda row: row.kind == "observation_correction")
             ),
