@@ -1,6 +1,7 @@
 """Captura cierres y unidades solo después de sus acciones nativas completas."""
 
 from odoo import fields, models
+from odoo.exceptions import AccessError
 
 from .production_kpi_event import append_event, lock_source, unit_design
 
@@ -54,6 +55,28 @@ class ManufacturingProductionCapture(models.Model):
 
     _inherit = "mrp.production"
 
+    def _kpi_customer_snapshot(self):
+        self.ensure_one()
+        source = self.with_user(self.env.uid)
+        try:
+            source.check_access("read")
+            line = source.sale_line_id
+            line.check_access("read")
+            line.order_id.check_access("read")
+            customer = line.order_id.partner_id
+            customer.check_access("read")
+            if line and line.order_id.company_id == source.company_id:
+                return {
+                    "customer_id": customer.id,
+                    "customer_label": customer.display_name,
+                    "customer_basis": "native_sale_line",
+                }
+        except AccessError:
+            # La captura no puede exigir permisos de Ventas adicionales para
+            # completar stock. La dimensión ausente se muestra en cobertura.
+            pass
+        return {"customer_id": False, "customer_label": False, "customer_basis": "unknown"}
+
     def button_mark_done(self):
         lock_source(self)
         previous = {production.id: production.state for production in self}
@@ -74,7 +97,11 @@ class ManufacturingProductionCapture(models.Model):
                     lot,
                     "manufactured",
                     f"group:{production.production_group_id.id}:lot:{lot.id}",
-                    {"production_group_id": production.production_group_id.id, **design},
+                    {
+                        "production_group_id": production.production_group_id.id,
+                        **production._kpi_customer_snapshot(),
+                        **design,
+                    },
                     at=fields.Datetime.now(),
                     production_id=production.id,
                 )

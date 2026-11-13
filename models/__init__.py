@@ -83,3 +83,4 @@ from . import production_kpi_findings
 from . import production_kpi_service
 from . import production_kpi_release
 from . import production_kpi_stock
+from . import production_kpi_navigation

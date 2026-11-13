@@ -134,6 +134,26 @@ describe("mc_rov KPI dashboard", () => {
         expect(".mc_kpi_balances").toHaveText(/Liberadas en taller: 1/);
     });
 
+    test("Tarjeta abre documentos de origen con los mismos filtros", async () => {
+        const { calls, actions } = await setup();
+        await click("[data-section='production']"); await animationFrame();
+        await click("[data-volume-source='repair_done']"); await animationFrame();
+        expect(calls.at(-1).method).toBe("action_production_sources");
+        expect(calls.at(-1).args).toEqual(["repair_done"]);
+        expect(calls.at(-1).kwargs.revision).toBe("latest");
+        expect(actions.length).toBe(1);
+    });
+
+    test("Cambio de empresa limpia cortes de modelo cliente y revisión", async () => {
+        const { calls } = await setup({ state: { dashboard: {
+            section: "production", modelId: 1, customerId: 7, revision: "bom:1:v2",
+        } } });
+        userBus.trigger("ACTIVE_COMPANIES_CHANGED"); await animationFrame();
+        expect(calls.at(-1).kwargs.production_filters.model_id).toBe(false);
+        expect(calls.at(-1).kwargs.production_filters.customer_id).toBe(false);
+        expect(calls.at(-1).kwargs.production_filters.revision).toBe("latest");
+    });
+
     test("Resumen distingue órdenes de unidades producidas", async () => {
         await setup();
         expect(".mc_kpi_portfolio[data-source='repair']").toHaveText(/Órdenes de reparación abiertas/);

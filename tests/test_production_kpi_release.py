@@ -153,6 +153,11 @@ class TestProductionKPIRelease(AcceptanceActivityCommon):
         trn = self._revision(lot_id=unit[1].id, tipo="terreno")
         self._complete(rnd | trn)
         self.env["mc.rov.new.acceptance"].start_attempt(unit[0].id, unit[1].id, rnd.id, trn.id)
+        self.assertTrue(
+            self._events("unit_movement", unit).filtered(
+                lambda row: row.payload.get("effect") == "invalidate_acceptance"
+            )
+        )
         (rnd | trn).action_confirmar()
         renewed = unit[0], unit[1], rnd, trn
         try:
