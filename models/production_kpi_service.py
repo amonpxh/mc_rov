@@ -120,7 +120,33 @@ class ProductionKPIService(models.AbstractModel):
         # Nunca omitir una serie o producto histórico ilegible después de elevar.
         self.env["stock.lot"].browse(events.lot_id.ids).check_access("read")
         self.env["product.product"].browse(events.product_id.ids).check_access("read")
+        self._check_event_sources(events)
         return events
+
+    def _check_event_sources(self, events):
+        """La MO visible no habilita movimientos, protocolos ni fichas restringidos."""
+        self.env["stock.move"].browse(events.move_id.ids).check_access("read")
+        self.env["mc.rov.revision"].browse(events.revision_id.ids).check_access("read")
+        attempts = (
+            self.env["mc.rov.new.acceptance.attempt"]
+            .sudo()
+            .browse(
+                sorted(
+                    {row.payload["attempt_id"] for row in events if row.payload.get("attempt_id")}
+                )
+            )
+        )
+        self.env["mc.rov.revision"].browse((attempts.rnd_id | attempts.trn_id).ids).check_access(
+            "read"
+        )
+        for model, key in (
+            ("mc.rov.ficha.equipo.nuevo", "fen_id"),
+            ("ir.attachment", "pdf_attachment_id"),
+            ("mrp.unbuild", "unbuild_id"),
+        ):
+            self.env[model].browse(
+                sorted({row.payload[key] for row in events if row.payload.get(key)})
+            ).check_access("read")
 
     def _revision_options(self, products, events, selector):
         if not isinstance(selector, str):
@@ -186,15 +212,27 @@ class ProductionKPIService(models.AbstractModel):
         sources = self._sources(model_id)
         events = self._events(sources)
         resolved, options, ambiguous = self._revision_options(sources[1], events, revision)
-        normalized = self._normalized(events)
+        history = self._normalized(events)
+        normalized = history
         normalized = self._dimension_filter(normalized, customer_id, severity, intervention)
         report = summarize_events(normalized, date_from, date_to, resolved)
-        selected = (
-            normalized
+        balance_rows = (
+            history
             if resolved == "all"
-            else [row for row in normalized if row.get("revision_key") in resolved]
+            else [row for row in history if row.get("revision_key") in resolved]
         )
-        report["balances"] = milestone_balances(selected, date_to=date_to)
+        if customer_id:
+            cohort = {
+                row["identity"]
+                for row in balance_rows
+                if row["kind"] == "manufactured" and row.get("customer_id") == customer_id
+            }
+            balance_rows = [
+                row
+                for row in balance_rows
+                if (row.get("unit_identity") or row["identity"]) in cohort
+            ]
+        report["balances"] = milestone_balances(balance_rows, date_to=date_to)
         observations = self._observations(normalized, bounds, resolved)
         try:
             report["findings"] = pareto(observations, dimension=dimension, unit=unit)
@@ -202,6 +240,18 @@ class ProductionKPIService(models.AbstractModel):
             raise ValidationError(_("La unidad de Pareto no es válida.")) from error
         repairs = sources[2]
         report["coverage"] = {
+            "unknown_manufacturing_orders": len(
+                sources[3].filtered(lambda row: row.state == "done")
+                - events.filtered(lambda row: row.kind == "manufactured").production_id
+            ),
+            "non_serial_manufacturing_orders": len(
+                sources[3].filtered(
+                    lambda row: row.state == "done" and row.product_id.tracking != "serial"
+                )
+            ),
+            "unknown_manufacturing_customer": sum(
+                row["kind"] == "manufactured" and not row.get("customer_id") for row in history
+            ),
             "unknown_repair_closure": len(
                 repairs.filtered(lambda row: row.state == "done")
                 - events.filtered(lambda row: row.kind == "repair_done").repair_id

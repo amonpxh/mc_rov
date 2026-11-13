@@ -237,11 +237,15 @@ class TestProductionKPIBoundaries(AcceptanceActivityCommon):
     def test_latest_explains_observations_without_design(self):
         service = self._service()
         revision = self._revision(tipo="reparacion", motivo="otro")
+        self._corrida_completa(revision)
+        self._responder_todo(revision)
+        self._responder_sellos(revision)
         self.env["mc.rov.revision.hallazgo"].create(
             {
                 "revision_id": revision.id,
                 "componente_id": self.env.ref("mc_rov.comp_motor").id,
                 "hallazgo_id": self.env.ref("mc_rov.hallazgo_corrosion").id,
+                "severidad": "informativo",
                 "mc_detected_at": "2026-01-01 12:00:00",
             }
         )

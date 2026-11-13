@@ -25,16 +25,16 @@ INITIAL_FAMILIES = (
     (
         "F4",
         "Reparaciones terminadas",
-        "source_pending",
+        "partial",
         "Visitas y series distintas",
-        "Comprobar primer cierre válido, reapertura y recierre.",
+        "Primer cierre nativo acreditado; registros previos sin captura se muestran en cobertura.",
     ),
     (
         "F5",
         "Unidades por hito",
-        "source_pending",
+        "partial",
         "Unidades ROV fabricadas",
-        "Conciliar cantidades, series, parciales y los hitos posteriores.",
+        "Hitos serializados y saldos acreditados; no se reconstruye historia antigua sin evidencia.",
     ),
     (
         "F6",
@@ -67,9 +67,9 @@ INITIAL_FAMILIES = (
     (
         "Q4",
         "Hallazgos y Pareto",
-        "source_pending",
+        "partial",
         "Observaciones, visitas o series",
-        "Comprobar fecha, agrupación y cobertura antes de contar incidentes únicos.",
+        "Observaciones selladas y detección explícita; no equivalen a incidentes únicos.",
     ),
     (
         "A1",
@@ -147,8 +147,8 @@ DEFINITIONS = {
             "respaldada y transferencia."
         ),
         "population": (
-            "Episodios y series de producto final ROV. Componentes, subproductos y prototipos "
-            "separados."
+            "Episodios y series de producto final ROV. Componentes y subproductos "
+            "fuera del volumen de unidades finales."
         ),
         "formula": (
             "Una unidad por episodio/serie en cada hito válido. Divisiones de MO no duplican "

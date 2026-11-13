@@ -65,19 +65,27 @@ class ProductionDesignSnapshot(models.Model):
         return result
 
     def _split_productions(self, *args, **kwargs):
-        snapshots = {
-            (
+        originals = {row.id: dict(row.mc_design_snapshot or {}) for row in self}
+        snapshots = {}
+        for production in self:
+            key = (
                 production.production_group_id.id,
                 production.bom_id.id,
                 production.product_id.id,
-            ): dict(production.mc_design_snapshot or {})
-            for production in self
-        }
+            )
+            snapshots.setdefault(key, []).append(originals[production.id])
         result = super()._split_productions(*args, **kwargs)
         for part in result:
             key = part.production_group_id.id, part.bom_id.id, part.product_id.id
-            if key in snapshots:
-                part.with_context(**{_KEY: _SNAPSHOT}).write(
-                    {"mc_design_snapshot": snapshots[key]}
-                )
+            candidates = snapshots.get(key, [])
+            if part.id in originals:
+                snapshot = originals[part.id]
+            elif candidates and all(row == candidates[0] for row in candidates):
+                snapshot = candidates[0]
+            else:
+                # La API nativa agrupa hijos sin filiación individual. Ante
+                # configuraciones mezcladas no atribuir un diseño arbitrario.
+                snapshot = {}
+            if key in snapshots or part.id in originals:
+                part.with_context(**{_KEY: _SNAPSHOT}).write({"mc_design_snapshot": snapshot})
         return result

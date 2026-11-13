@@ -134,6 +134,8 @@
                             </div>
                             <div class="mc_kpi_volume_coverage alert alert-light mt-3">
                                 <p>Órdenes cerradas sin primer cierre acreditado: <t t-esc="productionMetrics.coverage.unknown_repair_closure"/></p>
+                                <p>Fabricaciones terminadas sin captura de unidades: <t t-esc="productionMetrics.coverage.unknown_manufacturing_orders || 0"/>. Órdenes de producto sin seguimiento serial: <t t-esc="productionMetrics.coverage.non_serial_manufacturing_orders || 0"/>.</p>
+                                <p>Unidades fabricadas sin cliente acreditado: <t t-esc="productionMetrics.coverage.unknown_manufacturing_customer || 0"/>. No se asigna el propietario actual al pasado.</p>
                                 <p>Sin revisión de diseño acreditada: <t t-esc="productionMetrics.repair.unknown_revision"/> cierres y <t t-esc="productionMetrics.manufacturing.unknown_revision"/> hitos de fabricación.</p>
                                 <p>Reversos en el período: <t t-esc="productionMetrics.manufacturing.reversed"/>. No borran unidades fabricadas históricas.</p>
                                 <p class="mb-0">Configuraciones vigentes ambiguas: <t t-esc="productionMetrics.coverage.ambiguous_configurations"/>. No se elige una versión por aproximación.</p>
