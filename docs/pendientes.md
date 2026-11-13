@@ -1,3 +1,31 @@
+## F4/F5/Q4: implementación en curso — 2026-11-13
+
+PR124 sigue en borrador, rama feature/kpi-volume-pareto, checkout kpi-dashboard.
+Usuario aprobó implementar el diseño, incluyendo FEN como único documento de
+liberación y validación explícita de Supervisor. No autorizó integrar ni desplegar.
+Código: captura privada de primer cierre, unidades/hitos, diseño congelado al
+confirmar y heredado por parciales, observaciones/Pareto y enmiendas auditadas.
+Tablero con Producción/Hallazgos, filtros históricos y saldos al corte.
+
+Evidencia: 52 contratos nativos +113 HOOT +5 HttpCase (dos poblados con acciones
+nativas) aprobados por etapas; capturas escritorio/móvil preservadas en .tmp.
+Después, 56 nativos:55 verdes y1error de fixture por crear dos veces la misma
+cuenta QA; corregido para reutilizarla. CI99a1843 confirmó56/56; carreras aún no
+ejecutadas: falló CREATE DATABASE TEMPLATE porque CI no es dueño de odoo_test.
+Se cambió solo preparación a pg_dump/pg_restore +template0, sin elevar permisos.
+Las copias son efímeras, sin HTTP/cron/correo, se eliminan al pasar y se bloquean
+si fallan; invariancia de odoo_test se contrasta con agregados READ ONLY.
+
+Último RED c53e379:4 fallos concretos entre60 nativos (cliente de fabricación,
+vigencia al reabrir, nuevo protocolo/FEN y navegación), cero errores. Correcciones
+locales publicadas en9dacb03; esperan su GREEN. Dos HOOT nuevos exigen navegación
+y reset de cortes al cambiar empresa. No declarar todavía suite integral aprobada
+ni entrega terminada. Plan y ledger local conservan iteraciones y sus límites.
+
+SIGUIENTE: recoger CI, completar navegación visual, carreras independientes,
+regresión exacta y revisión final. Conservar permisos, políticas, PDFs y stock.
+Producción sigue sin este incremento; no reabrir las QA cerradas.
+
 ## F4/F5/Q4: auditoría de fuentes y revisiones de diseño — 2026-11-12
 
 Auditoría recogida: CI43233553711 sobre9d207a3 terminó aprobado. Recibo READ ONLY

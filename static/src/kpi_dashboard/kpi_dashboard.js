@@ -51,7 +51,12 @@ export class KPIDashboard extends Component {
         this.destroyed = false;
         this.loader = new DashboardLoader(this.state, () => this.fetchData(), () => this.companyKey);
         useSetupAction({ getLocalState: () => ({ dashboard: this.exportState() }) });
-        useBus(userBus, "ACTIVE_COMPANIES_CHANGED", () => this.loader.load());
+        useBus(userBus, "ACTIVE_COMPANIES_CHANGED", () => {
+            this.state.modelId = false;
+            this.state.customerId = false;
+            this.state.revision = "latest";
+            return this.refresh();
+        });
         onWillStart(() => this.loader.load());
         onMounted(() => {
             // Una empresa cambiada durante el primer RPC puede descartar su respuesta.
@@ -110,11 +115,11 @@ export class KPIDashboard extends Component {
         const metrics = this.productionMetrics;
         if (!metrics) return [];
         return [
-            { key: "repair", title: "Reparaciones terminadas", count: metrics.repair.visits,
+            { key: "repair", source: "repair_done", title: "Reparaciones terminadas", count: metrics.repair.visits,
                 note: `${metrics.repair.equipment} equipos distintos · primer cierre por visita` },
             ...[["manufactured", "Unidades fabricadas"], ["accepted", "Unidades aceptadas"],
                 ["released", "Unidades liberadas"], ["outbound", "Unidades salidas al cliente"]]
-                .map(([key, title]) => ({ key, title, count: metrics.manufacturing[key], note: "Unidades por hito acreditado en el período" })),
+                .map(([key, title]) => ({ key, source: key, title, count: metrics.manufacturing[key], note: "Unidades por hito acreditado en el período" })),
         ];
     }
     get paretoRows() {
@@ -170,13 +175,23 @@ export class KPIDashboard extends Component {
             ? `${new Intl.NumberFormat("es-CL", { maximumFractionDigits: 1 }).format(value)} h` : "Sin dato";
     }
 
-    async openDetail(key) {
+    openProductionSources(key) {
+        return this.openDetail(key, "action_production_sources", {
+            date_from: this.state.dateFrom || false, date_to: this.state.dateTo || false,
+            model_id: this.state.modelId, revision: this.state.revision,
+            dimension: this.state.dimension, unit: this.state.unit,
+            customer_id: this.state.customerId, severity: this.state.severity,
+            intervention: this.state.intervention,
+        });
+    }
+
+    async openDetail(key, method = "action_detail", filters = {}) {
         if (this.state.opening) return;
         const company = this.companyKey;
         this.state.opening = true;
         this.state.detailError = "";
         try {
-            const action = await this.orm.call(SERVICE, "action_detail", [key], { context: { ...user.context } });
+            const action = await this.orm.call(SERVICE, method, [key], { ...filters, context: { ...user.context } });
             if (this.destroyed) return;
             if (company !== this.companyKey) { await this.loader.load(); return; }
             await this.action.doAction(action);

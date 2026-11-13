@@ -116,6 +116,8 @@
                             <div class="mc_kpi_cards mc_kpi_volume_cards">
                                 <article t-foreach="volumeCards" t-as="card" t-key="card.key" class="mc_kpi_card" t-att-data-volume="card.key">
                                     <h3 t-esc="card.title"/><p class="mc_kpi_value" t-esc="card.count"/><p class="text-muted mb-0" t-esc="card.note"/>
+                                    <button type="button" class="btn btn-outline-primary mt-2" t-att-disabled="state.opening"
+                                        t-att-data-volume-source="card.source" t-on-click="() => this.openProductionSources(card.source)">Ver documentos de origen</button>
                                 </article>
                             </div>
                             <div t-if="productionMetrics.balances" class="mc_kpi_balances mt-4">
@@ -139,6 +141,8 @@
                         </t>
                         <t t-else="">
                             <h2>Pareto de hallazgos</h2>
+                            <button type="button" class="btn btn-outline-primary mb-2" t-att-disabled="state.opening"
+                                t-on-click="() => this.openProductionSources('observation')">Ver revisiones de origen</button>
                             <p class="mc_kpi_pareto_total" t-esc="paretoTotalLabel"/>
                             <p class="text-muted">Una observación no equivale a un incidente único. La acumulación usa la unidad seleccionada e incluye Sin clasificar y Otros.</p>
                             <div class="mc_kpi_pareto">

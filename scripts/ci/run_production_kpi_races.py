@@ -8,6 +8,7 @@ import json
 import os
 from pathlib import Path
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -414,6 +415,14 @@ def main():
             sql_db.close_db(database)
             if passed:
                 _admin("DROP DATABASE %s", database)
+                filestore = Path(config.filestore(database)).resolve()
+                root = Path(config.filestore("odoo_test")).resolve().parent
+                if filestore.parent != root or filestore.name != database:
+                    raise RuntimeError(
+                        "La ruta del filestore temporal no está dentro del destino CI"
+                    )
+                if filestore.exists():
+                    shutil.rmtree(filestore)
             else:
                 _admin("ALTER DATABASE %s ALLOW_CONNECTIONS false", database)
                 report["failed_copy_blocked"] = database

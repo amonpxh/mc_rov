@@ -163,6 +163,23 @@ class TestProductionKPIBoundaries(AcceptanceActivityCommon):
                 }
             )
 
+    def test_batch_split_preserves_distinct_original_designs(self):
+        bom = self.env["mrp.bom"].create({"product_tmpl_id": self.product.product_tmpl_id.id})
+        production = self._production(product_qty=4, bom_id=bom.id)
+        production.action_confirm()
+        parts = production._split_productions(amounts={production: [2, 2]})
+        original = dict(parts[0].mc_design_snapshot)
+        self.product.product_tmpl_id.version += 1
+        parts[1].write({"bom_id": bom.id})
+        updated = dict(parts[1].mc_design_snapshot)
+        self.assertNotEqual(original, updated)
+        result = parts._split_productions(amounts={part: [1, 1] for part in parts})
+        self.assertEqual(parts[0].mc_design_snapshot, original)
+        self.assertEqual(parts[1].mc_design_snapshot, updated)
+        # La API nativa no devuelve filiación por hijo: si el grupo mezcla
+        # diseños, no atribuir arbitrariamente uno a los hijos nuevos.
+        self.assertTrue(all(not row.mc_design_snapshot for row in result - parts))
+
     def test_detection_is_captured_from_revision_form(self):
         view = self.env.ref("mc_rov.view_mc_rov_revision_form")
         arch = etree.fromstring(view.arch_db.encode())
