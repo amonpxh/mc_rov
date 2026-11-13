@@ -7,6 +7,7 @@ from odoo.tests.common import new_test_user
 from .acceptance_activity_common import AcceptanceActivityCommon
 from .test_new_acceptance_start import TestNewAcceptanceStart
 from .test_new_acceptance_events import TestNewAcceptanceEvents
+from .test_production_kpi_service import TestProductionKPIService
 
 
 @tagged("post_install", "-at_install", "production_kpi_capture")
@@ -22,9 +23,28 @@ class TestProductionKPIRelease(AcceptanceActivityCommon):
             "mc.rov.unit.release.wizard" in self.env.registry.models, "Falta liberación explícita"
         )
 
-    def _accepted(self):
+    _kpi_service = TestProductionKPIService._service
+
+    def _accepted(self, customer=False):
         self._feature()
-        production, lot, rnd, trn = self._unit()
+        if not customer:
+            production, lot, rnd, trn = self._unit()
+        else:
+            self._pause()
+            sale = self.env["sale.order"].create({"partner_id": customer.id})
+            line = self.env["sale.order.line"].create(
+                {
+                    "order_id": sale.id,
+                    "product_id": self.product.id,
+                    "product_uom_qty": 1,
+                }
+            )
+            production = self._production(sale_line_id=line.id)
+            production.action_confirm()
+            lot = self._serials()
+            self._finish_acceptance_production(production, lot)
+            rnd = self._revision(lot_id=lot.id, tipo="rendimiento")
+            trn = self._revision(lot_id=lot.id, tipo="terreno")
         self._complete(rnd | trn)
         self.env["mc.rov.new.acceptance"].start_attempt(production.id, lot.id, rnd.id, trn.id)
         rnd.action_confirmar()
@@ -165,3 +185,41 @@ class TestProductionKPIRelease(AcceptanceActivityCommon):
         except UserError as error:
             self.fail(f"La liberación debe usar el protocolo vigente: {error}")
         self.assertEqual(len(self._events("released", unit)), 1)
+
+    def test_customer_balance_replays_reopening_without_customer_metadata(self):
+        service = self._kpi_service()
+        customer = self.env["res.partner"].create({"name": "QA cohorte cliente"})
+        unit = self._accepted(customer)
+        self._wizard(unit, self._fen(unit)).action_release()
+        unit[2].action_volver_a_borrador()
+        balances = service.get_summary(revision="all", customer_id=customer.id)["balances"]
+        self.assertEqual(balances["released_in_workshop"], 0)
+        self.assertEqual(balances["manufactured_not_accepted"], 1)
+
+    def test_restricted_acceptance_source_is_not_counted_through_mo(self):
+        service = self._kpi_service()
+        unit = self._accepted()
+        self.env["ir.rule"].create(
+            {
+                "name": "QA protocolo restringido KPI",
+                "model_id": self.env["ir.model"]._get_id("mc.rov.revision"),
+                "domain_force": f"[('id', '!=', {unit[2].id})]",
+            }
+        )
+        with self.assertRaises(AccessError):
+            service.get_summary(revision="all")
+
+    def test_restricted_fen_source_is_not_counted_through_mo(self):
+        service = self._kpi_service()
+        unit = self._accepted()
+        fen = self._fen(unit)
+        self._wizard(unit, fen).action_release()
+        self.env["ir.rule"].create(
+            {
+                "name": "QA FEN restringida KPI",
+                "model_id": self.env["ir.model"]._get_id("mc.rov.ficha.equipo.nuevo"),
+                "domain_force": f"[('id', '!=', {fen.id})]",
+            }
+        )
+        with self.assertRaises(AccessError):
+            service.get_summary(revision="all")

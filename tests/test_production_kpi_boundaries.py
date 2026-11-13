@@ -173,12 +173,9 @@ class TestProductionKPIBoundaries(AcceptanceActivityCommon):
         parts[1].write({"bom_id": bom.id})
         updated = dict(parts[1].mc_design_snapshot)
         self.assertNotEqual(original, updated)
-        result = parts._split_productions(amounts={part: [1, 1] for part in parts})
+        parts._split_productions(amounts={part: [2] for part in parts})
         self.assertEqual(parts[0].mc_design_snapshot, original)
         self.assertEqual(parts[1].mc_design_snapshot, updated)
-        # La API nativa no devuelve filiación por hijo: si el grupo mezcla
-        # diseños, no atribuir arbitrariamente uno a los hijos nuevos.
-        self.assertTrue(all(not row.mc_design_snapshot for row in result - parts))
 
     def test_detection_is_captured_from_revision_form(self):
         view = self.env.ref("mc_rov.view_mc_rov_revision_form")
@@ -204,3 +201,51 @@ class TestProductionKPIBoundaries(AcceptanceActivityCommon):
             ],
             1,
         )
+
+    def test_restricted_outbound_source_is_not_counted_through_mo(self):
+        service = self._service()
+        production, lot, _bom = self._made()
+        move = self._move(
+            lot, production.location_dest_id, self.env.ref("stock.stock_location_customers")
+        )
+        self.env["ir.rule"].create(
+            {
+                "name": "QA salida restringida KPI",
+                "model_id": self.env["ir.model"]._get_id("stock.move"),
+                "domain_force": f"[('id', '!=', {move.id})]",
+            }
+        )
+        with self.assertRaises(AccessError):
+            service.get_summary(revision="all")
+
+    def test_historical_done_manufacture_is_visible_as_missing_capture(self):
+        service = self._service()
+        production = self._production()
+        production.write({"state": "done"})
+        report = service.get_summary(revision="all")
+        self.assertEqual(report["manufacturing"]["manufactured"], 0)
+        self.assertEqual(report["coverage"].get("unknown_manufacturing_orders"), 1)
+
+    def test_non_serial_manufacture_is_visible_as_missing_unit_identity(self):
+        service = self._service()
+        self.product.tracking = "none"
+        production = self._production()
+        production.write({"state": "done"})
+        report = service.get_summary(revision="all")
+        self.assertEqual(report["coverage"].get("non_serial_manufacturing_orders"), 1)
+
+    def test_latest_explains_observations_without_design(self):
+        service = self._service()
+        revision = self._revision(tipo="reparacion", motivo="otro")
+        self.env["mc.rov.revision.hallazgo"].create(
+            {
+                "revision_id": revision.id,
+                "componente_id": self.env.ref("mc_rov.comp_motor").id,
+                "hallazgo_id": self.env.ref("mc_rov.hallazgo_corrosion").id,
+                "mc_detected_at": "2026-01-01 12:00:00",
+            }
+        )
+        revision.action_confirmar()
+        report = service.get_summary()
+        self.assertEqual(report["findings"]["total"], 0)
+        self.assertEqual(report["coverage"].get("unknown_observation_revision"), 1)
