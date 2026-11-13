@@ -223,3 +223,12 @@ class TestProductionKPIRelease(AcceptanceActivityCommon):
         )
         with self.assertRaises(AccessError):
             service.get_summary(revision="all")
+
+    def test_reconfirming_reopened_protocol_cannot_reuse_issued_fen(self):
+        unit = self._accepted()
+        fen = self._fen(unit)
+        self._wizard(unit, fen).action_release()
+        unit[2].action_volver_a_borrador()
+        unit[2].action_confirmar()
+        with self.assertRaises(UserError):
+            self._wizard(unit, fen).action_release()

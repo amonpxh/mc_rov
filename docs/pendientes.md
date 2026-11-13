@@ -1,30 +1,38 @@
-## F4/F5/Q4: implementación en curso — 2026-11-13
+## F4/F5/Q4: entrega en PR124, sin integrar ni desplegar — 2026-11-13
 
-PR124 sigue en borrador, rama feature/kpi-volume-pareto, checkout kpi-dashboard.
-Usuario aprobó implementar el diseño, incluyendo FEN como único documento de
-liberación y validación explícita de Supervisor. No autorizó integrar ni desplegar.
-Código: captura privada de primer cierre, unidades/hitos, diseño congelado al
-confirmar y heredado por parciales, observaciones/Pareto y enmiendas auditadas.
-Tablero con Producción/Hallazgos, filtros históricos y saldos al corte.
+Rama feature/kpi-volume-pareto, checkout kpi-dashboard. Producto preparado como
+19.0.25.8.0. HEAD de producto b64cbb2; PR https://github.com/amonpxh/mc_rov/pull/124.
+Usuario autorizó implementación y publicación del borrador, no merge ni instalación.
 
-Evidencia: 52 contratos nativos +113 HOOT +5 HttpCase (dos poblados con acciones
-nativas) aprobados por etapas; capturas escritorio/móvil preservadas en .tmp.
-Después, 56 nativos:55 verdes y1error de fixture por crear dos veces la misma
-cuenta QA; corregido para reutilizarla. CI99a1843 confirmó56/56; carreras aún no
-ejecutadas: falló CREATE DATABASE TEMPLATE porque CI no es dueño de odoo_test.
-Se cambió solo preparación a pg_dump/pg_restore +template0, sin elevar permisos.
-Las copias son efímeras, sin HTTP/cron/correo, se eliminan al pasar y se bloquean
-si fallan; invariancia de odoo_test se contrasta con agregados READ ONLY.
+Implementados primer cierre técnico por visita, unidades/hitos serializados,
+diseño sellado y parciales, liberación explícita Supervisor/FEN, salida/devolución/
+desmontaje, observaciones y enmiendas auditadas, Pareto, filtros y navegación.
+Secciones Producción/Hallazgos con cobertura explícita y saldos al corte.
+Cliente histórico de fabricación define cohorte de saldos; se reproduce íntegra
+su historia, incluso invalidaciones o reversos sin cliente propio. No backfill.
 
-Último RED c53e379:4 fallos concretos entre60 nativos (cliente de fabricación,
-vigencia al reabrir, nuevo protocolo/FEN y navegación), cero errores. Correcciones
-locales publicadas en9dacb03; esperan su GREEN. Dos HOOT nuevos exigen navegación
-y reset de cortes al cambiar empresa. No declarar todavía suite integral aprobada
-ni entrega terminada. Plan y ledger local conservan iteraciones y sus límites.
+Revisión independiente completa detectó cuatro fronteras: autorización de cada
+fuente, saldos por cliente, fabricación sin captura/serie y hallazgos sin diseño.
+Contratos publicados5ed86b7 reprodujeron siete fallos y un fixture incompleto.
+8208805 pasó67/68; quedó RED real de cobertura de observaciones sin diseño.
+b64cbb2 lo corrige; segunda lectura independiente confirma los cuatro resueltos.
+División batch conserva originales por ID; hijos ambiguos permanecen desconocidos.
 
-SIGUIENTE: recoger CI, completar navegación visual, carreras independientes,
-regresión exacta y revisión final. Conservar permisos, políticas, PDFs y stock.
-Producción sigue sin este incremento; no reabrir las QA cerradas.
+Evidencia previa9dacb03:60 nativos y seis carreras reales con dos conexiones,
+origen odoo_test intacto. Navegador mostró113/115HOOT: los dos RED nuevos de
+navegación/reset se corrigieron32362f4. Local:94 pruebas puras y pre-commit completo
+aprobados. CI final43425274405 sobreb64cbb2 sigue en curso al escribir esta nota:
+exige1626 métodos nativos por nombre,68 focalizados,115HOOT,5HttpCase poblados/
+escritorio/móvil y siete carreras (incluye fases RND/TRN simultáneas).
+Consultar resultado exacto y evidencia final en el PR; esta expectativa no es un PASSED.
+
+Runbook: docs/runbooks/kpi-production-findings.md. CatálogoF4/F5/Q4 figura parcial
+por cobertura prospectiva, sin prometer medición completa del pasado. Quedan las
+otras familias acordadas (detenciones, promesas, plazos, retornos, retrabajo y compras).
+
+SIGUIENTE: recoger CI final y capturas, resolver cualquier regresión real, actualizar
+el PR con evidencia del HEAD. Solo después solicitar integración concreta autorizada.
+Conservar producción y QA cerradas; no activar cuentas, políticas ni automatismos.
 
 ## F4/F5/Q4: auditoría de fuentes y revisiones de diseño — 2026-11-12
 

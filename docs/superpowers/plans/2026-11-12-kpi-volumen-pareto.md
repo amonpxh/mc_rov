@@ -31,11 +31,11 @@ Archivos: tests/unit/test_production_kpi_metrics.py, models/production_kpi_metri
 Interfaz: summarize_events(events, date_from, date_to, revision) -> dict;
 pareto(observations, dimension, unit, limit) -> dict. Fechas ISO y dimensiones selladas.
 
-- [ ] Escribir RED de deduplicación, intervalo Santiago, desconocidos y Pareto.
-- [ ] Ejecutar unittest focalizado y observar fallos por función ausente.
-- [ ] Implementar agregaciones sin Odoo ni mutación de entradas.
-- [ ] Ejecutar los mismos contratos y pruebas puras anteriores; guardar evidencia.
-- [ ] Commit del incremento.
+- [x] Escribir RED de deduplicación, intervalo Santiago, desconocidos y Pareto.
+- [x] Ejecutar unittest focalizado y observar fallos por función ausente.
+- [x] Implementar agregaciones sin Odoo ni mutación de entradas.
+- [x] Ejecutar los mismos contratos y pruebas puras anteriores; guardar evidencia.
+- [x] Commit del incremento.
 
 ## Tarea 2: evidencia y captura de negocio
 
@@ -44,13 +44,13 @@ production_kpi_findings.py; tests/test_production_kpi_capture.py; imports respec
 Interfaz privada: _record_event(kind, source, lot, payload, event_at); capacidad Python
 opaca para escritura. Unicidad por identidad de hecho, no por clic ni fecha editable.
 
-- [ ] Añadir RED nativo de cierre, importación done sin evidencia, rollback,
+- [x] Añadir RED nativo de cierre, importación done sin evidencia, rollback,
   historial inmutable, fabricación serializada/parcial, hallazgos y contexto falsificado.
-- [ ] Publicar pruebas en PR124 y comprobar RED preciso en odoo_test por CI.
-- [ ] Capturar primer cierre nativo después de super; fabricación desde salida done;
+- [x] Publicar pruebas en PR124 y comprobar RED preciso en odoo_test por CI.
+- [x] Capturar primer cierre nativo después de super; fabricación desde salida done;
   snapshot de BoM/revisión acreditada; detección explícita y observación confirmada.
-- [ ] Verificar mismos casos GREEN, fuente restringida, empresas y dos conexiones.
-- [ ] Commit de captura validada; no backfill.
+- [x] Verificar mismos casos GREEN, fuente restringida, empresas y dos conexiones.
+- [x] Commit de captura validada; no backfill.
 
 ## Tarea 3: hitos y servicio autorizado
 
@@ -60,15 +60,15 @@ security/ir.model.access.csv; tests/test_production_kpi_service.py.
 Interfaz: mc.rov.production.kpi.get_summary(date_from=False,date_to=False,
 model_id=False,revision="latest") -> {repair,manufacturing,findings,coverage,filters}.
 
-- [ ] RED de selección completa autorizada, revisión vigente/concreta/Todas,
+- [x] RED de selección completa autorizada, revisión vigente/concreta/Todas,
   ausencia de fecha, denominadores, liberación y salida/reverso.
-- [ ] Servicio verifica permisos de equipo, fuentes y empresa antes de evidencia;
+- [x] Servicio verifica permisos de equipo, fuentes y empresa antes de evidencia;
   no expone claves privadas. Aceptación usa intentos conjuntos existentes.
-- [ ] Asistente de Supervisor elige serie/FEN, revisa NC y sella liberación explícita;
+- [x] Asistente de Supervisor elige serie/FEN, revisa NC y sella liberación explícita;
   valida FEN emitida y pruebas acreditadas. No crea ni valida movimientos.
-- [ ] Salida/reverso vincula movimiento real con unidad; saldos al corte sin restas
+- [x] Salida/reverso vincula movimiento real con unidad; saldos al corte sin restas
   ciegas. Revisión ambigua y datos antiguos permanecen desconocidos.
-- [ ] GREEN focalizado y commit.
+- [x] GREEN focalizado y commit.
 
 ## Tarea 4: tablero y entrega revisable
 
@@ -76,12 +76,14 @@ Archivos: models/kpi_dashboard.py, kpi_dashboard_catalog.py,
 static/src/kpi_dashboard/kpi_dashboard.{js,xml,scss}, tests/test_kpi_dashboard.py,
 static/tests/kpi_dashboard.test.js, tests/test_kpi_dashboard_browser.py.
 
-- [ ] RED de secciones Producción/Hallazgos, filtros y navegación autorizada.
-- [ ] Conectar servicio; mostrar cantidades/cobertura/unidad/fecha, Pareto y Otros;
+- [x] RED de secciones Producción/Hallazgos, filtros y navegación autorizada.
+- [x] Conectar servicio; mostrar cantidades/cobertura/unidad/fecha, Pareto y Otros;
   mantener secciones actuales. Sin objetivos inventados ni ceros por falta de acceso.
-- [ ] GREEN nativo, HOOT poblado, capturas escritorio/móvil y regresión completa exacta.
-- [ ] Revisión independiente de rama completa, corregir hallazgos con RED/GREEN.
-- [ ] Actualizar PR124 y continuidad; solicitar integración solo con HEAD validado.
+- [ ] GREEN final de integración: CI43425274405 exige68/1626 nativos,115HOOT,5HttpCase y siete carreras.
+  Las fases previas están documentadas en la continuidad; recoger el resultado del HEAD concreto.
+- [x] Revisión independiente de rama completa, corregir hallazgos con RED/GREEN.
+- [ ] Actualizar resultado final del PR124 y solicitar integración solo con HEAD validado.
+  Continuidad y runbook escritos; publicación borrador autorizada, merge separado.
 
 ## Registro de decisiones
 
