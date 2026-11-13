@@ -673,12 +673,15 @@
                                            domain="[('componente_id', '=', componente_id)]"/>
                                     <field name="hallazgo_id"/>
                                     <field name="severidad"/>
+                                    <field name="mc_detected_at" optional="show"/>
                                     <field name="chequeo_origen_id"
                                            domain="[('revision_id', '=', parent.id)]"
                                            optional="show"/>
                                     <field name="detalle"/>
                                 </list>
                             </field>
+                            <field name="mc_findings_correction_reason" readonly="estado == 'confirmado'"/>
+                            <field name="mc_findings_history_html" readonly="1" nolabel="1" groups="mc_rov.group_work_assignment_team"/>
                         </page>
 
                         <page string="Aceptación final" name="repair_acceptance_history"

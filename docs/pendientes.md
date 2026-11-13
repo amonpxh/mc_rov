@@ -1,52 +1,139 @@
-## Tablero KPI: validación autónoma en curso — 2026-11-12
+## F4/F5/Q4: entrega en PR124, sin integrar ni desplegar — 2026-11-13
 
-PR borrador #122: https://github.com/amonpxh/mc_rov/pull/122.
-Implementación publicada en 32a8297: entrada Indicadores, cartera administrativa
-actual, Q1 separado para reparaciones/equipos nuevos, seguimiento de seis flujos
-y las once fichas con decisión, fuente, población y fórmula. No equivale a tener
-las once familias calculadas. Sin tablas, ACL nuevas ni activación real.
+Rama feature/kpi-volume-pareto, checkout kpi-dashboard. Producto preparado como
+19.0.25.8.0. Base integral aprobada b64cbb2; HEAD actual y controles en PR https://github.com/amonpxh/mc_rov/pull/124.
+Usuario autorizó implementación y publicación del borrador, no merge ni instalación.
 
-CI 43101756480 ejecutó los 1.558 casos: cero fallos de aserción y un error de
-fixture multiempresa. La orden extranjera heredaba ubicaciones de la empresa
-principal. a6371b5 corrige solo la preparación con with_company, siguiendo el
-control nativo existente; añade comprobación de que la orden sí pertenece a la
-población ROV de su empresa. CI 43214977130 en curso al registrar este estado.
-Formato, secretos, título y versionado de ese commit están aprobados. Después,
-CI 43214977130 confirmó 1.558/1.558 casos y cero fallos/errores.
+Implementados primer cierre técnico por visita, unidades/hitos serializados,
+diseño sellado y parciales, liberación explícita Supervisor/FEN, salida/devolución/
+desmontaje, observaciones y enmiendas auditadas, Pareto, filtros y navegación.
+Secciones Producción/Hallazgos con cobertura explícita y saldos al corte.
+Cliente histórico de fabricación define cohorte de saldos; se reproduce íntegra
+su historia, incluso invalidaciones o reversos sin cliente propio. No backfill.
 
-67 pruebas puras locales aprobadas, incluidos 22 contratos JS y los controles
-del verificador de navegador. Revisión independiente: corregidas definiciones
-incompletas y cobertura Q1 implícita, con regresiones RED/GREEN. Q1 muestra tanto
-aprobados/evaluados como evaluados/población y sus porcentajes.
+Revisión independiente completa detectó cuatro fronteras: autorización de cada
+fuente, saldos por cliente, fabricación sin captura/serie y hallazgos sin diseño.
+Contratos publicados5ed86b7 reprodujeron siete fallos y un fixture incompleto.
+8208805 pasó67/68; quedó RED real de cobertura de observaciones sin diseño.
+b64cbb2 lo corrige; segunda lectura independiente confirma los cuatro resueltos.
+División batch conserva originales por ID; hijos ambiguos permanecen desconocidos.
 
-El runner no tiene navegador. Se prepara Chrome Headless Shell 157.0.8103.78 de
-Google en RUNNER_TEMP, con SHA-256 fijo y limpieza al terminar; no usa apt/sudo,
-no instala paquetes ni modifica el host. HttpCase solo sobre odoo_test, loopback
-8199, sin cron. Verifica escritorio, móvil y HOOT con población exacta derivada
-de los archivos declarados (105 casos actuales). CI 43216446037 repitió los 1.558
-casos correctamente, pero Chrome no abrió: faltaba libasound.so.2. Se incorpora
-solo esa biblioteca oficial, fijada y verificada, dentro del mismo temporal;
-dpkg-deb extrae sin instalar y su LD_LIBRARY_PATH afecta únicamente a Chrome.
-Otros faltantes o una distribución diferente de Ubuntu 24.04 detienen el proceso.
-Navegador se ejecuta primero; el resultado final exige también la suite integral.
-La comprobación visual sigue pendiente;
-CI 43218862099 arrancó Chrome pero omitió los tres HttpCase por falta de
-websocket-client. El verificador rechazó esas omisiones. Se carga una rueda pura
-1.9.0 con SHA-256 fijo únicamente mediante PYTHONPATH del proceso Odoo de pruebas,
-sin pip ni cambios al Python del host. También se distingue el skip de un test
-de la advertencia de una ruta addons inexistente, con regresión local.
-no declarar validación visual por las pruebas Node con imports Odoo simulados.
+Evidencia b64cbb2/43425274405:1626 nativos exactos,68 focalizados,
+115HOOT,5HttpCase y siete carreras independientes aprobados; origen intacto.
+Capturas pobladas1440x1000 y390x844 revisadas sin desbordes. Local:94 pruebas
+puras y pre-commit completo aprobados.
 
-El primer RED de STAGING observó 18 contratos ausentes y un error de fixture.
-No hubo RED completo limpio posterior: se documentó el avance local contra los
-18 fallos observados, mientras se comprobaban los controles corregidos por CI.
-Los runs iniciales ac32b0b quedaron en cola sin jobs; los pushes posteriores sí
-se ejecutan. No repetir cancelaciones/reintentos a ciegas.
+Revisión puntual adicional detectó reutilización de FEN tras reabrir/reconfirmar
+el mismo protocolo.0e78078/43427345235 reprodujo1fallo/69;2794ecf lo bloquea.
+Contrato adicional de intento histórico reprodujo1fallo/70 en43427709481:
+el adaptador recapturaba un intento ya confirmado por el servicio nativo.
+Corrección: captura KPI solo en transición pending→confirmed, conservando el
+intento/PDF previos; para liberar tras reapertura exige otro intento formal.
+Producto final exige1628 métodos nativos por nombre,70 focalizados,115HOOT,
+5HttpCase y siete carreras. Resultado volátil del HEAD final: consultar checks
+y recibo de CI en el PR; no extrapolar el GREEN de b64cbb2 al guard posterior.
 
-SIGUIENTE: comprobar CI del fixture, publicar el ejecutor de navegador y corregir
-contra su evidencia real. Preparar capturas/QA visual y revisión de entrega.
-Autorizado: rama y PR borrador, seguimiento de CI. No merge ni despliegue.
-Producción permanece en 19.0.25.7.0 / 36e0f37, sin activación de automatismos.
+Runbook: docs/runbooks/kpi-production-findings.md. CatálogoF4/F5/Q4 figura parcial
+por cobertura prospectiva, sin prometer medición completa del pasado. Quedan las
+otras familias acordadas (detenciones, promesas, plazos, retornos, retrabajo y compras).
+
+SIGUIENTE: recoger CI final y capturas, resolver cualquier regresión real, actualizar
+el PR con evidencia del HEAD. Solo después solicitar integración concreta autorizada.
+Conservar producción y QA cerradas; no activar cuentas, políticas ni automatismos.
+
+## F4/F5/Q4: auditoría de fuentes y revisiones de diseño — 2026-11-12
+
+Auditoría recogida: CI43233553711 sobre9d207a3 terminó aprobado. Recibo READ ONLY
+y rollback de11modelos; sin registros individuales ni acciones de negocio. Conserva
+1558Odoo,3HttpCase y105HOOT en verde;71pruebas puras locales. Los otros controles
+del PR124 también aprobaron. El hook de exportación de fuentes se retira tras recoger
+el artefacto; no publicar código Enterprise extraído en el repositorio.
+Usuario confirmó que no fabrica prototipos: no crear finalidad por MO ni catálogo.
+Diseño propuesto en specs/2026-11-12-kpi-volumen-pareto-design.md; revisión de builder
+solo pidió concretar documentos/validador para liberación. Usuario respondió:
+solo Ficha de Equipo Nuevo; valida Supervisor. Se mantienen rendimiento/terreno
+aprobados y ninguna NC bloqueante pendiente. El diseño incorpora validación
+explícita con evidencia y distingue liberación de salida física; no concede roles.
+No interpretar esta auditoría como nuevos KPI implementados.
+
+Nueva rama feature/kpi-volume-pareto desde main9116221. Reutiliza el worktree
+kpi-dashboard del mismo agente, conservando sus notas; no modifica los otros
+checkouts. La creación de worktree nativa no respondió y no registró otro checkout.
+Baseline: 67 pruebas puras aprobadas; CI main9116221 aprobó1558+3HttpCase/105HOOT.
+
+Usuario pidió continuar reparaciones terminadas, unidades fabricadas y Pareto.
+Aclaró «revisión» como diseño/configuración del modelo; quiere ver todas, una
+concreta y por defecto la última. Propuesta técnica a comprobar: última vigente
+por modelo/configuración, conservar identidad de cada evento y desconocidos.
+No confundirlo con revisiones/ensayos de equipos ni asignar versión actual al pasado.
+Los metadatos guardados ya confirman product.template.version, mrp.bom.version y
+previous_bom_id. Falta comprobar sus métodos PLM y enlace a fabricación/serie.
+
+Se prepara auditoría READ ONLY en odoo_test a través de CI: solo campos técnicos
+y cadenas de métodos de reparación, stock, fabricación, revisión y PLM; no lee
+registros de negocio ni ejecuta sus acciones. Rollback obligatorio, fuentes propias
+deben proceder del checkout aislado y se exigen implementaciones nativas base.
+No cambia producto ni cuenta/captura todavía. El hook es temporal para esta fase.
+Cuatro controles locales validan base permitida, READ ONLY, rollback y recibo.
+
+SIGUIENTE: recoger fuentes reales, concretar el diseño F4/F5/Q4 conforme al catálogo
+y al filtro por revisiones, después RED/GREEN focalizado. Mantener pruebas por CI;
+merge/despliegue/activación tienen alcances separados. No reabrir QA cerrada.
+
+## Tablero KPI: primer incremento integrado en main — 2026-11-12
+
+PR #122 integrado con squash autorizado: https://github.com/amonpxh/mc_rov/pull/122.
+Commit main: 911622112b13b83b90f1513d4aa4a83e4bff1984. Su árbol coincide con
+el HEAD probado. CI de main 43225080789 aprobó 1.558 Odoo, tres HttpCase y 105
+HOOT; los demás checks también pasaron. Rama remota eliminada automáticamente;
+worktree local conservado por estas notas de continuidad.
+HEAD publicado y validado: 7e5c31cb592d93e59733586779df9740bf51d483.
+Base main: 97c934823f680da77be6f4d88bcca592a27b3061. Sin conflictos.
+
+CI 43222166583 aprobó 1.558 casos Odoo con descubrimiento exacto, tres HttpCase
+(escritorio, móvil y puente HOOT) y 105 casos HOOT distintos. El recibo local
+validated-increment-receipt.json contrasta nombres, resultados y SHA. También
+pasan las 67 pruebas puras y los controles de formato, secretos, título y versión.
+Las capturas reales del resumen y seguimiento se inspeccionaron en 1440x1000 y
+390x844: legibles, sin desborde de página. Son cuentas/empresa ficticias, con
+población vacía; los casos poblados, fallo inicial y baja cobertura se verifican
+por contratos nativos y HOOT. No representan cifras de producción.
+
+Implementado: entrada Indicadores, cartera administrativa actual, Q1 separado de
+reparación/equipo nuevo, seguimiento de seis procesos y las once definiciones.
+Q1 conserva órdenes cerradas/archivadas y muestra aprobación y cobertura n/N.
+Las demás fichas mantienen sus estados de fuente/captura pendiente: no se declaran
+calculadas todas las familias. Sin tablas, ACL nuevas ni activación real.
+
+Pruebas autónomas por CI, sin SSH del asistente ni contraseñas por intento.
+Chrome 157.0.8103.78, libasound2t64 1.2.11-1ubuntu0.3 y websocket-client 1.9.0
+se cargan en RUNNER_TEMP con SHA-256 fijos; se extraen/leen sin instalar paquetes
+del host. LD_LIBRARY_PATH solo para Chrome, PYTHONPATH solo para Odoo de pruebas.
+HTTP solo en loopback 8199, base odoo_test, sin cron. Temporales se limpian al salir.
+
+Revisión independiente del producto: corregidas dos observaciones (definiciones
+y cobertura explícita). Revisión focalizada del ejecutor y biblioteca temporal:
+sin P1/P2. Fallos de preparación diagnosticados y corregidos sin rebajar aserciones:
+empresa/ubicaciones nativas, identidad HOOT ficticia, categoría ROV transaccional,
+espera de render y firma nativa del selector. Los skips no cuentan como GREEN.
+
+El RED inicial de STAGING fue parcial: 18 ausencias observadas y un error de
+fixture. No afirmar RED completo limpio. Se documentó el avance local contra los
+18 fallos observados y se comprobaron todos los controles posteriormente en CI.
+
+Límite conocido del entorno de pruebas: la base odoo_test arrastra un bundle de
+Worker cuyo archivo no existe; genera avisos/500 de bus en los recorridos. No se
+ocultaron ni se tocaron adjuntos de negocio para resolverlos. No impidió el tablero
+ni los contratos aprobados; no demuestra un problema equivalente en producción.
+
+SIGUIENTE: continuar F4/F5/Q4 según catálogo: primer cierre por visita, unidades por hito y
+observaciones/Pareto, verificando fechas e identidad antes de sumar eventos.
+Producción no fue modificada en este incremento; última entrega registrada:
+19.0.25.7.0 / 36e0f37. No reabrir copias QA cerradas por rutina.
+
+La integración fue autorizada; no hubo autorización ni ejecución de despliegue.
+Esta actualización de continuidad se conserva localmente y no recrea la rama
+remota eliminada. El recibo de merge y el PR recogen la evidencia final.
 
 ## Tablero KPI: continuación autónoma por CI autorizada — 2026-11-11
 

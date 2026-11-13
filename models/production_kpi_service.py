@@ -1,0 +1,340 @@
+"""Consulta de volumen e historial con autorización de todos los documentos de origen."""
+
+from odoo import _, api, models
+from odoo.exceptions import AccessError, ValidationError
+from odoo.fields import Domain
+
+from .production_kpi_metrics import (
+    local_day,
+    milestone_balances,
+    pareto,
+    period_bounds,
+    project_observations,
+    summarize_events,
+)
+from .production_kpi_design import design_snapshot
+from .production_kpi_event import event_values
+
+
+class ProductionKPIService(models.AbstractModel):
+    """No usa las páginas del Centro ni interpreta ausencia de evidencia como cierre."""
+
+    _name = "mc.rov.production.kpi"
+    _description = "Volumen de producción y Pareto ROV"
+
+    def _sources(self, model_id):
+        companies = self.env["mc.rov.kpi.dashboard"]._check_caller()
+        if model_id is not False and (
+            isinstance(model_id, bool) or not isinstance(model_id, int) or model_id < 1
+        ):
+            raise ValidationError(_("Seleccione un modelo válido."))
+        root = self.env["stock.lot"]._get_rov_root_category()
+        product_domain = [("categ_id", "child_of", root.id)] if root else [("id", "=", 0)]
+        if model_id:
+            template = self.env["product.template"].browse(model_id)
+            if not template.exists():
+                raise AccessError(_("El modelo no está disponible."))
+            template.check_access("read")
+            # El one2many puede ocultar variantes por regla. Un modelo seleccionado
+            # explícitamente no puede devolver cero a través de ese filtrado.
+            self.env["product.product"].browse(
+                template.sudo().product_variant_ids.ids
+            ).check_access("read")
+            product_domain.append(("product_tmpl_id", "=", model_id))
+        products = (
+            self.env["product.product"].with_context(active_test=False).search(product_domain)
+        )
+        common = [("company_id", "in", companies), ("product_id", "in", products.ids)]
+        # Primero candidatos internos por producto histórico; después sus orígenes
+        # se resuelven sin sudo. Así una etiqueta administrativa posterior no borra
+        # un hecho ni habilita leer un origen que su regla de acceso oculta.
+        history = (
+            self.env["mc.rov.production.event"]
+            .sudo()
+            .search(
+                [
+                    ("company_id", "in", companies),
+                    ("product_id", "in", products.ids),
+                ]
+            )
+        )
+        repairs = (
+            self.env["repair.order"]
+            .with_context(active_test=False)
+            .search(
+                Domain.OR(
+                    [
+                        common,
+                        [("id", "in", history.repair_id.ids), ("company_id", "in", companies)],
+                    ]
+                )
+            )
+        )
+        productions = (
+            self.env["mrp.production"]
+            .with_context(active_test=False)
+            .search(
+                Domain.OR(
+                    [
+                        common,
+                        [("id", "in", history.production_id.ids), ("company_id", "in", companies)],
+                    ]
+                )
+            )
+        )
+        # La relación de revisión no tiene company_id; la empresa del hecho se filtra
+        # en el ledger y la serie/reparación deben ser legibles sin sudo.
+        revisions = self.env["mc.rov.revision"].search(
+            Domain.OR(
+                [
+                    [("product_id", "in", products.ids)],
+                    [("id", "in", history.revision_id.ids)],
+                ]
+            )
+        )
+        for source in (repairs, productions, revisions):
+            source.check_access("read")
+            source.product_id.check_access("read")
+            if "lot_id" in source._fields:
+                source.lot_id.check_access("read")
+        return companies, products, repairs, productions, revisions
+
+    def _events(self, sources):
+        companies, products, repairs, productions, revisions = sources
+        domain = Domain.AND(
+            [
+                [("company_id", "in", companies), ("product_id", "in", products.ids)],
+                Domain.OR(
+                    [
+                        [("repair_id", "in", repairs.ids), ("kind", "=", "repair_done")],
+                        [("production_id", "in", productions.ids), ("kind", "!=", "observation")],
+                        [
+                            ("revision_id", "in", revisions.ids),
+                            ("kind", "in", ["observation", "observation_correction"]),
+                        ],
+                    ]
+                ),
+            ]
+        )
+        events = self.env["mc.rov.production.event"].sudo().search(domain)
+        # Nunca omitir una serie o producto histórico ilegible después de elevar.
+        self.env["stock.lot"].browse(events.lot_id.ids).check_access("read")
+        self.env["product.product"].browse(events.product_id.ids).check_access("read")
+        self._check_event_sources(events)
+        return events
+
+    def _check_event_sources(self, events):
+        """La MO visible no habilita movimientos, protocolos ni fichas restringidos."""
+        self.env["stock.move"].browse(events.move_id.ids).check_access("read")
+        self.env["mc.rov.revision"].browse(events.revision_id.ids).check_access("read")
+        attempts = (
+            self.env["mc.rov.new.acceptance.attempt"]
+            .sudo()
+            .browse(
+                sorted(
+                    {row.payload["attempt_id"] for row in events if row.payload.get("attempt_id")}
+                )
+            )
+        )
+        self.env["mc.rov.revision"].browse((attempts.rnd_id | attempts.trn_id).ids).check_access(
+            "read"
+        )
+        for model, key in (
+            ("mc.rov.ficha.equipo.nuevo", "fen_id"),
+            ("ir.attachment", "pdf_attachment_id"),
+            ("mrp.unbuild", "unbuild_id"),
+        ):
+            self.env[model].browse(
+                sorted({row.payload[key] for row in events if row.payload.get(key)})
+            ).check_access("read")
+
+    def _revision_options(self, products, events, selector):
+        if not isinstance(selector, str):
+            raise ValidationError(_("Seleccione Todas, Última o una revisión acreditada."))
+        options = {}
+        for event in events:
+            key = event.payload.get("revision_key")
+            if key:
+                options[key] = {"key": key, "label": event.payload.get("revision_label") or key}
+        boms = self.env["mrp.bom"].search(
+            [
+                ("product_tmpl_id", "in", products.product_tmpl_id.ids),
+                ("company_id", "in", [False, *self.env.companies.ids]),
+                ("active", "=", True),
+            ]
+        )
+        configurations = {}
+        for bom in boms:
+            configuration = bom.product_tmpl_id.id, bom.product_id.id, bom.code or ""
+            configurations.setdefault(configuration, []).append(bom)
+        latest = []
+        ambiguous = 0
+        for candidates in configurations.values():
+            if len(candidates) != 1:
+                ambiguous += 1
+                continue
+            bom = candidates[0]
+            key = design_snapshot(bom)["revision_key"]
+            options[key] = {"key": key, "label": design_snapshot(bom)["revision_label"]}
+            latest.append(key)
+        if selector not in ("all", "latest") and selector not in options:
+            raise ValidationError(
+                _("La revisión seleccionada no está acreditada en estas fuentes.")
+            )
+        resolved = "all" if selector == "all" else latest if selector == "latest" else [selector]
+        return resolved, list(options.values()), ambiguous
+
+    def _normalized(self, events):
+        rows = [event_values(event) for event in events]
+        return [
+            row for row in rows if row["kind"] not in ("observation", "observation_correction")
+        ] + project_observations(rows)
+
+    @api.model
+    def get_summary(
+        self,
+        date_from=False,
+        date_to=False,
+        model_id=False,
+        revision="latest",
+        dimension="finding",
+        unit="observations",
+        customer_id=False,
+        severity="all",
+        intervention="all",
+    ):
+        # API de filtros explícitos; mantener nombres estables para RPC y pruebas.
+        # pylint: disable=too-many-arguments,too-many-locals
+        try:
+            bounds = period_bounds(date_from, date_to)
+        except (ValueError, TypeError) as error:
+            raise ValidationError(_("El período no es válido.")) from error
+        sources = self._sources(model_id)
+        events = self._events(sources)
+        resolved, options, ambiguous = self._revision_options(sources[1], events, revision)
+        history = self._normalized(events)
+        normalized = history
+        normalized = self._dimension_filter(normalized, customer_id, severity, intervention)
+        report = summarize_events(normalized, date_from, date_to, resolved)
+        balance_rows = (
+            history
+            if resolved == "all"
+            else [row for row in history if row.get("revision_key") in resolved]
+        )
+        if customer_id:
+            cohort = {
+                row["identity"]
+                for row in balance_rows
+                if row["kind"] == "manufactured" and row.get("customer_id") == customer_id
+            }
+            balance_rows = [
+                row
+                for row in balance_rows
+                if (row.get("unit_identity") or row["identity"]) in cohort
+            ]
+        report["balances"] = milestone_balances(balance_rows, date_to=date_to)
+        observations = self._observations(normalized, bounds, resolved)
+        try:
+            report["findings"] = pareto(observations, dimension=dimension, unit=unit)
+        except ValueError as error:
+            raise ValidationError(_("La unidad de Pareto no es válida.")) from error
+        repairs = sources[2]
+        report["coverage"] = {
+            "unknown_manufacturing_orders": len(
+                sources[3].filtered(lambda row: row.state == "done")
+                - events.filtered(lambda row: row.kind == "manufactured").production_id
+            ),
+            "non_serial_manufacturing_orders": len(
+                sources[3].filtered(
+                    lambda row: row.state == "done" and row.product_id.tracking != "serial"
+                )
+            ),
+            "unknown_manufacturing_customer": sum(
+                row["kind"] == "manufactured" and not row.get("customer_id") for row in history
+            ),
+            "unknown_repair_closure": len(
+                repairs.filtered(lambda row: row.state == "done")
+                - events.filtered(lambda row: row.kind == "repair_done").repair_id
+            ),
+            "unknown_detection": sum(
+                row["kind"] == "observation" and not row.get("at") for row in normalized
+            ),
+            "unknown_observation_revision": sum(
+                row["kind"] == "observation" and not row.get("revision_key") for row in normalized
+            ),
+            "observation_corrections": len(
+                events.filtered(lambda row: row.kind == "observation_correction")
+            ),
+            "ambiguous_configurations": ambiguous,
+            "unknown_observation_capture": self._unknown_findings(sources[4], events),
+        }
+        report["filters"] = {
+            "revision": revision,
+            "revision_options": options,
+            "resolved_revisions": resolved,
+            "model_id": model_id,
+            "model_options": self._model_options(),
+            "customer_options": self._customer_options(events),
+        }
+        return report
+
+    def _dimension_filter(self, events, customer_id, severity, intervention):
+        if customer_id is not False and (
+            isinstance(customer_id, bool) or not isinstance(customer_id, int) or customer_id < 1
+        ):
+            raise ValidationError(_("Seleccione un cliente válido."))
+        if customer_id:
+            self.env["res.partner"].browse(customer_id).check_access("read")
+        if severity not in ("all", "informativo", "atencion", "impide_operar"):
+            raise ValidationError(_("La severidad seleccionada no es válida."))
+        if intervention not in ("all", "repair", "maintenance"):
+            raise ValidationError(_("El tipo de intervención no es válido."))
+        return [
+            row
+            for row in events
+            if (not customer_id or row.get("customer_id") == customer_id)
+            and (
+                row["kind"] != "observation"
+                or severity == "all"
+                or row.get("severity") == severity
+            )
+            and (row["kind"] != "repair_done" or intervention == "all" or row.get(intervention))
+        ]
+
+    def _customer_options(self, events):
+        identities = {row.payload.get("customer_id") for row in events} - {None, False}
+        partners = self.env["res.partner"].search([("id", "in", list(identities))])
+        return [{"id": partner.id, "label": partner.display_name} for partner in partners]
+
+    def _unknown_findings(self, revisions, events):
+        captured = set(events.filtered(lambda row: row.kind == "observation").mapped("identity"))
+        return sum(f"finding:{line.id}" not in captured for line in revisions.hallazgo_ids)
+
+    def _model_options(self):
+        root = self.env["stock.lot"]._get_rov_root_category()
+        if not root:
+            return []
+        models_available = (
+            self.env["product.template"]
+            .with_context(active_test=False)
+            .search(
+                [
+                    ("categ_id", "child_of", root.id),
+                    ("company_id", "in", [False, *self.env.companies.ids]),
+                ]
+            )
+        )
+        return [{"id": model.id, "label": model.display_name} for model in models_available]
+
+    def _observations(self, events, bounds, resolved):
+        result = []
+        for event in events:
+            if event["kind"] != "observation":
+                continue
+            day = local_day(event.get("at"))
+            if day is None or (bounds[0] and day < bounds[0]) or (bounds[1] and day > bounds[1]):
+                continue
+            if resolved != "all" and event.get("revision_key") not in resolved:
+                continue
+            result.append(event)
+        return result

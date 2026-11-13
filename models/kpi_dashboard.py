@@ -110,7 +110,9 @@ class KPIDashboard(models.AbstractModel):
         return rows
 
     @api.model
-    def get_dashboard(self, date_from=False, date_to=False, process="all"):
+    def get_dashboard(
+        self, date_from=False, date_to=False, process="all", production_filters=None
+    ):
         companies = self._check_caller()
         # El servicio conserva sus validaciones de fechas/proceso y sus propias zonas.
         try:
@@ -122,7 +124,7 @@ class KPIDashboard(models.AbstractModel):
             tracking = {"available": False, "processes": [], "partial": True}
         portfolio = {key: self._portfolio(key) for key in SOURCES}
         quality = {key: self._quality(key) for key in SOURCES}
-        return {
+        report = {
             "generated_at": fields.Datetime.to_string(fields.Datetime.now()),
             "cohort": {
                 "basis": "current_authorized_rov_orders",
@@ -136,6 +138,27 @@ class KPIDashboard(models.AbstractModel):
             "tracking": tracking,
             "coverage": self._coverage(portfolio, quality),
         }
+        if production_filters is not None:
+            if not isinstance(production_filters, dict) or set(production_filters) - {
+                "model_id",
+                "revision",
+                "dimension",
+                "unit",
+                "customer_id",
+                "severity",
+                "intervention",
+            }:
+                raise ValidationError(_("Los filtros de producción no son válidos."))
+            try:
+                report["production"] = {
+                    "available": True,
+                    "metrics": self.env["mc.rov.production.kpi"].get_summary(
+                        date_from=date_from, date_to=date_to, **production_filters
+                    ),
+                }
+            except AccessError:
+                report["production"] = {"available": False, "metrics": None}
+        return report
 
     @api.model
     def action_detail(self, key):

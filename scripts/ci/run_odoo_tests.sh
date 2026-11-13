@@ -36,8 +36,16 @@ assert resolved and Path(resolved).resolve() == Path(sys.argv[1]).resolve(), res
 print('CI_ODOO_SOURCE=' + resolved)
 PY
 
+# Contratos nuevos primero: RED focalizado antes del navegador y la regresión.
+FOCUSED_LOG=$(mktemp "${RUNNER_TEMP:?}/mc-rov-tests.production-focus.XXXXXX.log")
+odoo -d odoo_test -u mc_rov --test-tags production_kpi_capture --stop-after-init --no-http \
+    --http-port 8199 --gevent-port 8198 --workers 0 --max-cron-threads 0 \
+    --db-filter '^odoo_test$' --log-level test --logfile '' \
+    --config "$CONF" --addons-path "$ADDONS" 2>&1 | tee "$FOCUSED_LOG"
+
 # Primero los recorridos nuevos: un fallo del navegador no repite diez minutos
 # de regresión ya aprobada sobre el mismo producto. El GREEN final exige ambas etapas.
+python3 "$REPO/scripts/ci/run_production_kpi_races.py" "$REPO" "$CONF" "$ADDONS"
 python3 "$REPO/scripts/ci/run_kpi_browser_tests.py" "$REPO" "$CONF" "$ADDONS"
 
 LOG=$(mktemp "${RUNNER_TEMP:?}/mc-rov-tests.XXXXXX.log")

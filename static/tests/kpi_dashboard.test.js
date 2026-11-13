@@ -21,6 +21,18 @@ const report = () => ({
         manufacturing: { available: true, metrics: metrics({ population: 0, passed: 0, failed: 0, pending: 0, evaluated: 0, value: null, coverage_percent: null }), detail_key: "quality_manufacturing" },
     },
     tracking: { available: true, processes: [{ key: "repair", available: false, metrics: null }] },
+    production: { available: true, metrics: {
+        repair: { visits: 3, equipment: 2, unknown_revision: 1 },
+        manufacturing: { manufactured: 2, accepted: 1, released: 1, outbound: 0, reversed: 0, unknown_revision: 0 },
+        findings: { total: 3, unit: "observations", unclassified: 0, missing_unit: 0, rows: [
+            { key: 1, label: "Corrosión", count: 2, percent: 200 / 3, cumulative_percent: 200 / 3 },
+            { key: 2, label: "Fuga", count: 1, percent: 100 / 3, cumulative_percent: 100 },
+        ] },
+        coverage: { unknown_repair_closure: 1, unknown_detection: 2, unknown_observation_capture: 3, ambiguous_configurations: 0 },
+        filters: { revision: "latest", revision_options: [{ key: "bom:1:v2", label: "Diseño 2" }],
+            model_options: [{ id: 1, label: "ROV QA" }], customer_options: [{ id: 7, label: "Cliente QA" }], resolved_revisions: ["bom:1:v2"] },
+        balances: { manufactured_not_accepted: 1, accepted_not_released: 0, released_in_workshop: 1, outbound: 0, unbuilt: 0, missing_prerequisite: 0 },
+    } },
     coverage: ["F1", "F2", "F3", "F4", "F5", "F6", "Q1", "Q2", "Q3", "Q4", "A1"].map((key) => ({ key, title: key, status: "capture_pending", unit: "Unidad QA", requirement: "Dato pendiente QA", decision: "Decisión QA", source: "Fuente QA", population: "Población QA", formula: "Fórmula QA" })),
 });
 
@@ -43,6 +55,104 @@ async function setup(options = {}) {
 
 describe("mc_rov KPI dashboard", () => {
     defineModels(mailModels);
+
+    test("Producción distingue visitas equipos y hitos", async () => {
+        await setup();
+        await click("[data-section='production']");
+        await animationFrame();
+        expect("[data-volume='repair']").toHaveText(/3/);
+        expect("[data-volume='repair']").toHaveText(/2 equipos/);
+        expect("[data-volume='manufactured']").toHaveText(/2/);
+        expect("[data-volume='outbound']").toHaveText(/0/);
+    });
+
+    test("Hallazgos muestra Pareto de observaciones y acumulado", async () => {
+        await setup();
+        await click("[data-section='findings']");
+        await animationFrame();
+        expect(".mc_kpi_pareto").toHaveText(/Corrosión/);
+        expect(".mc_kpi_pareto").toHaveText(/Acumulado/);
+        expect(".mc_kpi_pareto").toHaveText(/100/);
+        expect(".mc_kpi_pareto_total").toHaveText(/3 observaciones/);
+    });
+
+    test("Última vigente es inicial y Todas viaja al servidor", async () => {
+        const { calls } = await setup();
+        await click("[data-section='production']");
+        await animationFrame();
+        expect("[data-kpi-revision]").toHaveValue("latest");
+        await click("[data-kpi-revision]");
+        await select("all");
+        await animationFrame();
+        expect(calls.at(-1).kwargs.production_filters.revision).toBe("all");
+    });
+
+    test("Modelo seleccionado viaja como identificador", async () => {
+        const { calls } = await setup();
+        await click("[data-section='production']");
+        await animationFrame();
+        await click("[data-kpi-model]");
+        await select("1");
+        await animationFrame();
+        expect(calls.at(-1).kwargs.production_filters.model_id).toBe(1);
+    });
+
+    test("Ausencia de acceso no muestra ceros de producción", async () => {
+        const data = report();
+        data.production = { available: false, metrics: null };
+        await setup({ report: data });
+        await click("[data-section='production']");
+        await animationFrame();
+        expect(".mc_kpi_volume_restricted").toHaveText(/Sin acceso/);
+        expect("[data-volume]").toHaveCount(0);
+    });
+
+    test("Cobertura de detección no se convierte en hallazgo de hoy", async () => {
+        await setup();
+        await click("[data-section='findings']");
+        await animationFrame();
+        expect(".mc_kpi_findings_coverage").toHaveText(/Sin fecha de detección acreditada: 2/);
+        expect(".mc_kpi_findings_coverage").toHaveText(/Sin captura histórica: 3/);
+    });
+
+    test("Cliente e intervención filtran con contexto histórico", async () => {
+        const { calls } = await setup();
+        await click("[data-section='production']");
+        await animationFrame();
+        await click("[data-kpi-customer]"); await select("7"); await animationFrame();
+        expect(calls.at(-1).kwargs.production_filters.customer_id).toBe(7);
+        await click("[data-kpi-intervention]"); await select("repair"); await animationFrame();
+        expect(calls.at(-1).kwargs.production_filters.intervention).toBe("repair");
+    });
+
+    test("Saldos se separan de hitos del período", async () => {
+        await setup();
+        await click("[data-section='production']");
+        await animationFrame();
+        expect(".mc_kpi_balances").toHaveText(/Saldos al corte/);
+        expect(".mc_kpi_balances").toHaveText(/Fabricadas sin aceptar: 1/);
+        expect(".mc_kpi_balances").toHaveText(/Liberadas en taller: 1/);
+    });
+
+    test("Tarjeta abre documentos de origen con los mismos filtros", async () => {
+        const { calls, actions } = await setup();
+        await click("[data-section='production']"); await animationFrame();
+        await click("[data-volume-source='repair_done']"); await animationFrame();
+        expect(calls.at(-1).method).toBe("action_production_sources");
+        expect(calls.at(-1).args).toEqual(["repair_done"]);
+        expect(calls.at(-1).kwargs.revision).toBe("latest");
+        expect(actions.length).toBe(1);
+    });
+
+    test("Cambio de empresa limpia cortes de modelo cliente y revisión", async () => {
+        const { calls } = await setup({ state: { dashboard: {
+            section: "production", modelId: 1, customerId: 7, revision: "bom:1:v2",
+        } } });
+        userBus.trigger("ACTIVE_COMPANIES_CHANGED"); await animationFrame();
+        expect(calls.at(-1).kwargs.production_filters.model_id).toBe(false);
+        expect(calls.at(-1).kwargs.production_filters.customer_id).toBe(false);
+        expect(calls.at(-1).kwargs.production_filters.revision).toBe("latest");
+    });
 
     test("Resumen distingue órdenes de unidades producidas", async () => {
         await setup();

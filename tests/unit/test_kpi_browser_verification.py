@@ -24,11 +24,13 @@ class TestKPIBrowserVerification(unittest.TestCase):
             "test_desktop_layout",
             "test_mobile_layout",
             "test_hoot_dashboard_and_existing_controls",
+            "test_production_populated_desktop",
+            "test_findings_populated_mobile",
         )
         return "\n".join(
             [f"Starting TestKPIDashboardBrowser.{name}" for name in names]
             + [
-                "0 failed, 0 error(s) of 3 tests",
+                "0 failed, 0 error(s) of 5 tests",
                 "[HOOT] Passed 105 tests (300 assertions)",
                 "[HOOT] Test suite succeeded",
             ]
@@ -46,6 +48,16 @@ class TestKPIBrowserVerification(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             RUNNER.verify_result(
                 self._log().replace("Starting TestKPIDashboardBrowser.test_mobile_layout", ""),
+                0,
+                105,
+            )
+
+    def test_rejects_missing_populated_production(self):
+        with self.assertRaises(RuntimeError):
+            RUNNER.verify_result(
+                self._log().replace(
+                    "Starting TestKPIDashboardBrowser.test_production_populated_desktop", ""
+                ),
                 0,
                 105,
             )
