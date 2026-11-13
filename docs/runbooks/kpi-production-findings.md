@@ -39,6 +39,8 @@ Los hitos del período conservan sus fechas originales. Reabrir el protocolo o
 iniciar otro intento suspende la preparación vigente sin borrar la aceptación,
 liberación histórica ni sus PDFs. Un nuevo protocolo aprobado y su FEN permiten
 una nueva validación de preparación; no se cuenta otra unidad liberada.
+Reconfirmar las mismas pruebas reabiertas no rehabilita su intento: se exige otro
+intento formal prospectivo y su nueva FEN, sin recapturar el historial antiguo.
 
 Los saldos usan toda la historia hasta «Hasta», independientemente de «Desde».
 Con cliente seleccionado, la cohorte se define por cliente acreditado al fabricar

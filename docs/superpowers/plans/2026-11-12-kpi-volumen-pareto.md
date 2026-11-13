@@ -79,7 +79,8 @@ static/tests/kpi_dashboard.test.js, tests/test_kpi_dashboard_browser.py.
 - [x] RED de secciones Producción/Hallazgos, filtros y navegación autorizada.
 - [x] Conectar servicio; mostrar cantidades/cobertura/unidad/fecha, Pareto y Otros;
   mantener secciones actuales. Sin objetivos inventados ni ceros por falta de acceso.
-- [ ] GREEN final de integración: CI43425274405 exige68/1626 nativos,115HOOT,5HttpCase y siete carreras.
+- [ ] GREEN final de integración: b64cbb2/CI43425274405 aprobó68/1626 nativos,115HOOT,5HttpCase y siete carreras.
+  Guard final de reapertura/historia exige70/1628; comprobar checks del HEAD en PR124.
   Las fases previas están documentadas en la continuidad; recoger el resultado del HEAD concreto.
 - [x] Revisión independiente de rama completa, corregir hallazgos con RED/GREEN.
 - [ ] Actualizar resultado final del PR124 y solicitar integración solo con HEAD validado.

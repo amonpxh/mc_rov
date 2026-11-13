@@ -46,8 +46,11 @@ class AcceptedUnitCapture(models.AbstractModel):
         return result
 
     def _capture_native_result(self, attempt, revision, reason=None):
+        pending = attempt.state == "pending"
         result = super()._capture_native_result(attempt, revision, reason=reason)
-        if attempt.state == "confirmed" and attempt.first_pass_snapshot == "passed":
+        # Solo la transición real acredita un hito. Reconfirmar un protocolo
+        # histórico no rellena evidencia ausente de una instalación anterior.
+        if pending and attempt.state == "confirmed" and attempt.first_pass_snapshot == "passed":
             episode = attempt.episode_id
             append_event(
                 revision,

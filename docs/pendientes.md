@@ -1,7 +1,7 @@
 ## F4/F5/Q4: entrega en PR124, sin integrar ni desplegar — 2026-11-13
 
 Rama feature/kpi-volume-pareto, checkout kpi-dashboard. Producto preparado como
-19.0.25.8.0. HEAD de producto b64cbb2; PR https://github.com/amonpxh/mc_rov/pull/124.
+19.0.25.8.0. Base integral aprobada b64cbb2; HEAD actual y controles en PR https://github.com/amonpxh/mc_rov/pull/124.
 Usuario autorizó implementación y publicación del borrador, no merge ni instalación.
 
 Implementados primer cierre técnico por visita, unidades/hitos serializados,
@@ -18,13 +18,20 @@ Contratos publicados5ed86b7 reprodujeron siete fallos y un fixture incompleto.
 b64cbb2 lo corrige; segunda lectura independiente confirma los cuatro resueltos.
 División batch conserva originales por ID; hijos ambiguos permanecen desconocidos.
 
-Evidencia previa9dacb03:60 nativos y seis carreras reales con dos conexiones,
-origen odoo_test intacto. Navegador mostró113/115HOOT: los dos RED nuevos de
-navegación/reset se corrigieron32362f4. Local:94 pruebas puras y pre-commit completo
-aprobados. CI final43425274405 sobreb64cbb2 sigue en curso al escribir esta nota:
-exige1626 métodos nativos por nombre,68 focalizados,115HOOT,5HttpCase poblados/
-escritorio/móvil y siete carreras (incluye fases RND/TRN simultáneas).
-Consultar resultado exacto y evidencia final en el PR; esta expectativa no es un PASSED.
+Evidencia b64cbb2/43425274405:1626 nativos exactos,68 focalizados,
+115HOOT,5HttpCase y siete carreras independientes aprobados; origen intacto.
+Capturas pobladas1440x1000 y390x844 revisadas sin desbordes. Local:94 pruebas
+puras y pre-commit completo aprobados.
+
+Revisión puntual adicional detectó reutilización de FEN tras reabrir/reconfirmar
+el mismo protocolo.0e78078/43427345235 reprodujo1fallo/69;2794ecf lo bloquea.
+Contrato adicional de intento histórico reprodujo1fallo/70 en43427709481:
+el adaptador recapturaba un intento ya confirmado por el servicio nativo.
+Corrección: captura KPI solo en transición pending→confirmed, conservando el
+intento/PDF previos; para liberar tras reapertura exige otro intento formal.
+Producto final exige1628 métodos nativos por nombre,70 focalizados,115HOOT,
+5HttpCase y siete carreras. Resultado volátil del HEAD final: consultar checks
+y recibo de CI en el PR; no extrapolar el GREEN de b64cbb2 al guard posterior.
 
 Runbook: docs/runbooks/kpi-production-findings.md. CatálogoF4/F5/Q4 figura parcial
 por cobertura prospectiva, sin prometer medición completa del pasado. Quedan las
