@@ -166,6 +166,25 @@ class UnitReleaseProduction(models.Model):
             or attempt.trn_id.id != fen.trn_id.id
         ):
             raise UserError(_("La ficha debe corresponder al protocolo conjunto acreditado."))
+        invalidations = (
+            self.env["mc.rov.production.event"]
+            .sudo()
+            .search(
+                [
+                    ("company_id", "=", self.company_id.id),
+                    ("lot_id", "=", lot.id),
+                    ("kind", "=", "unit_movement"),
+                    ("revision_id", "in", (attempt.rnd_id | attempt.trn_id).ids),
+                ]
+            )
+        )
+        if invalidations.filtered(
+            lambda row: row.payload.get("effect") == "invalidate_acceptance"
+            and row.payload.get("attempt_id") == attempt.id
+        ):
+            raise UserError(
+                _("El protocolo fue reabierto. Complete otro intento formal y su nueva ficha.")
+            )
         append_event(
             self,
             lot,

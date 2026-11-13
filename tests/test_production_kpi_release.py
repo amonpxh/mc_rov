@@ -1,5 +1,7 @@
 """La aceptación conjunta, la liberación y la salida son hitos distintos."""
 
+from unittest.mock import patch
+
 from odoo.exceptions import AccessError, UserError
 from odoo.tests import tagged
 from odoo.tests.common import new_test_user
@@ -232,3 +234,13 @@ class TestProductionKPIRelease(AcceptanceActivityCommon):
         unit[2].action_confirmar()
         with self.assertRaises(UserError):
             self._wizard(unit, fen).action_release()
+
+    def test_reconfirming_historical_attempt_does_not_backfill_acceptance(self):
+        # Simula un intento nativo aprobado antes de instalar esta captura,
+        # sin borrar ni fabricar evidencia privada a posteriori.
+        with patch("odoo.addons.mc_rov.models.production_kpi_release.append_event"):
+            unit = self._accepted()
+        self.assertFalse(self._events("accepted", unit))
+        unit[2].action_volver_a_borrador()
+        unit[2].action_confirmar()
+        self.assertFalse(self._events("accepted", unit))
