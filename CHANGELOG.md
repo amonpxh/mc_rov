@@ -1,5 +1,14 @@
 # Changelog
 
+## [19.0.25.8.0] — 2026-11-13
+
+### Funcionalidades
+
+- feat(kpi): agregar tablero de gestión ROV (#122) (`911622112b13`).
+- feat(kpi): medir volumen ROV y Pareto por revisión (#124) (`b92ebc53489e`).
+
+Entrega de código; no acredita instalación ni activación en producción.
+
 ## [19.0.25.7.0] — 2026-11-10
 
 ### Funcionalidades
