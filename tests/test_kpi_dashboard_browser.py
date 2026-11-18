@@ -23,7 +23,11 @@ class TestKPIDashboardBrowser(HttpCase):
         warehouse = env["stock.warehouse"].search([("company_id", "=", company.id)], limit=1)
         if not warehouse:
             warehouse = env["stock.warehouse"].create(
-                {"name": "QA Taller indicadores", "code": "KPV", "company_id": company.id}
+                {
+                    "name": "QA Taller indicadores",
+                    "code": "KPV",
+                    "company_id": company.id,
+                }
             )
         product = env["product.product"].create(
             {
@@ -84,7 +88,10 @@ class TestKPIDashboardBrowser(HttpCase):
             RevisionCommon._responder_todo(self, revision)
             RevisionCommon._responder_sellos(self, revision)
             revision.write({"mc_correction_required": "no", "mc_retest_required": "no"})
-        for name, component in (("Corrosión QA", "Motor QA"), ("Conexión QA", "Conector QA")):
+        for name, component in (
+            ("Corrosión QA", "Motor QA"),
+            ("Conexión QA", "Conector QA"),
+        ):
             finding = env["mc.rov.hallazgo"].create({"name": name})
             part = env["mc.rov.componente"].create({"name": component})
             env["mc.rov.revision.hallazgo"].create(
@@ -176,7 +183,7 @@ class TestKPIDashboardBrowser(HttpCase):
                 timeout=180,
             )
 
-    def _layout(self, size):
+    def _layout(self, size, detentions=False):
         company = self.env["res.company"].create({"name": "QA Tablero visual"})
         category = self.env["product.category"].create({"name": "QA Vehículos tablero"})
         self.env["ir.config_parameter"].set_param("mc_rov.rov_category_id", str(category.id))
@@ -205,9 +212,24 @@ class TestKPIDashboardBrowser(HttpCase):
                 self._logger.info("CI_KPI_SCREENSHOT size=%s data=%s", size, result["data"])
 
         with patch.object(ChromeBrowser, "_wait_code_ok", capture):
-            self._open_layout(action, viewer)
+            self._open_layout(action, viewer, detentions)
 
-    def _open_layout(self, action, viewer):
+    def _open_layout(self, action, viewer, detentions=False):
+        script = (
+            """
+                root.querySelector("[data-section='detentions']").click();
+                await wait(() => root.querySelector("[data-kpi-detentions] table"));
+                if (root.querySelector("[role='alert']")) throw new Error("Error RPC F2");
+                if (root.scrollWidth > root.clientWidth + 1) throw new Error("Desborde F2");
+                const section = root.querySelector("[data-kpi-detentions]");
+                if (!section.textContent.includes("Sin duración registrada")) {
+                    throw new Error("Falta estado sin evidencia");
+                }
+                if (section.querySelectorAll("tbody tr").length !== 7) throw new Error("Faltan causas F2");
+        """
+            if detentions
+            else ""
+        )
         self.browser_js(
             f"/odoo/action-{action.id}",
             """
@@ -236,9 +258,12 @@ class TestKPIDashboardBrowser(HttpCase):
                 if (root.scrollWidth > root.clientWidth + 1) throw new Error("Seguimiento desborda la pantalla");
                 root.querySelector("[data-section='summary']").click();
                 await wait(() => root.querySelectorAll(".mc_kpi_quality").length === 2);
+                /* F2_LAYOUT */
                 console.log("test successful");
             })().catch((error) => console.error(error));
-            """,
+            """.replace(
+                "/* F2_LAYOUT */", script
+            ),
             login=viewer.login,
             timeout=180,
         )
@@ -248,6 +273,12 @@ class TestKPIDashboardBrowser(HttpCase):
 
     def test_mobile_layout(self):
         self._layout("390x844")
+
+    def test_detentions_desktop_layout(self):
+        self._layout("1440x1000", detentions=True)
+
+    def test_detentions_mobile_layout(self):
+        self._layout("390x844", detentions=True)
 
     def test_production_populated_desktop(self):
         self._volume_layout("1440x1000", "production")

@@ -14,6 +14,7 @@ const SECTIONS = [
     { key: "summary", label: "Resumen" }, { key: "quality", label: "Calidad" },
     { key: "tracking", label: "Seguimiento" }, { key: "coverage", label: "Cobertura y definiciones" },
     { key: "production", label: "Producción" }, { key: "findings", label: "Hallazgos" },
+    { key: "detentions", label: "Detenciones" },
 ];
 const PROCESSES = {
     all: "Todos los procesos", repair: "Reparación", manufacturing: "Fabricación",
@@ -39,6 +40,7 @@ export class KPIDashboard extends Component {
             dateFrom: typeof saved.dateFrom === "string" ? saved.dateFrom : "",
             dateTo: typeof saved.dateTo === "string" ? saved.dateTo : "",
             process: Object.hasOwn(PROCESSES, saved.process) ? saved.process : "all",
+            detentionProcess: ["repair", "manufacturing"].includes(saved.detentionProcess) ? saved.detentionProcess : "all",
             modelId: Number.isInteger(saved.modelId) && saved.modelId > 0 ? saved.modelId : false,
             revision: typeof saved.revision === "string" ? saved.revision : "latest",
             dimension: saved.dimension === "component" ? "component" : "finding",
@@ -74,7 +76,8 @@ export class KPIDashboard extends Component {
 
     exportState() {
         const { section, dateFrom, dateTo, process, modelId, revision, dimension, unit, customerId, severity, intervention } = this.state;
-        return { section, dateFrom, dateTo, process, modelId, revision, dimension, unit, customerId, severity, intervention };
+        return { section, dateFrom, dateTo, process, modelId, revision, dimension, unit, customerId, severity, intervention,
+            detentionProcess: this.state.detentionProcess };
     }
 
     fetchData() {
@@ -87,6 +90,9 @@ export class KPIDashboard extends Component {
             dimension: this.state.dimension, unit: this.state.unit,
             customer_id: this.state.customerId, severity: this.state.severity, intervention: this.state.intervention,
         };
+        if (this.state.section === "detentions") {
+            kwargs.detention_filters = { process: this.state.detentionProcess };
+        }
         return this.orm.call(SERVICE, "get_dashboard", [], kwargs);
     }
 
@@ -94,16 +100,22 @@ export class KPIDashboard extends Component {
     selectSection(key) {
         if (!SECTIONS.some((item) => item.key === key)) return;
         this.state.section = key;
-        if (this.productionMode) return this.refresh();
+        if (this.productionMode || key === "detentions") return this.refresh();
     }
     setFilter(key, value) {
-        if (!["dateFrom", "dateTo", "process", "modelId", "revision", "dimension", "unit", "customerId", "severity", "intervention"].includes(key)) return;
+        if (!["dateFrom", "dateTo", "process", "detentionProcess", "modelId", "revision", "dimension", "unit", "customerId", "severity", "intervention"].includes(key)) return;
         this.state[key] = ["modelId", "customerId"].includes(key) ? (Number(value) || false) : value;
         if (key === "modelId") { this.state.revision = "latest"; this.state.customerId = false; }
         return this.refresh();
     }
 
     get productionMode() { return ["production", "findings"].includes(this.state.section); }
+    get detentionMetrics() { return this.state.report?.detentions?.metrics || null; }
+    get detentionCauses() { return Object.entries(this.detentionMetrics?.by_cause || {}); }
+    get detentionPercent() { return formatPercent(this.detentionMetrics?.registered_stopped_percent); }
+    detentionHours(seconds) {
+        return new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }).format(seconds / 3600);
+    }
     get productionMetrics() {
         const row = this.state.report?.production;
         return row?.available === true ? row.metrics : null;

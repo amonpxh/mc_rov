@@ -110,8 +110,15 @@ class KPIDashboard(models.AbstractModel):
         return rows
 
     @api.model
+    # Conserva parámetros públicos previos y añade un filtro opcional independiente.
+    # pylint: disable=too-many-arguments
     def get_dashboard(
-        self, date_from=False, date_to=False, process="all", production_filters=None
+        self,
+        date_from=False,
+        date_to=False,
+        process="all",
+        production_filters=None,
+        detention_filters=None,
     ):
         companies = self._check_caller()
         # El servicio conserva sus validaciones de fechas/proceso y sus propias zonas.
@@ -158,6 +165,16 @@ class KPIDashboard(models.AbstractModel):
                 }
             except AccessError:
                 report["production"] = {"available": False, "metrics": None}
+        if detention_filters is not None:
+            if not isinstance(detention_filters, dict) or set(detention_filters) - {"process"}:
+                raise ValidationError(_("Los filtros de detenciones no son válidos."))
+            try:
+                metrics = self.env["mc.rov.detention.kpi"].get_summary(
+                    date_from=date_from, date_to=date_to, **detention_filters
+                )
+                report["detentions"] = {"available": True, "metrics": metrics}
+            except AccessError:
+                report["detentions"] = {"available": False, "metrics": None}
         return report
 
     @api.model

@@ -84,3 +84,7 @@ from . import production_kpi_service
 from . import production_kpi_release
 from . import production_kpi_stock
 from . import production_kpi_navigation
+from . import detention_history
+from . import detention_capture
+from . import detention_presentation
+from . import detention_kpi_service

@@ -21,7 +21,7 @@
                 </t>
             </nav>
             <main class="mc_kpi_content">
-                <div t-if="state.section === 'tracking' or productionMode" class="mc_kpi_filters">
+                <div t-if="state.section === 'tracking' or state.section === 'detentions' or productionMode" class="mc_kpi_filters">
                     <label>Desde
                         <input class="form-control" type="date" data-kpi-from="" t-att-value="state.dateFrom" t-att-max="state.dateTo || undefined"
                                t-on-change="(ev) => this.setFilter('dateFrom', ev.target.value)"/>
@@ -30,12 +30,20 @@
                         <input class="form-control" type="date" data-kpi-to="" t-att-value="state.dateTo" t-att-min="state.dateFrom || undefined"
                                t-on-change="(ev) => this.setFilter('dateTo', ev.target.value)"/>
                     </label>
-                    <label t-if="!productionMode">Proceso
+                    <label t-if="state.section === 'tracking'">Proceso
                         <select class="form-select" data-kpi-process="" t-att-value="state.process"
                                 t-on-change="(ev) => this.setFilter('process', ev.target.value)">
                             <t t-foreach="processOptions" t-as="option" t-key="option.key">
                                 <option t-att-value="option.key" t-att-selected="state.process === option.key" t-esc="option.label"/>
                             </t>
+                        </select>
+                    </label>
+                    <label t-if="state.section === 'detentions'">Proceso
+                        <select class="form-select" data-kpi-detention-process="" t-att-value="state.detentionProcess"
+                                t-on-change="(ev) => this.setFilter('detentionProcess', ev.target.value)">
+                            <option value="all">Reparación y Fabricación</option>
+                            <option value="repair">Reparación</option>
+                            <option value="manufacturing">Fabricación</option>
                         </select>
                     </label>
                     <t t-if="productionMode">
@@ -85,6 +93,7 @@
                         </label>
                     </t>
                     <p t-if="productionMode" class="text-muted mb-0">Cada hito usa su fecha acreditada en Santiago; los hallazgos usan detección. La revisión histórica se conserva. Los desconocidos se muestran separados de la última revisión.</p>
+                    <p t-elif="state.section === 'detentions'" class="text-muted mb-0">Las órdenes detenidas corresponden al momento de la consulta. Las fechas filtran la duración registrada.</p>
                     <p t-else="" class="text-muted mb-0">El período filtra los cierres de etapas. Los pendientes y vencimientos siguen siendo actuales; no modifica primera aceptación.</p>
                 </div>
                 <div t-if="state.error" class="alert alert-warning" role="alert" t-esc="state.error"/>
@@ -161,6 +170,40 @@
                                 <p>Observaciones sin revisión de diseño acreditada: <t t-esc="productionMetrics.coverage.unknown_observation_revision || 0"/>. Consúltelas con «Todas»; no se atribuyen a la última.</p>
                                 <p>Correcciones registradas con motivo: <t t-esc="productionMetrics.coverage.observation_corrections || 0"/>. El original se conserva en la revisión.</p>
                                 <p>Sin clasificar: <t t-esc="productionMetrics.findings.unclassified"/>. Sin unidad vinculada: <t t-esc="productionMetrics.findings.missing_unit"/>.</p>
+                            </div>
+                        </t>
+                    </section>
+                    <section t-elif="state.section === 'detentions'" data-kpi-detentions="">
+                        <h2>Detenciones del trabajo</h2>
+                        <p t-if="!detentionMetrics" class="text-muted">Indicador no disponible para el alcance actual.</p>
+                        <t t-else="">
+                            <div class="mc_kpi_cards mb-3">
+                                <article class="mc_kpi_card">
+                                    <h3>Órdenes detenidas actualmente</h3>
+                                    <p class="mc_kpi_value"><t t-esc="detentionMetrics.registered_stopped_orders"/> de <t t-esc="detentionMetrics.open_orders"/></p>
+                                    <p t-if="detentionMetrics.open_orders" t-esc="detentionPercent"/>
+                                </article>
+                                <article class="mc_kpi_card">
+                                    <h3>Horas de detención por orden en el período</h3>
+                                    <p class="mc_kpi_value" t-if="detentionMetrics.recorded_interval_count" t-esc="detentionHours(detentionMetrics.recorded_seconds)"/>
+                                    <p t-else="" class="mc_kpi_value">Sin duración registrada</p>
+                                </article>
+                            </div>
+                            <p class="text-muted"><t t-esc="detentionMetrics.orders_without_recorded_intervals"/> órdenes sin historial registrado. La cobertura se calcula sobre el historial de las órdenes consultadas.</p>
+                            <p t-if="detentionMetrics.unknown_duration_intervals" class="text-muted"><t t-esc="detentionMetrics.unknown_duration_intervals"/> intervalos de duración desconocida.</p>
+                            <h3>Duración por causa</h3>
+                            <p class="text-muted">Las causas pueden coincidir en el tiempo. El total por orden cuenta cada tramo una sola vez.</p>
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead><tr><th scope="col">Causa</th><th scope="col">Intervalos</th><th scope="col">Horas por orden</th></tr></thead>
+                                    <tbody>
+                                        <tr t-foreach="detentionCauses" t-as="entry" t-key="entry[0]">
+                                            <th scope="row" t-esc="entry[1].label"/>
+                                            <td t-esc="entry[1].recorded_interval_count"/>
+                                            <td t-esc="entry[1].recorded_interval_count ? detentionHours(entry[1].recorded_seconds) : '—'"/>
+                                        </tr>
+                                    </tbody>
+                                </table>
                             </div>
                         </t>
                     </section>

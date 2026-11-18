@@ -26,11 +26,13 @@ class TestKPIBrowserVerification(unittest.TestCase):
             "test_hoot_dashboard_and_existing_controls",
             "test_production_populated_desktop",
             "test_findings_populated_mobile",
+            "test_detentions_desktop_layout",
+            "test_detentions_mobile_layout",
         )
         return "\n".join(
             [f"Starting TestKPIDashboardBrowser.{name}" for name in names]
             + [
-                "0 failed, 0 error(s) of 5 tests",
+                "0 failed, 0 error(s) of 7 tests",
                 "[HOOT] Passed 105 tests (300 assertions)",
                 "[HOOT] Test suite succeeded",
             ]

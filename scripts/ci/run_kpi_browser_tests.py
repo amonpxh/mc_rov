@@ -1,5 +1,8 @@
 """Ejecuta Chrome temporal y HttpCase sobre odoo_test, sin instalar paquetes del host."""
 
+# La salida de este CLI forma parte de la evidencia de CI.
+# pylint: disable=unknown-option-value,print-used
+
 import hashlib
 import os
 from pathlib import Path
@@ -97,10 +100,12 @@ def verify_result(text, rc, expected_hoot):
         "test_hoot_dashboard_and_existing_controls",
         "test_production_populated_desktop",
         "test_findings_populated_mobile",
+        "test_detentions_desktop_layout",
+        "test_detentions_mobile_layout",
     }
     observed = set(re.findall(r"Starting TestKPIDashboardBrowser\.(test_\w+)", text))
-    if rc or observed != expected or not re.search(r"0 failed, 0 error\(s\) of 5 tests", text):
-        raise RuntimeError("HttpCase no confirmó sus cinco casos de navegador")
+    if rc or observed != expected or not re.search(r"0 failed, 0 error\(s\) of 7 tests", text):
+        raise RuntimeError("HttpCase no confirmó sus siete casos de navegador")
     if re.search(
         r"(Chrome executable not found|websocket-client module is not installed|"
         r"Failed to detect chrome devtools port|skipped TestKPIDashboardBrowser\.)",
@@ -112,7 +117,7 @@ def verify_result(text, rc, expected_hoot):
         raise RuntimeError("Falta el resultado nativo de HOOT")
     if not expected_hoot or not re.search(rf"Passed {expected_hoot} tests \(", text):
         raise RuntimeError("La población ejecutada por HOOT no coincide con sus contratos")
-    print(f"CI_KPI_BROWSER=PASSED CASES=5 HOOT={expected_hoot}", flush=True)
+    print(f"CI_KPI_BROWSER=PASSED CASES=7 HOOT={expected_hoot}", flush=True)
 
 
 def browser_environment(root, executable):

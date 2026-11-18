@@ -56,6 +56,38 @@ async function setup(options = {}) {
 describe("mc_rov KPI dashboard", () => {
     defineModels(mailModels);
 
+    test("Detenciones muestra cartera actual y duración por separado", async () => {
+        const data = report();
+        data.detentions = { available: true, metrics: {
+            registered_stopped_orders: 1, open_orders: 4, registered_stopped_percent: 25,
+            recorded_seconds: 7200, recorded_interval_count: 2, orders_without_recorded_intervals: 3,
+            unknown_duration_intervals: 0, by_cause: {
+                materials: { label: "Repuestos/materiales", recorded_seconds: 7200, recorded_interval_count: 1 },
+                client: { label: "Cliente", recorded_seconds: 3600, recorded_interval_count: 1 },
+            },
+        } };
+        const { calls } = await setup({ report: data });
+        await click("[data-section='detentions']");
+        await animationFrame();
+        expect("[data-kpi-detentions]").toHaveText(/1 de 4/);
+        expect("[data-kpi-detentions]").toHaveText(/Repuestos\/materiales/);
+        expect("[data-kpi-detentions]").toHaveText(/3 órdenes sin historial registrado/);
+        await click("[data-kpi-detention-process]");
+        await select("manufacturing");
+        await animationFrame();
+        expect(calls.at(-1).kwargs.detention_filters).toEqual({ process: "manufacturing" });
+    });
+
+    test("Detenciones sin acceso no muestra indicadores numéricos", async () => {
+        const data = report();
+        data.detentions = { available: false, metrics: null };
+        await setup({ report: data });
+        await click("[data-section='detentions']");
+        await animationFrame();
+        expect("[data-kpi-detentions]").toHaveText(/Indicador no disponible/);
+        expect("[data-kpi-detentions] .mc_kpi_value").toHaveCount(0);
+    });
+
     test("Producción distingue visitas equipos y hitos", async () => {
         await setup();
         await click("[data-section='production']");
