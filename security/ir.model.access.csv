@@ -31,3 +31,5 @@ access_engineering_activity_policy_coordinate,mc.rov.engineering.activity.policy
 access_inventory_activity_policy_coordinate,mc.rov.inventory.activity.policy.coordinate,model_mc_rov_inventory_activity_policy,mc_rov.group_work_assignment_coordinate,1,1,1,0
 access_inventory_activity_rule_coordinate,mc.rov.inventory.activity.rule.coordinate,model_mc_rov_inventory_activity_rule,mc_rov.group_work_assignment_coordinate,1,1,1,1
 access_new_acceptance_wizard_mrp,mc.rov.new.acceptance.wizard.mrp,model_mc_rov_new_acceptance_wizard,mrp.group_mrp_user,1,1,1,1
+access_detention_wizard_internal,mc.rov.detention.wizard.internal,model_mc_rov_detention_wizard,base.group_user,1,1,1,1
+access_detention_wizard_option_internal,mc.rov.detention.wizard.option.internal,model_mc_rov_detention_wizard_option,base.group_user,1,1,1,1

@@ -144,8 +144,9 @@ sus subtotales como si fueran categorías exclusivas.
   no es0. Colas normales se muestran aparte de bloqueos hasta acordar su clasificación.
 - **Comprobación:** falta de repuesto que no impide otras operaciones queda como
   riesgo; dos intervalos superpuestos de2 y3 días pueden sumar3 días, no5.
-- **Estado:** causas y criterio de detención acordados; captura, permisos y manejo
-  de solapes por comprobar en implementación. No cambia la promesa al cliente.
+- **Estado técnico2026-11-18:** captura backend validada en copias aisladas con45
+  contratos nativos y diez carreras; interfaz, consulta y tablero F2 pendientes.
+  No desplegado ni activado para uso real; no cambia la promesa al cliente.
 
 ### F3 Cumplimiento con el cliente
 
@@ -539,8 +540,11 @@ mensajes. El circuito se probará con datos ficticios y roles equivalentes.
    identificar los perfiles ya existentes antes de completar configuración.
    Observaciones informativas sin corrección/reensayo y las tres condiciones
    de liberación ya están acordadas. No equiparar FEN a despacho.
-4. Roles de registro/validación de bloqueo, veredicto, retorno y liberación;
+4. Los roles de veredicto, retorno y liberación se fijan en sus incrementos;
    no inferir permisos nuevos desde cuentas QA o desde la coordinación de actividades.
+   Para F2, Paulo acordó2026-11-17: Taller y Supervisor registran inicio/fin según
+   acceso a la orden. Exigir escritura nativa y empresa autorizada; no conceder
+   permisos nuevos sobre el origen. Ver [incremento F2](2026-11-17-kpi-detentions.md).
 5. Catálogo de bloqueos acordado; conservar solapes y duración no aditiva por causa,
    salvo que se acuerde después un reparto de tiempo diferente.
 6. Calendario del tablero acordado: America/Santiago, lunes–domingo, meses/años

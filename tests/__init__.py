@@ -73,3 +73,9 @@ from . import test_production_kpi_release
 from . import test_production_kpi_dimensions
 from . import test_production_kpi_boundaries
 from . import test_production_kpi_corrections
+from . import test_detention_capture
+from . import test_detention_rpc_defaults
+from . import test_detention_boundaries
+from . import test_detention_manufacturing_events
+from . import test_detention_presentation
+from . import test_detention_kpi_service

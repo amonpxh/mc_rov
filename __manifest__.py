@@ -1,6 +1,6 @@
 {
     "name": "Marine Connection - ROV",
-    "version": "19.0.25.8.0",
+    "version": "19.0.25.9.0",
     "category": "Inventory",
     "summary": "Gestión de equipos ROV y órdenes de reparación",
     "author": "Marine Connection",
@@ -33,6 +33,7 @@
         "security/work_assignment_groups.xml",
         "security/ir.model.access.csv",
         "views/new_unit_release_views.xml",
+        "views/detention_views.xml",
         "security/repair_activity_policy_rules.xml",
         "security/automation_control_rules.xml",
         "security/manufacturing_activity_policy_rules.xml",

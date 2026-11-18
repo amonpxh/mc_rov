@@ -1,3 +1,489 @@
+## F2: regresión integral y revisión visual aprobadas — 2026-11-18
+
+La recuperación del lote ZzUxBd confirmó 1697/1697 contratos nativos con
+cero fallos y errores, siete casos de navegador y 117 pruebas HOOT. Se
+verificaron las 1697 identidades por clase y método, sin omisiones ni
+duplicados, y las huellas del paquete y la evidencia recuperada. La prueba
+anterior de interfaz y captura acreditó también diez carreras de concurrencia.
+
+STAGING conservó archivos y PID. La copia quedó bloqueada, su PostgreSQL
+detenido y la clave F2 revocada. La recuperación obtuvo el resultado existente
+sin repetir el lote. Recibo en
+Code/.tmp/kpi-detentions-browser/verified-result.json.
+
+Se revisaron las capturas de Detenciones en escritorio y móvil con empresa
+ficticia. La revisión cubrió el estado sin registros y el ajuste al ancho. HOOT
+cubrió también datos de ejemplo, el filtro de proceso y el estado sin permiso.
+El candidato queda validado en la rama. Publicación, integración e instalación
+son pasos posteriores con alcance propio.
+
+## F2: navegador aprobado y regresión pendiente de recuperar — 2026-11-18
+
+El lote de navegador arrancó una vez. Confirmó siete casos de Chrome y 117
+HOOT. La última consulta válida confirmó que comenzó la regresión integral.
+La siguiente consulta se bloqueó por falta de créditos de revisión automática.
+Tras recuperarse la revisión, el acceso ya había caducado (16:49:11 UTC) y
+SSH rechazó la clave. El resultado integral, el cierre del clúster y la retirada
+de la entrada caducada quedan sin confirmar.
+
+Recuperador local validado con CheckOnly y sintaxis Python:
+Code/.tmp/staging-detentions-browser-recover.ps1. Usa una autenticación inicial
+del usuario, obtiene solo el resultado del mismo lote y retira su entrada exacta
+de authorized_keys. Conserva respuesta y log locales en temporary-access.
+No relanza pruebas ni reabre la copia. Al recuperar la evidencia, verificar la
+regresión por descubrimiento y resultado, conservación de STAGING y cierre.
+
+## F2: GREEN nativo y concurrencia aprobados — 2026-11-18
+
+El paquete de interfaz ejecutó 69 contratos con cero fallos y diez carreras
+aprobadas. La copia wDAJVq quedó bloqueada y su PostgreSQL detenido. STAGING
+conservó archivos y PID. Clave revocada. Evidencia verificada y sellada en
+Code/.tmp/kpi-detentions-interface-green/verified-result.json.
+
+Se preparó un solo lote siguiente, Code/.tmp/kpi-detentions-browser, para
+siete HttpCase, 117 HOOT y regresión integral de 1697 contratos nativos
+descubiertos por clase y método. El archivo de producto conserva todos los
+bytes aprobados. Solo se añadieron dos casos al archivo de pruebas de navegador,
+para escritorio y móvil. Herramientas recuperadas con las huellas fijadas
+en CI. Odoo y Chrome se ejecutarán dentro de una red privada con loopback.
+La suite integral usa la misma copia aislada sin HTTP. CheckOnly, linter,
+sintaxis del runner, inventario estático de casos y 194 pruebas puras aprobados.
+
+Activador Code/.tmp/staging-detentions-browser-access.ps1 y cliente
+staging-detentions-browser-access-run.ps1. Pendiente activación del lote,
+ejecución de navegador, HOOT, regresión integral y revisión visual. Mantener
+separados los alcances posteriores de publicación e instalación.
+
+## F2: RED 69 confirmado e interfaz implementada localmente — 2026-11-18
+
+El RED nativo ejecutó 69 casos exactos: 24 ausencias esperadas de interfaz y
+consulta, 45 controles verdes y cero errores. La copia I63KP8 quedó bloqueada,
+su PostgreSQL se detuvo y STAGING conservó archivos y PID. Acceso revocado.
+El preparador GREEN verificó el mismo log y registró su huella.
+
+Candidato local con pestaña Detenciones en Reparación y Fabricación, asistentes
+de inicio y reanudación, historial escapado y consulta agregada para el tablero.
+El tablero aplica el permiso de equipo, las reglas de origen y empresa, el corte
+actual para la cartera y fechas civiles de Santiago para la duración. Los
+intervalos simultáneos se deduplican en el total por orden. Las ACL nuevas se
+limitan a dos modelos transitorios. Los 69 contratos se registraron en la suite
+nativa de la rama y se añadieron dos casos HOOT de tablero.
+
+194 pruebas puras aprobadas. Linter, sintaxis JS/XML/Bash, huellas del paquete,
+check local del activador y preservación de los contratos exactos verificados.
+Paquete GREEN en Code/.tmp/kpi-detentions-interface-green. Para validar en otra
+copia privada requiere el activador staging-detentions-interface-green-access.ps1
+y luego el cliente staging-detentions-interface-green-access-run.ps1. Este lote
+exige los mismos 69 contratos y diez carreras. Activación, GREEN nativo, HOOT,
+regresión integral y QA visual pendientes. Sin instalación operativa.
+
+## F2: captura GREEN 45+10 verificada; RED de interfaz/KPI preparado — 2026-11-18
+
+Lote events-green ejecutado autónomamente: mismos45contratos, cero fallos/errores,
+y diez carreras exactas aprobados. Incluye primer inicio frente a cierre/cancelación
+directos por stock con instantáneas inicialmente vacías; no quedan intervalos
+abiertos sobre órdenes cerradas en esos escenarios. Los dos RED de movimientos
+anteriores ahora pasan sin cambiar aserciones. STAGING conservó archivos/PID.
+Copia mc_rov_detention_races_4c7uIO bloqueada, PostgreSQL privado detenido, en
+/var/tmp/mc-rov-detention-races-4c7uIO. Acceso revocado; no reabrir ni repetir.
+Recibo Code/.tmp/kpi-detentions-events-green/verified-result.json vincula respuesta,
+log, archivo fuente y revocación por SHA. No se instaló producto en entornos operativos.
+
+Se continuó con el siguiente incremento autorizado: tests/test_detention_presentation.py
+(doce contratos de asistentes, origen/empresa, historia, contexto y HTML) y
+ tests/test_detention_kpi_service.py (doce de permisos, tiempos, solapes, cobertura,
+filtros y entrega al tablero). Todavía NO hay implementación de esos componentes.
+Los 24 tests comprueban primero el componente ausente con motivo específico;
+después ejercitarán cada contrato real. Nombres fijados: mc.rov.detention.wizard,
+mc.rov.detention.kpi y parámetro opcional detention_filters del tablero.
+
+Nuevo paquete Code/.tmp/kpi-detentions-interface-red conserva byte a byte la fuente
+y los45casos GREEN, agrega24 y no repite carreras con producto idéntico. Exige69
+casos exactos:24aserciones de componentes ausentes,45controles verdes,0errores.
+Verificador comprueba identidad/motivo por componente y rechaza otros errores.
+194pruebaspuras, Black/pylint, revisión focalizada, SHA/LF/Base64/AST/Bash,
+PowerShell y CheckOnly aprobados. No acredita RED nativo todavía.
+
+Activador .tmp/staging-detentions-interface-red-access.ps1 y cliente
+.tmp/staging-detentions-interface-red-access-run.ps1; acceso aún no activado, sin
+clave generada ni SSH de este paquete. Precisa activación inicial; luego ejecución,
+validación y revocación autónomas. No reutiliza claves revocadas ni copias cerradas.
+Después del RED: implementar asistentes/historia/consulta F2, sección visual del
+tablero, controles de navegador, regresión integral y QA visual. Sin publicar,
+integrar, instalar operativamente o activar políticas reales. F2 no entregado aún.
+
+## F2: dos fallos de movimientos reproducidos; GREEN 45+10 preparado — 2026-11-18
+
+Sondeo ejecutado autónomamente: 45 casos exactos, 43 verdes, dos fallos de cierre
+concretos y cero errores. Fallaron únicamente test_direct_finished_move_cancellation_
+closes_detention y test_direct_stock_completion_closes_detention por ended_at
+pendiente. Botón normal, taller, parcial, asistente pendiente, listo para cerrar,
+rollback y los 35 controles anteriores aprobaron. El sondeo confirmado NO es un
+GREEN del producto. Recibo Code/.tmp/kpi-detentions-events-probe/
+verified-characterization.json vincula log/respuesta y revocación por SHA.
+
+STAGING conservó huellas y PID; copia mc_rov_detention_races_voeiqi bloqueada y
+PostgreSQL privado detenido, en /var/tmp/mc-rov-detention-races-voeiqi. No reabrir.
+Acceso del sondeo revocado. No se reutiliza la clave consumida.
+
+Corrección local observando stock.move._action_done/_action_cancel: conserva
+acciones/retornos nativos; bloquea las producciones seguidas y reconcilia únicamente
+estados done/cancel. Los movimientos intermedios conservan intervalos abiertos.
+No consulta permisos MRP por movimientos sin historial F2. Se mantienen identidad,
+actor, empresa, fechas originales y controles de acceso existentes. Los dos RED
+nativos son evidencia previa de la corrección; no se cambiaron sus aserciones.
+
+GREEN preparado en Code/.tmp/kpi-detentions-events-green. Los mismos 45 contratos
+ahora deben pasar sin fallos; ocho carreras previas se repiten por cambio de producto
+y se agregan dos MRP: primer inicio frente a cierre directo de stock y primer inicio
+frente a cancelación directa, ambos sin historial al arrancar. Las conexiones con
+instantáneas inicialmente vacías y sus reintentos deben demostrar la serialización;
+todavía no está acreditada para esos dos escenarios nuevos.
+
+190 pruebas puras, linter/formato y revisión focalizada aprobados. Verificados
+hashes/LF/Base64/AST/Bash, PowerShell y CheckOnly. El archivo de producto cambiado
+es únicamente models/detention_capture.py; tests del sondeo se conservan byte a byte.
+Activador .tmp/staging-detentions-events-green-access.ps1 y cliente
+.tmp/staging-detentions-events-green-access-run.ps1. No hay clave generada ni SSH
+GREEN todavía. Precisa activación inicial; luego ejecución/verificación/revocación
+autónomas en nueva copia. Sin instalación/reinicio operativo, publicación o merge.
+Interfaz, agregado F2, regresión integral y QA visual siguen pendientes después de
+este GREEN. No declarar entregado el F2 completo.
+
+## F2: sondeo de finalización MRP preparado — 2026-11-18
+
+Paulo autorizó continuar finalización normal/movimientos, después interfaz y tablero.
+Producto v3 no modificado: source.tar idéntico al lote 35+8 aprobado. Nuevo sondeo
+Code/.tmp/kpi-detentions-events-probe conserva 35 casos y agrega diez contratos:
+fixtures nativas de finalización/aviso de restante, botón, taller, asistente pendiente,
+listo para cerrar, parcial, cancelación por movimiento, cierre directo de stock y
+rollback. Fixtures contrastadas con pruebas nativas existentes de Fabricación.
+
+Caracterización exacta de 45, no un RED con cantidad de fallos inventada. Solo cinco
+identidades de cierre pueden fallar y únicamente por ended_at ausente con mensaje
+específico. Otros casos, errores o regresiones invalidan el sondeo. Cero fallos
+nuevos también es válido. El resumen nativo ERROR odoo.tests.result solo se admite
+si coincide con población45, fallos identificados y cero errores; cualquier otro
+ERROR/CRITICAL se rechaza. Este detalle fue hallazgo de revisión, reproducido y
+corregido con prueba local RED→GREEN. No se declara producto GREEN por normalizar
+un resultado de caracterización. Las ocho carreras aprobadas se conservan por su
+recibo y fuente, no se repiten mientras no cambie el producto.
+
+188 pruebas puras, Black/pylint, integridad SHA/LF/Base64/AST/Bash, PowerShell y
+CheckOnly aprobados. Revisión focalizada sin otros hallazgos materiales. No se
+escribieron todavía nuevas guardas de producto ni interfaz antes de este sondeo.
+Activador nuevo .tmp/staging-detentions-events-access.ps1 y cliente
+.tmp/staging-detentions-events-access-run.ps1. Dos horas, un intento, comandos
+forzados y hashes; no amplía ni reutiliza las claves v3 revocadas. No hay clave
+nueva generada ni SSH de este sondeo aún. Solo nueva copia/PG privado, nunca
+instalación o reinicio de STAGING/producción ni reapertura de copias cerradas.
+
+Siguiente: activación del usuario, ejecución/recogida autónoma y revocación; según
+resultado corregir cierres conservando los mismos contratos. Después asistentes
+nativos en órdenes, historial autorizado y consulta/agregado F2 en tablero, con
+pruebas de permisos, regresión y QA visual. Sin publicación, merge ni despliegue.
+
+## F2: v3 nativo y ocho carreras aprobados; acceso revocado — 2026-11-18
+
+Lote v3 ejecutado autónomamente con la activación del usuario, sin otra contraseña.
+Verificación offline del mismo intento: 35 casos exactos, cero fallos/errores y
+sin ERROR/CRITICAL; ocho carreras exactas con conexiones iniciales independientes.
+Reparación y Fabricación: inicio duplicado, fin duplicado, inicio/cancelación y
+rollback/inicio. Ambos rollback acreditan espera real con pg_blocking_pids antes
+de liberar la transacción. La corrección de cancelación MRP pasó la misma aserción
+que fallaba en v2; no se relajaron controles.
+
+STAGING conservó huellas de archivos y PID. Copia mc_rov_detention_races_h9Vvqt
+bloqueada y PostgreSQL propio detenido, conservados en
+/var/tmp/mc-rov-detention-races-h9Vvqt. No reabrir ni repetir por rutina.
+Recibo local Code/.tmp/kpi-detentions-races-v3/verified-result.json vincula respuesta,
+log, paquete congelado y revocación por SHA. F2_ACCESS_REVOKED=True confirmado;
+la clave v3 ya no concede acceso. Las copias fallidas anteriores siguen cerradas.
+
+Producto candidato 19.0.25.9.0 solo probado en copias privadas, sin instalar ni
+reiniciar STAGING/producción, publicar, integrar o activar políticas/cuentas reales.
+La captura focalizada y estas ocho carreras están verificadas; F2 completo todavía
+no está entregado. Siguiente: cubrir finalización normal MRP y cierres directos por
+movimientos; luego asistentes/vistas y agregado del tablero, permisos/regresión
+integral y QA visual conforme al alcance. No ampliar la credencial ya revocada.
+
+## F2: carrera MRP reprodujo fallo real; corrección v3 preparada — 2026-11-18
+
+V2 ejecutado autónomamente. Los 35 controles nativos y seis carreras aprobaron:
+las cuatro de Reparación y los duplicados de inicio/fin de Fabricación. La carrera
+MRP inicio/cancelación falló en inspect: orden cancelada con intervalo sin cierre
+(ended_at/end_kind). No afirmar ocho carreras aprobadas. Root cause contrastada:
+Odoo calcula state desde movimientos y _action_cancel no garantiza write(state).
+El historial F2 solo observaba ese write y omitía el evento nativo real.
+
+Copia mc_rov_detention_races_GPyAYx bloqueada y PostgreSQL privado detenido,
+conservada en /var/tmp/mc-rov-detention-races-GPyAYx. Evidencia local vinculada por
+SHA en Code/.tmp/kpi-detentions-races-v2/failed-attempt-receipt.json. Acceso v2
+revocado con F2_ACCESS_REVOKED=True. No reabrir/repetir. La comparación final de
+fuentes no se alcanzó; no atribuirle esa garantía al intento fallido.
+
+Corrección mínima local: ManufacturingDetentionCapture._action_cancel bloquea
+antes del evento nativo, conserva su retorno y reconcilia solo estado final done/
+cancel. Mismo actor y transacción; sin stock artificial, permisos, commits ni
+cierre manual. Prueba local RED→GREEN y 182 pruebas puras aprobadas; linter y
+revisión focalizada sin hallazgos materiales. No acredita aún GREEN nativo ni
+otros caminos de finalización MRP por movimientos: siguen pendientes antes de
+entregar F2 completo.
+
+V3 separado: Code/.tmp/kpi-detentions-races-v3, activador
+.tmp/staging-detentions-access-v3.ps1 y cliente
+.tmp/staging-detentions-access-run-v3.ps1. Cambia exactamente un archivo de producto
+respecto a GREEN24: models/detention_capture.py. Conserva los mismos 35 contratos,
+ocho escenarios y todas sus aserciones. Archivo fuente congelado, hashes, LF,
+Base64/AST/Bash y CheckOnly aprobados; sin claves generadas o SSH v3 aún.
+Siguiente: nueva activación del usuario, run-f2/status-f2 autónomos, verificar y
+revocar. No reutilizar claves consumidas ni ampliar acceso a otro paquete.
+Sin publicación, merge, instalación operativa o activación real del F2.
+
+## F2: lote autónomo detenido por auxiliar; v2 preparado — 2026-11-18
+
+La activación y ejecución autónoma funcionaron sin nueva contraseña. El lote nativo
+pasó 35 casos exactos; dos carreras de Reparación aprobaron (inicio duplicado y fin
+duplicado). La tercera falló por AttributeError: el auxiliar llamó action_cancel en
+repair.order. Los contratos nativos existentes confirman action_repair_cancel;
+no es evidencia de un fallo del producto F2. No afirmar ocho carreras aprobadas.
+
+Copia mc_rov_detention_races_g5bpmn bloqueada, PostgreSQL privado detenido y evidencia
+conservada en /var/tmp/mc-rov-detention-races-g5bpmn. La comparación final de fuentes
+no se alcanzó: no atribuirle esa garantía a este intento. El acceso fue revocado
+con F2_ACCESS_REVOKED=True. No repetirlo ni reabrir esta copia. Recibo local
+Code/.tmp/kpi-detentions-races/failed-attempt-receipt.json vincula el log por SHA.
+
+Corrección SOLO del auxiliar: cancel_source delega Reparación a action_repair_cancel
+y Fabricación a action_cancel. Prueba de regresión local RED observado y GREEN;
+181 pruebas puras, linter y revisión focalizada aprobados. No cambió producto,
+source.tar, los 35 contratos ni la población de ocho carreras.
+
+Paquete separado Code/.tmp/kpi-detentions-races-v2; activador
+.tmp/staging-detentions-access-v2.ps1 y cliente
+.tmp/staging-detentions-access-run-v2.ps1. CheckOnly y Bash aprobados. Todavía no
+generó claves ni conectó por SSH. Precisa una nueva activación del usuario porque
+la clave anterior estaba consumida, ligada a las huellas anteriores y ya revocada.
+Después run-f2/status-f2 autónomos, validar 35+8, conservar evidencia y revocar.
+No publicar, integrar, instalar operativamente ni activar políticas F2.
+
+## F2: lote autónomo iniciado — 2026-11-18
+
+Usuario activó acceso temporal, caducidad 2026-11-18 14:10:35 UTC. status-f2
+confirmó intento no consumido y run-f2 inició una única ejecución. No se solicitó
+contraseña adicional. Primera consulta: preflight y baseline aprobados; creando/
+restaurando copia privada. No afirmar resultados de pruebas todavía.
+
+La evidencia se recoge mediante .tmp/staging-detentions-access-run.ps1 status-f2.
+Después de terminar: verificar log exacto35, ocho carreras y marcadores de
+conservación/cierre; guardar resultado y revocar con revoke-f2. Ante fallo no
+repetir run-f2 ni ampliar acceso. No hubo instalación o reinicio operativo.
+
+## F2: concurrencia y acceso temporal preparados — 2026-11-17
+
+Usuario autorizó expresamente preparar el lote y acceso para ejecución autónoma.
+Paquete local Code/.tmp/kpi-detentions-races, activador
+.tmp/staging-detentions-access.ps1 y cliente .tmp/staging-detentions-access-run.ps1.
+Conserva source.tar idéntico al GREEN24 y la matriz nativa de 35 casos. Nueva copia
+STAGING2.0→candidato9.0 en PostgreSQL privado; ocho carreras en Reparación y
+Fabricación: inicio duplicado, fin duplicado, inicio/cancelación nativa y rollback/
+inicio. Dos conexiones iniciales distintas, reintentos completos acotados y espera
+real acreditada por pg_blocking_pids antes del rollback. Log de Odoo propio; nunca
+hereda el logfile operativo. Conflictos SQL tipados del worker se conservan como
+WARNING con SQLSTATE; cualquier otro error sigue invalidando el lote.
+
+Acceso preparado, NO ACTIVADO: clave nueva creada solo desde el terminal del
+usuario, carpeta con ACL privada; comando forzado admite exclusivamente run-f2,
+status-f2 y revoke-f2. Un intento, hashes de cada archivo congelado, sin consola,
+túneles o subida libre. Caduca a las dos horas según reloj remoto. Supervisor
+independiente conserva evidencia y cleanup si se desconecta SSH; revocación retira
+solo la línea exacta de esta clave. El activador no ejecuta las pruebas.
+
+180 pruebas puras, linter/formato, SHA/LF/Base64/AST/Bash, sintaxis PowerShell y
+CheckOnly aprobados. Revisión focalizada sin bloqueos después de corregir logfile
+y prueba de espera del rollback. No hay claves generadas ni SSH de este lote aún.
+Siguiente: usuario ejecuta una vez el activador; después el agente usa el cliente
+con BatchMode/IdentitiesOnly para run-f2 y status-f2, verifica 35+8 y conservación/
+bloqueo/parada; recoge evidencia y revoca. Si falla, no repetir: el intento queda
+consumido y se diagnostica. No ampliar este acceso a otros paquetes o entornos.
+Sin publicación, merge, instalación operativa ni activación real del F2.
+
+## F2: matriz nativa de 35 casos aprobada; acceso autónomo pendiente — 2026-11-17
+
+Intento 8dd1535164994b7498b8718d5fbe627b: 35 casos exactos, cero fallos y errores,
+sin ERROR/CRITICAL, verificados contra expected.json y log del mismo intento.
+Incluye captura24, control RPC y diez fronteras de acceso/empresa/identidad.
+STAGING conserva archivos y PID; copia mc_rov_detention_boundaries_8wQKcL
+bloqueada y PostgreSQL privado detenido. Conservada en
+/var/tmp/mc-rov-detention-boundaries-8wQKcL; no reabrir ni repetir por rutina.
+
+El usuario reiteró que quiere ejecución autónoma sin introducir SSH para cada
+prueba. El acceso temporal de producción fue revocado y estaba vinculado a su
+paquete: no se reutiliza ni amplía. Faltó preparar el equivalente para F2.
+Antes de pedir otra ejecución manual, preparar un lote concreto de siguientes
+pruebas y acceso temporal restringido a sus paquetes revisados, con caducidad,
+consulta de estado y revocación. La activación autenticada inicial corresponde
+al terminal del usuario; no hay acceso F2 autónomo habilitado todavía.
+
+Siguiente trabajo técnico: concurrencia sobre candidato congelado, después
+presentación y tablero F2, regresión integral y QA visual. Los 35 casos no
+acreditan el F2 completo. Sin publicación, merge, instalación operativa ni
+activación real de esta función.
+
+## F2: sondeo RPC positivo; matriz de 35 casos preparada — 2026-11-17
+
+El intento c9c776a9b3334e70a1da9edce373665a ejecutó exactamente los 25 casos:
+24 contratos anteriores y el caso de defaults RPC, todos verdes, cero errores
+ni ERROR/CRITICAL. La sospecha de cierre falso NO se reprodujo. El ejecutor RED
+original no quedó confirmado porque exigía un fallo; no se cambia su resultado
+ni el producto para forzarlo. Se conserva como control positivo adicional.
+Copia mc_rov_detention_rpc_red_WI6T33 bloqueada y PostgreSQL privado detenido,
+en /var/tmp/mc-rov-detention-rpc-red-WI6T33. No reabrir. La comparación final de
+huellas de STAGING no se alcanzó porque el verificador anterior abortó antes;
+no atribuirle esa garantía a este intento.
+
+Preparado .tmp/staging-detentions-boundaries.ps1 y paquete nuevo
+.tmp/kpi-detentions-boundaries: exige 35 casos verdes (24 originales, RPC y diez
+fronteras nuevas de acceso efectivo, empresa e identidad), sin errores. Conserva
+source.tar idéntico al GREEN24 y carga solo pruebas nuevas en otra copia privada.
+STAGING sigue siendo fuente de datos 19.0.25.2.0; actualiza solo esa copia al
+candidato 19.0.25.9.0. No modifica ni reinicia STAGING o producción, no reabre QA.
+
+170 pruebas puras aprobadas, incluida ampliación explícita del verificador a 35;
+el CLI GREEN24 conserva su población fija. Black y pylint-odoo aprobados;
+huellas, LF, transporte Base64, AST y CheckOnly sin SSH aprobados. Revisión
+independiente focalizada sin hallazgos materiales; no acredita ejecución Odoo.
+Matriz nativa de 35 pendiente. Después: concurrencia, presentación/tablero F2,
+regresión integral y QA visual. Sin publicación, integración ni despliegue F2.
+
+## F2: captura24GREEN confirmada; sondeo RPC25 preparado — 2026-11-17
+
+GREEN real verificado contra response78e4f2c135be4af187ff0211c7b6efd4 y su log:
+24casos ejecutados,0fallos,0errores,sinERROR/CRITICAL. Archivos yPID de STAGING
+sin cambios; copia mc_rov_detention_green_jQxV13 bloqueada y PostgreSQL propio
+detenido, preservados en /var/tmp/mc-rov-detention-green-jQxV13. No reabrir.
+Esto acredita el incremento focalizado de captura; no la matriz completa ni UI.
+
+Siguiente sondeo preparado .tmp/kpi-detentions-rpc-red y
+.tmp/staging-detentions-rpc-red.ps1. Usa source.tar IDÉNTICO al GREEN24, sin
+cambiar producto; conserva24contratos originales y agrega1caso adversarial.
+TestDetentionRPCDefaults reutiliza5helpers, NO hereda ni duplica los24métodos.
+Tags detention_capture,detention_rpc_defaults; descubrimiento exacto25. Exige
+un único fallo con motivo «El contexto del cliente no puede cerrar un inicio F2»
+y24controles anteriores verdes,0errores. Si no se reproduce, no forzar el fallo:
+leer ese intento y revisar comportamiento nativo antes de decidir corrección.
+
+Riesgo sigue inferido, no confirmado todavía: _ledger hereda contexto y ORM puede
+aplicar default_ended_at/closed_by/end_kind. NO hay saneamiento implementado aún.
+Producto real no tiene F2 instalado ni UI/publicación. No afirmar seguridad
+integral ni pasar a entrega antes de probar y resolver esta frontera.
+
+166pruebas puras aprobadas; verificadorRPC5casos después de RED observado.
+Formato/linter y hashes/LF/Base64/AST/Bash/CheckOnly aprobados. Revisión focalizada
+sin bloqueos para sondeo, no acredita reproducción. Usuario recibió comando;
+ejecución RPC nativa pendiente. Infraestructura privada conserva y detiene copia
+nueva, sin actualizaciones/reinicios de STAGING,producción oQAprevias.
+
+## F2: RED nativo confirmado; captura GREEN preparada — 2026-11-17
+
+RED real confirmado24/24:20ausencias esperadas y4controles nativos verdes,
+cero errores. Verificado contra log/expected.json del intento
+25e4c2ef77054d798af450400ad1e7e5. STAGING archivos yPID sin cambios; copia
+mc_rov_detention_red_eFHXHu bloqueada y PostgreSQL propio detenido, conservada
+en /var/tmp/mc-rov-detention-red-eFHXHu. No reabrirla ni reutilizarla.
+
+Candidato local19.0.25.9.0: historial privado mc.rov.detention.interval sinACL
+general, capacidad Python de identidad no falsificable por contexto RPC,
+mc.rov.detention.service con autorización nativa del origen yempresa activa.
+Inicio: causa/empleado/actor/fecha; fin idempotente conserva inicio yautor.
+Cancelación/cierre real finaliza intervalos como source_closed, no reanudación.
+Protege empresa de origen con evidencia y detecta incoherencia al leer/cerrar.
+Responsable usa identidad pública de empleado; no se confunde con usuarioactor.
+Sin nuevos roles, cuentas, datos históricos, actividades ni cambios de stock.
+La captura, interfaz y tablero NO están instalados ni publicados. Guardas de
+empresa y carreras ampliadas todavía deben verificarse nativamente.
+
+161pruebas puras locales, Black24.10/pylint-odoo9.0.5 aprobados. Revisión
+independiente del backend y paquete sin bloqueos materiales. Paquete GREEN
+Code/.tmp/kpi-detentions-green, wrapper .tmp/staging-detentions-green.ps1.
+Basearchivof67/8.0 con exactamente5overlays:3modelos nuevos,2imports enmodelsinit
+ymanifest8->9.0, ningún otro campo del manifiesto. SHA de5archivos y8payloads
+verificados, LF/Base64/AST/Bash/CheckOnly aprobados. El recibo lee las huellas
+del archivo congelado, no vuelve a leer el checkout para describir el paquete.
+
+Misma infraestructura de copia privada probada enRED; datosSTAGING2.0 y candidato9
+solo en copia nueva. Usuario recibió comandoGREEN; ejecución nativa pendiente.
+Exige24casos0fallos0errores y logsinERROR/CRITICAL. Ante fallo, preservar y
+diagnosticar. Después ampliar matriz de permisos/empresa yconcurrencia; luego
+asistentes/vistas/tablero. Nada de merge, despliegue oactivación real todavía.
+
+Frontera nueva preparada para la matriz posterior (no incluida en el paquete
+GREEN24 congelado): tests/test_detention_rpc_defaults.py hereda24casos y agrega
+default_ended_at/default_closed_by_id/default_end_kind al contexto de start.
+Riesgo inferido por lectura: _ledger conserva contexto del cliente y create no
+provee explícitamente campos de cierre; default_get podría dar por cerrado un
+inicio. No se ha validado el caso nativo ni corregido aún. Antes de declarar
+captura segura/completa, reproducir y sanear contexto/campos de cierre, conservando
+los controles existentes. El test nuevo aún no se registra en tests/__init__.py.
+No usar GREEN24 como aprobación de esta frontera ni cambiar sus artefactos mientras
+el usuario ejecuta el paquete ya revisado.
+
+## F2: segundo intento ejecutado; auxiliar nativo corregido — 2026-11-17
+
+Intento ec1ef26c14c54dc3b163a87182909a65 alcanzó 24 casos en copia privada:
+20fallos esperados por captura ausente,3controles verdes y1error del auxiliar.
+test_native_control_repair_confirmation llamaba action_repair_confirm, inexistente
+en el runtime19. El error AttributeError sugirió _action_repair_confirm privado;
+fuente oficial Odoo19 confirma action_validate como ruta pública de confirmación.
+Corregido solo _order() del auxiliar para usar action_validate. Mismos24casos y
+mismas aserciones; no bajar controles ni modificar producto para obtener RED.
+
+Se verificaron en ese intento initdb/pg_ctl,restore,upgrade aislado f67/8.0 y
+ejecución Odoo sobre socket privado. La copia mc_rov_detention_red_ggcXCN quedó
+bloqueada y su PostgreSQL parado. No se reabre ni reutiliza. Datos/evidencia en
+/var/tmp/mc-rov-detention-red-ggcXCN; evidencia local conservada en
+Code/.tmp/kpi-detentions-red-failed-ec1ef26. No se actualizó ni reinició STAGING.
+La comprobación SHA final del origen no se alcanzó porque el verificador rechazó
+el error nativo; no afirmar RED confirmado ni comparación final completa.
+
+Nuevo paquete .tmp/kpi-detentions-red y .tmp/staging-detentions-red.ps1, únicos
+bytes de payload cambiados: test_detention_capture.py; expected.json conserva
+las24identidades.148pruebas puras aprobadas y CheckOnly sinSSH. Siguiente:
+otro intento sobre copia NUEVA para exigir20ausencias+4controles y0errores.
+Captura real F2/ORM/UI aún no implementada, ni publicada ni instalada.
+
+## F2: motor probado y RED nativo preparado — 2026-11-17
+
+Paulo acordó Taller/Supervisor registran inicio/fin según acceso a orden. Rama
+feature/kpi-detentions en worktree nativo kpi-detentions/kpi-dashboard desde f67f997.
+Motor puro43casos, verificador8 y guarda3; con94previos suman148/148 pruebas puras.
+Black24.10.0/pylint-odoo9.0.5 aprobados y revisión independiente sin pendientes.
+Captura ORM, interfaz y tablero F2 todavía NO implementados.24contratos nativos
+(20ausencias+4controles) se cargan solo en la copia de pruebas; no están registrados
+en tests/__init__.py aún. Las ausencias no acreditan permisos ni captura correctos.
+
+Primerintento5eeb11d95be24be1a6ccbee6ffca8a2f abortó antes de crear la copia.
+DiagnósticoREADONLYa11f171b1dea48dbae8ad553063dd104: STAGINGactivoPID2552544,
+BD/manifest19.0.25.2.0,PostgreSQL160015,168archivos y28diferencias respecto f67.
+No actualizar STAGING por rutina; no está alineado con producción. Evidencia
+preservada en Code/.tmp/kpi-detentions-red-failed-5eeb11.
+
+Paqueteactual Code/.tmp/kpi-detentions-red y .tmp/staging-detentions-red.ps1:
+datosSTAGING2.0 y código fijof67/8.0. Actualiza solo copia en PostgreSQL privado
+del mismo major, socketpropio, sinred/TCP/HTTP/cron. Conserva respaldo y copia,
+bloquea conexiones y detiene el PG privado; no reinicia servicios operativos.
+SellaSHAreales antes/después incluidos28paths diagnosticados. No hay SHA del
+diagnóstico previo para esos28: acredita conservación desde inicio del intento.
+CheckOnly/Bash/AST/Base64/LF/hashes aprobados; local-review.json fija paquete.
+Usuario recibió comandoactualizado; RED real pendiente. Ante fallo diagnosticar.
+Siguiente tras RED: captura autorizada, matriz de permisos, vistas/tablero y
+concurrencia/regresión/QA. Sin publicar, integrar ni instalar F2 todavía.
+
+Último despliegue de producción verificado17nov:19.0.25.8.0/f67f997,PID2887244,
+362tablas/8adjuntos conservados, servicioactivo y sondaHTTP aprobada. Respaldo
+/var/backups/mc-rov-prod-kpi-dashboard-yeEeBG. Accesotemporalrevocado; no activación
+de políticas ni cuentas reales. Recibo: Code/.tmp/prod-kpi-dashboard/production-result.json.
+
 ## F4/F5/Q4: entrega en PR124, sin integrar ni desplegar — 2026-11-13
 
 Rama feature/kpi-volume-pareto, checkout kpi-dashboard. Producto preparado como

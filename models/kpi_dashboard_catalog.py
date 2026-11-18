@@ -11,9 +11,9 @@ INITIAL_FAMILIES = (
     (
         "F2",
         "Detenciones y causas",
-        "capture_pending",
+        "partial",
         "Intervalos confirmados",
-        "Registrar inicio, fin, causa y responsable de destrabar.",
+        "Solo intervalos confirmados. La cartera detenida corresponde al momento de consulta.",
     ),
     (
         "F3",

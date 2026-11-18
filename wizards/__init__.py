@@ -4,3 +4,4 @@ from . import mc_rov_ficha_equipo_nuevo_wizard
 from . import mc_rov_acceptance_evidence_wizard
 from . import mc_rov_new_acceptance_wizard
 from . import new_unit_release_wizard
+from . import detention_wizard
