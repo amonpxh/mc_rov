@@ -379,6 +379,17 @@ def _restore_source(database):
         )
 
 
+def _copy_filestore(database):
+    """Conserva los assets y adjuntos referenciados por la copia, sin tocar el origen."""
+    source = Path(config.filestore("odoo_test")).resolve()
+    destination = Path(config.filestore(database)).resolve()
+    if source.name != "odoo_test" or destination.parent != source.parent:
+        raise RuntimeError("El filestore de origen o de destino no corresponde al runner CI")
+    if destination.name != database or destination.exists():
+        raise RuntimeError("El filestore de destino debe pertenecer a una copia nueva")
+    shutil.copytree(source, destination)
+
+
 def main():
     repo = Path(sys.argv[1]).resolve()
     config.parse_config(
@@ -414,6 +425,7 @@ def main():
         _admin("CREATE DATABASE %s TEMPLATE template0", database)
         created = True
         _restore_source(database)
+        _copy_filestore(database)
         registry = Registry.new(database)
         fixture, context = _base(registry)
         for phase in (
