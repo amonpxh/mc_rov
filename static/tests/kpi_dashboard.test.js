@@ -88,6 +88,33 @@ describe("mc_rov KPI dashboard", () => {
         expect("[data-kpi-detentions] .mc_kpi_value").toHaveCount(0);
     });
 
+    test("Compromisos presenta los dos denominadores y conserva el estado sin evidencia", async () => {
+        const data = report();
+        data.commitments = { available: true, metrics: {
+            due: { denominator: 10, on_time: 8, late: 1, overdue: 1, unknown: 2, cancelled: 0, percentage: 80 },
+            completed: { denominator: 9, on_time: 8, late: 1, overdue: 0, unknown: 0, cancelled: 0, percentage: 800 / 9 },
+            coverage: { sale_lines_without_promise: 1, repair_visits_without_promise: 2 },
+            rows: [],
+        } };
+        const { calls } = await setup({ report: data });
+        await click("[data-section='commitments']");
+        await animationFrame();
+        expect("[data-kpi-commitments]").toHaveText(/8 de 10/);
+        expect("[data-kpi-commitments]").toHaveText(/8 de 9/);
+        expect("[data-kpi-commitments]").toHaveText(/2 sin evidencia suficiente/);
+        expect(calls.at(-1).kwargs.customer_commitments).toBe(true);
+    });
+
+    test("Compromisos restringidos no presenta ceros", async () => {
+        const data = report();
+        data.commitments = { available: false, metrics: null };
+        await setup({ report: data });
+        await click("[data-section='commitments']");
+        await animationFrame();
+        expect("[data-kpi-commitments]").toHaveText(/Indicador no disponible/);
+        expect("[data-kpi-commitments] .mc_kpi_value").toHaveCount(0);
+    });
+
     test("Producción distingue visitas equipos y hitos", async () => {
         await setup();
         await click("[data-section='production']");

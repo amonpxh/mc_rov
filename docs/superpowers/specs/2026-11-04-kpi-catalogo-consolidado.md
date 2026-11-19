@@ -164,8 +164,11 @@ sus subtotales como si fueran categorías exclusivas.
   su hora como hora de salida: hace falta fecha efectiva respaldada por la constancia.
 - **Promesa acordada2026-11-04:** conservar en Odoo fecha original y recompromisos,
   motivo y autor. Queda firme cuando el cliente acepta el trabajo y la fecha acordada.
-  Sin fecha acordada, mostrar sin compromiso definido. Documento/vínculo y roles
-  siguen por precisar; no asumir que toda orden actual ya tiene promesa válida.
+  Sin fecha acordada, mostrar sin compromiso definido. Paulo confirmó2026-11-19
+  el pedido de venta vinculado cuando exista y la orden de reparación en los
+  demás casos de reparación. Un Supervisor con acceso al trabajo formaliza
+  y recompromete. El vínculo técnico y la constancia de salida se verifican
+  en el [diseño F3](2026-11-19-kpi-compromisos-cliente-design.md).
 - **Vista de vencimientos:** compromisos que vencían en período cumplidos completos
   y a tiempo / compromisos elegibles que vencían en período. Incluye pendientes vencidos.
 - **Vista de completados:** compromisos completados del período a tiempo / compromisos
@@ -499,10 +502,11 @@ tiempo o electricidad a partir de comentarios ni imponer nuevas pruebas reales.
 Regla empresarial aceptada2026-11-04: registrar en Odoo la promesa original cuando
 el cliente acepta el trabajo y la fecha; conservar cambios con motivo y autor;
 comparar con la salida validada y mostrar sin compromiso definido cuando no se
-haya pactado fecha. Actualmente no se formaliza así: las fechas existentes no se
-convierten automáticamente en promesas acordadas. La selección del documento,
-vínculo al trabajo, permisos y captura de evidencia son detalles de implementación
-todavía por cerrar; no se han creado campos ni desplegado este circuito.
+haya pactado fecha. Paulo confirmó2026-11-19 el origen en el pedido vinculado
+o, para reparaciones sin pedido, en la propia orden de reparación. El
+Supervisor con acceso al trabajo formaliza y recompromete. Las fechas existentes
+no se convierten automáticamente en promesas acordadas. Pendientes de validación
+el vínculo técnico, el mapeo del rol y la captura de evidencia.
 
 1. En cotización/pedido, reutilizar `sale.order.commitment_date` como candidata a
    fecha acordada. Mientras sea propuesta comercial, distinguirla de una promesa
@@ -524,16 +528,16 @@ todavía por cerrar; no se han creado campos ni desplegado este circuito.
    aparte cumplimiento del nuevo compromiso. Conservar pendientes vencidos en la
    vista de vencimientos y mostrar cobertura de los que aún no tienen fecha firme.
 
-No imponer un pedido ficticio a reparaciones sin documento comercial válido: antes
-de la implementación, precisar dónde vive el compromiso y su vínculo con cada
-trabajo elegible. No registrar promesas retroactivas ni fabricar historia desde
+Para reparaciones sin un pedido válido, el compromiso vive en la propia
+orden de reparación. Antes de implementar, verificar el vínculo nativo entre
+compromiso, trabajo elegible y transferencia. No registrar promesas retroactivas ni fabricar historia desde
 mensajes. El circuito se probará con datos ficticios y roles equivalentes.
 
 ## Decisiones de negocio pendientes
 
-1. Documento/vínculo y roles del compromiso F3. La fijación al aceptar trabajo y
-   fecha ya está acordada. Identificar contratos con recepción en destino u otro
-   hito para tratarlos con su definición propia, sin cambiar el rótulo de salidas.
+1. Para F3, verificar el vínculo nativo con cada salida y el mapeo de Supervisor.
+   Identificar contratos con recepción en destino u otro hito para tratarlos
+   con su definición propia, conservando el rótulo de salidas.
 2. Criterio técnico y registro del retorno relacionado, cobertura de seguimiento
    y casos de borde. W=180 días elegida por el usuario, independiente de garantía.
 3. Lista de ensayos/protocolo y documentos exigidos por modelo/tipo de trabajo;

@@ -21,7 +21,7 @@
                 </t>
             </nav>
             <main class="mc_kpi_content">
-                <div t-if="state.section === 'tracking' or state.section === 'detentions' or productionMode" class="mc_kpi_filters">
+                <div t-if="state.section === 'tracking' or state.section === 'detentions' or state.section === 'commitments' or productionMode" class="mc_kpi_filters">
                     <label>Desde
                         <input class="form-control" type="date" data-kpi-from="" t-att-value="state.dateFrom" t-att-max="state.dateTo || undefined"
                                t-on-change="(ev) => this.setFilter('dateFrom', ev.target.value)"/>
@@ -94,6 +94,7 @@
                     </t>
                     <p t-if="productionMode" class="text-muted mb-0">Cada hito usa su fecha acreditada en Santiago; los hallazgos usan detección. La revisión histórica se conserva. Los desconocidos se muestran separados de la última revisión.</p>
                     <p t-elif="state.section === 'detentions'" class="text-muted mb-0">Las órdenes detenidas corresponden al momento de la consulta. Las fechas filtran la duración registrada.</p>
+                    <p t-elif="state.section === 'commitments'" class="text-muted mb-0">Los vencimientos usan la fecha original en Santiago. Los completados usan la salida respaldada que completa la promesa.</p>
                     <p t-else="" class="text-muted mb-0">El período filtra los cierres de etapas. Los pendientes y vencimientos siguen siendo actuales; no modifica primera aceptación.</p>
                 </div>
                 <div t-if="state.error" class="alert alert-warning" role="alert" t-esc="state.error"/>
@@ -201,6 +202,58 @@
                                             <th scope="row" t-esc="entry[1].label"/>
                                             <td t-esc="entry[1].recorded_interval_count"/>
                                             <td t-esc="entry[1].recorded_interval_count ? detentionHours(entry[1].recorded_seconds) : '—'"/>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </t>
+                    </section>
+                    <section t-elif="state.section === 'commitments'" data-kpi-commitments="">
+                        <h2>Salida del taller registrada a tiempo</h2>
+                        <p t-if="!commitmentMetrics" class="alert alert-info">Indicador no disponible para el alcance actual.</p>
+                        <t t-else="">
+                            <div class="mc_kpi_cards mb-3">
+                                <article t-foreach="commitmentPeriods" t-as="period" t-key="period.key" class="mc_kpi_card">
+                                    <h3 t-esc="period.title"/>
+                                    <p t-if="period.denominator" class="mc_kpi_value"><t t-esc="period.on_time"/> de <t t-esc="period.denominator"/></p>
+                                    <p t-else="">Sin casos evaluables</p>
+                                    <p t-if="period.denominator" t-esc="commitmentPercent(period.percentage)"/>
+                                    <p class="text-muted mb-0">
+                                        <t t-esc="period.late"/> tarde · <t t-esc="period.unknown"/> sin evidencia suficiente
+                                        <t t-if="period.key === 'due'"> · <t t-esc="period.overdue"/> vencidos sin completar · <t t-esc="period.cancelled"/> anulados antes del plazo</t>
+                                    </p>
+                                </article>
+                            </div>
+                            <p class="text-muted">
+                                Sin promesa formalizada en las fuentes actuales
+                                <t t-esc="commitmentMetrics.coverage.sale_lines_without_promise === null ? 'Sin acceso' : commitmentMetrics.coverage.sale_lines_without_promise"/> líneas de venta y
+                                <t t-esc="commitmentMetrics.coverage.repair_visits_without_promise === null ? 'Sin acceso' : commitmentMetrics.coverage.repair_visits_without_promise"/> visitas.
+                            </p>
+                            <p t-if="commitmentMetrics.coverage.repair_visits_with_unresolved_sale_link" class="text-muted">
+                                <t t-esc="commitmentMetrics.coverage.repair_visits_with_unresolved_sale_link"/> visitas sin vínculo claro con una línea de venta.
+                            </p>
+                            <div t-if="commitmentMetrics.rows.length" class="table-responsive">
+                                <p t-if="commitmentMetrics.detail_total &gt; commitmentMetrics.rows.length" class="text-muted">
+                                    Se muestran <t t-esc="commitmentMetrics.rows.length"/> de <t t-esc="commitmentMetrics.detail_total"/> compromisos.
+                                </p>
+                                <table class="table">
+                                    <thead><tr><th scope="col">Origen</th><th scope="col">Promesa original</th><th scope="col">Recompromiso</th><th scope="col">Salida completa</th><th scope="col">Resultado original</th></tr></thead>
+                                    <tbody>
+                                        <tr t-foreach="commitmentMetrics.rows" t-as="item" t-key="item.id">
+                                            <th scope="row" t-esc="item.origin"/>
+                                            <td t-esc="commitmentDate(item.promised_date, item.promised_at)"/>
+                                            <td>
+                                                <t t-esc="commitmentDate(item.secondary_promised_date, item.secondary_promised_at)"/>
+                                                <small t-if="item.secondary_status" class="d-block" t-esc="commitmentStatus(item.secondary_status)"/>
+                                            </td>
+                                            <td t-esc="commitmentDate(item.completed_date, item.completed_at)"/>
+                                            <td>
+                                                <t t-esc="item.cancelled_at and item.status === 'overdue' ? 'Vencido antes de la cancelación' : commitmentStatus(item.status)"/>
+                                                <small t-if="item.cancelled_at" class="d-block">
+                                                    Cancelado el <t t-esc="commitmentDate(null, item.cancelled_at)"/><t t-if="item.cancel_reason"> · <t t-esc="item.cancel_reason"/></t>
+                                                </small>
+                                                <small t-if="item.returned_after_completion" class="d-block">Devolución posterior</small>
+                                            </td>
                                         </tr>
                                     </tbody>
                                 </table>

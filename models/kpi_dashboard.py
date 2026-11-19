@@ -119,6 +119,7 @@ class KPIDashboard(models.AbstractModel):
         process="all",
         production_filters=None,
         detention_filters=None,
+        customer_commitments=False,
     ):
         companies = self._check_caller()
         # El servicio conserva sus validaciones de fechas/proceso y sus propias zonas.
@@ -175,6 +176,16 @@ class KPIDashboard(models.AbstractModel):
                 report["detentions"] = {"available": True, "metrics": metrics}
             except AccessError:
                 report["detentions"] = {"available": False, "metrics": None}
+        if not isinstance(customer_commitments, bool):
+            raise ValidationError(_("La opción de compromisos no es válida."))
+        if customer_commitments:
+            try:
+                metrics = self.env["mc.rov.customer.commitment.kpi"].get_summary(
+                    date_from=date_from, date_to=date_to
+                )
+                report["commitments"] = {"available": True, "metrics": metrics}
+            except AccessError:
+                report["commitments"] = {"available": False, "metrics": None}
         return report
 
     @api.model
