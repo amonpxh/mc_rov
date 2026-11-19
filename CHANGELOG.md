@@ -1,5 +1,13 @@
 # Changelog
 
+## [19.0.25.9.0] — 2026-11-19
+
+### Funcionalidades
+
+- feat(kpi): registrar detenciones efectivas en Reparación y Fabricación (#126) (`5b247468bcbd`).
+
+Entrega de código; no acredita instalación ni activación en producción.
+
 ## [19.0.25.8.0] — 2026-11-13
 
 ### Funcionalidades
