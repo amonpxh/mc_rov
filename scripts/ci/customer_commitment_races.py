@@ -2,7 +2,7 @@
 
 import concurrent.futures
 from datetime import timedelta
-from threading import Barrier
+from threading import Barrier, Event
 
 from psycopg2.errors import DeadlockDetected, SerializationFailure
 
@@ -17,6 +17,7 @@ class RollbackProbe(Exception):
 def _race(registry, context, actors, wizard_ref, phase):
     model, ids = wizard_ref
     barrier = Barrier(2, timeout=20)
+    before_rollback = Event()
 
     def worker(index):
         for attempt in range(1, 5):
@@ -31,8 +32,12 @@ def _race(registry, context, actors, wizard_ref, phase):
                         cursor.execute("SELECT pg_backend_pid()")
                         pid = cursor.fetchone()[0]
                         barrier.wait()
+                    if phase == "dispatch_rollback" and index == 1:
+                        assert before_rollback.wait(timeout=20), "El primer actor no registró"
                     wizard.action_apply()
                     if phase == "dispatch_rollback" and index == 0:
+                        # El segundo ya tomó su instantánea, pero aún no registró la salida.
+                        before_rollback.set()
                         raise RollbackProbe()
                     cursor.commit()
                     return pid, attempt, "committed"
