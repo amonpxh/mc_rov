@@ -83,7 +83,7 @@ class TestCustomerCommitmentCapture(TransactionCase):
         wizard.action_apply()
         row = self._commitments()
         self.assertEqual(len(row), 1)
-        self.assertEqual(row._origin(), self.sale)
+        self.assertEqual(row._commitment_source(), self.sale)
         self.assertEqual(row.quantity, 2)
         self.assertEqual(row.lot_ids, self.lots)
         self.assertEqual(row.actor_id, self.supervisor)
@@ -118,7 +118,14 @@ class TestCustomerCommitmentCapture(TransactionCase):
             row.change_ids[0].write({"reason": "Sobrescritura"})
 
     def test_rejects_series_of_a_different_product(self):
-        other = self.product.copy({"name": "QA Otro ROV"})
+        other = self.env["product.product"].create(
+            {
+                "name": "QA Otro ROV",
+                "categ_id": self.product.categ_id.id,
+                "is_storable": True,
+                "tracking": "serial",
+            }
+        )
         wrong_lot = self.env["stock.lot"].create(
             {"name": "QA-FUERA-DEL-ALCANCE", "product_id": other.id}
         )
@@ -191,7 +198,13 @@ class TestCustomerCommitmentCapture(TransactionCase):
         )
         model = self.env["mc.rov.customer.commitment.wizard"].with_user(supervisor)
         with self.assertRaises(AccessError):
-            model.create({"sale_id": self.sale.id, "sale_line_id": self.line.id})
+            model.create(
+                {
+                    "sale_id": self.sale.id,
+                    "sale_line_id": self.line.id,
+                    "evidence": "Acta ficticia",
+                }
+            )
 
     def test_later_native_sale_link_keeps_repair_origin_and_excludes_duplicate(self):
         self._wizard(self.repair).action_apply()
@@ -204,7 +217,7 @@ class TestCustomerCommitmentCapture(TransactionCase):
             self._wizard(self.sale, sale_line_id=line.id).action_apply()
         row = self._commitments()
         self.assertEqual(len(row), 1)
-        self.assertEqual(row._origin(), self.repair)
+        self.assertEqual(row._commitment_source(), self.repair)
         self.assertFalse(row.sale_line_id)
         self.assertEqual(row.repair_id.sale_order_id, self.sale)
 
@@ -216,7 +229,7 @@ class TestCustomerCommitmentCapture(TransactionCase):
         self.repair.write({"sale_order_id": self.sale.id, "sale_order_line_id": line.id})
         self._wizard(self.sale, sale_line_id=line.id).action_apply()
         row = self._commitments()
-        self.assertEqual(row._origin(), self.sale)
+        self.assertEqual(row._commitment_source(), self.sale)
         self.assertEqual(row.repair_id, self.repair)
         self.assertEqual(row.product_id, self.product)
         self.assertEqual(row.lot_ids, self.lots[0])

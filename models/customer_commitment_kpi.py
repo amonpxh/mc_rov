@@ -54,7 +54,7 @@ class CustomerCommitmentKPI(models.AbstractModel):
             ledger = self.env["mc.rov.customer.dispatch"].sudo()
             repair_pickings = ledger.search(
                 [
-                    ("repair_id", "=", row.repair_id.id),
+                    ("repair_ids", "in", row.repair_id.ids),
                     ("company_id", "=", row.company_id.id),
                     ("create_date", "<=", cutoff),
                 ]
@@ -184,7 +184,7 @@ class CustomerCommitmentKPI(models.AbstractModel):
         outbound = self._base_moves(row, cutoff)
         lines = self._authorized_lines(row, outbound)
         dispatches = self._dispatches(lines.picking_id, cutoff, row.company_id.id)
-        customer = row._origin().with_env(self.env).partner_id.commercial_partner_id
+        customer = row._commitment_source().with_env(self.env).partner_id.commercial_partner_id
         result, parents = [], defaultdict(list)
         unknown = (
             not outbound and bool(row.repair_id) and self._has_unlinked_outbound(row, customer)
@@ -310,7 +310,7 @@ class CustomerCommitmentKPI(models.AbstractModel):
         ]
         for item in selected[:50]:
             row = by_id[item["id"]]
-            item["origin"] = row._origin().with_env(self.env).display_name
+            item["origin"] = row._commitment_source().with_env(self.env).display_name
             item["cancel_reason"] = next(
                 (
                     change.reason

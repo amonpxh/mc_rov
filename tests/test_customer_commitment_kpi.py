@@ -22,7 +22,7 @@ class TestCustomerCommitmentKPI(RevisionCommon):
             self.env,
             login="qa_commitment_summary",
             groups="base.group_user,mc_rov.group_work_assignment_team,"
-            "sales_team.group_sale_salesman_all,stock.group_stock_user",
+            "sales_team.group_sale_manager,stock.group_stock_user",
         )
         dashboard = self.env["mc.rov.kpi.dashboard"].with_user(viewer)
         report = dashboard.get_dashboard(customer_commitments=True)

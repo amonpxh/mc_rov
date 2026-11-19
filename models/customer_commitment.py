@@ -83,7 +83,7 @@ class CustomerCommitment(models.Model):
     def _unlink_except_history(self):
         raise AccessError(_("No se elimina la evidencia de compromisos."))
 
-    def _origin(self):
+    def _commitment_source(self):
         """Devuelve el origen original aunque la reparación reciba un pedido después."""
         self.ensure_one()
         return self.sale_line_id.order_id or self.repair_id
@@ -116,7 +116,7 @@ class CustomerCommitment(models.Model):
             ]
         rows = ledger.search([("company_id", "=", source.company_id.id), *domain])
         return rows.filtered(
-            lambda row: row._origin().with_env(self.env).has_access("read")
+            lambda row: row._commitment_source().with_env(self.env).has_access("read")
             and (not row.sale_line_id or row.sale_line_id.with_env(self.env).has_access("read"))
             and (not row.repair_id or row.repair_id.with_env(self.env).has_access("read"))
         )
