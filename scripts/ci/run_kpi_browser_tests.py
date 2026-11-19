@@ -23,7 +23,7 @@ ARCHIVE_URL = (
 )
 SHA256 = "f90329720fb61e5a76da9b6b509b6ad12a484c9c5df0359403e935177c6d153a"
 AUDIO_URL = (
-    "https://security.ubuntu.com/ubuntu/pool/main/a/alsa-lib/"
+    "https://snapshot.ubuntu.com/ubuntu/20261118T120000Z/pool/main/a/alsa-lib/"
     "libasound2t64_1.2.11-1ubuntu0.3_amd64.deb"
 )
 AUDIO_SHA256 = "5d17bfb5683eb99f1be951fe48e1be5bf3c52391913b6b74a8aecf9b4f5e779f"
