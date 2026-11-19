@@ -128,25 +128,27 @@ def browser_environment(root, executable):
     return {**os.environ, "ODOO_BROWSER_BIN": str(executable), "PYTHONPATH": python_path}
 
 
-def main():
-    repo = Path(sys.argv[1]).resolve()
-    config, addons = sys.argv[2:4]
+def run_browser(repo, config, addons, database, tag):
+    """Ejecuta Chrome y Odoo únicamente en el destino local de CI previsto."""
     temporary = Path(os.environ["RUNNER_TEMP"]).resolve()
     if repo.name != "mc_rov" or str(repo).startswith(
         ("/opt/odoo/custom-addons", "/opt/odoo/staging-addons")
     ):
         raise RuntimeError("El navegador exige un checkout aislado de CI")
+    if database != "odoo_test" and not re.fullmatch(r"mc_rov_kpi_ci_[a-f0-9]{20}", database):
+        raise RuntimeError("Base de navegador CI no permitida")
+    log_prefix = "mc-rov-tests.browser-" if database == "odoo_test" else "mc-rov-tests.f3-browser-"
     with tempfile.TemporaryDirectory(prefix="mc-rov-browser-", dir=temporary) as workspace:
         executable = prepare_browser(Path(workspace))
         environment = browser_environment(Path(workspace), executable)
         command = [
             "odoo",
             "-d",
-            "odoo_test",
+            database,
             "-u",
             "mc_rov",
             "--test-tags",
-            "/mc_rov:TestKPIDashboardBrowser",
+            tag,
             "--stop-after-init",
             "--http-interface",
             "127.0.0.1",
@@ -159,7 +161,7 @@ def main():
             "--max-cron-threads",
             "0",
             "--db-filter",
-            "^odoo_test$",
+            f"^{database}$",
             "--log-level",
             "test",
             "--logfile",
@@ -170,7 +172,7 @@ def main():
             addons,
         ]
         with tempfile.NamedTemporaryFile(
-            prefix="mc-rov-tests.browser-", suffix=".log", dir=temporary, mode="w", delete=False
+            prefix=log_prefix, suffix=".log", dir=temporary, mode="w", delete=False
         ) as log:
             with subprocess.Popen(
                 command,
@@ -183,11 +185,24 @@ def main():
                     print(line, end="", flush=True)
                     log.write(line)
                 rc = process.wait()
-        expected_hoot = sum(
-            len(re.findall(r"^\s*test\(", path.read_text(encoding="utf-8"), re.M))
-            for path in (repo / "static" / "tests").glob("*.test.js")
-        )
-        verify_result(Path(log.name).read_text(encoding="utf-8"), rc, expected_hoot)
+        return Path(log.name).read_text(encoding="utf-8"), rc
+
+
+def main():
+    repo = Path(sys.argv[1]).resolve()
+    config, addons = sys.argv[2:4]
+    result, rc = run_browser(
+        repo,
+        config,
+        addons,
+        "odoo_test",
+        "/mc_rov:TestKPIDashboardBrowser",
+    )
+    expected_hoot = sum(
+        len(re.findall(r"^\s*test\(", path.read_text(encoding="utf-8"), re.M))
+        for path in (repo / "static" / "tests").glob("*.test.js")
+    )
+    verify_result(result, rc, expected_hoot)
 
 
 if __name__ == "__main__":

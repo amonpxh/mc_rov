@@ -18,9 +18,9 @@ INITIAL_FAMILIES = (
     (
         "F3",
         "Compromisos al cliente",
-        "capture_pending",
+        "partial",
         "Compromisos de entrega",
-        "Conservar promesa original y constancia de salida efectiva.",
+        "Solo promesas formalizadas y salidas con constancia suficiente.",
     ),
     (
         "F4",

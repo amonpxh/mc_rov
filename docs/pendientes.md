@@ -1,3 +1,41 @@
+## F3 implementado localmente — 2026-11-19
+
+Paulo aprobó F3 y eligió Supervisor con escritura en Inventario para
+acreditar despacho o retiro. La rama `feature/kpi-customer-commitments`
+parte del main `c8a86b4`. El diseño y el plan documentan el alcance.
+
+La rama captura promesas y cambios desde Venta o Reparación y constancias
+desde transferencias validadas. En una salida conjunta pueden vincularse
+varias visitas con series distintas. El cálculo conserva la fecha original,
+concilia parciales, identifica evidencia indeterminada y presenta dos
+poblaciones en el tablero. Revisados permisos y protección del historial.
+Las modificaciones de adjuntos binarios se detectan con su checksum
+nativo. En enlaces se conserva la huella de la URL registrada.
+
+Pasaron 221 pruebas unitarias puras, incluidas 27 de F3, y los hooks
+locales de higiene, XML, Black y pylint-odoo. Hay 25 contratos nativos
+y dos HOOT adicionales preparados. Pendientes ejecución transaccional
+en Odoo 19, HOOT, QA operativa y concurrencia en base aislada.
+La rama aún es local. El grupo de Supervisor F3 se define sin miembros.
+
+## F2: bot de entregas alineado en main — 2026-11-19
+
+El PR #127 se integró por squash en `c8a86b4`. El árbol integrado coincide
+con el HEAD aprobado `c0cab49`. El manifiesto, el registro del bot y el
+changelog coinciden en 19.0.25.9.0. La base de cálculo de la entrega sigue
+siendo `5b24746`, el commit de producto instalado en producción.
+
+CI de main aprobado. Odoo (44530303016) confirmó por artefacto 1697
+contratos nativos con cero fallos y errores, siete casos de navegador y
+117 HOOT. Formato (44530303106) y Gitleaks (44530302900) también pasaron.
+El workflow de versionado (44533088265) aprobó 38 casos y su paso
+«Proponer entrega autorizable» confirmó «Sin cambios de producto
+pendientes de entrega». Se conservó la huella del paquete de audio al
+cambiar la descarga de CI al archivo histórico de Ubuntu.
+
+El merge fue de metadatos y CI. La instalación de F2 del 19 de noviembre
+permanece en `5b24746`.
+
 ## F2: regresión integral y revisión visual aprobadas — 2026-11-18
 
 La recuperación del lote ZzUxBd confirmó 1697/1697 contratos nativos con

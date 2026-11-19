@@ -5,3 +5,5 @@ from . import mc_rov_acceptance_evidence_wizard
 from . import mc_rov_new_acceptance_wizard
 from . import new_unit_release_wizard
 from . import detention_wizard
+from . import customer_commitment_wizard
+from . import customer_dispatch_wizard

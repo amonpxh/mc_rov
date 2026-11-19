@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_customer_commitment_wizard_form" model="ir.ui.view">
+        <field name="name">mc.rov.customer.commitment.wizard.form</field>
+        <field name="model">mc.rov.customer.commitment.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Registrar acuerdo con el cliente">
+                <group>
+                    <field name="sale_id" invisible="not sale_id" options="{'no_open': True}"/>
+                    <field name="repair_id" invisible="not repair_id" options="{'no_open': True}"/>
+                    <field name="operation"/>
+                    <field name="sale_line_id" invisible="not sale_id" required="sale_id"
+                           domain="[('order_id', '=', sale_id), ('display_type', '=', False)]"
+                           options="{'no_create': True, 'no_open': True}"/>
+                    <field name="sale_product_id" invisible="1"/>
+                    <field name="sale_product_type" invisible="1"/>
+                    <field name="lot_ids" widget="many2many_tags"
+                           invisible="operation != 'formalize' or not sale_product_id or sale_product_type == 'service'"
+                           domain="[('product_id', '=', sale_product_id)]"
+                           options="{'no_create': True, 'no_open': True}"/>
+                    <field name="precision" invisible="operation == 'cancel'"
+                           required="operation != 'cancel'"/>
+                    <field name="promised_date" invisible="operation == 'cancel' or precision != 'day'"
+                           required="operation != 'cancel' and precision == 'day'"/>
+                    <field name="promised_at" invisible="operation == 'cancel' or precision != 'hour'"
+                           required="operation != 'cancel' and precision == 'hour'"/>
+                    <field name="agreed_at"/>
+                    <field name="reason" invisible="operation == 'formalize'"
+                           required="operation != 'formalize'"/>
+                    <field name="evidence"/>
+                </group>
+                <footer>
+                    <button name="action_apply" string="Registrar acuerdo" type="object"
+                            class="btn-primary" data-hotkey="q"/>
+                    <button string="Cerrar" special="cancel" class="btn-secondary" data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_customer_commitment_history_form" model="ir.ui.view">
+        <field name="name">mc.rov.customer.commitment.history.form</field>
+        <field name="model">mc.rov.customer.commitment.history</field>
+        <field name="arch" type="xml">
+            <form string="Compromisos al cliente" create="0" edit="0" delete="0">
+                <field name="content" readonly="1" nolabel="1"/>
+                <footer>
+                    <button string="Cerrar" special="cancel" class="btn-secondary" data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_sale_order_customer_commitment" model="ir.ui.view">
+        <field name="name">sale.order.form.customer.commitment</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <header position="inside">
+                <field name="mc_can_capture_commitment" invisible="1"/>
+                <button name="action_mc_customer_commitments" type="object"
+                        string="Compromisos al cliente" groups="base.group_user"/>
+                <button name="action_mc_customer_commitment" type="object"
+                        string="Registrar acuerdo" groups="mc_rov.group_customer_commitment_supervisor"
+                        invisible="not mc_can_capture_commitment"/>
+            </header>
+        </field>
+    </record>
+
+    <record id="view_repair_order_customer_commitment" model="ir.ui.view">
+        <field name="name">repair.order.form.customer.commitment</field>
+        <field name="model">repair.order</field>
+        <field name="inherit_id" ref="repair.view_repair_order_form"/>
+        <field name="arch" type="xml">
+            <header position="inside">
+                <field name="mc_can_capture_commitment" invisible="1"/>
+                <button name="action_mc_customer_commitments" type="object"
+                        string="Compromisos al cliente" groups="base.group_user"/>
+                <button name="action_mc_customer_commitment" type="object"
+                        string="Registrar acuerdo" groups="mc_rov.group_customer_commitment_supervisor"
+                        invisible="not mc_can_capture_commitment"/>
+            </header>
+        </field>
+    </record>
+</odoo>

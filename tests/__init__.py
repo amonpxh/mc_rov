@@ -79,3 +79,7 @@ from . import test_detention_boundaries
 from . import test_detention_manufacturing_events
 from . import test_detention_presentation
 from . import test_detention_kpi_service
+from . import test_customer_commitment_capture
+from . import test_customer_dispatch
+from . import test_customer_commitment_kpi
+from . import test_customer_commitment_browser

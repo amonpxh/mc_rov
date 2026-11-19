@@ -88,3 +88,6 @@ from . import detention_history
 from . import detention_capture
 from . import detention_presentation
 from . import detention_kpi_service
+from . import customer_commitment
+from . import customer_dispatch
+from . import customer_commitment_kpi

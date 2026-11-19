@@ -14,7 +14,7 @@ const SECTIONS = [
     { key: "summary", label: "Resumen" }, { key: "quality", label: "Calidad" },
     { key: "tracking", label: "Seguimiento" }, { key: "coverage", label: "Cobertura y definiciones" },
     { key: "production", label: "Producción" }, { key: "findings", label: "Hallazgos" },
-    { key: "detentions", label: "Detenciones" },
+    { key: "detentions", label: "Detenciones" }, { key: "commitments", label: "Compromisos" },
 ];
 const PROCESSES = {
     all: "Todos los procesos", repair: "Reparación", manufacturing: "Fabricación",
@@ -93,6 +93,7 @@ export class KPIDashboard extends Component {
         if (this.state.section === "detentions") {
             kwargs.detention_filters = { process: this.state.detentionProcess };
         }
+        if (this.state.section === "commitments") kwargs.customer_commitments = true;
         return this.orm.call(SERVICE, "get_dashboard", [], kwargs);
     }
 
@@ -100,7 +101,7 @@ export class KPIDashboard extends Component {
     selectSection(key) {
         if (!SECTIONS.some((item) => item.key === key)) return;
         this.state.section = key;
-        if (this.productionMode || key === "detentions") return this.refresh();
+        if (this.productionMode || ["detentions", "commitments"].includes(key)) return this.refresh();
     }
     setFilter(key, value) {
         if (!["dateFrom", "dateTo", "process", "detentionProcess", "modelId", "revision", "dimension", "unit", "customerId", "severity", "intervention"].includes(key)) return;
@@ -110,6 +111,29 @@ export class KPIDashboard extends Component {
     }
 
     get productionMode() { return ["production", "findings"].includes(this.state.section); }
+    get commitmentMetrics() { return this.state.report?.commitments?.metrics || null; }
+    get commitmentPeriods() {
+        const metrics = this.commitmentMetrics;
+        if (!metrics) return [];
+        return [
+            { key: "due", title: "Vencimientos del período", ...metrics.due },
+            { key: "completed", title: "Completados en el período", ...metrics.completed },
+        ];
+    }
+    commitmentPercent(value) { return formatPercent(value); }
+    commitmentStatus(key) {
+        return {
+            on_time: "A tiempo", late: "Tarde", overdue: "Abierto vencido",
+            unknown: "Evidencia insuficiente", cancelled: "Cancelado", pending: "Pendiente",
+            undefined: "Sin compromiso definido",
+        }[key] || "Pendiente";
+    }
+    commitmentDate(day, instant) {
+        if (instant) {
+            return formatDateTime(deserializeDateTime(instant.slice(0, 19).replace("T", " ")), { tz: "America/Santiago" });
+        }
+        return day || "—";
+    }
     get detentionMetrics() { return this.state.report?.detentions?.metrics || null; }
     get detentionCauses() { return Object.entries(this.detentionMetrics?.by_cause || {}); }
     get detentionPercent() { return formatPercent(this.detentionMetrics?.registered_stopped_percent); }
