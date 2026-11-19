@@ -91,3 +91,5 @@ from . import detention_kpi_service
 from . import customer_commitment
 from . import customer_dispatch
 from . import customer_commitment_kpi
+from . import repair_arrival
+from . import repair_lead_time_kpi

@@ -15,6 +15,7 @@ const SECTIONS = [
     { key: "tracking", label: "Seguimiento" }, { key: "coverage", label: "Cobertura y definiciones" },
     { key: "production", label: "Producción" }, { key: "findings", label: "Hallazgos" },
     { key: "detentions", label: "Detenciones" }, { key: "commitments", label: "Compromisos" },
+    { key: "repair_lead_time", label: "Plazo de reparación" },
 ];
 const PROCESSES = {
     all: "Todos los procesos", repair: "Reparación", manufacturing: "Fabricación",
@@ -94,6 +95,7 @@ export class KPIDashboard extends Component {
             kwargs.detention_filters = { process: this.state.detentionProcess };
         }
         if (this.state.section === "commitments") kwargs.customer_commitments = true;
+        if (this.state.section === "repair_lead_time") kwargs.repair_lead_time = true;
         return this.orm.call(SERVICE, "get_dashboard", [], kwargs);
     }
 
@@ -101,7 +103,7 @@ export class KPIDashboard extends Component {
     selectSection(key) {
         if (!SECTIONS.some((item) => item.key === key)) return;
         this.state.section = key;
-        if (this.productionMode || ["detentions", "commitments"].includes(key)) return this.refresh();
+        if (this.productionMode || ["detentions", "commitments", "repair_lead_time"].includes(key)) return this.refresh();
     }
     setFilter(key, value) {
         if (!["dateFrom", "dateTo", "process", "detentionProcess", "modelId", "revision", "dimension", "unit", "customerId", "severity", "intervention"].includes(key)) return;
@@ -112,6 +114,7 @@ export class KPIDashboard extends Component {
 
     get productionMode() { return ["production", "findings"].includes(this.state.section); }
     get commitmentMetrics() { return this.state.report?.commitments?.metrics || null; }
+    get repairLeadTime() { return this.state.report?.repair_lead_time?.metrics || null; }
     get commitmentPeriods() {
         const metrics = this.commitmentMetrics;
         if (!metrics) return [];

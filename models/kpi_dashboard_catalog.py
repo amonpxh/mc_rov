@@ -39,9 +39,9 @@ INITIAL_FAMILIES = (
     (
         "F6",
         "Plazo de reparación",
-        "source_pending",
+        "partial",
         "Visitas con límites conocidos",
-        "Comprobar recepción, diagnóstico, autorización, cierre y salida.",
+        "Llegada y salida acreditadas; diagnóstico, autorización y tramos internos pendientes.",
     ),
     (
         "Q1",
