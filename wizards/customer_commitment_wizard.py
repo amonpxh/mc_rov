@@ -70,9 +70,11 @@ class CustomerCommitmentWizard(models.TransientModel):
 
     @api.constrains("sale_id", "repair_id", "sale_line_id", "lot_ids")
     def _check_document_references(self):
-        for wizard in self:
+        # El ORM eleva las restricciones. Los documentos se comprueban como el actor.
+        wizards = self.with_user(self.env.uid)
+        for wizard in wizards:
             source = wizard_source(wizard)
-            self.env["mc.rov.customer.commitment"]._authorize_source(source, "write")
+            wizard.env["mc.rov.customer.commitment"]._authorize_source(source, "write")
             wizard.sale_line_id.check_access("read")
             wizard.lot_ids.check_access("read")
             if wizard.sale_line_id and wizard.sale_line_id.order_id != wizard.sale_id:
@@ -122,8 +124,8 @@ class CustomerCommitmentHistory(models.TransientModel):
 
     @api.constrains("sale_id", "repair_id")
     def _check_history_source(self):
-        for history in self:
-            self.env["mc.rov.customer.commitment"]._authorize_source(wizard_source(history))
+        for history in self.with_user(self.env.uid):
+            history.env["mc.rov.customer.commitment"]._authorize_source(wizard_source(history))
 
     def _history_entry(self, entry, title, reason=False):
         deadline = "-"

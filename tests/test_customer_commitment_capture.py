@@ -197,6 +197,7 @@ class TestCustomerCommitmentCapture(TransactionCase):
             groups="base.group_user,mc_rov.group_customer_commitment_supervisor",
         )
         model = self.env["mc.rov.customer.commitment.wizard"].with_user(supervisor)
+        self.assertFalse(self.sale.with_user(supervisor).has_access("write"))
         with self.assertRaises(AccessError):
             model.create(
                 {

@@ -144,6 +144,10 @@ class TestCustomerDispatch(InventoryEventCommon):
         self.assertEqual(picking.with_user(self.supervisor).state, "done")
         with self.assertRaises(AccessError):
             self._open_dispatch(picking)
+        with self.assertRaises(AccessError):
+            self.env["mc.rov.customer.dispatch.wizard"].with_user(self.supervisor).create(
+                {"picking_id": picking.id, "kind": "confirmed"}
+            )
 
     def test_effective_time_cannot_be_future_at_either_precision(self):
         picking = self._prepared("outgoing")

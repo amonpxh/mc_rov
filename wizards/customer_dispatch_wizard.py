@@ -51,7 +51,8 @@ class CustomerDispatchWizard(models.TransientModel):
 
     @api.constrains("picking_id", "attachment_id", "repair_ids")
     def _check_document_references(self):
-        for wizard in self:
+        # Las referencias se validan con el acceso real del usuario que las registra.
+        for wizard in self.with_user(self.env.uid):
             wizard.picking_id._check_dispatch_capture()
             wizard.attachment_id.check_access("read")
             wizard.repair_ids.check_access("read")
