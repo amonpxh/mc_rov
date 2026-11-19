@@ -70,7 +70,7 @@ tests = Path(sys.argv[1])
 expected = set()
 for module in re.findall(r'^from \. import (\w+)', (tests / '__init__.py').read_text(), re.M):
     # Los HttpCase se verifican aparte con HTTP local y navegador real, nunca por skip.
-    if module == 'test_kpi_dashboard_browser':
+    if module in {'test_kpi_dashboard_browser', 'test_customer_commitment_browser'}:
         continue
     tree = ast.parse((tests / (module + '.py')).read_text(encoding='utf-8'))
     for cls in tree.body:

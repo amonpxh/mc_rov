@@ -24,6 +24,9 @@ from odoo.modules.registry import Registry
 from odoo.tools import SQL, config
 from odoo.tools.misc import exec_pg_environ, find_pg_tool
 
+from customer_commitment_races import run_customer_commitment_races
+from run_kpi_browser_tests import run_browser
+
 
 class ProbeRollback(Exception):
     """Revierte el negocio completo después de haber creado su evidencia."""
@@ -326,6 +329,9 @@ def _source_fingerprint():
                 "stock_quant",
                 "mc_rov_revision",
                 "mc_rov_production_event",
+                "mc_rov_customer_commitment",
+                "mc_rov_customer_commitment_change",
+                "mc_rov_customer_dispatch",
             ):
                 cursor.execute(
                     SQL("SELECT count(*), max(write_date) FROM %s", SQL.identifier(table))
@@ -398,6 +404,8 @@ def main():
     report = {
         "source": "odoo_test",
         "cases": [],
+        "f3_cases": [],
+        "f3_browser": False,
         "pdf_renderer_test_double": True,
         "source_unchanged": None,
     }
@@ -420,6 +428,23 @@ def main():
             case = _case(registry, context, fixture, phase)
             report["cases"].append(_race(registry, context, fixture, case))
         assert len(report["cases"]) == 7
+        run_customer_commitment_races(registry, context, fixture, report["f3_cases"])
+        assert len(report["f3_cases"]) == 6
+        result, rc = run_browser(
+            repo,
+            sys.argv[2],
+            sys.argv[3],
+            database,
+            "customer_commitment_browser",
+        )
+        started = re.findall(r"Starting TestCustomerCommitmentBrowser\.(test_\w+)", result)
+        report["f3_browser"] = bool(
+            rc == 0
+            and started == ["test_operational_repair_pickup_and_dashboard"]
+            and re.search(r"0 failed, 0 error\(s\) of 1 tests", result)
+            and len(re.findall(r"\.browser: test successful\s*$", result, re.M)) == 3
+        )
+        assert report["f3_browser"], "El navegador F3 no confirmó el recorrido completo"
         report["source_unchanged"] = _source_fingerprint() == baseline
         assert report["source_unchanged"], "Cambió la referencia de odoo_test"
         passed = True
@@ -451,6 +476,7 @@ def main():
         ) as output:
             json.dump(report, output, ensure_ascii=False, indent=2)
     print("CI_PRODUCTION_RACES=PASSED CASES=7 CONNECTIONS=2", flush=True)
+    print("CI_F3_QA=PASSED RACES=6 CONNECTIONS=2 BROWSER_ROUTES=3", flush=True)
 
 
 if __name__ == "__main__":

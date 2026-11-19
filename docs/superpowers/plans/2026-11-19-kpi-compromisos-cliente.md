@@ -42,5 +42,13 @@ salida física de una validación. Usar Santiago para límites por día.
   navegación, parciales y compatibilidad. La verificación que requiera servidor
   se hace en una copia QA autorizada o en CI del PR según corresponda.
 
-La implementación y controles locales están disponibles. La última tarea queda
-pendiente hasta ejecutar el módulo y HOOT en un runtime Odoo 19 autorizado.
+## QA posterior a CI
+
+- Reutilizar la copia de `odoo_test` del runner, con datos ficticios en empresa
+  propia, correo y cron desactivados y navegador limitado al loopback.
+- Sincronizar dos conexiones antes de registrar promesas y constancias. Comprobar
+  duplicados, decisiones incompatibles, cambios, corrección frente a invalidación
+  y rollback, con conteos y autores mediante una tercera conexión.
+- Verificar en navegador los documentos nativos, los diálogos y la sección F3
+  poblada, bajo Supervisor y una cuenta operativa sin ese grupo. Guardar el
+  resultado de cada etapa en los artefactos del PR borrador.

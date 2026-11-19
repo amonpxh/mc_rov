@@ -82,3 +82,4 @@ from . import test_detention_kpi_service
 from . import test_customer_commitment_capture
 from . import test_customer_dispatch
 from . import test_customer_commitment_kpi
+from . import test_customer_commitment_browser
