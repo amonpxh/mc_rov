@@ -1,5 +1,13 @@
 # Changelog
 
+## [19.0.25.10.0] — 2026-11-19
+
+### Funcionalidades
+
+- feat(kpi): medir compromisos al cliente y salidas acreditadas (#128) (`5d3d169f7846`).
+
+Entrega de código; no acredita instalación ni activación en producción.
+
 ## [19.0.25.9.0] — 2026-11-19
 
 ### Funcionalidades
