@@ -137,7 +137,11 @@ def run_browser(repo, config, addons, database, tag):
         raise RuntimeError("El navegador exige un checkout aislado de CI")
     if database != "odoo_test" and not re.fullmatch(r"mc_rov_kpi_ci_[a-f0-9]{20}", database):
         raise RuntimeError("Base de navegador CI no permitida")
-    log_prefix = "mc-rov-tests.browser-" if database == "odoo_test" else "mc-rov-tests.f3-browser-"
+    log_prefix = {
+        "/mc_rov:TestKPIDashboardBrowser": "mc-rov-tests.browser-",
+        "customer_commitment_browser": "mc-rov-tests.f3-browser-",
+        "repair_lead_time_browser": "mc-rov-tests.f6-browser-",
+    }[tag]
     with tempfile.TemporaryDirectory(prefix="mc-rov-browser-", dir=temporary) as workspace:
         executable = prepare_browser(Path(workspace))
         environment = browser_environment(Path(workspace), executable)

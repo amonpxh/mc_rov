@@ -84,3 +84,4 @@ from . import test_customer_dispatch
 from . import test_customer_commitment_kpi
 from . import test_customer_commitment_browser
 from . import test_repair_lead_time
+from . import test_repair_lead_time_browser

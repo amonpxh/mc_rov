@@ -25,6 +25,7 @@ from odoo.tools import SQL, config
 from odoo.tools.misc import exec_pg_environ, find_pg_tool
 
 from customer_commitment_races import run_customer_commitment_races
+from repair_arrival_races import run_repair_arrival_races
 from run_kpi_browser_tests import run_browser
 
 
@@ -332,6 +333,7 @@ def _source_fingerprint():
                 "mc_rov_customer_commitment",
                 "mc_rov_customer_commitment_change",
                 "mc_rov_customer_dispatch",
+                "mc_rov_repair_arrival",
             ):
                 cursor.execute(
                     SQL("SELECT count(*), max(write_date) FROM %s", SQL.identifier(table))
@@ -390,6 +392,32 @@ def _copy_filestore(database):
     shutil.copytree(source, destination)
 
 
+def _verify_operational_browsers(browser_args, report):
+    for key, tag, test_class, cases in (
+        (
+            "f3",
+            "customer_commitment_browser",
+            "TestCustomerCommitmentBrowser",
+            ["test_operational_repair_pickup_and_dashboard"],
+        ),
+        (
+            "f6",
+            "repair_lead_time_browser",
+            "TestRepairLeadTimeBrowser",
+            ["test_delayed_validation_and_dashboard", "test_receipt_validated_on_arrival"],
+        ),
+    ):
+        result, rc = run_browser(*browser_args, tag)
+        started = re.findall(rf"Starting {test_class}\.(test_\w+)", result)
+        report[f"{key}_browser"] = bool(
+            rc == 0
+            and sorted(started) == cases
+            and re.search(rf"0 failed, 0 error\(s\) of {len(cases)} tests", result)
+            and len(re.findall(r"\.browser: test successful\s*$", result, re.M)) == 3
+        )
+        assert report[f"{key}_browser"], f"El navegador {key.upper()} no confirmó sus recorridos"
+
+
 def main():
     repo = Path(sys.argv[1]).resolve()
     config.parse_config(
@@ -417,6 +445,8 @@ def main():
         "cases": [],
         "f3_cases": [],
         "f3_browser": False,
+        "f6_cases": [],
+        "f6_browser": False,
         "pdf_renderer_test_double": True,
         "source_unchanged": None,
     }
@@ -442,21 +472,9 @@ def main():
         assert len(report["cases"]) == 7
         run_customer_commitment_races(registry, context, fixture, report["f3_cases"])
         assert len(report["f3_cases"]) == 6
-        result, rc = run_browser(
-            repo,
-            sys.argv[2],
-            sys.argv[3],
-            database,
-            "customer_commitment_browser",
-        )
-        started = re.findall(r"Starting TestCustomerCommitmentBrowser\.(test_\w+)", result)
-        report["f3_browser"] = bool(
-            rc == 0
-            and started == ["test_operational_repair_pickup_and_dashboard"]
-            and re.search(r"0 failed, 0 error\(s\) of 1 tests", result)
-            and len(re.findall(r"\.browser: test successful\s*$", result, re.M)) == 3
-        )
-        assert report["f3_browser"], "El navegador F3 no confirmó el recorrido completo"
+        run_repair_arrival_races(registry, context, fixture, report["f6_cases"])
+        assert len(report["f6_cases"]) == 4
+        _verify_operational_browsers((repo, sys.argv[2], sys.argv[3], database), report)
         report["source_unchanged"] = _source_fingerprint() == baseline
         assert report["source_unchanged"], "Cambió la referencia de odoo_test"
         passed = True
@@ -489,6 +507,7 @@ def main():
             json.dump(report, output, ensure_ascii=False, indent=2)
     print("CI_PRODUCTION_RACES=PASSED CASES=7 CONNECTIONS=2", flush=True)
     print("CI_F3_QA=PASSED RACES=6 CONNECTIONS=2 BROWSER_ROUTES=3", flush=True)
+    print("CI_F6_QA=PASSED RACES=4 CONNECTIONS=2 BROWSER_ROUTES=3", flush=True)
 
 
 if __name__ == "__main__":

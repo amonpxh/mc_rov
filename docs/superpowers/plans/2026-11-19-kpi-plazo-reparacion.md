@@ -18,3 +18,14 @@ Este incremento mide recepción–salida. Los tramos de diagnóstico y
 autorización requieren eventos de negocio acordados. El primer cierre
 histórico de F4 no se asumirá como cierre definitivo de una visita reabierta.
 Sin reconstruir llegadas antiguas al instalar.
+
+## QA en la copia de CI
+
+- Abrir la visita como operador ficticio y pasar por el asistente en
+  navegador para recepción al llegar y para validación posterior. Contrastar
+  ambos sellos, motivo, autor y cómputo en el tablero.
+- Sincronizar dos conexiones por escenario. Verificar reintento idéntico,
+  decisiones de fecha incompatibles, dos visitas reclamando la misma serie
+  en una recepción y reversión seguida por el registro del segundo actor.
+- Guardar resultados técnicos en CI y verificar que la referencia
+  `odoo_test` se conserve.
