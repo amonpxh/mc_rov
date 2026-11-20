@@ -21,7 +21,7 @@
                 </t>
             </nav>
             <main class="mc_kpi_content">
-                <div t-if="state.section === 'tracking' or state.section === 'detentions' or state.section === 'commitments' or productionMode" class="mc_kpi_filters">
+                <div t-if="state.section === 'tracking' or state.section === 'detentions' or state.section === 'commitments' or state.section === 'repair_lead_time' or productionMode" class="mc_kpi_filters">
                     <label>Desde
                         <input class="form-control" type="date" data-kpi-from="" t-att-value="state.dateFrom" t-att-max="state.dateTo || undefined"
                                t-on-change="(ev) => this.setFilter('dateFrom', ev.target.value)"/>
@@ -95,6 +95,7 @@
                     <p t-if="productionMode" class="text-muted mb-0">Cada hito usa su fecha acreditada en Santiago; los hallazgos usan detección. La revisión histórica se conserva. Los desconocidos se muestran separados de la última revisión.</p>
                     <p t-elif="state.section === 'detentions'" class="text-muted mb-0">Las órdenes detenidas corresponden al momento de la consulta. Las fechas filtran la duración registrada.</p>
                     <p t-elif="state.section === 'commitments'" class="text-muted mb-0">Los vencimientos usan la fecha original en Santiago. Los completados usan la salida respaldada que completa la promesa.</p>
+                    <p t-elif="state.section === 'repair_lead_time'" class="text-muted mb-0">El período filtra por día de salida en Santiago.</p>
                     <p t-else="" class="text-muted mb-0">El período filtra los cierres de etapas. Los pendientes y vencimientos siguen siendo actuales; no modifica primera aceptación.</p>
                 </div>
                 <div t-if="state.error" class="alert alert-warning" role="alert" t-esc="state.error"/>
@@ -254,6 +255,40 @@
                                                 </small>
                                                 <small t-if="item.returned_after_completion" class="d-block">Devolución posterior</small>
                                             </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </t>
+                    </section>
+                    <section t-elif="state.section === 'repair_lead_time'" data-kpi-repair-lead-time="">
+                        <h2>Tiempo entre llegada y salida del taller</h2>
+                        <p t-if="!repairLeadTime" class="alert alert-info">Indicador no disponible para el alcance actual.</p>
+                        <t t-else="">
+                            <div class="mc_kpi_cards mb-3">
+                                <article class="mc_kpi_card">
+                                    <h3>Mediana en días calendario</h3>
+                                    <p class="mc_kpi_value" t-esc="repairLeadTime.median_days ?? 'Sin base'"/>
+                                    <p class="text-muted"><t t-esc="repairLeadTime.samples"/> de <t t-esc="repairLeadTime.departed"/> visitas con salida acreditada</p>
+                                </article>
+                                <article class="mc_kpi_card">
+                                    <h3>Percentil 80 en días calendario</h3>
+                                    <p class="mc_kpi_value" t-esc="repairLeadTime.p80_days ?? 'Sin base'"/>
+                                    <p t-if="repairLeadTime.p80_days === null" class="text-muted">Requiere al menos diez visitas medibles.</p>
+                                </article>
+                            </div>
+                            <p>
+                                <t t-esc="repairLeadTime.missing_arrival"/> sin llegada acreditada ·
+                                <t t-esc="repairLeadTime.invalid_chronology"/> con fechas incompatibles ·
+                                <t t-esc="repairLeadTime.ambiguous_departure"/> con más de una salida vigente accesible
+                            </p>
+                            <div class="table-responsive" t-if="repairLeadTime.samples">
+                                <table class="table">
+                                    <thead><tr><th scope="col">Días calendario</th><th scope="col">Visitas</th></tr></thead>
+                                    <tbody>
+                                        <tr t-foreach="repairLeadTime.distribution" t-as="band" t-key="band.minimum">
+                                            <th scope="row"><t t-esc="band.minimum"/><t t-if="band.maximum === null"> o más</t><t t-else=""> a <t t-esc="band.maximum"/></t></th>
+                                            <td t-esc="band.count"/>
                                         </tr>
                                     </tbody>
                                 </table>

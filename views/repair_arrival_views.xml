@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_repair_arrival_wizard" model="ir.ui.view">
+        <field name="name">mc.rov.repair.arrival.wizard.form</field>
+        <field name="model">mc.rov.repair.arrival.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Acreditar llegada al taller">
+                <group>
+                    <field name="repair_id" options="{'no_open': True}"/>
+                    <field name="picking_id" domain="[('state', '=', 'done'), ('picking_type_code', '=', 'incoming')]"
+                           options="{'no_create': True, 'no_open': True}"/>
+                    <field name="delayed"/>
+                    <field name="arrived_at" invisible="not delayed" required="delayed"/>
+                    <field name="reason" invisible="not delayed" required="delayed"/>
+                </group>
+                <footer>
+                    <button name="action_apply" type="object" string="Acreditar llegada" class="btn-primary"/>
+                    <button special="cancel" string="Cerrar" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+    <record id="view_repair_order_arrival" model="ir.ui.view">
+        <field name="name">repair.order.form.mc.arrival</field>
+        <field name="model">repair.order</field>
+        <field name="inherit_id" ref="repair.view_repair_order_form"/>
+        <field name="arch" type="xml">
+            <header position="inside">
+                <field name="mc_arrived_at" invisible="1"/>
+                <button name="action_mc_record_arrival" type="object" string="Acreditar llegada"
+                        groups="stock.group_stock_user" invisible="not lot_id or state == 'cancel' or mc_arrived_at"/>
+            </header>
+            <xpath expr="//sheet/notebook" position="inside">
+                <page name="mc_repair_arrival" string="Llegada al taller" invisible="not mc_arrived_at">
+                    <group>
+                        <field name="mc_arrived_at"/>
+                        <field name="mc_arrival_validated_at"/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

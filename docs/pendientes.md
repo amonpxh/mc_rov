@@ -1,4 +1,83 @@
-## F3 implementado localmente — 2026-11-19
+## Primer incremento de F6 implementado localmente — 2026-11-19
+
+El catálogo inicial deja pendientes F6, Q2, Q3 y A1 y conserva F1, F4,
+F5 y Q4 con alcance parcial. F6 sigue a F3 porque puede reutilizar el
+cierre técnico acreditado de F4 y la constancia de salida por visita de
+F3. La duración física exige una recepción acreditada. Contrastar el
+vínculo de la transferencia entrante, la serie y el momento en que se
+registra la recepción. Diagnóstico y autorización requieren identificar
+sus eventos operativos antes de medir esos tramos.
+
+La rama `feature/kpi-repair-lead-time` parte de `6fb8ed0`. Desde la visita
+se acredita una recepción validada del mismo cliente, empresa y serie.
+La validación hecha al llegar aporta su sello nativo. Si fue posterior,
+se registra fecha y hora efectiva anterior con motivo. Se exige escritura
+nativa en ambos documentos. El historial conserva ambos sellos.
+
+El primer incremento mide visitas con ambos extremos
+acreditados y muestra cobertura incompleta por separado. Conserva días
+transcurridos y HH como métricas distintas, respeta la precisión de las
+fechas y excluye de la métrica física las fechas administrativas sin
+evidencia. Pasaron 225 pruebas puras, incluidas cuatro nuevas. Quedan por
+ejecutar cuatro casos Odoo y uno HOOT específicos. Pendientes los eventos
+de diagnóstico, autorización y tramos internos. Cambios locales.
+
+## F3 19.0.25.10.0 instalado en producción — 2026-11-19
+
+Se instaló el commit `6fb8ed07ef1d31d72f394fdebb115c58dde63383`
+con el paquete autorizado `32167af4`. Odoo reinició a las 20:52:46 UTC
+con PID 3093038. La comprobación posterior confirmó servicio activo,
+HTTP 200 en el formulario local y versión instalada `19.0.25.10.0`.
+Respaldo nuevo verificado en `/var/backups/mc-rov-prod-f3-QuLjRe`.
+
+El recibo `db0816cf19a742b49e96232643e7445a-verification.json`
+en `.tmp/prod-f3` confirmó 372 tablas protegidas, ocho adjuntos
+verificados, diez tablas nuevas, tres ACL de asistentes y el grupo
+Supervisor sin asignaciones. Sin nuevas cuentas, historial retroactivo
+ni activación de automatismos. Solo cambiaron las fechas de auditoría
+permitidas, incluidas las de las series 3 y 5. SHA-256 del recibo
+`87396f4b69033065e399239e4b469253b44965fcb536faa74a62d55cc402c3bb`.
+
+El primer PowerShell se detuvo antes de SSH porque no encontró
+`Get-FileHash`. La instalación aprobada corrió con PowerShell 7 y la
+misma huella del paquete. Publicación de la release y activación real
+pendientes.
+
+## Preparación del paquete F3 19.0.25.10.0 — 2026-11-19
+
+Preparado localmente en `.tmp/prod-f3` para `6fb8ed0` sobre producción
+F2 `5b24746`. Huella SHA-256 del paquete
+`32167af489adad65537e4801d7a40b92c6adfc986384cf1150d47a6025cb0534`.
+El archivo fuente coincide con todos los blobs de Git. Pasaron 25 pruebas
+locales de guardas, recibo HTTP y recuperación. La revisión independiente
+confirmó la corrección de la comprobación de Git y el destino HTTP del
+formulario de producción. Los controles de Odoo en CI siguen aprobados.
+
+La consulta de solo lectura confirmó F2 `5b24746` / `19.0.25.9.0`,
+las huellas del respaldo anterior, espacio suficiente y ausencia de esquema
+F3. Huella SHA-256 del recibo
+`62d931fdb411f4c707f9633b87a7a9e73f5fd9df0893ab46703388c64d0e3711`.
+El respaldo nuevo se hará dentro de la ventana autorizada. La restauración
+SQL de F3 se comprobó mediante pruebas locales del flujo. Paulo autorizó
+el paquete `32167af4` para instalar `6fb8ed0`. La autorización quedó
+vinculada al paquete y al recibo.
+
+## F3 19.0.25.10.0 en main con CI aprobado — 2026-11-19
+
+El [PR #123](https://github.com/amonpxh/mc_rov/pull/123) se integró con
+squash autorizado en `6fb8ed0`, con el árbol del HEAD revisado `6aee6bd`.
+La entrega cambia manifiesto, changelog y registro de versionado. Su base
+de producto es `5d3d169`. Los cinco controles del PR quedaron aprobados
+después de autorizar sus ejecuciones de Actions.
+
+[CI de main](https://github.com/amonpxh/mc_rov/actions/runs/44603829132)
+confirmó 1.722 casos nativos con cero fallos ni errores, siete casos de
+navegador, 119 HOOT, tres recorridos operativos de F3 y seis carreras F3.
+También pasaron formato, Gitleaks y versionado. El bot preparó
+`v19.0.25.10.0` como release borrador apuntando a `6fb8ed0`. Publicación,
+despliegue y activación real pendientes.
+
+## F3 integrado en main con CI aprobado — 2026-11-19
 
 Paulo aprobó F3 y eligió Supervisor con escritura en Inventario para
 acreditar despacho o retiro. La rama `feature/kpi-customer-commitments`
@@ -12,11 +91,27 @@ poblaciones en el tablero. Revisados permisos y protección del historial.
 Las modificaciones de adjuntos binarios se detectan con su checksum
 nativo. En enlaces se conserva la huella de la URL registrada.
 
-Pasaron 221 pruebas unitarias puras, incluidas 27 de F3, y los hooks
-locales de higiene, XML, Black y pylint-odoo. Hay 25 contratos nativos
-y dos HOOT adicionales preparados. Pendientes ejecución transaccional
-en Odoo 19, HOOT, QA operativa y concurrencia en base aislada.
-La rama aún es local. El grupo de Supervisor F3 se define sin miembros.
+El [PR #128](https://github.com/amonpxh/mc_rov/pull/128) se integró por
+squash autorizado en `5d3d169`. El árbol coincide con el HEAD aprobado
+`dd32304`. [CI de Odoo en main](https://github.com/amonpxh/mc_rov/actions/runs/44592980349)
+confirmó por artefacto 1.722 casos nativos sin fallos ni errores, incluidos
+los 25 de F3 por nombre, siete casos de navegador y 119 HOOT, incluidos
+los dos nuevos. Pasaron 221 pruebas unitarias puras, formato, título,
+Gitleaks y versionado.
+
+En una copia aislada de la BD y filestore de CI pasaron seis carreras con dos
+conexiones, desde promesas simultáneas hasta corrección frente a invalidación
+y rollback de constancia. El historial y los autores se comprobaron desde una
+tercera conexión. El QA automatizado validó tres recorridos, historial como
+Taller, constancia como Supervisor y tablero F3 en móvil. Las operaciones
+se registraron mediante los asistentes nativos en servidor. El artefacto
+final confirma que las tablas protegidas del origen de CI quedaron intactas.
+
+En los intentos previos se corrigieron los assets ausentes en la copia y la
+sincronización del ensayo de rollback. Sus copias de CI quedaron bloqueadas.
+El grupo de Supervisor F3 se define sin miembros. El bot aprobó 38 pruebas
+de versionado y actualizó el [PR #123](https://github.com/amonpxh/mc_rov/pull/123)
+con la propuesta `19.0.25.10.0`.
 
 ## F2: bot de entregas alineado en main — 2026-11-19
 

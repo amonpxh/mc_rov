@@ -120,6 +120,7 @@ class KPIDashboard(models.AbstractModel):
         production_filters=None,
         detention_filters=None,
         customer_commitments=False,
+        repair_lead_time=False,
     ):
         companies = self._check_caller()
         # El servicio conserva sus validaciones de fechas/proceso y sus propias zonas.
@@ -186,7 +187,19 @@ class KPIDashboard(models.AbstractModel):
                 report["commitments"] = {"available": True, "metrics": metrics}
             except AccessError:
                 report["commitments"] = {"available": False, "metrics": None}
+        report.update(self._repair_lead_time_report(repair_lead_time, date_from, date_to))
         return report
+
+    def _repair_lead_time_report(self, enabled, date_from, date_to):
+        if not isinstance(enabled, bool):
+            raise ValidationError(_("La opción de plazo de reparación no es válida."))
+        if not enabled:
+            return {}
+        try:
+            metrics = self.env["mc.rov.repair.lead.time.kpi"].get_summary(date_from, date_to)
+        except AccessError:
+            return {"repair_lead_time": {"available": False, "metrics": None}}
+        return {"repair_lead_time": {"available": True, "metrics": metrics}}
 
     @api.model
     def action_detail(self, key):

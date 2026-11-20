@@ -36,6 +36,7 @@
         "views/detention_views.xml",
         "views/customer_commitment_views.xml",
         "views/customer_dispatch_views.xml",
+        "views/repair_arrival_views.xml",
         "security/repair_activity_policy_rules.xml",
         "security/automation_control_rules.xml",
         "security/manufacturing_activity_policy_rules.xml",

@@ -115,6 +115,22 @@ describe("mc_rov KPI dashboard", () => {
         expect("[data-kpi-commitments] .mc_kpi_value").toHaveCount(0);
     });
 
+    test("Plazo de reparación muestra cobertura y conserva una mediana de cero días", async () => {
+        const data = report();
+        data.repair_lead_time = { available: true, metrics: {
+            samples: 2, departed: 4, missing_arrival: 1, invalid_chronology: 0,
+            ambiguous_departure: 1, median_days: 0, p80_days: null,
+            distribution: [{ minimum: 0, maximum: 2, count: 2 }],
+        } };
+        const { calls } = await setup({ report: data });
+        await click("[data-section='repair_lead_time']");
+        await animationFrame();
+        expect("[data-kpi-repair-lead-time]").toHaveText(/2 de 4 visitas/);
+        expect("[data-kpi-repair-lead-time]").toHaveText(/1 sin llegada acreditada/);
+        expect("[data-kpi-repair-lead-time] .mc_kpi_card:first-child .mc_kpi_value").toHaveText("0");
+        expect(calls.at(-1).kwargs.repair_lead_time).toBe(true);
+    });
+
     test("Producción distingue visitas equipos y hitos", async () => {
         await setup();
         await click("[data-section='production']");
