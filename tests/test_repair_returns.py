@@ -11,6 +11,26 @@ from .test_customer_commitment_browser import dispatch_wizard, prepare_f3_case
 from .test_repair_lead_time import arrival_wizard, receive_rov
 
 
+def prepare_q2_case(env, warehouse, label, workshop, supervisor):
+    """Genera visitas de la misma serie con salida F3 y llegada F6 válidas."""
+    original, outgoing, attachment = prepare_f3_case(env, warehouse, label)
+    returned = env["repair.order"].create(
+        {
+            field: original[field].id
+            for field in ("company_id", "product_id", "product_uom", "lot_id", "partner_id")
+        }
+    )
+    receipt = receive_rov(env, warehouse, returned)
+    dispatch_wizard(
+        outgoing.with_user(supervisor),
+        original,
+        attachment,
+        fields.Datetime.now() - timedelta(days=2),
+    ).action_apply()
+    arrival_wizard(returned.with_user(workshop), receipt).action_apply()
+    return original, returned
+
+
 @tagged("post_install", "-at_install", "repair_returns")
 class TestRepairReturns(TransactionCase):
     """Visitas, movimientos y actores ficticios con los permisos nativos."""
@@ -19,14 +39,6 @@ class TestRepairReturns(TransactionCase):
         warehouse = self.env["stock.warehouse"].search(
             [("company_id", "=", self.env.company.id)], limit=1
         )
-        original, outgoing, attachment = prepare_f3_case(self.env, warehouse, "Q2")
-        returned = self.env["repair.order"].create(
-            {
-                field: original[field].id
-                for field in ("company_id", "product_id", "product_uom", "lot_id", "partner_id")
-            }
-        )
-        receipt = receive_rov(self.env, warehouse, returned)
         base_groups = "stock.group_stock_manager,mc_rov.group_work_assignment_team"
         operator = new_test_user(self.env, login="qa_q2_taller", groups=base_groups)
         supervisor = new_test_user(
@@ -35,13 +47,7 @@ class TestRepairReturns(TransactionCase):
             groups=base_groups
             + ",mc_rov.group_repair_return_supervisor,mc_rov.group_customer_commitment_supervisor",
         )
-        dispatch_wizard(
-            outgoing.with_user(supervisor),
-            original,
-            attachment,
-            fields.Datetime.now() - timedelta(days=2),
-        ).action_apply()
-        arrival_wizard(returned.with_user(operator), receipt).action_apply()
+        original, returned = prepare_q2_case(self.env, warehouse, "Q2", operator, supervisor)
         return original, returned.with_user(operator), supervisor
 
     def _wizard(self, returned, **values):
