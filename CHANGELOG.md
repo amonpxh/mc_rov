@@ -1,5 +1,13 @@
 # Changelog
 
+## [19.0.25.11.0] — 2026-11-20
+
+### Funcionalidades
+
+- feat(kpi): medir el plazo de reparación desde la llegada acreditada (#129) (`8a2e25cbbeaa`).
+
+Entrega de código; no acredita instalación ni activación en producción.
+
 ## [19.0.25.10.0] — 2026-11-19
 
 ### Funcionalidades
