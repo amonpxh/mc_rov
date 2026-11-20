@@ -121,12 +121,16 @@ class TestRepairLeadTimeBrowser(HttpCase):
         action = self.env.ref("mc_rov.action_kpi_dashboard")
         self.browser_js(
             f"/odoo/action-{action.id}",
-            """
+            r"""
             (async () => {
+                let selected = false;
                 for (let n = 0; n < 200; n++) {
                     const button = document.querySelector('[data-section="repair_lead_time"]');
                     const board = document.querySelector('[data-kpi-repair-lead-time]');
-                    if (!board && button && button.getAttribute('aria-selected') === 'false') button.click();
+                    if (!board && button && !selected) {
+                        selected = true;
+                        button.click();
+                    }
                     if (board?.textContent.includes('1 de 1') &&
                         board.querySelector('.mc_kpi_value')?.textContent.trim() === 'EXPECTED') {
                         console.log('test successful');
@@ -134,7 +138,9 @@ class TestRepairLeadTimeBrowser(HttpCase):
                     }
                     await new Promise(resolve => setTimeout(resolve, 100));
                 }
-                throw Error('F6 no mostró la mediana de la llegada efectiva');
+                const board = document.querySelector('[data-kpi-repair-lead-time]');
+                throw Error('F6 no mostró la mediana de la llegada efectiva: ' +
+                    (board?.textContent.replace(/\s+/g, ' ').trim() || 'sección ausente'));
             })().catch(error => console.error(error));
             """.replace(
                 "EXPECTED", str(expected)
