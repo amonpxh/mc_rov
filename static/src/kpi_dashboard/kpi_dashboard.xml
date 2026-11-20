@@ -21,7 +21,7 @@
                 </t>
             </nav>
             <main class="mc_kpi_content">
-                <div t-if="state.section === 'tracking' or state.section === 'detentions' or state.section === 'commitments' or state.section === 'repair_lead_time' or productionMode" class="mc_kpi_filters">
+                <div t-if="state.section === 'tracking' or state.section === 'detentions' or state.section === 'commitments' or state.section === 'repair_lead_time' or state.section === 'repair_returns' or productionMode" class="mc_kpi_filters">
                     <label>Desde
                         <input class="form-control" type="date" data-kpi-from="" t-att-value="state.dateFrom" t-att-max="state.dateTo || undefined"
                                t-on-change="(ev) => this.setFilter('dateFrom', ev.target.value)"/>
@@ -95,6 +95,7 @@
                     <p t-if="productionMode" class="text-muted mb-0">Cada hito usa su fecha acreditada en Santiago; los hallazgos usan detección. La revisión histórica se conserva. Los desconocidos se muestran separados de la última revisión.</p>
                     <p t-elif="state.section === 'detentions'" class="text-muted mb-0">Las órdenes detenidas corresponden al momento de la consulta. Las fechas filtran la duración registrada.</p>
                     <p t-elif="state.section === 'commitments'" class="text-muted mb-0">Los vencimientos usan la fecha original en Santiago. Los completados usan la salida respaldada que completa la promesa.</p>
+                    <p t-elif="state.section === 'repair_returns'" class="text-muted mb-0">El período filtra por día de llegada del retorno en Santiago.</p>
                     <p t-elif="state.section === 'repair_lead_time'" class="text-muted mb-0">El período filtra por día de salida en Santiago.</p>
                     <p t-else="" class="text-muted mb-0">El período filtra los cierres de etapas. Los pendientes y vencimientos siguen siendo actuales; no modifica primera aceptación.</p>
                 </div>
@@ -293,6 +294,21 @@
                                     </tbody>
                                 </table>
                             </div>
+                        </t>
+                    </section>
+                    <section t-elif="state.section === 'repair_returns'" data-kpi-repair-returns="">
+                        <h2>Retornos tras reparación observados en el taller</h2>
+                        <p t-if="!repairReturns" class="alert alert-info">Indicador no disponible para el alcance actual.</p>
+                        <t t-else="">
+                            <div class="mc_kpi_cards mb-3">
+                                <article class="mc_kpi_card"><h3>Retornos vinculados</h3><p class="mc_kpi_value" t-esc="repairReturns.observed_returns"/></article>
+                                <article class="mc_kpi_card"><h3>Relación confirmada</h3><p class="mc_kpi_value" t-esc="repairReturns.observed_related_returns"/></article>
+                                <article class="mc_kpi_card"><h3>Dictamen pendiente</h3><p class="mc_kpi_value" t-esc="repairReturns.observed_pending_returns"/></article>
+                                <article class="mc_kpi_card"><h3>Otra causa</h3><p class="mc_kpi_value" t-esc="repairReturns.observed_unrelated_returns"/></article>
+                            </div>
+                            <p><t t-esc="repairReturns.confirmed_originals_within_window"/> reparaciones originales con retorno relacionado en 180 días ·
+                               <t t-esc="repairReturns.outside_window"/> retornos después de 180 días</p>
+                            <p class="text-muted">Tasa pendiente de seguimiento acreditado durante 180 días.</p>
                         </t>
                     </section>
                     <section t-elif="state.section === 'tracking'">

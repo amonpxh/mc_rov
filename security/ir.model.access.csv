@@ -37,3 +37,5 @@ access_customer_commitment_wizard,mc.rov.customer.commitment.wizard,model_mc_rov
 access_customer_commitment_history,mc.rov.customer.commitment.history,model_mc_rov_customer_commitment_history,base.group_user,1,1,1,0
 access_customer_dispatch_wizard,mc.rov.customer.dispatch.wizard,model_mc_rov_customer_dispatch_wizard,mc_rov.group_customer_commitment_supervisor,1,1,1,0
 access_repair_arrival_wizard,mc.rov.repair.arrival.wizard,model_mc_rov_repair_arrival_wizard,stock.group_stock_user,1,1,1,0
+access_repair_return_wizard_stock,mc.rov.repair.return.wizard.stock,model_mc_rov_repair_return_wizard,stock.group_stock_user,1,1,1,0
+access_repair_return_wizard_supervisor,mc.rov.repair.return.wizard.supervisor,model_mc_rov_repair_return_wizard,mc_rov.group_repair_return_supervisor,1,1,1,0

@@ -8,3 +8,4 @@ from . import detention_wizard
 from . import customer_commitment_wizard
 from . import customer_dispatch_wizard
 from . import repair_arrival_wizard
+from . import repair_return_wizard
