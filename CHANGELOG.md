@@ -1,5 +1,13 @@
 # Changelog
 
+## [19.0.25.12.0] — 2026-11-20
+
+### Funcionalidades
+
+- feat(kpi): registrar y medir retornos de reparación (#131) (`68c936a0dec5`).
+
+Entrega de código; no acredita instalación ni activación en producción.
+
 ## [19.0.25.11.0] — 2026-11-20
 
 ### Funcionalidades
