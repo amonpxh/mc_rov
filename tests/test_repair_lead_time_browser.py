@@ -31,6 +31,7 @@ class TestRepairLeadTimeBrowser(HttpCase):
                 };
                 const delayed = ARRIVAL;
                 const modal = selector => document.querySelector('.modal ' + selector);
+                const frame = () => new Promise(resolve => requestAnimationFrame(resolve));
                 const arrival = await until(() => document.querySelector(
                     'button[name="action_mc_record_arrival"]'), 'Falta el botón de llegada');
                 arrival.click();
@@ -46,14 +47,17 @@ class TestRepairLeadTimeBrowser(HttpCase):
                     const reason = await until(() => modal('[name="reason"] textarea'),
                         'Falta el motivo');
                     dateInput.focus();
-                    dateInput.value = delayed;
+                    const dates = odoo.loader.modules.get('@web/core/l10n/dates');
+                    dateInput.value = dates.formatDateTime(dates.deserializeDateTime(delayed));
                     dateInput.dispatchEvent(new Event('input', { bubbles: true }));
                     dateInput.dispatchEvent(new Event('change', { bubbles: true }));
+                    await frame();
                     reason.focus();
                     reason.value = 'La recepción se validó después QA F6';
                     reason.dispatchEvent(new Event('input', { bubbles: true }));
                     reason.dispatchEvent(new Event('change', { bubbles: true }));
                     reason.blur();
+                    await frame();
                 }
                 modal('button[name="action_apply"]').click();
                 await until(() => !modal('button[name="action_apply"]'),
@@ -107,7 +111,7 @@ class TestRepairLeadTimeBrowser(HttpCase):
     def test_delayed_validation_and_dashboard(self):
         repair, receipt, outgoing, attachment = self._case("delayed")
         actual = (receipt.date_done - timedelta(days=3)).replace(second=0)
-        self._record_arrival(repair, repair.env.user, actual.strftime("%m/%d/%Y %H:%M:%S"))
+        self._record_arrival(repair, repair.env.user, fields.Datetime.to_string(actual))
         self._assert_arrival(repair, receipt, actual, "La recepción se validó después QA F6")
         now = fields.Datetime.now()
         dispatch_wizard(outgoing, repair, attachment, now).action_apply()

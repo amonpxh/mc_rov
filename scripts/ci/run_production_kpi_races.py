@@ -393,27 +393,28 @@ def _copy_filestore(database):
 
 
 def _verify_operational_browsers(browser_args, report):
-    for key, tag, test_class, cases in (
+    result, rc = run_browser(*browser_args, "customer_commitment_browser,repair_lead_time_browser")
+    for key, test_class, cases in (
         (
             "f3",
-            "customer_commitment_browser",
             "TestCustomerCommitmentBrowser",
             ["test_operational_repair_pickup_and_dashboard"],
         ),
         (
             "f6",
-            "repair_lead_time_browser",
             "TestRepairLeadTimeBrowser",
             ["test_delayed_validation_and_dashboard", "test_receipt_validated_on_arrival"],
         ),
     ):
-        result, rc = run_browser(*browser_args, tag)
         started = re.findall(rf"Starting {test_class}\.(test_\w+)", result)
         report[f"{key}_browser"] = bool(
             rc == 0
             and sorted(started) == cases
-            and re.search(rf"0 failed, 0 error\(s\) of {len(cases)} tests", result)
-            and len(re.findall(r"\.browser: test successful\s*$", result, re.M)) == 3
+            and re.search(r"0 failed, 0 error\(s\) of 3 tests", result)
+            and len(
+                re.findall(rf"{test_class}\.test_\w+\.browser: test successful\s*$", result, re.M)
+            )
+            == 3
         )
         assert report[f"{key}_browser"], f"El navegador {key.upper()} no confirmó sus recorridos"
 
