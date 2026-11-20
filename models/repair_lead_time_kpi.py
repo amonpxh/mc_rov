@@ -15,15 +15,14 @@ class RepairLeadTimeKPI(models.AbstractModel):
     _name = "mc.rov.repair.lead.time.kpi"
     _description = "Plazo de reparación entre llegada y salida"
 
-    def _departures(self, companies):
-        events = (
-            self.env["mc.rov.customer.dispatch"]
-            .sudo()
-            .search(
-                [("company_id", "in", companies)],
-                order="id desc",
-            )
-        )
+    def _departure_events(self, companies, repair_ids=None):
+        ledger = self.env["mc.rov.customer.dispatch"].sudo()
+        domain = [("company_id", "in", companies)]
+        if repair_ids is not None:
+            # Buscar el último evento incluso si una corrección cambió las visitas vinculadas.
+            picking_ids = ledger.search(domain + [("repair_ids", "in", repair_ids)]).picking_id.ids
+            domain.append(("picking_id", "in", picking_ids))
+        events = ledger.search(domain, order="id desc")
         latest = {}
         for event in events:
             latest.setdefault(event.picking_id.id, event)
@@ -46,11 +45,19 @@ class RepairLeadTimeKPI(models.AbstractModel):
                     )
                 )
                 for repair in repairs:
-                    if repair.lot_id.has_access("read"):
-                        departures[repair.id].append(event.effective_at or event.effective_date)
+                    if (
+                        repair_ids is None or repair.id in repair_ids
+                    ) and repair.lot_id.has_access("read"):
+                        departures[repair.id].append(event)
             except AccessError:
                 continue
         return departures
+
+    def _departures(self, companies):
+        return {
+            visit_id: [event.effective_at or event.effective_date for event in events]
+            for visit_id, events in self._departure_events(companies).items()
+        }
 
     def _arrivals(self, departures, companies):
         result = {}

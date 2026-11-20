@@ -53,9 +53,9 @@ INITIAL_FAMILIES = (
     (
         "Q2",
         "Retornos relacionados",
-        "capture_pending",
-        "Visitas con seguimiento observado",
-        "Vincular retorno y dictamen; ventana de 180 días efectivamente observada.",
+        "partial",
+        "Retornos observados en el taller",
+        "Vínculo y dictamen con evidencia; tasa pendiente de seguimiento acreditado.",
     ),
     (
         "Q3",

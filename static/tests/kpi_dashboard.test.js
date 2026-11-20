@@ -131,6 +131,21 @@ describe("mc_rov KPI dashboard", () => {
         expect(calls.at(-1).kwargs.repair_lead_time).toBe(true);
     });
 
+
+    test("Retornos muestra dictámenes sin inferir una tasa", async () => {
+        const data = report();
+        data.repair_returns = { available: true, metrics: {
+            observed_returns: 3, observed_related_returns: 1, observed_pending_returns: 1,
+            observed_unrelated_returns: 1, confirmed_originals_within_window: 1, outside_window: 0,
+        } };
+        const { calls } = await setup({ report: data });
+        await click("[data-section='repair_returns']");
+        await animationFrame();
+        expect("[data-kpi-repair-returns] .mc_kpi_value").toHaveCount(4);
+        expect("[data-kpi-repair-returns]").toHaveText(/Tasa pendiente de seguimiento acreditado/);
+        expect(calls.at(-1).kwargs.repair_returns).toBe(true);
+    });
+
     test("Producción distingue visitas equipos y hitos", async () => {
         await setup();
         await click("[data-section='production']");

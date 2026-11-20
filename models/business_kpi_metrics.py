@@ -157,6 +157,35 @@ def related_return_metrics(visits, return_events, *, as_of, window_days=180):
     return result
 
 
+def observed_return_summary(departures, return_events, *, as_of, window_days=180):
+    """Agrega los retornos documentados sin inferir cobertura de seguimiento."""
+    visits = [
+        {"visit_id": visit_id, "delivered_on": delivered_on}
+        for visit_id, delivered_on in departures.items()
+    ]
+    events = list(return_events)
+    counts = related_return_metrics(visits, events, as_of=as_of, window_days=window_days)
+    members = _cohort_members(visits, as_of, window_days)
+    late = 0
+    affected = set()
+    for event in _return_evidence(events, members, as_of):
+        if event["returned_on"] is None or event["delivered_on"] is None:
+            continue
+        if (event["returned_on"] - event["delivered_on"]).days > window_days:
+            late += 1
+        elif event["relation"] == "confirmed":
+            affected.add(event["visit_id"])
+    return {
+        "window_days": window_days,
+        "observed_returns": counts["observed_returns"],
+        "observed_related_returns": counts["observed_related_returns"],
+        "observed_pending_returns": counts["observed_pending_returns"],
+        "observed_unrelated_returns": counts["observed_unrelated_returns"],
+        "confirmed_originals_within_window": len(affected),
+        "outside_window": late,
+    }
+
+
 def _adjudicate_valid_attempt(row):
     verdict = row.get("verdict")
     if verdict not in (None, "passed", "failed", "pending"):
