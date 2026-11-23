@@ -122,6 +122,7 @@ class KPIDashboard(models.AbstractModel):
         customer_commitments=False,
         repair_lead_time=False,
         repair_returns=False,
+        repair_rework=False,
     ):
         companies = self._check_caller()
         # El servicio conserva sus validaciones de fechas/proceso y sus propias zonas.
@@ -172,25 +173,41 @@ class KPIDashboard(models.AbstractModel):
             if not isinstance(detention_filters, dict) or set(detention_filters) - {"process"}:
                 raise ValidationError(_("Los filtros de detenciones no son válidos."))
             try:
-                metrics = self.env["mc.rov.detention.kpi"].get_summary(
-                    date_from=date_from, date_to=date_to, **detention_filters
-                )
-                report["detentions"] = {"available": True, "metrics": metrics}
+                report["detentions"] = {
+                    "available": True,
+                    "metrics": self.env["mc.rov.detention.kpi"].get_summary(
+                        date_from=date_from, date_to=date_to, **detention_filters
+                    ),
+                }
             except AccessError:
                 report["detentions"] = {"available": False, "metrics": None}
         if not isinstance(customer_commitments, bool):
             raise ValidationError(_("La opción de compromisos no es válida."))
         if customer_commitments:
             try:
-                metrics = self.env["mc.rov.customer.commitment.kpi"].get_summary(
-                    date_from=date_from, date_to=date_to
-                )
-                report["commitments"] = {"available": True, "metrics": metrics}
+                report["commitments"] = {
+                    "available": True,
+                    "metrics": self.env["mc.rov.customer.commitment.kpi"].get_summary(
+                        date_from=date_from, date_to=date_to
+                    ),
+                }
             except AccessError:
                 report["commitments"] = {"available": False, "metrics": None}
         report.update(self._repair_lead_time_report(repair_lead_time, date_from, date_to))
         report.update(self._repair_return_report(repair_returns, date_from, date_to))
+        report.update(self._repair_rework_report(repair_rework, date_from, date_to))
         return report
+
+    def _repair_rework_report(self, enabled, date_from, date_to):
+        if not isinstance(enabled, bool):
+            raise ValidationError(_("La opción de retrabajo no es válida."))
+        if not enabled:
+            return {}
+        try:
+            metrics = self.env["mc.rov.repair.rework.kpi"].get_summary(date_from, date_to)
+        except AccessError:
+            return {"repair_rework": {"available": False, "metrics": None}}
+        return {"repair_rework": {"available": True, "metrics": metrics}}
 
     def _repair_return_report(self, enabled, date_from, date_to):
         if not isinstance(enabled, bool):

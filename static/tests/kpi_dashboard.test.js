@@ -146,6 +146,25 @@ describe("mc_rov KPI dashboard", () => {
         expect(calls.at(-1).kwargs.repair_returns).toBe(true);
     });
 
+    test("Retrabajo muestra HH y cobertura sin inventar tasas", async () => {
+        const data = report();
+        data.repair_rework = { available: true, metrics: {
+            closed_visits: 2, visits_with_rework: 1, rework_lines: 2,
+            complete_visits: 0, complete_visits_with_rework: 0, visit_percent: null,
+            rework_hours: 3, classified_hours: 6, hours_percent: 50,
+            visits_without_lines: 0, pending_visits: 1, pending_lines: 1, pending_hours: 2,
+            missing_hours_lines: 1, planned_lines: 1, additional_lines: 0,
+            causes: [{ key: "desconocida", label: "No determinado", lines: 2, hours: 3 }],
+        } };
+        const { calls } = await setup({ report: data });
+        await click("[data-section='repair_rework']");
+        await animationFrame();
+        expect("[data-kpi-repair-rework]").toHaveText(/3 de 6 HH/);
+        expect("[data-kpi-repair-rework]").toHaveText(/1 líneas pendientes/);
+        expect("[data-kpi-repair-rework]").toHaveText(/No determinado/);
+        expect(calls.at(-1).kwargs.repair_rework).toBe(true);
+    });
+
     test("Producción distingue visitas equipos y hitos", async () => {
         await setup();
         await click("[data-section='production']");

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_repair_rework_wizard" model="ir.ui.view">
+        <field name="name">mc.rov.repair.rework.wizard.form</field>
+        <field name="model">mc.rov.repair.rework.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Clasificación del trabajo">
+                <group>
+                    <field name="line_id" force_save="1"/>
+                    <field name="repair_id" invisible="1"/>
+                    <field name="lot_id" invisible="1"/>
+                    <field name="review" invisible="1" force_save="1"/>
+                    <field name="proposal_id" invisible="1" force_save="1"/>
+                    <field name="kind" readonly="review" force_save="1"/>
+                    <field name="previous_line_id" invisible="kind != 'rework'"
+                           readonly="review" domain="[('id', '!=', line_id), ('repair_id.lot_id', '=', lot_id)]"
+                           options="{'no_create': True}"/>
+                    <field name="finding_id" invisible="not review or not finding_id"/>
+                    <field name="alert_id" invisible="not review or not alert_id"/>
+                    <field name="reason" invisible="kind != 'rework'" required="kind == 'rework'"
+                           readonly="review" placeholder="Qué requisito incumplió el trabajo anterior."/>
+                </group>
+                <p class="text-muted" invisible="review or kind != 'rework'">Si no selecciona un trabajo anterior, se usa el hallazgo o la alerta vinculada a la línea.</p>
+                <footer>
+                    <button name="action_record" type="object" string="Guardar clasificación"
+                            class="btn-primary" groups="stock.group_stock_user" invisible="review"/>
+                    <button name="action_confirm" type="object" string="Confirmar retrabajo"
+                            class="btn-primary" groups="mc_rov.group_repair_rework_supervisor" invisible="not review"/>
+                    <button string="Cerrar" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+    <record id="view_repair_order_rework" model="ir.ui.view">
+        <field name="name">repair.order.form.mc.rework</field>
+        <field name="model">repair.order</field>
+        <field name="inherit_id" ref="mc_rov.view_repair_order_form_mc_rov"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='linea_falla_cierre_ids']/list/field[@name='analisis_causa']" position="after">
+                <field name="mc_rework_state"/>
+                <button name="action_mc_propose_rework" type="object" string="Clasificar"
+                        groups="stock.group_stock_user" invisible="mc_rework_state == 'rework' or parent.state == 'cancel'"/>
+                <button name="action_mc_confirm_rework" type="object" string="Revisar retrabajo"
+                        groups="mc_rov.group_repair_rework_supervisor"
+                        invisible="mc_rework_state != 'proposal' or parent.state == 'cancel'"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

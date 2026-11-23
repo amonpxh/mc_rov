@@ -87,3 +87,4 @@ from . import test_repair_lead_time
 from . import test_repair_lead_time_browser
 from . import test_repair_returns
 from . import test_repair_return_browser
+from . import test_repair_rework

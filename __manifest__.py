@@ -65,6 +65,7 @@
         "views/mc_rov_tipo_intervencion_views.xml",
         "views/mc_rov_revision_views.xml",
         "views/repair_order_views.xml",
+        "views/repair_rework_views.xml",
         "views/stock_lot_views.xml",
         "views/mc_rov_ficha_equipo_nuevo_views.xml",
         "views/mc_rov_mantencion_views.xml",
