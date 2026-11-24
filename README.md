@@ -1,46 +1,18 @@
-# mc_rov — Marine Connection ROV Management
+# mc_rov — Marine Connection
 
-Odoo 19 module for ROV (Remotely Operated Vehicle) inventory and repair tracking. Extends Odoo's standard `stock` and `repair` modules, plus introduces a custom `mc.rov.componente` model family for component-level tracking.
+Módulo de Odoo 19 Enterprise para diseñar, fabricar, reparar y mantener ROVs. Integra series, revisiones, pruebas, fichas PDF, Calidad, Ingeniería, Inventario, Centro de trabajo y KPI operativos.
 
-## Status
+- [Incorporación al equipo](docs/incorporacion.md) · Ruta de lectura, acceso, primer PR y contexto para asistentes de IA.
+- [Instrucciones del repositorio](AGENTS.md) · Reglas compartidas por personas y agentes. [Claude Code](CLAUDE.md) importa el mismo archivo.
+- [Estado vigente y pendientes](docs/pendientes.md) · Qué está integrado, instalado, en ensayo o pendiente.
+- [Flujo Git y revisión](docs/agents/git-flow.md) · [Versionado](docs/agents/releases.md) · [Historial de cambios](CHANGELOG.md).
+- [Pruebas](docs/runbooks/testing.md) · [Staging y QA](docs/runbooks/staging.md) · [Despliegue](docs/runbooks/deploy.md).
+- [Reglas del dominio](docs/agents/dominio.md) · [Diseño de Inventario](INVENTARIO.md) · [Integración con analítica](docs/integrations/pipeline.md).
 
-- **Odoo version:** 19
-- **Module version:** 19.0.25.4.0 (see `__manifest__.py`)
-- **Tests:** 870 backend contracts and 63 browser tests
-- **License:** LGPL-3
-- **Maintenance:** active. See `CODEOWNERS`.
+La versión del código está en [el manifiesto](./__manifest__.py). El estado de producción se acredita en el registro vigente. Los resultados de pruebas corresponden al commit y a la ejecución de CI que los registró.
 
-## Quick links
+## Instalación de desarrollo
 
-- **Module encyclopedia** (models, fields, conventions, gotchas) → [`CLAUDE.md`](CLAUDE.md)
-- **Inventory design context** (category tree, traceability chain, taxonomy boundaries) → [`INVENTARIO.md`](INVENTARIO.md)
-- **Deploy procedure** → [`docs/runbooks/deploy.md`](docs/runbooks/deploy.md)
-- **Running tests** → [`docs/runbooks/testing.md`](docs/runbooks/testing.md)
-- **Inventory in the Work Center** → [`docs/runbooks/work-center-inventory.md`](docs/runbooks/work-center-inventory.md)
-- **Pipeline integration** (how this module exposes data to the analytics pipeline) → [`docs/integrations/pipeline.md`](docs/integrations/pipeline.md)
-- **Version history** → [`CHANGELOG.md`](CHANGELOG.md)
+Se requiere acceso autorizado a Odoo 19 Enterprise y sus dependencias, listadas en el manifiesto. Usar una base de desarrollo o pruebas aislada, con datos ficticios, y agregar el directorio que contiene `mc_rov` a la ruta de addons de ese entorno. En una base nueva se instala con `-i mc_rov`. En una base de pruebas que ya tiene el módulo se actualiza con `-u mc_rov`. El [runbook de pruebas](docs/runbooks/testing.md) explica qué puede validarse sin Odoo y cómo usar el CI.
 
-## Installing
-
-In a fresh Odoo 19 environment:
-
-```bash
-# 1. Copy or symlink this folder into your Odoo addons path
-# Example: /opt/odoo/custom-addons/mc_rov
-
-# 2. Update Odoo's apps list
-odoo-bin -c /etc/odoo/odoo.conf -u base -d <database> --stop-after-init
-
-# 3. Install the module
-odoo-bin -c /etc/odoo/odoo.conf -i mc_rov -d <database> --stop-after-init
-```
-
-Or via the Odoo UI: Apps → Update Apps List → search "Marine Connection" → Install.
-
-## Contributing
-
-Follow the GitHub Flow described in [`CLAUDE.md` § "Flujo de trabajo con git"](CLAUDE.md#flujo-de-trabajo-con-git). Commits use Conventional Commits format. PRs to `main` require ≥ 1 review and green CI (lint + tests).
-
-## Owners
-
-See `CODEOWNERS`.
+Licencia LGPL-3. La revisión e integración se rigen por el [flujo Git](docs/agents/git-flow.md).

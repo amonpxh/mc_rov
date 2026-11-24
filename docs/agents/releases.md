@@ -58,9 +58,7 @@ históricas revisadas. No representa la versión instalada en producción.
 - Si se cierra deliberadamente el PR del bot, revisar su rama antes de volver a ejecutar;
   la automatización no interpreta ese cierre como permiso para reabrirlo.
 
-El PR de infraestructura del versionado no modifica la versión del módulo. La primera
-propuesta de producto calculará `19.0.25.7.0` para incluir lo pendiente del PR #114.
-Esa propuesta deberá revisarse por separado antes de instalarla.
+Consultar el [estado vigente](../pendientes.md) para la última instalación acreditada y el trabajo pendiente.
 
 [Comportamiento oficial del token y aprobación de workflows](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow).
 
