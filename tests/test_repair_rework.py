@@ -8,34 +8,39 @@ from odoo.tests.common import new_test_user
 from .acceptance_activity_common import AcceptanceActivityCommon
 
 
+def prepare_q3_order(env, product, lot):
+    """Crea la visita de control con una línea de 3 HH y otra de 2 HH."""
+    return env["repair.order"].create(
+        {
+            "product_id": product.id,
+            "product_qty": 1,
+            "product_uom": product.uom_id.id,
+            "lot_id": lot.id,
+            "company_id": env.company.id,
+            "tipo_intervencion_ids": [
+                Command.set(env.ref("mc_rov.tipo_reparacion_correctiva").ids)
+            ],
+            "linea_falla_ids": [
+                Command.create(
+                    {
+                        "componente_id": env.ref("mc_rov.comp_motor").id,
+                        "accion_id": env.ref("mc_rov.accion_reparacion").id,
+                        "origen": "desconocida",
+                        "horas": hours,
+                    }
+                )
+                for hours in (3, 2)
+            ],
+        }
+    )
+
+
 @tagged("post_install", "-at_install", "repair_rework")
 class TestRepairRework(AcceptanceActivityCommon):
     """Prueba el flujo desde las líneas del cierre nativo de Reparación."""
 
     def _case(self):
-        order = self.env["repair.order"].create(
-            {
-                "product_id": self.product.id,
-                "product_qty": 1,
-                "product_uom": self.product.uom_id.id,
-                "lot_id": self.lot.id,
-                "company_id": self.env.company.id,
-                "tipo_intervencion_ids": [
-                    Command.set(self.env.ref("mc_rov.tipo_reparacion_correctiva").ids)
-                ],
-                "linea_falla_ids": [
-                    Command.create(
-                        {
-                            "componente_id": self.env.ref("mc_rov.comp_motor").id,
-                            "accion_id": self.env.ref("mc_rov.accion_reparacion").id,
-                            "origen": "desconocida",
-                            "horas": hours,
-                        }
-                    )
-                    for hours in (3, 2)
-                ],
-            }
-        )
+        order = prepare_q3_order(self.env, self.product, self.lot)
         groups = "stock.group_stock_user,mc_rov.group_work_assignment_team"
         operator = new_test_user(self.env, login="qa_q3_workshop", groups=groups)
         supervisor = new_test_user(

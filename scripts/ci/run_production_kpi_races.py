@@ -27,6 +27,7 @@ from odoo.tools.misc import exec_pg_environ, find_pg_tool
 from customer_commitment_races import run_customer_commitment_races
 from repair_arrival_races import run_repair_arrival_races
 from repair_return_races import run_repair_return_races
+from repair_rework_races import run_repair_rework_races
 from run_kpi_browser_tests import run_browser
 
 
@@ -336,6 +337,7 @@ def _source_fingerprint():
                 "mc_rov_customer_dispatch",
                 "mc_rov_repair_arrival",
                 "mc_rov_repair_return",
+                "mc_rov_repair_rework_event",
             ):
                 cursor.execute(
                     SQL("SELECT count(*), max(write_date) FROM %s", SQL.identifier(table))
@@ -396,7 +398,8 @@ def _copy_filestore(database):
 
 def _verify_operational_browsers(browser_args, report):
     result, rc = run_browser(
-        *browser_args, "customer_commitment_browser,repair_lead_time_browser,repair_return_browser"
+        *browser_args,
+        "customer_commitment_browser,repair_lead_time_browser,repair_return_browser,repair_rework_browser",
     )
     for key, test_class, cases, routes in (
         (
@@ -412,12 +415,13 @@ def _verify_operational_browsers(browser_args, report):
             3,
         ),
         ("q2", "TestRepairReturnBrowser", ["test_operational_link_and_both_verdicts"], 5),
+        ("q3", "TestRepairReworkBrowser", ["test_operational_rework_in_close"], 3),
     ):
         started = re.findall(rf"Starting {test_class}\.(test_\w+)", result)
         report[f"{key}_browser"] = bool(
             rc == 0
             and sorted(started) == cases
-            and re.search(r"0 failed, 0 error\(s\) of 4 tests", result)
+            and re.search(r"0 failed, 0 error\(s\) of 5 tests", result)
             and len(
                 re.findall(rf"{test_class}\.test_\w+\.browser: test successful\s*$", result, re.M)
             )
@@ -433,6 +437,8 @@ def _run_followup_races(registry, context, fixture, report):
     assert len(report["f6_cases"]) == 4
     report["q2_cases"] = run_repair_return_races(registry, context, fixture)
     assert len(report["q2_cases"]) == 4
+    report["q3_cases"] = run_repair_rework_races(registry, context, fixture)
+    assert len(report["q3_cases"]) == 3
 
 
 def main():
@@ -466,6 +472,8 @@ def main():
         "f6_browser": False,
         "q2_cases": [],
         "q2_browser": False,
+        "q3_cases": [],
+        "q3_browser": False,
         "pdf_renderer_test_double": True,
         "source_unchanged": None,
     }
@@ -525,6 +533,7 @@ def main():
     print("CI_F3_QA=PASSED RACES=6 CONNECTIONS=2 BROWSER_ROUTES=3", flush=True)
     print("CI_F6_QA=PASSED RACES=4 CONNECTIONS=2 BROWSER_ROUTES=3", flush=True)
     print("CI_Q2_QA=PASSED RACES=4 CONNECTIONS=2 BROWSER_ROUTES=5", flush=True)
+    print("CI_Q3_QA=PASSED RACES=3 CONNECTIONS=2 BROWSER_ROUTES=3", flush=True)
 
 
 if __name__ == "__main__":
