@@ -49,15 +49,22 @@ def main():
             cursor._cnx.autocommit = True  # pylint: disable=protected-access
             cursor.execute(SQL(statement, SQL.identifier(database)))
 
+    lifecycle = Path(os.environ["RUNNER_TEMP"]) / "mc-rov-tests.database.lifecycle.log"
+
+    def record(marker):
+        print(marker, flush=True)
+        with lifecycle.open("a", encoding="utf-8") as log:
+            log.write(marker + "\n")
+
     with tempfile.TemporaryDirectory(prefix="mc-rov-ci-", dir=os.environ["RUNNER_TEMP"]) as data:
 
         def create(database):
             admin(database, "CREATE DATABASE %s TEMPLATE template0")
-            print(f"CI_ODOO_DATABASE=CREATED NAME={database} TEMPLATE=template0", flush=True)
+            record(f"CI_ODOO_DATABASE=CREATED NAME={database} TEMPLATE=template0")
 
         def drop(database):
             admin(database, "DROP DATABASE %s WITH (FORCE)")
-            print(f"CI_ODOO_DATABASE=DROPPED NAME={database}", flush=True)
+            record(f"CI_ODOO_DATABASE=DROPPED NAME={database}")
 
         def execute(database):
             subprocess.run(

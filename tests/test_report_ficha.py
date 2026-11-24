@@ -1027,6 +1027,8 @@ class TestReporteFicha(RevisionCommon):
         self.assertEqual(revision.estado, "borrador")
 
     def test_asistente_selecciona_documento_y_opciones(self):
+        # El asistente se prueba con una empresa cuya plantilla ya está configurada.
+        self.env.company.external_report_layout_id = self.env.ref("web.external_layout_standard")
         revision = self._revision()
         wizard = self.env["mc.rov.ficha.wizard"].create(
             {"revision_id": revision.id, "mostrar_firmas": False}
@@ -1036,6 +1038,8 @@ class TestReporteFicha(RevisionCommon):
         self.assertFalse(accion["context"]["rov_options"]["firmas"])
 
     def test_orden_propone_la_ultima_revision_y_permite_escoger_otra(self):
+        # El asistente se prueba con una empresa cuya plantilla ya está configurada.
+        self.env.company.external_report_layout_id = self.env.ref("web.external_layout_standard")
         orden = self.env["repair.order"].create(
             {"product_id": self.product.id, "lot_id": self.lot.id}
         )

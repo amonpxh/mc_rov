@@ -47,14 +47,23 @@ COMMON=(-d "$DATABASE" --data-dir "$DATA_DIR" --config "$CONF" --addons-path "$A
     --max-cron-threads 0 --db-filter "^$DATABASE$" --logfile '')
 
 INSTALL_LOG=$(mktemp "${RUNNER_TEMP:?}/mc-rov-tests.install.XXXXXX.log")
-odoo "${COMMON[@]}" -i mc_rov --without-demo --load-language=es_CL 2>&1 | tee "$INSTALL_LOG"
+odoo "${COMMON[@]}" -i mc_rov,project --without-demo --load-language=es_CL 2>&1 | tee "$INSTALL_LOG"
 
 LOG=$(mktemp "${RUNNER_TEMP:?}/mc-rov-tests.XXXXXX.log")
 if test "$PROFILE" = work_kpi; then
     TAGS=work_kpi
 else
     FOCUSED_LOG=$(mktemp "${RUNNER_TEMP:?}/mc-rov-tests.production-focus.XXXXXX.log")
-    odoo "${COMMON[@]}" -u mc_rov --test-tags production_kpi_capture --log-level test \
+    # Estas rutas usan Proyecto, una salida nativa y el asistente de informes.
+    BASELINE_TAGS=production_kpi_capture
+    for method in \
+        TestWorkAssignmentProcess.test_tarea_sin_vinculo_no_hereda_proceso_por_titulo \
+        TestCustomerCommitmentRepairDispatch.test_native_outgoing_needs_a_linked_physical_evidence \
+        TestReporteFicha.test_asistente_selecciona_documento_y_opciones \
+        TestReporteFicha.test_orden_propone_la_ultima_revision_y_permite_escoger_otra; do
+        BASELINE_TAGS="$BASELINE_TAGS,/mc_rov:$method"
+    done
+    odoo "${COMMON[@]}" -u mc_rov --test-tags "$BASELINE_TAGS" --log-level test \
         2>&1 | tee "$FOCUSED_LOG"
     python3 "$REPO/scripts/ci/run_production_kpi_races.py" "$REPO" "$CONF" "$ADDONS"
     python3 "$REPO/scripts/ci/run_kpi_browser_tests.py" "$REPO" "$CONF" "$ADDONS"
