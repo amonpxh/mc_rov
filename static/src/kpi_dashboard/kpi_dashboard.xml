@@ -21,7 +21,7 @@
                 </t>
             </nav>
             <main class="mc_kpi_content">
-                <div t-if="state.section === 'tracking' or state.section === 'detentions' or state.section === 'commitments' or state.section === 'repair_lead_time' or state.section === 'repair_returns' or productionMode" class="mc_kpi_filters">
+                <div t-if="state.section === 'tracking' or state.section === 'detentions' or state.section === 'commitments' or state.section === 'repair_lead_time' or state.section === 'repair_returns' or state.section === 'repair_rework' or productionMode" class="mc_kpi_filters">
                     <label>Desde
                         <input class="form-control" type="date" data-kpi-from="" t-att-value="state.dateFrom" t-att-max="state.dateTo || undefined"
                                t-on-change="(ev) => this.setFilter('dateFrom', ev.target.value)"/>
@@ -95,6 +95,7 @@
                     <p t-if="productionMode" class="text-muted mb-0">Cada hito usa su fecha acreditada en Santiago; los hallazgos usan detección. La revisión histórica se conserva. Los desconocidos se muestran separados de la última revisión.</p>
                     <p t-elif="state.section === 'detentions'" class="text-muted mb-0">Las órdenes detenidas corresponden al momento de la consulta. Las fechas filtran la duración registrada.</p>
                     <p t-elif="state.section === 'commitments'" class="text-muted mb-0">Los vencimientos usan la fecha original en Santiago. Los completados usan la salida respaldada que completa la promesa.</p>
+                    <p t-elif="state.section === 'repair_rework'" class="text-muted mb-0">El período usa el primer cierre técnico acreditado, en Santiago.</p>
                     <p t-elif="state.section === 'repair_returns'" class="text-muted mb-0">El período filtra por día de llegada del retorno en Santiago.</p>
                     <p t-elif="state.section === 'repair_lead_time'" class="text-muted mb-0">El período filtra por día de salida en Santiago.</p>
                     <p t-else="" class="text-muted mb-0">El período filtra los cierres de etapas. Los pendientes y vencimientos siguen siendo actuales; no modifica primera aceptación.</p>
@@ -309,6 +310,48 @@
                             <p><t t-esc="repairReturns.confirmed_originals_within_window"/> reparaciones originales con retorno relacionado en 180 días ·
                                <t t-esc="repairReturns.outside_window"/> retornos después de 180 días</p>
                             <p class="text-muted">Tasa pendiente de seguimiento acreditado durante 180 días.</p>
+                        </t>
+                    </section>
+                    <section t-elif="state.section === 'repair_rework'" data-kpi-repair-rework="">
+                        <h2>Retrabajo en Reparación</h2>
+                        <p t-if="!repairRework" class="alert alert-info">Indicador no disponible para el alcance actual.</p>
+                        <t t-else="">
+                            <div class="mc_kpi_cards mb-3">
+                                <article class="mc_kpi_card">
+                                    <h3>Visitas con retrabajo confirmado</h3>
+                                    <p class="mc_kpi_value" t-esc="repairRework.visits_with_rework"/>
+                                    <p><t t-esc="repairRework.rework_lines"/> líneas de retrabajo</p>
+                                </article>
+                                <article class="mc_kpi_card">
+                                    <h3>Visitas completamente clasificadas</h3>
+                                    <p class="mc_kpi_value" t-esc="commitmentPercent(repairRework.visit_percent)"/>
+                                    <p><t t-esc="repairRework.complete_visits_with_rework"/> de <t t-esc="repairRework.complete_visits"/> con retrabajo</p>
+                                </article>
+                                <article class="mc_kpi_card">
+                                    <h3>HH de retrabajo sobre HH clasificadas</h3>
+                                    <p class="mc_kpi_value" t-esc="commitmentPercent(repairRework.hours_percent)"/>
+                                    <p><t t-esc="repairRework.rework_hours"/> de <t t-esc="repairRework.classified_hours"/> HH</p>
+                                </article>
+                            </div>
+                            <p class="text-muted">
+                                <t t-esc="repairRework.closed_visits"/> visitas con cierre acreditado ·
+                                <t t-esc="repairRework.visits_without_lines"/> sin líneas ·
+                                <t t-esc="repairRework.pending_visits"/> visitas con clasificación pendiente ·
+                                <t t-esc="repairRework.pending_lines"/> líneas pendientes (<t t-esc="repairRework.pending_hours"/> HH registradas) ·
+                                <t t-esc="repairRework.missing_hours_lines"/> líneas sin HH válidas
+                            </p>
+                            <p><t t-esc="repairRework.planned_lines"/> líneas previstas · <t t-esc="repairRework.additional_lines"/> adicionales</p>
+                            <div class="table-responsive" t-if="repairRework.causes.length">
+                                <table class="table">
+                                    <thead><tr><th scope="col">Origen del retrabajo</th><th scope="col">Líneas</th><th scope="col">HH</th></tr></thead>
+                                    <tbody>
+                                        <tr t-foreach="repairRework.causes" t-as="cause" t-key="cause.key">
+                                            <th scope="row" t-esc="cause.label"/>
+                                            <td t-esc="cause.lines"/><td t-esc="cause.hours"/>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </t>
                     </section>
                     <section t-elif="state.section === 'tracking'">

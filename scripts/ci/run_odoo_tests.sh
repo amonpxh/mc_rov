@@ -82,7 +82,7 @@ expected = set()
 modules = re.findall(r'^from \. import (\w+)', (tests / '__init__.py').read_text(), re.M)
 for module in (['test_work_kpi'] if sys.argv[3] == 'work_kpi' else modules):
     # Los HttpCase se verifican aparte con HTTP local y navegador real, nunca por skip.
-    if module in {'test_kpi_dashboard_browser', 'test_customer_commitment_browser', 'test_repair_lead_time_browser', 'test_repair_return_browser'}:
+    if module in {'test_kpi_dashboard_browser', 'test_customer_commitment_browser', 'test_repair_lead_time_browser', 'test_repair_return_browser', 'test_repair_rework_browser'}:
         continue
     tree = ast.parse((tests / (module + '.py')).read_text(encoding='utf-8'))
     for cls in tree.body:

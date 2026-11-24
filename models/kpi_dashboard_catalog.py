@@ -60,9 +60,9 @@ INITIAL_FAMILIES = (
     (
         "Q3",
         "Retrabajo y causas",
-        "capture_pending",
-        "Episodios y HH registradas",
-        "Distinguir corrección de alcance adicional y evitar duplicar horas.",
+        "partial",
+        "Visitas de Reparación y HH clasificadas",
+        "Retrabajo confirmado y cobertura de clasificación; Fabricación queda pendiente.",
     ),
     (
         "Q4",

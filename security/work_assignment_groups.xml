@@ -18,4 +18,8 @@
         <field name="name">Dictaminar retornos de reparación</field>
         <field name="comment">Confirma el dictamen cuando ambas visitas y su evidencia son accesibles.</field>
     </record>
+    <record id="group_repair_rework_supervisor" model="res.groups">
+        <field name="name">Confirmar retrabajo de Reparación</field>
+        <field name="comment">Confirma una propuesta Q3 con acceso nativo a la orden y a su evidencia.</field>
+    </record>
 </odoo>

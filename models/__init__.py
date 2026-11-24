@@ -94,3 +94,5 @@ from . import customer_commitment_kpi
 from . import repair_arrival
 from . import repair_lead_time_kpi
 from . import repair_return
+from . import repair_rework
+from . import repair_rework_kpi
