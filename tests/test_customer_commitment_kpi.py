@@ -1,6 +1,7 @@
 """Contratos del adaptador F3 con datos ficticios y permisos nativos."""
 
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone
+from unittest.mock import patch
 
 from odoo import Command, fields
 from odoo.exceptions import AccessError, ValidationError
@@ -110,7 +111,11 @@ class TestCustomerCommitmentRepairDispatch(InventoryEventCommon):
         self._finish(picking)
         service = self.env["mc.rov.customer.commitment.kpi"].with_user(supervisor)
         span = {"date_from": due.isoformat(), "date_to": due.isoformat()}
-        self.assertEqual(service.get_summary(**span)["due"]["unknown"], 1)
+        # Consultar después de los sellos del ORM, que pueden incluir fracciones de segundo.
+        with patch.object(
+            fields.Datetime, "now", return_value=datetime.now(timezone.utc).replace(tzinfo=None)
+        ):
+            self.assertEqual(service.get_summary(**span)["due"]["unknown"], 1)
         attachment = self.env["ir.attachment"].create(
             {
                 "name": "Constancia QA",
@@ -132,7 +137,10 @@ class TestCustomerCommitmentRepairDispatch(InventoryEventCommon):
             }
         )
         evidence.action_apply()
-        result = service.get_summary(**span)
+        with patch.object(
+            fields.Datetime, "now", return_value=datetime.now(timezone.utc).replace(tzinfo=None)
+        ):
+            result = service.get_summary(**span)
         self.assertEqual(result["due"]["on_time"], 1)
         self.assertEqual(result["completed"]["on_time"], 1)
         self.assertEqual(result["rows"][0]["origin"], repair.display_name)
