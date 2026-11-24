@@ -1,18 +1,8 @@
-# Test workflow for mc_rov
-#
-# Runs Odoo tests in the runner checkout against odoo_test.
-# Never switches the branch or files served by production.
-# See docs/runbooks/testing.md for the manual equivalent.
-
+# El chequeo final conserva el nombre consumido por el bot de entregas.
 name: Tests
 
 permissions:
   contents: read
-
-concurrency:
-  group: mc-rov-odoo-test
-  cancel-in-progress: false
-  queue: max
 
 on:
   pull_request:
@@ -21,29 +11,80 @@ on:
     branches: [main]
 
 jobs:
-  odoo-tests:
-    name: Odoo module tests
-    runs-on: self-hosted
-    timeout-minutes: 30
-
+  select:
+    name: Selección de pruebas
+    runs-on: ubuntu-latest
+    outputs:
+      profile: ${{ steps.choose.outputs.profile }}
     steps:
-      - name: Checkout isolated module
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Probar selector y ciclo de base temporal
+        run: |
+          python3 -m unittest discover -s scripts/ci -p test_select_tests.py -v
+          python3 -m unittest discover -s scripts/ci -p test_odoo_ci_database.py -v
+      - name: Clasificar el diff y validar enlaces de documentación
+        id: choose
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          if test "$GITHUB_EVENT_NAME" = pull_request; then
+            python3 scripts/ci/select_tests.py "$BASE" "$HEAD_SHA" --merge-base
+          else
+            python3 scripts/ci/select_tests.py "$BASE" "$HEAD_SHA"
+          fi
+      - name: Ejecutar pruebas puras de KPI
+        if: steps.choose.outputs.profile != 'docs'
+        run: PYTHONPATH=models python3 -m unittest discover -s tests/unit -v
+
+  database:
+    name: Odoo en base efímera
+    needs: select
+    if: needs.select.outputs.profile == 'work_kpi' || needs.select.outputs.profile == 'full'
+    runs-on: self-hosted
+    timeout-minutes: 40
+    concurrency:
+      group: mc-rov-odoo-test
+      cancel-in-progress: false
+      queue: max
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           path: ci-addons/mc_rov
           persist-credentials: false
-
-      - name: Run pure KPI metrics tests
-        run: PYTHONPATH=ci-addons/mc_rov/models python3 -m unittest discover -s ci-addons/mc_rov/tests/unit -v
-
-      - name: Run mc_rov tests
-        run: bash ci-addons/mc_rov/scripts/ci/run_odoo_tests.sh
-
-      - name: Preserve Odoo test log
+      - name: Ejecutar el perfil de Odoo
+        env:
+          TEST_PROFILE: ${{ needs.select.outputs.profile }}
+        run: python3 ci-addons/mc_rov/scripts/ci/odoo_ci_database.py "$TEST_PROFILE"
+      - name: Conservar evidencia de Odoo
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: odoo-tests
           path: ${{ runner.temp }}/mc-rov-tests.*.log
           if-no-files-found: ignore
+
+  result:
+    name: Odoo module tests
+    needs: [select, database]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verificar el resultado correspondiente al alcance
+        env:
+          SELECT: ${{ needs.select.result }}
+          DATABASE: ${{ needs.database.result }}
+          PROFILE: ${{ needs.select.outputs.profile }}
+        run: |
+          test "$SELECT" = success
+          case "$PROFILE" in
+            docs|unit) test "$DATABASE" = skipped ;;
+            work_kpi|full) test "$DATABASE" = success ;;
+            *) exit 1 ;;
+          esac
+          echo "CI_TEST_RESULT=PASSED PROFILE=$PROFILE"

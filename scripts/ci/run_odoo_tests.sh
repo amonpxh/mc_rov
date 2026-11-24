@@ -9,6 +9,12 @@ case "$REPO" in
         exit 1
         ;;
 esac
+PROFILE=${1:?}
+DATABASE=${MC_ROV_CI_DATABASE:?}
+DATA_DIR=${MC_ROV_CI_DATA_DIR:?}
+[[ "$DATABASE" =~ ^mc_rov_ci_[a-f0-9]{32}$ ]]
+test -d "$DATA_DIR"
+test "$PROFILE" = full || test "$PROFILE" = work_kpi
 CONF=/etc/odoo/odoo.conf
 ADDONS=$(python3 - "$REPO" "$CONF" <<'PY'
 import configparser
@@ -36,39 +42,36 @@ assert resolved and Path(resolved).resolve() == Path(sys.argv[1]).resolve(), res
 print('CI_ODOO_SOURCE=' + resolved)
 PY
 
-# Contratos nuevos primero: RED focalizado antes del navegador y la regresión.
-FOCUSED_LOG=$(mktemp "${RUNNER_TEMP:?}/mc-rov-tests.production-focus.XXXXXX.log")
-odoo -d odoo_test -u mc_rov --test-tags production_kpi_capture --stop-after-init --no-http \
-    --http-port 8199 --gevent-port 8198 --workers 0 --max-cron-threads 0 \
-    --db-filter '^odoo_test$' --log-level test --logfile '' \
-    --config "$CONF" --addons-path "$ADDONS" 2>&1 | tee "$FOCUSED_LOG"
+COMMON=(-d "$DATABASE" --data-dir "$DATA_DIR" --config "$CONF" --addons-path "$ADDONS"
+    --stop-after-init --no-http --http-port 8199 --gevent-port 8198 --workers 0
+    --max-cron-threads 0 --db-filter "^$DATABASE$" --logfile '')
 
-# Primero los recorridos nuevos: un fallo del navegador no repite diez minutos
-# de regresión ya aprobada sobre el mismo producto. El GREEN final exige ambas etapas.
-python3 "$REPO/scripts/ci/run_production_kpi_races.py" "$REPO" "$CONF" "$ADDONS"
-python3 "$REPO/scripts/ci/run_kpi_browser_tests.py" "$REPO" "$CONF" "$ADDONS"
+INSTALL_LOG=$(mktemp "${RUNNER_TEMP:?}/mc-rov-tests.install.XXXXXX.log")
+odoo "${COMMON[@]}" -i mc_rov --without-demo --load-language=es_CL 2>&1 | tee "$INSTALL_LOG"
 
 LOG=$(mktemp "${RUNNER_TEMP:?}/mc-rov-tests.XXXXXX.log")
-# Solo capacidad existente: no instalar navegador ni modificar el host para comprobarla.
-if command -v google-chrome >/dev/null || command -v chromium >/dev/null || command -v chromium-browser >/dev/null; then
-    echo CI_BROWSER_AVAILABLE=True
+if test "$PROFILE" = work_kpi; then
+    TAGS=work_kpi
 else
-    echo CI_BROWSER_AVAILABLE=False
+    FOCUSED_LOG=$(mktemp "${RUNNER_TEMP:?}/mc-rov-tests.production-focus.XXXXXX.log")
+    odoo "${COMMON[@]}" -u mc_rov --test-tags production_kpi_capture --log-level test \
+        2>&1 | tee "$FOCUSED_LOG"
+    python3 "$REPO/scripts/ci/run_production_kpi_races.py" "$REPO" "$CONF" "$ADDONS"
+    python3 "$REPO/scripts/ci/run_kpi_browser_tests.py" "$REPO" "$CONF" "$ADDONS"
+    TAGS=/mc_rov,-kpi_dashboard_browser
 fi
-odoo -d odoo_test -u mc_rov --test-tags /mc_rov,-kpi_dashboard_browser --stop-after-init --no-http \
-    --http-port 8199 --gevent-port 8198 --workers 0 --max-cron-threads 0 \
-    --db-filter '^odoo_test$' --log-level test --logfile '' \
-    --config "$CONF" --addons-path "$ADDONS" 2>&1 | tee "$LOG"
+odoo "${COMMON[@]}" -u mc_rov --test-tags "$TAGS" --log-level test 2>&1 | tee "$LOG"
 
 # A successful process with missing tests is not a successful suite.
-python3 - "$REPO/tests" "$LOG" <<'PY'
+python3 - "$REPO/tests" "$LOG" "$PROFILE" <<'PY'
 import ast
 import re
 import sys
 from pathlib import Path
 tests = Path(sys.argv[1])
 expected = set()
-for module in re.findall(r'^from \. import (\w+)', (tests / '__init__.py').read_text(), re.M):
+modules = re.findall(r'^from \. import (\w+)', (tests / '__init__.py').read_text(), re.M)
+for module in (['test_work_kpi'] if sys.argv[3] == 'work_kpi' else modules):
     # Los HttpCase se verifican aparte con HTTP local y navegador real, nunca por skip.
     if module in {'test_kpi_dashboard_browser', 'test_customer_commitment_browser', 'test_repair_lead_time_browser', 'test_repair_return_browser'}:
         continue
