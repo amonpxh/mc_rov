@@ -2,7 +2,7 @@
 
 | Entorno | Uso |
 | --- | --- |
-| CI | Checkout aislado y `odoo_test`. Sigue el [runbook de pruebas](testing.md). |
+| CI | Checkout del commit exacto. Base y filestore temporales por ejecución de Odoo. Sigue el [runbook de pruebas](testing.md). |
 | STAGING | Verificar compatibilidad e instalación con el alcance expresamente autorizado. Tiene código, base, configuración y servicio propios. Verificar la identificación efectiva antes de ejecutar. |
 | Copia QA | Reproducir permisos, concurrencia o recorridos de usuarios con datos ficticios y código identificado. Seguir el [ensayo de aceptación](aceptacion-operativa-rov.md). |
 | Producción | Cambios por entrega autorizada, siguiendo [despliegue](deploy.md). |

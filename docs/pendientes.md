@@ -4,10 +4,16 @@ Actualizado el 24 de noviembre de 2026. Las entradas bajo «Historial» conserva
 
 | Alcance | Estado comprobado |
 | --- | --- |
-| Main y producción acreditada | `main` en `1a7e4e7`. Versión `19.0.25.12.0` instalada el 20 de noviembre. Instalación verificada con servicio activo, HTTP 200, versión de BD y recibo de integridad. La instalación no activó automatismos reales. |
+| Main y producción acreditada | `main` en `b2ec5ac`. Versión `19.0.25.12.0` instalada desde `1a7e4e7` el 20 de noviembre. Instalación verificada con servicio activo, HTTP 200, versión de BD y recibo de integridad. La instalación no activó automatismos reales. |
 | Candidato para el ensayo conjunto | `fd7379f` del [PR #133](https://github.com/amonpxh/mc_rov/pull/133), que sigue en borrador. Incluye Reparación, Fabricación, Calidad, Inventario, Gestión y Q3 de Reparación. Está preparado en copia aislada. [CI del candidato](https://github.com/amonpxh/mc_rov/actions/runs/45398433999). |
 | Aceptación de Q3 | Taller reportó que terminó ROV-Q3-01 sin ayuda. La orden quedó Hecha con el dictamen pendiente. Siguen Supervisor y Gestión. Q3 tiene QA técnico aprobado y aceptación operativa pendiente. |
 | Reparación y Fabricación | Casos ficticios preparados. Pendientes los recorridos completos y el traspaso de una recepción parcial a Fabricación. [Guía y registro](runbooks/aceptacion-operativa-rov.md). |
+| CI selectivo | [PR #135](https://github.com/amonpxh/mc_rov/pull/135) integrado con squash en `b2ec5ac`. Pasaron 1.729 casos nativos en una base nueva que se retiró al terminar. [CI de main](https://github.com/amonpxh/mc_rov/actions/runs/45445580449). |
+| Incorporación del equipo | [PR #134](https://github.com/amonpxh/mc_rov/pull/134) en borrador y actualizado para usar el perfil documental. El [fallo anterior](https://github.com/amonpxh/mc_rov/actions/runs/45422079584) se produjo al cargar una vista residual de Q3 en la base compartida. |
+
+Paulo confirmó a `@amonpxh` como responsable principal para CODEOWNERS.
+Queda pendiente el usuario de la nueva persona. El archivo de propietarios
+del repositorio aún no refleja la confirmación.
 
 ## Pendientes antes del arranque
 

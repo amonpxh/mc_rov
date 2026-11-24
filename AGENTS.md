@@ -89,7 +89,8 @@ Referencias:
   Para documentación o textos, comprobar enlaces, diff y las vistas afectadas según corresponda.
 - CI actual: `lint.yml` ejecuta pre-commit (higiene, XML/YAML, Black y pylint-odoo);
   `test.yml` ejecuta pruebas puras KPI y Odoo con verificación de descubrimiento y log.
-  El runner usa checkout aislado y `odoo_test`; nunca fuentes servidas por producción.
+  El workflow selecciona el perfil según el diff. Si requiere Odoo, el runner usa
+  el checkout exacto, una base nueva y un filestore temporal por ejecución.
 - `pr-title.yml` valida Conventional Commits y `secrets.yml` ejecuta Gitleaks.
   Las protecciones dependen de la configuración remota y del plan.
 
