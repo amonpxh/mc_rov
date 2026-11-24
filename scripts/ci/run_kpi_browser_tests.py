@@ -1,4 +1,4 @@
-"""Ejecuta Chrome temporal y HttpCase sobre odoo_test, sin instalar paquetes del host."""
+"""Ejecuta Chrome temporal y HttpCase sobre destinos efímeros de CI, sin instalar paquetes del host."""
 
 # La salida de este CLI forma parte de la evidencia de CI.
 # pylint: disable=unknown-option-value,print-used
@@ -135,7 +135,7 @@ def run_browser(repo, config, addons, database, tag):
         ("/opt/odoo/custom-addons", "/opt/odoo/staging-addons")
     ):
         raise RuntimeError("El navegador exige un checkout aislado de CI")
-    if database != "odoo_test" and not re.fullmatch(r"mc_rov_kpi_ci_[a-f0-9]{20}", database):
+    if not re.fullmatch(r"mc_rov_(?:ci_[a-f0-9]{32}|kpi_ci_[a-f0-9]{20})", database):
         raise RuntimeError("Base de navegador CI no permitida")
     log_prefix = {
         "/mc_rov:TestKPIDashboardBrowser": "mc-rov-tests.browser-",
@@ -155,6 +155,8 @@ def run_browser(repo, config, addons, database, tag):
             "--test-tags",
             tag,
             "--stop-after-init",
+            "--data-dir",
+            os.environ["MC_ROV_CI_DATA_DIR"],
             "--http-interface",
             "127.0.0.1",
             "--http-port",
@@ -200,7 +202,7 @@ def main():
         repo,
         config,
         addons,
-        "odoo_test",
+        os.environ["MC_ROV_CI_DATABASE"],
         "/mc_rov:TestKPIDashboardBrowser",
     )
     expected_hoot = sum(

@@ -1,4 +1,4 @@
-"""Siete carreras sobre copia efímera de odoo_test, nunca sobre una base servida."""
+"""Siete carreras sobre copia de la base efímera de CI, nunca sobre una base servida."""
 
 # El informe de stdout es un protocolo CI; los casos usan solo identidades QA propias.
 # pylint: disable=unknown-option-value,print-used,too-many-locals
@@ -25,6 +25,7 @@ from odoo.tools import SQL, config
 from odoo.tools.misc import exec_pg_environ, find_pg_tool
 
 from customer_commitment_races import run_customer_commitment_races
+from odoo_ci_database import validate_name
 from repair_arrival_races import run_repair_arrival_races
 from repair_return_races import run_repair_return_races
 from run_kpi_browser_tests import run_browser
@@ -318,10 +319,10 @@ def _admin(statement, name):
         cursor.execute(SQL(statement, SQL.identifier(name)))
 
 
-def _source_fingerprint():
+def _source_fingerprint(source):
     """Agregados de solo lectura; cerrar también el pool permite copiar la plantilla."""
     try:
-        with sql_db.db_connect("odoo_test").cursor() as cursor:
+        with sql_db.db_connect(source).cursor() as cursor:
             cursor.execute("SET TRANSACTION READ ONLY")
             result = []
             for table in (
@@ -344,11 +345,11 @@ def _source_fingerprint():
             cursor.rollback()
         return result
     finally:
-        sql_db.close_db("odoo_test")
+        sql_db.close_db(source)
 
 
-def _restore_source(database):
-    """No exige ser dueño de odoo_test ni habilita funciones de administración web."""
+def _restore_source(source, database):
+    """Restaura la base recién instalada en una copia de concurrencia."""
     with tempfile.TemporaryDirectory(
         prefix="mc-rov-kpi-dump-", dir=os.environ["RUNNER_TEMP"]
     ) as work:
@@ -360,7 +361,7 @@ def _restore_source(database):
                 "--format=custom",
                 "--file",
                 str(backup),
-                "odoo_test",
+                source,
             ],
             env=exec_pg_environ(),
             stdout=subprocess.DEVNULL,
@@ -383,15 +384,18 @@ def _restore_source(database):
         )
 
 
-def _copy_filestore(database):
+def _copy_filestore(source, database):
     """Conserva los assets y adjuntos referenciados por la copia, sin tocar el origen."""
-    source = Path(config.filestore("odoo_test")).resolve()
+    filestore = Path(config.filestore(source)).resolve()
     destination = Path(config.filestore(database)).resolve()
-    if source.name != "odoo_test" or destination.parent != source.parent:
+    if filestore.name != source or destination.parent != filestore.parent:
         raise RuntimeError("El filestore de origen o de destino no corresponde al runner CI")
     if destination.name != database or destination.exists():
         raise RuntimeError("El filestore de destino debe pertenecer a una copia nueva")
-    shutil.copytree(source, destination)
+    if filestore.exists():
+        shutil.copytree(filestore, destination)
+    else:
+        destination.mkdir(parents=True)
 
 
 def _verify_operational_browsers(browser_args, report):
@@ -443,6 +447,8 @@ def main():
             sys.argv[2],
             "--addons-path",
             sys.argv[3],
+            "--data-dir",
+            os.environ["MC_ROV_CI_DATA_DIR"],
             "--no-http",
             "--max-cron-threads",
             "0",
@@ -455,10 +461,12 @@ def main():
         raise RuntimeError("Las fuentes no corresponden al checkout CI")
     if str(repo).startswith(("/opt/odoo/custom-addons", "/opt/odoo/staging-addons")):
         raise RuntimeError("No se ejecutan carreras desde un checkout servido")
+    source = os.environ["MC_ROV_CI_DATABASE"]
+    validate_name(source)
     database = "mc_rov_kpi_ci_" + uuid.uuid4().hex[:20]
     created, passed = False, False
     report = {
-        "source": "odoo_test",
+        "source": source,
         "cases": [],
         "f3_cases": [],
         "f3_browser": False,
@@ -469,12 +477,12 @@ def main():
         "pdf_renderer_test_double": True,
         "source_unchanged": None,
     }
-    baseline = _source_fingerprint()
+    baseline = _source_fingerprint(source)
     try:
         _admin("CREATE DATABASE %s TEMPLATE template0", database)
         created = True
-        _restore_source(database)
-        _copy_filestore(database)
+        _restore_source(source, database)
+        _copy_filestore(source, database)
         registry = Registry.new(database)
         fixture, context = _base(registry)
         for phase in (
@@ -491,8 +499,8 @@ def main():
         assert len(report["cases"]) == 7
         _run_followup_races(registry, context, fixture, report)
         _verify_operational_browsers((repo, sys.argv[2], sys.argv[3], database), report)
-        report["source_unchanged"] = _source_fingerprint() == baseline
-        assert report["source_unchanged"], "Cambió la referencia de odoo_test"
+        report["source_unchanged"] = _source_fingerprint(source) == baseline
+        assert report["source_unchanged"], "Cambió la base temporal de origen"
         passed = True
     finally:
         if created:
@@ -501,7 +509,7 @@ def main():
             if passed:
                 _admin("DROP DATABASE %s", database)
                 filestore = Path(config.filestore(database)).resolve()
-                root = Path(config.filestore("odoo_test")).resolve().parent
+                root = Path(config.filestore(source)).resolve().parent
                 if filestore.parent != root or filestore.name != database:
                     raise RuntimeError(
                         "La ruta del filestore temporal no está dentro del destino CI"
@@ -509,8 +517,8 @@ def main():
                 if filestore.exists():
                     shutil.rmtree(filestore)
             else:
-                _admin("ALTER DATABASE %s ALLOW_CONNECTIONS false", database)
-                report["failed_copy_blocked"] = database
+                _admin("DROP DATABASE %s WITH (FORCE)", database)
+                report["failed_copy_removed"] = database
         report.update(passed=passed, isolated=True)
         with tempfile.NamedTemporaryFile(
             prefix="mc-rov-tests.production-races-",
