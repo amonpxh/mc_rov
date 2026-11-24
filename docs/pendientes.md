@@ -1,3 +1,36 @@
+# Estado vigente del proyecto
+
+Actualizado el 24 de noviembre de 2026. Las entradas bajo «Historial» conservan el contexto de entregas anteriores.
+
+| Alcance | Estado comprobado |
+| --- | --- |
+| Main y producción acreditada | `main` en `b2ec5ac`. Versión `19.0.25.12.0` instalada desde `1a7e4e7` el 20 de noviembre. Instalación verificada con servicio activo, HTTP 200, versión de BD y recibo de integridad. La instalación no activó automatismos reales. |
+| Candidato para el ensayo conjunto | `fd7379f` del [PR #133](https://github.com/amonpxh/mc_rov/pull/133), que sigue en borrador. Incluye Reparación, Fabricación, Calidad, Inventario, Gestión y Q3 de Reparación. Está preparado en copia aislada. [CI del candidato](https://github.com/amonpxh/mc_rov/actions/runs/45398433999). |
+| Aceptación de Q3 | Taller reportó que terminó ROV-Q3-01 sin ayuda. La orden quedó Hecha con el dictamen pendiente. Siguen Supervisor y Gestión. Q3 tiene QA técnico aprobado y aceptación operativa pendiente. |
+| Reparación y Fabricación | Casos ficticios preparados. Pendientes los recorridos completos y el traspaso de una recepción parcial a Fabricación. [Guía y registro](runbooks/aceptacion-operativa-rov.md). |
+| CI selectivo | [PR #135](https://github.com/amonpxh/mc_rov/pull/135) integrado con squash en `b2ec5ac`. Pasaron 1.729 casos nativos en una base nueva que se retiró al terminar. [CI de main](https://github.com/amonpxh/mc_rov/actions/runs/45445580449). |
+| Incorporación del equipo | [PR #134](https://github.com/amonpxh/mc_rov/pull/134) en borrador y actualizado para usar el perfil documental. El [fallo anterior](https://github.com/amonpxh/mc_rov/actions/runs/45422079584) se produjo al cargar una vista residual de Q3 en la base compartida. |
+
+Paulo confirmó a `@amonpxh` como responsable principal para CODEOWNERS.
+Queda pendiente el usuario de la nueva persona. El archivo de propietarios
+del repositorio aún no refleja la confirmación.
+
+## Pendientes antes del arranque
+
+- Completar la aceptación con el equipo, registrar bloqueos y repetir los recorridos afectados por correcciones.
+- Probar el traspaso desde el canal actual de Compras. Inventario debe conservar la referencia externa, una unidad recibida y otra pendiente. Fabricación debe poder reservar y usar lo recibido. Designar a quien registrará y conciliará el saldo. Si el canal actual no sostiene ese traspaso, incorporar Compras básica antes de arrancar.
+- Validar productos, componentes, series, listas de materiales, ubicaciones y existencias iniciales. Cerrar permisos, responsables, reemplazos, calendarios, procedimientos y capacitación.
+- Verificar recuperación desde respaldo, alertas y monitoreo. Definir una carga inicial conciliada, alcance y seguimiento del piloto. Revisar y autorizar integración, instalación y activación en sus pasos respectivos.
+
+## Incrementos posteriores
+
+- Compras y abastecimiento, tablero A1 de proveedores y reposición automática. Si una compra debe entrar en A1 desde el primer día, conservar su compromiso original por línea desde entonces.
+- Chatbot de IA en Odoo y Telegram con vinculación de identidades, permisos y aceptación propios.
+- Completar tramos internos F6 y ampliar F1/F4/F5/Q4 según el catálogo. Q3 de Fabricación queda para otro incremento. Iniciar la captura de retornos con el uso real y calcular la tasa Q2 cuando haya cobertura acreditada de 180 días.
+
+## Historial de trabajo y entrega
+
+
 ## Primer incremento de F6 implementado localmente — 2026-11-19
 
 El catálogo inicial deja pendientes F6, Q2, Q3 y A1 y conserva F1, F4,

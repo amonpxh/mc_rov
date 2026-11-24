@@ -31,8 +31,7 @@ Título recomendado de PR y commit final:
 
 Tipos: `feat`, `fix`, `perf`, `refactor`, `docs`, `test`, `ci`, `chore`, `style`, `data`.
 Usar `!` y explicar migración/compatibilidad si el cambio rompe datos o contratos.
-El workflow `pr-title.yml` agregado en esta rama valida el formato en eventos de PR,
-incluidos cambios de título. Confirmar su CI e integración antes de considerarlo activo.
+El workflow `pr-title.yml` valida el formato en los eventos de PR, incluidos cambios de título.
 
 El manifiesto usa `19.0.X.Y.Z`: `19.0` identifica Odoo; `X` cambios incompatibles,
 `Y` funciones compatibles y `Z` correcciones compatibles. Los números existentes

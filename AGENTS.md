@@ -21,6 +21,8 @@ Al empezar:
 
 Referencias:
 
+- [Incorporación](docs/incorporacion.md): ruta de lectura para personas y agentes.
+
 - [Reglas del dominio](docs/agents/dominio.md): convenciones y motivos de diseño.
 - [Flujo Git](docs/agents/git-flow.md): integración, versiones y limpieza de ramas.
 - [Pruebas](docs/runbooks/testing.md), [staging](docs/runbooks/staging.md) y
@@ -87,11 +89,10 @@ Referencias:
   Para documentación o textos, comprobar enlaces, diff y las vistas afectadas según corresponda.
 - CI actual: `lint.yml` ejecuta pre-commit (higiene, XML/YAML, Black y pylint-odoo);
   `test.yml` ejecuta pruebas puras KPI y Odoo con verificación de descubrimiento y log.
-  El runner usa checkout aislado y `odoo_test`; nunca fuentes servidas por producción.
-- Esta rama agrega `pr-title.yml` (Conventional Commits) y `secrets.yml` (Gitleaks),
-  ambos en runners de GitHub con acceso de lectura. Su integración y CI se verifican
-  antes de anunciarlos como activos en main. Las protecciones de GitHub dependen
-  además de la configuración remota y del plan contratado.
+  El workflow selecciona el perfil según el diff. Si requiere Odoo, el runner usa
+  el checkout exacto, una base nueva y un filestore temporal por ejecución.
+- `pr-title.yml` valida Conventional Commits y `secrets.yml` ejecuta Gitleaks.
+  Las protecciones dependen de la configuración remota y del plan.
 
 ## Coordinación y continuidad
 
